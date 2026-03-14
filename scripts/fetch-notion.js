@@ -596,7 +596,7 @@ async function fetchHolisticSkills() {
       slug: getTextValue(props[propMap.slug]) || toSlug(name),
       name,
       domain: getSelectValue(props[propMap.domain]),
-      skillset: getSelectValue(props[propMap.skillset]),
+      skillsets: getMultiSelectValue(props[propMap.skillset]),
       description: getTextValue(props[propMap.description]),
       icon: getTextValue(props[propMap.icon]),
       howToPractice: getTextValue(props[propMap.howToPractice]),

@@ -5,6 +5,7 @@ export interface Skill {
   slug: string;
   name: string;
   domain: string;
+  skillsets: string[];
   description: string;
   icon: string;
   howToPractice: string;
@@ -66,6 +67,20 @@ function SkillCard({ skill }: { skill: Skill }) {
               {skill.description}
             </p>
           </div>
+
+          {/* Skillset tags */}
+          {skill.skillsets?.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {skill.skillsets.map((s) => (
+                <span
+                  key={s}
+                  className="text-[10px] px-2 py-0.5 rounded-full border border-white/15 text-[var(--color-text-on-dark-muted)]"
+                >
+                  {s}
+                </span>
+              ))}
+            </div>
+          )}
 
           {/* Practice prompt */}
           {skill.howToPractice && (
