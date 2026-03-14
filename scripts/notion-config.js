@@ -17,9 +17,7 @@ module.exports = {
     // whatPageV2 removed — superseded by siteContent CMS (Mar 2026)
     siteContent: '09a046a556c1455e80073546b8f83297',
     harbourGames: '8e3f3364b2654640a91ed0f38b091a07',
-    // TODO: share the "Holistic Skills Primer" Notion database with this integration,
-    // then replace the placeholder ID below with the real database ID.
-    holisticSkills: process.env.NOTION_HOLISTIC_SKILLS_DB_ID || 'HOLISTIC_SKILLS_PRIMER_DB_ID',
+    holisticSkills: process.env.NOTION_HOLISTIC_SKILLS_DB_ID || '38873e53f36f4b2885552fdf6cdc98cb',
   },
 
   // Property name mappings (Notion column name â internal key)
@@ -81,7 +79,8 @@ module.exports = {
     holisticSkills: {
       name: 'Name',
       slug: 'Slug',
-      category: 'Category',
+      domain: 'Domain',
+      skillset: 'Skillset',
       description: 'Description',
       icon: 'Icon',
       howToPractice: 'How to Practice',
@@ -129,7 +128,7 @@ module.exports = {
     portfolioAssets: ['asset', 'Website Asset Type'],
     vertigoVault: ['name'],
     // whatPage required removed — retired (Mar 2026)
-    holisticSkills: ['Name', 'Category'],
+    holisticSkills: ['Name', 'Domain'],
     harbourGames: ['Name', 'Slug'],
     siteContent: ['Name', 'Page'],
   },

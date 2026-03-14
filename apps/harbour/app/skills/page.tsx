@@ -6,7 +6,7 @@ import { ScrollReveal } from "@/components/scroll-reveal";
 export const metadata = {
   title: "holistic skills primer — the harbour",
   description:
-    "a curated primer on the relational, somatic, reflective, and generative skills that underpin meaningful facilitation, play, and human connection.",
+    "21 social, behavioral, and cognitive skills for navigating complexity, creativity, and connection — from the PRME holistic skills framework.",
 };
 
 export default function SkillsPage() {
@@ -28,8 +28,9 @@ export default function SkillsPage() {
               holistic skills primer
             </h1>
             <p className="text-lg sm:text-xl text-[var(--color-text-on-dark-muted)] leading-relaxed max-w-xl mx-auto">
-              the skills that make play meaningful and connection possible.
-              relational. somatic. reflective. generative. each one a door.
+              21 skills across two domains — social & behavioral and
+              cognitive — that research shows are essential for navigating
+              complexity, uncertainty, and transformation.
             </p>
           </div>
         </section>

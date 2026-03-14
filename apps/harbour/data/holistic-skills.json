@@ -1,101 +1,191 @@
 [
   {
-    "slug": "active-listening",
-    "name": "active listening",
-    "category": "relational",
-    "description": "being fully present with another person — not just waiting for your turn to speak. the kind of listening that makes people feel genuinely heard.",
-    "icon": "👂",
-    "howToPractice": "in your next conversation, resist the urge to form a response until the other person has fully finished. notice what you hear when you're not preparing to reply.",
+    "slug": "openness",
+    "name": "openness",
+    "domain": "social & behavioral",
+    "description": "willingness to engage with novel ideas, perspectives, and situations. curiosity about the world, appreciation for diverse viewpoints, and comfort with exploration beyond familiar boundaries.",
+    "icon": "💭",
+    "howToPractice": "seek out a perspective this week that genuinely challenges your own. sit with it long enough to find what's useful in it.",
     "order": 1
   },
   {
-    "slug": "holding-space",
-    "name": "holding space",
-    "category": "relational",
-    "description": "creating the conditions where someone can be honest — including with themselves. not fixing, not advising, not rushing to resolution.",
-    "icon": "🌿",
-    "howToPractice": "when someone shares something hard, try sitting with it for ten seconds before responding. notice the difference between silence that empties and silence that holds.",
+    "slug": "adaptability",
+    "name": "adaptability",
+    "domain": "social & behavioral",
+    "description": "capacity to adjust thoughts, behaviors, and strategies in response to changing conditions. cognitive flexibility, tolerance for uncertainty, and willingness to revise plans when circumstances shift.",
+    "icon": "🌀",
+    "howToPractice": "next time a plan falls apart, notice your first reaction. then ask: what does this new situation make possible that the old plan didn't?",
     "order": 2
   },
   {
-    "slug": "naming-whats-true",
-    "name": "naming what's true",
-    "category": "relational",
-    "description": "saying the thing in the room that everyone senses but no one has said. not to create drama — to reduce the energy spent pretending it isn't there.",
-    "icon": "🗣️",
-    "howToPractice": "in your next group, notice what's unsaid. try articulating it as a question: 'i'm noticing a certain hesitation — is that landing for anyone else?'",
+    "slug": "agency",
+    "name": "agency",
+    "domain": "social & behavioral",
+    "description": "sense that one can influence outcomes through intentional action. self-efficacy, internal locus of control, and belief in capacity to shape learning and work.",
+    "icon": "✨",
+    "howToPractice": "identify one thing you've been waiting for permission to do. take the smallest possible step toward it today.",
     "order": 3
+  },
+  {
+    "slug": "curiosity",
+    "name": "curiosity",
+    "domain": "social & behavioral",
+    "description": "intrinsic drive to seek new information and experiences. asking questions, exploring unknowns, finding joy in discovery.",
+    "icon": "🔍",
+    "howToPractice": "ask three genuine questions today where you don't already know the answer. notice which ones surprise you.",
+    "order": 4
+  },
+  {
+    "slug": "intellectual-humility",
+    "name": "intellectual humility",
+    "domain": "social & behavioral",
+    "description": "recognition that one's beliefs and knowledge are fallible. openness to being wrong, respect for others' viewpoints, and willingness to revise judgments based on evidence.",
+    "icon": "🧘",
+    "howToPractice": "in your next disagreement, try saying 'i might be wrong about this — help me see what i'm missing.' notice what shifts.",
+    "order": 5
+  },
+  {
+    "slug": "intellectual-risk-taking",
+    "name": "willingness to take intellectual risks",
+    "domain": "social & behavioral",
+    "description": "willingness to try new approaches, share tentative ideas, and persist despite uncertainty. risk-taking supports creative thinking and deep learning.",
+    "icon": "🎲",
+    "howToPractice": "share an unfinished idea in your next meeting. frame it as 'this is rough, but...' and see what develops.",
+    "order": 6
+  },
+  {
+    "slug": "tolerance-for-ambiguity",
+    "name": "tolerance for ambiguity",
+    "domain": "social & behavioral",
+    "description": "ability to function effectively in situations lacking clear structure, answers, or outcomes. comfort with complexity, patience with not-knowing, capacity to hold multiple possibilities simultaneously.",
+    "icon": "🌫️",
+    "howToPractice": "next time you feel the urge to resolve something prematurely, try sitting with the uncertainty for one more day. notice what clarity emerges on its own.",
+    "order": 7
+  },
+  {
+    "slug": "perspective-taking",
+    "name": "perspective-taking & empathic concern",
+    "domain": "social & behavioral",
+    "description": "cognitive capacity to understand another person's viewpoint combined with emotional response to others' experiences. enables consideration of stakeholder impacts, navigation of difference, and compassionate action.",
+    "icon": "🪞",
+    "howToPractice": "before reacting to someone's behavior, spend 30 seconds imagining three possible reasons behind it that have nothing to do with you.",
+    "order": 8
   },
   {
     "slug": "self-regulation",
     "name": "self-regulation",
-    "category": "somatic",
-    "description": "the ability to notice your own activation — physical, emotional, cognitive — and work with it rather than from it. the foundation of everything else.",
+    "domain": "social & behavioral",
+    "description": "monitoring and managing one's emotions, attention, and behaviors to achieve goals. impulse control, emotional awareness, stress management, and strategic resource allocation.",
     "icon": "🌊",
     "howToPractice": "when you feel a spike of reactivity, put one hand on your chest and take three slow breaths. not to suppress the feeling — to expand the space around it.",
-    "order": 4
-  },
-  {
-    "slug": "embodied-presence",
-    "name": "embodied presence",
-    "category": "somatic",
-    "description": "showing up in your body, not just your head. awareness of posture, breath, and physical sensation as live information about what's happening.",
-    "icon": "🌱",
-    "howToPractice": "before a difficult conversation, take 60 seconds to feel your feet on the floor, your breath in your belly, and the weight of your body in the chair.",
-    "order": 5
-  },
-  {
-    "slug": "boundary-sensing",
-    "name": "boundary sensing",
-    "category": "somatic",
-    "description": "knowing — in your body, not just your mind — where you end and someone else begins. essential for genuine generosity rather than habitual over-giving.",
-    "icon": "🧭",
-    "howToPractice": "notice the physical sensation of a 'yes that costs you something' versus a 'yes that fills you up'. the body knows the difference before the mind does.",
-    "order": 6
-  },
-  {
-    "slug": "reflective-practice",
-    "name": "reflective practice",
-    "category": "reflective",
-    "description": "the habit of pausing after experiences to extract meaning — not rumination, but deliberate inquiry into what happened and what it taught you.",
-    "icon": "🔍",
-    "howToPractice": "after any significant session or conversation, ask three questions: what happened? what surprised me? what would i do differently?",
-    "order": 7
-  },
-  {
-    "slug": "assumption-spotting",
-    "name": "assumption spotting",
-    "category": "reflective",
-    "description": "noticing the invisible beliefs and expectations you're carrying into any situation — before they become the floor you don't know you're standing on.",
-    "icon": "🔦",
-    "howToPractice": "before your next facilitated session or important conversation, write down three things you assume will happen. check afterwards how many were true.",
-    "order": 8
-  },
-  {
-    "slug": "creative-risk",
-    "name": "creative risk",
-    "category": "generative",
-    "description": "trying something before it's perfect — the willingness to be awkward, to iterate, to learn in public. most creative blocks are perfection in disguise.",
-    "icon": "🎲",
-    "howToPractice": "make one small thing today that you won't show anyone. practice the motion without the audience. notice what relaxes.",
     "order": 9
   },
   {
-    "slug": "play",
-    "name": "play",
-    "category": "generative",
-    "description": "the capacity to engage with something for its own sake — without needing it to produce anything. play is practice for not knowing the outcome.",
-    "icon": "🎈",
-    "howToPractice": "spend 20 minutes doing something with no goal and no audience. doodle. move. make noise. notice when the urge to 'make it into something' arises.",
+    "slug": "abundance-mindset",
+    "name": "abundance mindset",
+    "domain": "social & behavioral",
+    "description": "belief that opportunities, resources, and success are plentiful rather than zero-sum. generosity, collaboration over competition, and confidence that enough exists for all.",
+    "icon": "☀️",
+    "howToPractice": "next time you feel competitive or guarded, ask: what would i do differently if i believed there was enough for everyone? try that.",
     "order": 10
   },
   {
-    "slug": "design-thinking",
-    "name": "design thinking",
-    "category": "generative",
-    "description": "approaching problems through questions, prototypes, and iterations rather than predetermined solutions. starting with curiosity about what's actually needed.",
-    "icon": "🧩",
-    "howToPractice": "take a current problem you're trying to solve. instead of generating solutions, spend 10 minutes generating questions. see which ones crack the frame.",
+    "slug": "inquiry",
+    "name": "inquiry",
+    "domain": "cognitive",
+    "description": "asking questions, seeking evidence, and investigating phenomena with systematic curiosity. formulating meaningful questions, designing investigations, and pursuing answers through research or experimentation.",
+    "icon": "❓",
+    "howToPractice": "take a claim you've accepted at face value. spend 10 minutes investigating it. notice whether the evidence matches your assumption.",
     "order": 11
+  },
+  {
+    "slug": "analysis-evaluation",
+    "name": "analysis & evaluation",
+    "domain": "cognitive",
+    "description": "breaking down complex information into components to understand relationships, patterns, and structures. judging quality, validity, or significance based on criteria.",
+    "icon": "🔬",
+    "howToPractice": "read an argument you agree with and identify its weakest point. read one you disagree with and find its strongest.",
+    "order": 12
+  },
+  {
+    "slug": "synthesis",
+    "name": "synthesis",
+    "domain": "cognitive",
+    "description": "integration of ideas from multiple sources into coherent new understanding. identifying connections, building frameworks, and creating unified perspectives from diverse inputs.",
+    "icon": "🧩",
+    "howToPractice": "after reading or learning from two different sources on a topic, write one paragraph that connects them in a way neither source does alone.",
+    "order": 13
+  },
+  {
+    "slug": "extending-ideas",
+    "name": "extending ideas",
+    "domain": "cognitive",
+    "description": "taking existing concepts or solutions and pushing them further. applying them to new contexts, elaborating their implications, and building upon them incrementally.",
+    "icon": "🚀",
+    "howToPractice": "take a solution that works in one domain and ask: where else could this apply? what would need to change to make it work there?",
+    "order": 14
+  },
+  {
+    "slug": "conventional-ideas",
+    "name": "conventional ideas",
+    "domain": "cognitive",
+    "description": "common, established, or standard approaches within a domain. provides necessary grounding — you must know the norms to meaningfully innovate beyond them.",
+    "icon": "📚",
+    "howToPractice": "before trying to innovate in an area, spend time understanding the established approach. ask: why does this convention exist? what problem did it solve?",
+    "order": 15
+  },
+  {
+    "slug": "generating-diverse-ideas",
+    "name": "generating diverse ideas",
+    "domain": "cognitive",
+    "description": "producing many different kinds of ideas across categories, domains, or perspectives. emphasis on breadth and variety over depth or refinement.",
+    "icon": "🌈",
+    "howToPractice": "set a timer for 5 minutes and generate ideas for a current challenge. aim for quantity and variety — no filtering allowed until the timer ends.",
+    "order": 16
+  },
+  {
+    "slug": "generating-creative-ideas",
+    "name": "generating creative ideas",
+    "domain": "cognitive",
+    "description": "producing original, novel, or unusual ideas that break from conventional patterns. divergent thinking, remote association, and willingness to propose unexpected possibilities.",
+    "icon": "💡",
+    "howToPractice": "combine two unrelated concepts from your work and ask: what would this look like if they merged? follow the weird ones.",
+    "order": 17
+  },
+  {
+    "slug": "improving-ideas",
+    "name": "improving ideas",
+    "domain": "cognitive",
+    "description": "taking initial concepts and refining, elaborating, or enhancing them through iteration. giving and receiving feedback, recognizing limitations, and making strategic revisions.",
+    "icon": "🔧",
+    "howToPractice": "take your most recent piece of work and ask three people for one specific improvement each. implement the one that surprises you most.",
+    "order": 18
+  },
+  {
+    "slug": "planning",
+    "name": "planning",
+    "domain": "cognitive",
+    "description": "setting goals, anticipating steps, allocating resources, and organizing action toward desired outcomes. strategic thinking, time management, and breaking complex goals into manageable parts.",
+    "icon": "🗓️",
+    "howToPractice": "take your biggest current goal and break it into three phases. for each phase, identify the single most important next action.",
+    "order": 19
+  },
+  {
+    "slug": "executing",
+    "name": "executing",
+    "domain": "cognitive",
+    "description": "implementation of plans. taking action, managing resources, coordinating efforts, and maintaining momentum toward goals. involves persistence, task management, and adaptive implementation when plans meet reality.",
+    "icon": "⚡",
+    "howToPractice": "identify the task you've been avoiding longest. commit to 15 minutes on it right now — nothing else. momentum follows motion.",
+    "order": 20
+  },
+  {
+    "slug": "monitoring",
+    "name": "monitoring",
+    "domain": "cognitive",
+    "description": "tracking progress toward goals, assessing whether strategies are working, and recognizing when adjustments are needed. metacognitive awareness, self-assessment, and use of feedback.",
+    "icon": "📊",
+    "howToPractice": "at the end of today, ask: what worked? what didn't? what will i do differently tomorrow? write it down in three sentences.",
+    "order": 21
   }
 ]

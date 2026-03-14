@@ -4,7 +4,7 @@ import { ScrollReveal } from "./scroll-reveal";
 export interface Skill {
   slug: string;
   name: string;
-  category: string;
+  domain: string;
   description: string;
   icon: string;
   howToPractice: string;
@@ -15,29 +15,19 @@ export const SKILLS: Skill[] = (skillsData as Skill[]).sort(
   (a, b) => a.order - b.order,
 );
 
-const CATEGORY_META: Record<
+const DOMAIN_META: Record<
   string,
   { label: string; color: string; accent: string }
 > = {
-  relational: {
-    label: "relational",
+  "social & behavioral": {
+    label: "social & behavioral skills",
     color: "from-[var(--wv-sienna)] to-[var(--wv-redwood)]",
     accent: "bg-[var(--wv-redwood)]",
   },
-  somatic: {
-    label: "somatic",
-    color: "from-[var(--wv-redwood)] to-[var(--wv-cadet)]",
-    accent: "bg-[var(--wv-sienna)]",
-  },
-  reflective: {
-    label: "reflective",
+  cognitive: {
+    label: "cognitive skills",
     color: "from-[var(--wv-cadet)] to-[var(--wv-champagne)]",
-    accent: "bg-[var(--wv-champagne)]",
-  },
-  generative: {
-    label: "generative",
-    color: "from-[var(--wv-champagne)] to-[var(--wv-sienna)]",
-    accent: "bg-[var(--wv-redwood)]",
+    accent: "bg-[var(--wv-cadet)]",
   },
 };
 
@@ -48,7 +38,7 @@ const FALLBACK_META = {
 };
 
 function SkillCard({ skill }: { skill: Skill }) {
-  const meta = CATEGORY_META[skill.category] ?? FALLBACK_META;
+  const meta = DOMAIN_META[skill.domain] ?? FALLBACK_META;
 
   return (
     <ScrollReveal animation="card-stagger" className="flex">
@@ -63,7 +53,7 @@ function SkillCard({ skill }: { skill: Skill }) {
             <span
               className={`${meta.accent} text-[var(--color-text-on-dark)] text-xs font-semibold px-2.5 py-0.5 rounded-full shrink-0`}
             >
-              {skill.category}
+              {skill.domain}
             </span>
           </div>
 
@@ -95,27 +85,27 @@ function SkillCard({ skill }: { skill: Skill }) {
 }
 
 export function SkillsPrimer() {
-  // Group skills by category in natural order of first appearance
-  const categories: string[] = [];
-  const byCategory: Record<string, Skill[]> = {};
+  // Group skills by domain in natural order of first appearance
+  const domains: string[] = [];
+  const byDomain: Record<string, Skill[]> = {};
 
   for (const skill of SKILLS) {
-    if (!byCategory[skill.category]) {
-      categories.push(skill.category);
-      byCategory[skill.category] = [];
+    if (!byDomain[skill.domain]) {
+      domains.push(skill.domain);
+      byDomain[skill.domain] = [];
     }
-    byCategory[skill.category].push(skill);
+    byDomain[skill.domain].push(skill);
   }
 
   return (
     <div className="space-y-16">
-      {categories.map((cat) => {
-        const meta = CATEGORY_META[cat] ?? FALLBACK_META;
+      {domains.map((dom) => {
+        const meta = DOMAIN_META[dom] ?? FALLBACK_META;
         return (
-          <section key={cat} aria-label={`${cat} skills`}>
-            {/* Category heading */}
+          <section key={dom} aria-label={`${dom} skills`}>
+            {/* Domain heading */}
             <ScrollReveal>
-              <div className="flex items-center gap-4 mb-8">
+              <div className="flex items-center gap-4 mb-3">
                 <span
                   className={`${meta.accent} w-2 h-8 rounded-full flex-shrink-0`}
                 />
@@ -123,11 +113,16 @@ export function SkillsPrimer() {
                   {meta.label}
                 </h2>
               </div>
+              <p className="text-sm text-[var(--color-text-on-dark-muted)] mb-8 ml-6">
+                {dom === "social & behavioral"
+                  ? "how we relate to others, regulate ourselves, and engage with the world"
+                  : "how we think, analyze, create, and solve problems"}
+              </p>
             </ScrollReveal>
 
             {/* Skills grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-              {byCategory[cat].map((skill) => (
+              {byDomain[dom].map((skill) => (
                 <SkillCard key={skill.slug} skill={skill} />
               ))}
             </div>

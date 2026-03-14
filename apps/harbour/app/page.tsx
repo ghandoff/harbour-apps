@@ -70,7 +70,7 @@ export default function HarbourPage() {
                     holistic skills primer
                   </h2>
                   <p className="mt-3 text-[var(--color-text-on-dark-muted)] max-w-md">
-                    the relational, somatic, reflective, and generative skills that underpin everything here.
+                    21 social, behavioral, and cognitive skills for navigating complexity, creativity, and connection.
                   </p>
                 </div>
                 <a
