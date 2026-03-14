@@ -1,12 +1,12 @@
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
-import { SkillsPrimer } from "@/components/skills-primer";
+import { DepthChart } from "@/components/depth-chart";
 import { ScrollReveal } from "@/components/scroll-reveal";
 
 export const metadata = {
-  title: "holistic skills primer — the harbour",
+  title: "depth.chart — the harbour",
   description:
-    "21 social, behavioral, and cognitive skills for navigating complexity, creativity, and connection — from the PRME holistic skills framework.",
+    "21 social, behavioral, and cognitive skills for navigating complexity, creativity, and connection — charting the skills beneath the surface.",
 };
 
 export default function SkillsPage() {
@@ -22,10 +22,10 @@ export default function SkillsPage() {
         >
           <div className="max-w-3xl">
             <p className="text-xs font-semibold tracking-[0.25em] text-[var(--color-accent-on-dark)] mb-6">
-              the harbour / skills primer
+              the harbour / depth.chart
             </p>
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-[var(--color-text-on-dark)] leading-[1.1] tracking-tight mb-6">
-              holistic skills primer
+              depth.chart
             </h1>
             <p className="text-lg sm:text-xl text-[var(--color-text-on-dark-muted)] leading-relaxed max-w-xl mx-auto">
               21 skills across two domains — social & behavioral and
@@ -40,7 +40,7 @@ export default function SkillsPage() {
           aria-label="skills"
           className="max-w-6xl mx-auto px-6 pb-24"
         >
-          <SkillsPrimer />
+          <DepthChart />
         </section>
 
         {/* ── Back link ───────────────────────────────────────── */}

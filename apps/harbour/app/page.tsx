@@ -3,7 +3,7 @@ import { Footer } from "@/components/footer";
 import { GameShowcase, GAMES } from "@/components/game-showcase";
 import { CredibilityZone } from "@/components/credibility-zone";
 import { ScrollReveal } from "@/components/scroll-reveal";
-import { SKILLS } from "@/components/skills-primer";
+import { SKILLS } from "@/components/depth-chart";
 import credibilityData from "@/data/credibility.json";
 
 export default function HarbourPage() {
@@ -56,7 +56,7 @@ export default function HarbourPage() {
         {/* ── Skills primer teaser ──────────────────────────────── */}
         <section
           id="skills"
-          aria-label="skills primer"
+          aria-label="depth chart"
           className="py-20 sm:py-28 px-6"
         >
           <div className="max-w-6xl mx-auto">
@@ -67,7 +67,7 @@ export default function HarbourPage() {
                     learn.
                   </p>
                   <h2 className="text-3xl sm:text-4xl font-bold text-[var(--color-text-on-dark)] leading-tight">
-                    holistic skills primer
+                    depth.chart
                   </h2>
                   <p className="mt-3 text-[var(--color-text-on-dark-muted)] max-w-md">
                     21 social, behavioral, and cognitive skills for navigating complexity, creativity, and connection.

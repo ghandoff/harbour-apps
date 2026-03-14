@@ -1,4 +1,4 @@
-import skillsData from "@/data/holistic-skills.json";
+import skillsData from "@/data/depth-chart.json";
 import { ScrollReveal } from "./scroll-reveal";
 
 export interface Skill {
@@ -99,7 +99,7 @@ function SkillCard({ skill }: { skill: Skill }) {
   );
 }
 
-export function SkillsPrimer() {
+export function DepthChart() {
   // Group skills by domain in natural order of first appearance
   const domains: string[] = [];
   const byDomain: Record<string, Skill[]> = {};
