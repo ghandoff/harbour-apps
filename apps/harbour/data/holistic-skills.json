@@ -1,0 +1,101 @@
+[
+  {
+    "slug": "active-listening",
+    "name": "active listening",
+    "category": "relational",
+    "description": "being fully present with another person — not just waiting for your turn to speak. the kind of listening that makes people feel genuinely heard.",
+    "icon": "👂",
+    "howToPractice": "in your next conversation, resist the urge to form a response until the other person has fully finished. notice what you hear when you're not preparing to reply.",
+    "order": 1
+  },
+  {
+    "slug": "holding-space",
+    "name": "holding space",
+    "category": "relational",
+    "description": "creating the conditions where someone can be honest — including with themselves. not fixing, not advising, not rushing to resolution.",
+    "icon": "🌿",
+    "howToPractice": "when someone shares something hard, try sitting with it for ten seconds before responding. notice the difference between silence that empties and silence that holds.",
+    "order": 2
+  },
+  {
+    "slug": "naming-whats-true",
+    "name": "naming what's true",
+    "category": "relational",
+    "description": "saying the thing in the room that everyone senses but no one has said. not to create drama — to reduce the energy spent pretending it isn't there.",
+    "icon": "🗣️",
+    "howToPractice": "in your next group, notice what's unsaid. try articulating it as a question: 'i'm noticing a certain hesitation — is that landing for anyone else?'",
+    "order": 3
+  },
+  {
+    "slug": "self-regulation",
+    "name": "self-regulation",
+    "category": "somatic",
+    "description": "the ability to notice your own activation — physical, emotional, cognitive — and work with it rather than from it. the foundation of everything else.",
+    "icon": "🌊",
+    "howToPractice": "when you feel a spike of reactivity, put one hand on your chest and take three slow breaths. not to suppress the feeling — to expand the space around it.",
+    "order": 4
+  },
+  {
+    "slug": "embodied-presence",
+    "name": "embodied presence",
+    "category": "somatic",
+    "description": "showing up in your body, not just your head. awareness of posture, breath, and physical sensation as live information about what's happening.",
+    "icon": "🌱",
+    "howToPractice": "before a difficult conversation, take 60 seconds to feel your feet on the floor, your breath in your belly, and the weight of your body in the chair.",
+    "order": 5
+  },
+  {
+    "slug": "boundary-sensing",
+    "name": "boundary sensing",
+    "category": "somatic",
+    "description": "knowing — in your body, not just your mind — where you end and someone else begins. essential for genuine generosity rather than habitual over-giving.",
+    "icon": "🧭",
+    "howToPractice": "notice the physical sensation of a 'yes that costs you something' versus a 'yes that fills you up'. the body knows the difference before the mind does.",
+    "order": 6
+  },
+  {
+    "slug": "reflective-practice",
+    "name": "reflective practice",
+    "category": "reflective",
+    "description": "the habit of pausing after experiences to extract meaning — not rumination, but deliberate inquiry into what happened and what it taught you.",
+    "icon": "🔍",
+    "howToPractice": "after any significant session or conversation, ask three questions: what happened? what surprised me? what would i do differently?",
+    "order": 7
+  },
+  {
+    "slug": "assumption-spotting",
+    "name": "assumption spotting",
+    "category": "reflective",
+    "description": "noticing the invisible beliefs and expectations you're carrying into any situation — before they become the floor you don't know you're standing on.",
+    "icon": "🔦",
+    "howToPractice": "before your next facilitated session or important conversation, write down three things you assume will happen. check afterwards how many were true.",
+    "order": 8
+  },
+  {
+    "slug": "creative-risk",
+    "name": "creative risk",
+    "category": "generative",
+    "description": "trying something before it's perfect — the willingness to be awkward, to iterate, to learn in public. most creative blocks are perfection in disguise.",
+    "icon": "🎲",
+    "howToPractice": "make one small thing today that you won't show anyone. practice the motion without the audience. notice what relaxes.",
+    "order": 9
+  },
+  {
+    "slug": "play",
+    "name": "play",
+    "category": "generative",
+    "description": "the capacity to engage with something for its own sake — without needing it to produce anything. play is practice for not knowing the outcome.",
+    "icon": "🎈",
+    "howToPractice": "spend 20 minutes doing something with no goal and no audience. doodle. move. make noise. notice when the urge to 'make it into something' arises.",
+    "order": 10
+  },
+  {
+    "slug": "design-thinking",
+    "name": "design thinking",
+    "category": "generative",
+    "description": "approaching problems through questions, prototypes, and iterations rather than predetermined solutions. starting with curiosity about what's actually needed.",
+    "icon": "🧩",
+    "howToPractice": "take a current problem you're trying to solve. instead of generating solutions, spend 10 minutes generating questions. see which ones crack the frame.",
+    "order": 11
+  }
+]
