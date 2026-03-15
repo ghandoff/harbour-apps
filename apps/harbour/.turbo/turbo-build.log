@@ -2,23 +2,26 @@
 > @windedvertigo/harbour@0.1.0 build
 > next build
 
+⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of /Users/garrettjaeger/Projects/windedvertigo/package-lock.json as the root directory.
+ To silence this warning, set `turbopack.root` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory for more information.
+ Detected additional lockfiles: 
+   * /Users/garrettjaeger/Projects/windedvertigo/.claude/worktrees/laughing-pare/package-lock.json
+
 ▲ Next.js 16.1.6 (Turbopack)
 
   Creating an optimized production build ...
-✓ Compiled successfully in 957.5ms
+✓ Compiled successfully in 7.9s
   Running TypeScript ...
   Collecting page data using 11 workers ...
-  Generating static pages using 11 workers (0/4) ...
-  Generating static pages using 11 workers (1/4) 
-  Generating static pages using 11 workers (2/4) 
-  Generating static pages using 11 workers (3/4) 
-✓ Generating static pages using 11 workers (4/4) in 150.7ms
+  Generating static pages using 11 workers (0/3) ...
+✓ Generating static pages using 11 workers (3/3) in 254.2ms
   Finalizing page optimization ...
 
 Route (app)
 ┌ ○ /
-├ ○ /_not-found
-└ ○ /skills
+└ ○ /_not-found
 
 
 ○  (Static)  prerendered as static content

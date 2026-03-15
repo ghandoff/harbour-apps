@@ -63,7 +63,7 @@
     "name": "depth.chart",
     "tagline": "see where they actually are",
     "description": "an ai-powered assessment task generator for educators who want to measure what matters — not just what's easy to test. describe your learning goals, and depth.chart builds developmentally appropriate tasks that reveal where learners actually are. no more guessing, no more one-size-fits-all rubrics.",
-    "icon": "📐",
+    "icon": "",
     "color": "from-[var(--color-surface-raised)] to-[var(--wv-sienna)]",
     "accentColor": "bg-[var(--wv-redwood)]",
     "features": [
