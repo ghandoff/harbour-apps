@@ -1,6 +1,7 @@
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
-import { GameShowcase, GAMES } from "@/components/game-showcase";
+import { GAMES } from "@/components/game-showcase";
+import { GameDock } from "@/components/game-dock";
 import { CredibilityZone } from "@/components/credibility-zone";
 import { ScrollReveal } from "@/components/scroll-reveal";
 import credibilityData from "@/data/credibility.json";
@@ -49,7 +50,7 @@ export default function HarbourPage() {
 
         {/* ── play. — games and toys ─────────────────────────── */}
         <div id="play">
-          <GameShowcase />
+          <GameDock games={GAMES} />
         </div>
 
         {/* ── Credibility zone ─────────────────────────────────── */}
