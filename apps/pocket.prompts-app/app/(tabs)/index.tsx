@@ -8,13 +8,14 @@ import {
   ActivityIndicator,
   Platform,
 } from 'react-native';
+import { useFocusEffect } from 'expo-router';
 import { useSpeech } from '@/src/hooks/use-speech';
 import { useTts } from '@/src/hooks/use-tts';
 import { useRemoteCommand } from '@/src/hooks/use-remote-command';
 import { useAppState } from '@/src/hooks/use-app-state';
 import { send_voice } from '@/src/api/voice';
 import { get_history, type HistoryEntry, type HistoryResponse } from '@/src/api/history';
-import { get_member_id } from '@/src/lib/storage';
+import { get_member_id, get_voice_id } from '@/src/lib/storage';
 import { MicButton } from '@/src/components/mic-button';
 import { ChatBubble, DateSeparator } from '@/src/components/chat-bubble';
 import { Transcript } from '@/src/components/transcript';
@@ -81,6 +82,7 @@ export default function ChatScreen() {
 
   useEffect(() => {
     get_member_id().then(set_member_id);
+    get_voice_id().then(id => tts.set_voice_id(id || null));
   }, []);
 
   // --- history ---
@@ -111,10 +113,20 @@ export default function ChatScreen() {
 
   useEffect(() => { load_history(); }, [load_history]);
 
+  // reload voice preference when this tab gains focus (e.g. after changing voice in settings)
+  useFocusEffect(
+    useCallback(() => {
+      get_voice_id().then(id => tts.set_voice_id(id || null));
+    }, [tts])
+  );
+
   // refresh on foreground
   useAppState(useCallback((state) => {
-    if (state === 'active') load_history();
-  }, [load_history]));
+    if (state === 'active') {
+      load_history();
+      get_voice_id().then(id => tts.set_voice_id(id || null));
+    }
+  }, [load_history, tts]));
 
   const on_refresh = useCallback(() => {
     set_refreshing(true);

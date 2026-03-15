@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { StyleSheet, View, Text, Pressable, ScrollView, ActivityIndicator, Linking } from 'react-native';
 import { SymbolView } from 'expo-symbols';
+import * as Speech from 'expo-speech';
 import { useFocusEffect } from 'expo-router';
 import { members, type Member } from '@/src/lib/members';
-import { get_member_id, set_member_id } from '@/src/lib/storage';
+import { get_member_id, set_member_id, get_voice_id, set_voice_id } from '@/src/lib/storage';
 import { get_status, get_oauth_url, type ConnectionStatus } from '@/src/api/status';
+import { get_available_voices, type Voice } from '@/src/hooks/use-tts';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 
@@ -54,8 +56,16 @@ export default function SettingsScreen() {
   const [status_loading, set_status_loading] = useState(false);
   const [connecting, set_connecting] = useState(false);
 
+  // voice selection
+  const [voices, set_voices] = useState<Voice[]>([]);
+  const [selected_voice, set_selected_voice] = useState<string | null>(null);
+  const [show_voices, set_show_voices] = useState(false);
+  const [previewing_voice, set_previewing_voice] = useState<string | null>(null);
+
   useEffect(() => {
     get_member_id().then(set_selected);
+    get_voice_id().then(set_selected_voice);
+    get_available_voices().then(set_voices);
   }, []);
 
   // fetch connection status when member changes or screen regains focus
@@ -84,6 +94,25 @@ export default function SettingsScreen() {
     set_selected(member.id);
     await set_member_id(member.id);
     load_status(member.id);
+  };
+
+  const handle_voice_select = async (voice: Voice) => {
+    set_selected_voice(voice.identifier);
+    await set_voice_id(voice.identifier);
+  };
+
+  const handle_voice_preview = (voice: Voice) => {
+    Speech.stop();
+    set_previewing_voice(voice.identifier);
+    Speech.speak('hey — i\'m pocket.prompts. anything you need?', {
+      voice: voice.identifier,
+      language: 'en-US',
+      rate: 1.0,
+      pitch: 1.0,
+      onDone: () => set_previewing_voice(null),
+      onError: () => set_previewing_voice(null),
+      onStopped: () => set_previewing_voice(null),
+    });
   };
 
   const handle_connect_slack = async () => {
@@ -215,6 +244,125 @@ export default function SettingsScreen() {
           </View>
         </View>
       )}
+
+      {/* voice selection */}
+      <View style={styles.voice_section}>
+        <Pressable
+          style={styles.commands_header}
+          onPress={() => set_show_voices(!show_voices)}
+        >
+          <View>
+            <Text style={[styles.section_label, { color: colors.textSecondary }]}>
+              voice
+            </Text>
+            <Text style={[styles.section_desc, { color: colors.textSecondary, marginBottom: 0 }]}>
+              {selected_voice
+                ? voices.find(v => v.identifier === selected_voice)?.name || 'custom voice'
+                : 'system default'}
+            </Text>
+          </View>
+          <SymbolView
+            name={{
+              ios: show_voices ? 'chevron.up' : 'chevron.down',
+              android: show_voices ? 'expand_less' : 'expand_more',
+              web: show_voices ? 'expand_less' : 'expand_more',
+            }}
+            tintColor={colors.textSecondary}
+            size={18}
+          />
+        </Pressable>
+
+        {show_voices && (
+          <View style={styles.voice_list}>
+            {/* system default option */}
+            <Pressable
+              style={[
+                styles.voice_row,
+                {
+                  backgroundColor: !selected_voice ? colors.accent + '15' : colors.surface,
+                  borderColor: !selected_voice ? colors.accent : colors.surfaceBorder,
+                },
+              ]}
+              onPress={async () => {
+                set_selected_voice(null);
+                await set_voice_id('');
+              }}
+            >
+              <View style={styles.voice_info}>
+                <Text style={[styles.voice_name, { color: colors.text }]}>
+                  system default
+                </Text>
+              </View>
+              {!selected_voice && (
+                <SymbolView
+                  name={{ ios: 'checkmark.circle.fill', android: 'check_circle', web: 'check_circle' }}
+                  tintColor={colors.accent}
+                  size={20}
+                />
+              )}
+            </Pressable>
+
+            {voices.map((voice) => {
+              const is_selected = selected_voice === voice.identifier;
+              const is_previewing = previewing_voice === voice.identifier;
+              return (
+                <Pressable
+                  key={voice.identifier}
+                  style={[
+                    styles.voice_row,
+                    {
+                      backgroundColor: is_selected ? colors.accent + '15' : colors.surface,
+                      borderColor: is_selected ? colors.accent : colors.surfaceBorder,
+                    },
+                  ]}
+                  onPress={() => handle_voice_select(voice)}
+                >
+                  <View style={styles.voice_info}>
+                    <Text style={[styles.voice_name, { color: colors.text }]}>
+                      {voice.name}
+                    </Text>
+                    <Text style={[styles.voice_detail, { color: colors.textSecondary }]}>
+                      {voice.language}{voice.quality !== 'default' ? ` · ${voice.quality.toLowerCase()}` : ''}
+                    </Text>
+                  </View>
+
+                  <View style={styles.voice_actions}>
+                    {/* preview button */}
+                    <Pressable
+                      onPress={() => handle_voice_preview(voice)}
+                      style={[styles.preview_btn, { backgroundColor: colors.surfaceBorder }]}
+                    >
+                      <SymbolView
+                        name={{
+                          ios: is_previewing ? 'stop.fill' : 'play.fill',
+                          android: is_previewing ? 'stop' : 'play_arrow',
+                          web: is_previewing ? 'stop' : 'play_arrow',
+                        }}
+                        tintColor={colors.text}
+                        size={14}
+                      />
+                    </Pressable>
+
+                    {is_selected && (
+                      <SymbolView
+                        name={{ ios: 'checkmark.circle.fill', android: 'check_circle', web: 'check_circle' }}
+                        tintColor={colors.accent}
+                        size={20}
+                      />
+                    )}
+                  </View>
+                </Pressable>
+              );
+            })}
+
+            {voices.length === 0 && (
+              <Text style={[styles.voice_empty, { color: colors.textSecondary }]}>
+                no voices available on this device
+              </Text>
+            )}
+          </View>
+        )}
+      </View>
 
       {/* voice commands cheat sheet */}
       <View style={styles.commands_section}>
@@ -365,6 +513,51 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 13,
     fontWeight: '600',
+  },
+
+  // voice section
+  voice_section: {
+    marginTop: 32,
+  },
+  voice_list: {
+    marginTop: 12,
+    gap: 6,
+  },
+  voice_row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderRadius: 10,
+    padding: 12,
+  },
+  voice_info: {
+    flex: 1,
+    gap: 1,
+  },
+  voice_name: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  voice_detail: {
+    fontSize: 12,
+  },
+  voice_actions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  preview_btn: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  voice_empty: {
+    fontSize: 13,
+    textAlign: 'center',
+    padding: 16,
   },
 
   // commands section

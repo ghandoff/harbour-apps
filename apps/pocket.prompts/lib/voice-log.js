@@ -1,6 +1,17 @@
 import { Client } from '@notionhq/client';
+import { createRequire } from 'module';
 
-const log_db_id = (process.env.NOTION_VOICE_LOG_DB_ID || '').trim();
+const require = createRequire(import.meta.url);
+const members = require('../config/members.json');
+
+const shared_log_db_id = (process.env.NOTION_VOICE_LOG_DB_ID || '').trim();
+
+function get_log_db_id(user_id) {
+  if (user_id && members[user_id]?.voice_log_db_id) {
+    return members[user_id].voice_log_db_id;
+  }
+  return shared_log_db_id;
+}
 
 /**
  * Log a voice interaction to the Notion Voice Log database.
@@ -19,24 +30,26 @@ export async function log_voice_interaction({
   timestamp,
   platform
 }) {
+  const log_db_id = get_log_db_id(user_id);
   if (!log_db_id) {
-    console.log('[voice-log] NOTION_VOICE_LOG_DB_ID not set, skipping');
+    console.log('[voice-log] no voice log db id for user or env, skipping');
     return;
   }
+
+  const is_personal = log_db_id !== shared_log_db_id;
 
   try {
     const notion = new Client({ auth: (process.env.NOTION_API_KEY || '').trim() });
 
-    // privacy: sanitize title to hide raw utterance from shared database.
-    // personal content lives in the notion entries themselves (notes, tasks, etc.)
-    const sanitized_title = [
-      intent_result?.intent || 'unknown',
-      user_id || 'anonymous'
-    ].join(' — ');
+    // personal db: use raw utterance as title (private, no sanitization needed)
+    // shared db: sanitize title to hide raw utterance for privacy
+    const title = is_personal
+      ? (utterance || `${intent_result?.intent || 'unknown'} — ${user_id || 'anonymous'}`)
+      : [intent_result?.intent || 'unknown', user_id || 'anonymous'].join(' — ');
 
     const properties = {
       utterance: {
-        title: [{ text: { content: sanitized_title } }]
+        title: [{ text: { content: title } }]
       }
     };
 
