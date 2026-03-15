@@ -1,9 +1,20 @@
 import { Client } from '@notionhq/client';
+import { createRequire } from 'module';
 
-const code_tasks_db_id = (process.env.NOTION_CODE_TASKS_DB_ID || '').trim();
+const require = createRequire(import.meta.url);
+const members = require('../config/members.json');
+
+const shared_db_id = (process.env.NOTION_CODE_TASKS_DB_ID || '').trim();
 
 function get_client(token) {
   return new Client({ auth: token || (process.env.NOTION_API_KEY || '').trim() });
+}
+
+function get_db_id(requested_by) {
+  if (requested_by && members[requested_by]?.code_tasks_db_id) {
+    return members[requested_by].code_tasks_db_id;
+  }
+  return shared_db_id;
 }
 
 /**
@@ -17,9 +28,10 @@ function get_client(token) {
  * @returns {{ success: boolean, page_id?: string, url?: string, error?: string }}
  */
 export async function create_code_task({ content, project, requested_by, token }) {
-  if (!code_tasks_db_id) {
-    console.error('[code-tasks] NOTION_CODE_TASKS_DB_ID not set');
-    return { success: false, error: 'NOTION_CODE_TASKS_DB_ID not configured' };
+  const db_id = get_db_id(requested_by);
+  if (!db_id) {
+    console.error('[code-tasks] no code tasks db id for user or env');
+    return { success: false, error: 'no code tasks database configured' };
   }
 
   try {
@@ -43,15 +55,15 @@ export async function create_code_task({ content, project, requested_by, token }
       };
     }
 
-    const valid_projects = ['creaseworks', 'pocket.prompts', 'pocket.prompts-app', 'site', 'deep-deck', 'other'];
+    const valid_projects = ['creaseworks', 'pocket.prompts', 'pocket.prompts-app', 'site', 'deep-deck', 'harbour', 'other'];
     if (project && valid_projects.includes(project)) {
       properties.project = { select: { name: project } };
     }
 
-    console.log(`[code-tasks] creating: "${content.substring(0, 60)}..." project: ${project || 'auto'}, by: ${requested_by || 'unknown'}`);
+    console.log(`[code-tasks] creating in ${db_id === shared_db_id ? 'shared' : requested_by} db: "${content.substring(0, 60)}..." project: ${project || 'auto'}, by: ${requested_by || 'unknown'}`);
 
     const page = await notion.pages.create({
-      parent: { database_id: code_tasks_db_id },
+      parent: { database_id: db_id },
       properties
     });
 
@@ -78,14 +90,16 @@ export async function create_code_task({ content, project, requested_by, token }
  * @returns {object|null} — { request, status, plan_summary, plan, project, page_id, url } or null
  */
 export async function get_latest_code_task({ requested_by, status, token } = {}) {
-  if (!code_tasks_db_id) return null;
+  const db_id = get_db_id(requested_by);
+  if (!db_id) return null;
 
   try {
     const notion = get_client(token);
 
     const filter_conditions = [];
 
-    if (requested_by) {
+    // per-user db already scoped — only filter by requested_by on shared db
+    if (requested_by && db_id === shared_db_id) {
       filter_conditions.push({
         property: 'requested by',
         rich_text: { equals: requested_by }
@@ -100,7 +114,7 @@ export async function get_latest_code_task({ requested_by, status, token } = {})
     }
 
     const query = {
-      database_id: code_tasks_db_id,
+      database_id: db_id,
       sorts: [{ property: 'requested at', direction: 'descending' }],
       page_size: 1
     };
@@ -130,14 +144,15 @@ export async function get_latest_code_task({ requested_by, status, token } = {})
  * @param {string} [opts.token] — per-user Notion token
  * @returns {Array} — array of task objects
  */
-export async function get_code_tasks_by_status({ status, token } = {}) {
-  if (!code_tasks_db_id || !status) return [];
+export async function get_code_tasks_by_status({ status, requested_by, token } = {}) {
+  const db_id = get_db_id(requested_by);
+  if (!db_id || !status) return [];
 
   try {
     const notion = get_client(token);
 
     const response = await notion.databases.query({
-      database_id: code_tasks_db_id,
+      database_id: db_id,
       filter: {
         property: 'status',
         select: { equals: status }
