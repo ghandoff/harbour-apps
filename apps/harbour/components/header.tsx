@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 
 const NAV_LINKS = [
   { href: "#play", label: "play.", external: false },
-  { href: "/skills", label: "learn.", external: false, isPath: true },
   { href: "#finds", label: "finds.", external: false },
   { href: "https://windedvertigo.com/what/", label: "us.", external: true },
 ];
@@ -98,11 +97,7 @@ export function Header() {
           aria-label="site navigation"
         >
           {NAV_LINKS.map((link) => {
-            const isActive = !link.external && (
-              (link as { isPath?: boolean }).isPath
-                ? typeof window !== "undefined" && window.location.pathname === link.href
-                : activeHash === link.href
-            );
+            const isActive = !link.external && activeHash === link.href;
             return (
               <a
                 key={link.href}
@@ -129,11 +124,7 @@ export function Header() {
           aria-label="site navigation"
         >
           {NAV_LINKS.map((link) => {
-            const isActive = !link.external && (
-              (link as { isPath?: boolean }).isPath
-                ? typeof window !== "undefined" && window.location.pathname === link.href
-                : activeHash === link.href
-            );
+            const isActive = !link.external && activeHash === link.href;
             return (
               <a
                 key={link.href}
