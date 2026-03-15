@@ -25,7 +25,7 @@ export default function UploadPage() {
       set_error(null);
 
       try {
-        const res = await fetch("/depth-chart/api/parse", {
+        const res = await fetch("/harbour/depth-chart/api/parse", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -73,7 +73,7 @@ export default function UploadPage() {
       if (history.length > 20) history.length = 20;
       localStorage.setItem("depth_chart_plan_history", JSON.stringify(history));
 
-      router.push("/depth-chart/plan/current");
+      router.push("/plan/current");
     }
   }, [parsed, router]);
 

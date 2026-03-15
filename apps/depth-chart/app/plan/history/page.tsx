@@ -41,7 +41,7 @@ export default function PlanHistoryPage() {
       // set as current plan
       localStorage.setItem("depth_chart_plan", JSON.stringify(plan));
       localStorage.removeItem("depth_chart_tasks");
-      router.push("/depth-chart/plan/current");
+      router.push("/plan/current");
     },
     [router]
   );
@@ -63,7 +63,7 @@ export default function PlanHistoryPage() {
       <div className="max-w-2xl mx-auto space-y-8">
         <div className="space-y-2">
           <a
-            href="/depth-chart"
+            href="/harbour/depth-chart"
             className="text-xs text-[var(--color-text-on-dark-muted)] hover:text-[var(--wv-champagne)] transition-colors"
           >
             ← home
@@ -82,7 +82,7 @@ export default function PlanHistoryPage() {
               no saved plans yet.
             </p>
             <a
-              href="/depth-chart/upload"
+              href="/harbour/depth-chart/upload"
               className="inline-block text-sm text-[var(--wv-champagne)] hover:opacity-80"
             >
               upload your first lesson plan →

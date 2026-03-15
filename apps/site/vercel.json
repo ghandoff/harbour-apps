@@ -76,6 +76,18 @@
                                     "destination": "https://deep-deck-ghandoffs-projects.vercel.app/harbour/deep-deck/:path*"
                     },
                     {
+                                    "source": "/harbour/depth-chart",
+                                    "destination": "https://depth-chart-ghandoffs-projects.vercel.app/harbour/depth-chart"
+                    },
+                    {
+                                    "source": "/harbour/depth-chart/",
+                                    "destination": "https://depth-chart-ghandoffs-projects.vercel.app/harbour/depth-chart"
+                    },
+                    {
+                                    "source": "/harbour/depth-chart/:path*",
+                                    "destination": "https://depth-chart-ghandoffs-projects.vercel.app/harbour/depth-chart/:path*"
+                    },
+                    {
                                     "source": "/harbour/admin/login",
                                     "destination": "https://creaseworks-ghandoffs-projects.vercel.app/harbour/creaseworks/login?callbackUrl=%2Fadmin"
                     },

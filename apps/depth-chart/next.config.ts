@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  basePath: "/depth-chart",
+  basePath: "/harbour/depth-chart",
   poweredByHeader: false,
   transpilePackages: ["@windedvertigo/tokens"],
 

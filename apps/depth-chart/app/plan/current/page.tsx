@@ -100,7 +100,7 @@ export default function PlanPage() {
           : collab_valid;
         const format = candidates[0] || valid[0];
 
-        const res = await fetch("/depth-chart/api/generate", {
+        const res = await fetch("/harbour/depth-chart/api/generate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -147,7 +147,7 @@ export default function PlanPage() {
             no lesson plan found. upload one first.
           </p>
           <a
-            href="/depth-chart/upload"
+            href="/harbour/depth-chart/upload"
             className="text-sm text-[var(--wv-champagne)] hover:opacity-80"
           >
             ← go to upload
@@ -165,7 +165,7 @@ export default function PlanPage() {
         {/* header */}
         <div className="space-y-2">
           <a
-            href="/depth-chart/upload"
+            href="/harbour/depth-chart/upload"
             className="text-xs text-[var(--color-text-on-dark-muted)] hover:text-[var(--wv-champagne)] transition-colors"
           >
             ← upload another

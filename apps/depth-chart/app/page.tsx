@@ -24,13 +24,13 @@ export default function DepthChartHome() {
 
           <div className="flex flex-col sm:flex-row items-center gap-3">
             <Link
-              href="/depth-chart/upload"
+              href="/upload"
               className="inline-block bg-[var(--wv-champagne)] text-[var(--wv-cadet)] font-semibold py-3 px-8 rounded-lg hover:opacity-90 transition-opacity no-underline"
             >
               upload a lesson plan →
             </Link>
             <Link
-              href="/depth-chart/plan/history"
+              href="/plan/history"
               className="inline-block text-sm text-[var(--color-text-on-dark-muted)] hover:text-[var(--wv-champagne)] transition-colors no-underline"
             >
               view plan history
