@@ -55,9 +55,10 @@ export default function UploadPage() {
     []
   );
 
-  // once parsed, store in sessionStorage and navigate to results
+  // once parsed, store in localStorage and navigate to results
   if (parsed && parsed.objectives.length > 0) {
-    sessionStorage.setItem("depth_chart_plan", JSON.stringify(parsed));
+    localStorage.setItem("depth_chart_plan", JSON.stringify(parsed));
+    localStorage.removeItem("depth_chart_tasks");
     router.push("/depth-chart/plan/current");
   }
 
