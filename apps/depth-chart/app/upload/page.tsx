@@ -20,30 +20,47 @@ export default function UploadPage() {
   const [parsed, set_parsed] = useState<ParsedPlan | null>(null);
 
   const handle_submit = useCallback(
-    async (data: { raw_text: string; subject: string; grade_level: string; title: string }) => {
+    async (data: { raw_text?: string; file?: File; subject: string; grade_level: string; title: string }) => {
       set_is_loading(true);
       set_error(null);
 
       try {
-        const res = await fetch("/harbour/depth-chart/api/parse", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            raw_text: data.raw_text,
-            subject: data.subject,
-            grade_level: data.grade_level,
-          }),
-        });
+        let res: Response;
+
+        if (data.file) {
+          const form = new FormData();
+          form.append("file", data.file);
+          form.append("subject", data.subject);
+          form.append("grade_level", data.grade_level);
+
+          res = await fetch("/harbour/depth-chart/api/parse", {
+            method: "POST",
+            body: form,
+          });
+        } else {
+          res = await fetch("/harbour/depth-chart/api/parse", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              raw_text: data.raw_text,
+              subject: data.subject,
+              grade_level: data.grade_level,
+            }),
+          });
+        }
 
         if (!res.ok) {
           const err = await res.json();
           throw new Error(err.error || "failed to parse lesson plan");
         }
 
-        const { objectives } = await res.json();
+        const { objectives, extracted_text } = await res.json();
 
         set_parsed({
-          ...data,
+          title: data.title,
+          subject: data.subject,
+          grade_level: data.grade_level,
+          raw_text: data.raw_text || extracted_text || "",
           objectives,
         });
       } catch (e) {
@@ -69,7 +86,6 @@ export default function UploadPage() {
         saved_at: new Date().toISOString(),
         objectives_count: parsed.objectives.length,
       });
-      // keep last 20 plans
       if (history.length > 20) history.length = 20;
       localStorage.setItem("depth_chart_plan_history", JSON.stringify(history));
 
@@ -85,7 +101,7 @@ export default function UploadPage() {
             upload lesson plan
           </h1>
           <p className="text-sm text-[var(--color-text-on-dark-muted)]">
-            paste your lesson plan, syllabus, or course outline below.
+            upload a PDF, DOCX, or paste your lesson plan below.
             we'll extract learning objectives and classify them on Bloom's taxonomy.
           </p>
         </div>

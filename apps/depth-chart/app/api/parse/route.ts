@@ -2,25 +2,50 @@ import { NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { PARSE_OBJECTIVES_SYSTEM, build_parse_prompt } from "@/lib/prompts/parse-objectives";
 import type { ParseObjectivesInput } from "@/lib/prompts/parse-objectives";
+import { extract_text } from "@/lib/extractors";
 
 const client = new Anthropic();
 
 export async function POST(request: Request) {
   try {
-    const body = (await request.json()) as ParseObjectivesInput;
+    const content_type = request.headers.get("content-type") || "";
+    let raw_text: string;
+    let subject = "";
+    let grade_level = "";
 
-    if (!body.raw_text?.trim()) {
-      return NextResponse.json(
-        { error: "raw_text is required" },
-        { status: 400 }
-      );
+    if (content_type.includes("multipart/form-data")) {
+      const form = await request.formData();
+      const file = form.get("file") as File | null;
+      subject = (form.get("subject") as string) || "";
+      grade_level = (form.get("grade_level") as string) || "";
+
+      if (!file) {
+        return NextResponse.json({ error: "file is required" }, { status: 400 });
+      }
+
+      raw_text = await extract_text(file);
+
+      if (!raw_text.trim()) {
+        return NextResponse.json(
+          { error: "could not extract text from file. try pasting the text directly." },
+          { status: 400 }
+        );
+      }
+    } else {
+      const body = (await request.json()) as ParseObjectivesInput;
+      if (!body.raw_text?.trim()) {
+        return NextResponse.json({ error: "raw_text is required" }, { status: 400 });
+      }
+      raw_text = body.raw_text;
+      subject = body.subject || "";
+      grade_level = body.grade_level || "";
     }
 
     const response = await client.messages.create({
       model: "claude-sonnet-4-20250514",
       max_tokens: 4096,
       system: PARSE_OBJECTIVES_SYSTEM,
-      messages: [{ role: "user", content: build_parse_prompt(body) }],
+      messages: [{ role: "user", content: build_parse_prompt({ raw_text, subject, grade_level }) }],
     });
 
     const text = response.content
@@ -39,7 +64,7 @@ export async function POST(request: Request) {
 
     const objectives = JSON.parse(json_match[0]);
 
-    return NextResponse.json({ objectives });
+    return NextResponse.json({ objectives, extracted_text: raw_text });
   } catch (error) {
     console.error("[parse] error:", error);
     return NextResponse.json(

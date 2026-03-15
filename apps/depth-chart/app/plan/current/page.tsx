@@ -9,6 +9,7 @@ import { EJScaffoldPanel } from "@/components/ej-scaffold-panel";
 import { TeacherConfigPanel } from "@/components/teacher-config-panel";
 import { get_valid_formats } from "@/lib/blooms";
 import { get_formats_for_level } from "@/lib/task-formats";
+import { download_task_pdf } from "@/lib/download-pdf";
 import type {
   LearningObjective,
   GeneratedTask,
@@ -139,6 +140,15 @@ export default function PlanPage() {
     [plan, config]
   );
 
+  const handle_download = useCallback(
+    (task: GeneratedTask) => {
+      if (!plan) return;
+      const obj = plan.objectives.find((o) => o.id === task.objective_id);
+      download_task_pdf(task, obj, plan.title, plan.subject, plan.grade_level);
+    },
+    [plan]
+  );
+
   if (!plan) {
     return (
       <main id="main" className="min-h-screen flex items-center justify-center px-6">
@@ -208,6 +218,7 @@ export default function PlanPage() {
                     task={tasks[obj.id]}
                     on_view_rubric={(t) => { set_selected_task(t); set_view("rubric"); }}
                     on_view_scaffold={(t) => { set_selected_task(t); set_view("scaffold"); }}
+                    on_download={handle_download}
                   />
                 </div>
               )}

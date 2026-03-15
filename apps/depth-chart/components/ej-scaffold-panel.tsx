@@ -1,5 +1,6 @@
 "use client";
 
+import { BrandStrip } from "./brand-strip";
 import type { EJScaffold } from "@/lib/types";
 
 interface EJScaffoldPanelProps {
@@ -47,6 +48,8 @@ export function EJScaffoldPanel({ scaffold }: EJScaffoldPanelProps) {
           quality criteria are made visible to students through this activity
         </p>
       )}
+
+      <BrandStrip />
     </div>
   );
 }

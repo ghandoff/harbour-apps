@@ -2,6 +2,7 @@
 
 import { BloomsBadge } from "./blooms-badge";
 import { AuthenticityRadar } from "./authenticity-radar";
+import { BrandStrip } from "./brand-strip";
 import { TASK_FORMATS } from "@/lib/task-formats";
 import type { GeneratedTask } from "@/lib/types";
 
@@ -9,9 +10,10 @@ interface TaskCardProps {
   task: GeneratedTask;
   on_view_rubric?: (task: GeneratedTask) => void;
   on_view_scaffold?: (task: GeneratedTask) => void;
+  on_download?: (task: GeneratedTask) => void;
 }
 
-export function TaskCard({ task, on_view_rubric, on_view_scaffold }: TaskCardProps) {
+export function TaskCard({ task, on_view_rubric, on_view_scaffold, on_download }: TaskCardProps) {
   const format_info = TASK_FORMATS[task.task_format];
 
   return (
@@ -75,7 +77,18 @@ export function TaskCard({ task, on_view_rubric, on_view_scaffold }: TaskCardPro
             view ej scaffold →
           </button>
         )}
+        {on_download && (
+          <button
+            onClick={() => on_download(task)}
+            className="text-xs font-medium text-[var(--color-text-on-dark-muted)] hover:text-[var(--wv-champagne)] transition-colors ml-auto"
+          >
+            download PDF ↓
+          </button>
+        )}
       </div>
+
+      {/* branding */}
+      <BrandStrip />
     </div>
   );
 }

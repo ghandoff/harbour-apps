@@ -1,5 +1,6 @@
 "use client";
 
+import { BrandStrip } from "./brand-strip";
 import type { AnalyticRubric } from "@/lib/types";
 
 interface RubricTableProps {
@@ -78,6 +79,8 @@ export function RubricTable({ rubric }: RubricTableProps) {
           </tbody>
         </table>
       </div>
+
+      <BrandStrip className="mt-4" />
     </div>
   );
 }
