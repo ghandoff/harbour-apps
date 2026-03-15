@@ -9,6 +9,7 @@
 | **site** (windedvertigo.com) | Live, CMS-backed | Wire remaining pages to Notion CMS |
 | **creaseworks** | Live (Phase 3 + Stripe) | Onboarding polish, next/image evaluation |
 | **harbour** | In development | Wire to CMS JSON, game showcase content |
+| **depth-chart** | Live (MVP) | Multi-format upload, branded PDF export |
 | **deep-deck** | In development | — |
 | **nordic-sqr-rct** | Live | Potential Supabase migration |
 | **vertigo-vault** | In development | — |
@@ -102,6 +103,29 @@ See `docs/creaseworks-backlog-2026-02-28.md` for the detailed backlog with all f
 - Upgraded to Next.js 16 + React 19 (Mar 2026): async params fixed (`use()` in client component, `await` in API routes)
 - Potential Supabase rebuild candidate
 - Stays platform-branded by Nordic (no wv tokens)
+
+## apps/depth-chart
+
+- Live MVP at windedvertigo.com/harbour/depth-chart
+- AI-powered formative assessment generator grounded in constructive alignment + Bloom's taxonomy
+- Full roadmap and business plan: `docs/depth-chart-roadmap.md`
+
+### Completed
+
+- [x] Lesson plan text upload + AI parsing (objectives extraction + Bloom's classification)
+- [x] Per-objective task generation with rubric + evaluative judgment scaffold
+- [x] Teacher configuration panel (time, collaboration, formats, authenticity weights)
+- [x] Plan history (localStorage, last 20 plans)
+- [x] Hosted under harbour at /harbour/depth-chart
+- [x] Vercel deployment with turbo-ignore
+
+### Next Up
+
+- [ ] Multi-format upload (PDF, DOCX, Google Docs)
+- [ ] winded.vertigo branding on generated outputs
+- [ ] Downloadable branded PDF export
+- [ ] LMS integration (QTI export → LTI 1.3)
+- [ ] Visual design and illustrations
 
 ## apps/deep-deck, apps/harbour & apps/vertigo-vault
 
