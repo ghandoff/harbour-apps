@@ -746,7 +746,10 @@ async function main() {
       fetchOutcomes(),
       fetchPortfolioAssets(),
       fetchVertigoVault(),
-      fetchSiteContent(),
+      fetchSiteContent().catch(err => {
+        console.warn('  Warning: Site Content CMS sync skipped (' + err.message + ')');
+        return {};
+      }),
       fetchHarbourGames().catch(err => {
         console.warn('  Warning: Harbour Games sync skipped (' + err.message + ')');
         return [];

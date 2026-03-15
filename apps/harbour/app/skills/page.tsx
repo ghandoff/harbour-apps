@@ -43,12 +43,42 @@ export default function SkillsPage() {
           <DepthChart />
         </section>
 
-        {/* ── Back link ───────────────────────────────────────── */}
+        {/* ── Attribution ──────────────────────────────────────── */}
         <ScrollReveal>
-          <div className="text-center py-12 px-6">
+          <div className="text-center py-12 px-6 max-w-xl mx-auto space-y-3">
+            <p className="text-xs text-[var(--color-text-on-dark-muted)] leading-relaxed">
+              this framework draws on the holistic skills identified by{" "}
+              <a
+                href="https://www.unprme.org/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[var(--color-text-on-dark-muted)] underline hover:text-[var(--wv-champagne)] transition-colors"
+              >
+                PRME
+              </a>{" "}
+              and the{" "}
+              <a
+                href="https://learningthroughplay.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[var(--color-text-on-dark-muted)] underline hover:text-[var(--wv-champagne)] transition-colors"
+              >
+                LEGO Foundation
+              </a>
+              . content is available under{" "}
+              <a
+                href="https://creativecommons.org/licenses/by/4.0/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[var(--color-text-on-dark-muted)] underline hover:text-[var(--wv-champagne)] transition-colors"
+              >
+                CC BY 4.0
+              </a>
+              .
+            </p>
             <a
               href="/"
-              className="text-sm text-[var(--color-text-on-dark-muted)] hover:text-[var(--wv-champagne)] transition-colors no-underline"
+              className="inline-block text-sm text-[var(--color-text-on-dark-muted)] hover:text-[var(--wv-champagne)] transition-colors no-underline"
             >
               ← back to the harbour
             </a>
