@@ -59,9 +59,13 @@ export default function PlanPage() {
   const [view, set_view] = useState<"rubric" | "scaffold" | null>(null);
 
   useEffect(() => {
-    const stored = sessionStorage.getItem("depth_chart_plan");
-    if (stored) {
-      set_plan(JSON.parse(stored));
+    const stored_plan = localStorage.getItem("depth_chart_plan");
+    if (stored_plan) {
+      set_plan(JSON.parse(stored_plan));
+    }
+    const stored_tasks = localStorage.getItem("depth_chart_tasks");
+    if (stored_tasks) {
+      set_tasks(JSON.parse(stored_tasks));
     }
   }, []);
 
@@ -99,7 +103,11 @@ export default function PlanPage() {
         task.blooms_level = objective.blooms_level;
         task.task_format = format;
 
-        set_tasks((prev) => ({ ...prev, [objective.id]: task }));
+        set_tasks((prev) => {
+          const next = { ...prev, [objective.id]: task };
+          localStorage.setItem("depth_chart_tasks", JSON.stringify(next));
+          return next;
+        });
       } catch (e) {
         console.error("[generate]", e);
       } finally {

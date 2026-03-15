@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { UploadForm } from "@/components/upload-form";
 import type { LearningObjective } from "@/lib/types";
@@ -55,11 +55,14 @@ export default function UploadPage() {
     []
   );
 
-  // once parsed, store in sessionStorage and navigate to results
-  if (parsed && parsed.objectives.length > 0) {
-    sessionStorage.setItem("depth_chart_plan", JSON.stringify(parsed));
-    router.push("/depth-chart/plan/current");
-  }
+  // once parsed, store in localStorage and navigate to results
+  useEffect(() => {
+    if (parsed && parsed.objectives.length > 0) {
+      localStorage.setItem("depth_chart_plan", JSON.stringify(parsed));
+      localStorage.removeItem("depth_chart_tasks");
+      router.push("/depth-chart/plan/current");
+    }
+  }, [parsed, router]);
 
   return (
     <main id="main" className="min-h-screen flex flex-col items-center px-6 pt-24 pb-16">
