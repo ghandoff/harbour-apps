@@ -9,7 +9,7 @@
 | **site** (windedvertigo.com) | Live, CMS-backed | Wire remaining pages to Notion CMS |
 | **creaseworks** | Live (Phase 3 + Stripe) | Onboarding polish, next/image evaluation |
 | **harbour** | In development | Wire to CMS JSON, game showcase content |
-| **depth-chart** | Live (MVP) | Multi-format upload, branded PDF export |
+| **depth-chart** | Live (MVP+) | LMS integration (QTI export), visual design |
 | **deep-deck** | In development | — |
 | **nordic-sqr-rct** | Live | Potential Supabase migration |
 | **vertigo-vault** | In development | — |
@@ -121,9 +121,9 @@ See `docs/creaseworks-backlog-2026-02-28.md` for the detailed backlog with all f
 
 ### Next Up
 
-- [ ] Multi-format upload (PDF, DOCX, Google Docs)
-- [ ] winded.vertigo branding on generated outputs
-- [ ] Downloadable branded PDF export
+- [x] Multi-format upload (PDF, DOCX) with server-side text extraction
+- [x] winded.vertigo branding on task cards, rubric, and EJ scaffold
+- [x] Downloadable branded PDF export with watermark and styled rubric
 - [ ] LMS integration (QTI export → LTI 1.3)
 - [ ] Visual design and illustrations
 

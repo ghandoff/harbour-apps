@@ -31,7 +31,7 @@ depth.chart is a formative assessment generator that transforms lesson plans int
 
 ## wishlist & feature roadmap
 
-### 1. multi-format upload (high priority)
+### 1. ~~multi-format upload~~ ✅ shipped
 
 faculty should be able to upload or drag-and-drop PDFs, DOCX files, or paste a link to a Google Doc on the upload page — not just raw text.
 
@@ -47,7 +47,7 @@ faculty should be able to upload or drag-and-drop PDFs, DOCX files, or paste a l
 - `apps/depth-chart/app/api/parse/route.ts` — add file upload handling, format detection, text extraction
 - new: `apps/depth-chart/lib/extractors.ts` — PDF, DOCX, Google Docs extraction utilities
 
-### 2. winded.vertigo branding on generated outputs
+### 2. ~~winded.vertigo branding on generated outputs~~ ✅ shipped
 
 scenarios, rubrics, and EJ scaffolds should each carry winded.vertigo branding — a subtle watermark or header/footer mark that establishes provenance.
 
@@ -61,7 +61,7 @@ scenarios, rubrics, and EJ scaffolds should each carry winded.vertigo branding �
 - `apps/site/images/logo.png` (existing wordmark)
 - `packages/tokens/` colour variables (existing)
 
-### 3. downloadable branded PDFs
+### 3. ~~downloadable branded PDFs~~ ✅ shipped
 
 each generated assessment component (scenario, rubric, EJ scaffold) should be downloadable as a w.v-branded PDF.
 

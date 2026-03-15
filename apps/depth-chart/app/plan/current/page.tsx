@@ -1,15 +1,22 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { ObjectiveCard } from "@/components/objective-card";
 import { TaskCard } from "@/components/task-card";
 import { AlignmentReport } from "@/components/alignment-report";
 import { RubricTable } from "@/components/rubric-table";
 import { EJScaffoldPanel } from "@/components/ej-scaffold-panel";
 import { TeacherConfigPanel } from "@/components/teacher-config-panel";
+import { ExportMenu, type ExportOption } from "@/components/export-menu";
 import { get_valid_formats } from "@/lib/blooms";
 import { get_formats_for_level } from "@/lib/task-formats";
 import { download_task_pdf } from "@/lib/download-pdf";
+import {
+  download_qti_package,
+  download_qti_plan,
+  download_rubric_csv,
+  download_plan_rubrics_csv,
+} from "@/lib/lms-export";
 import type {
   LearningObjective,
   GeneratedTask,
@@ -89,9 +96,7 @@ export default function PlanPage() {
 
       try {
         const valid = get_valid_formats(objective.blooms_level);
-        // prefer teacher-selected formats that are valid for this level, else fall back
         const preferred = config.preferred_formats.filter((f) => valid.includes(f));
-        // if collaboration mode requires it, further filter
         const collab_only = config.collaboration_mode !== "individual";
         const collab_valid = collab_only
           ? get_formats_for_level(objective.blooms_level, true).map((f) => f.format)
@@ -140,14 +145,51 @@ export default function PlanPage() {
     [plan, config]
   );
 
-  const handle_download = useCallback(
-    (task: GeneratedTask) => {
-      if (!plan) return;
+  // per-task export options builder
+  const build_task_exports = useCallback(
+    (task: GeneratedTask): ExportOption[] => {
+      if (!plan) return [];
       const obj = plan.objectives.find((o) => o.id === task.objective_id);
-      download_task_pdf(task, obj, plan.title, plan.subject, plan.grade_level);
+      return [
+        {
+          label: "PDF (branded)",
+          description: "downloadable PDF with rubric, scaffold, and watermark",
+          action: () => download_task_pdf(task, obj, plan.title, plan.subject, plan.grade_level),
+        },
+        {
+          label: "QTI 2.1 (.zip)",
+          description: "import into Canvas, Blackboard, or Moodle",
+          action: () => download_qti_package(task, obj, plan.title, plan.subject, plan.grade_level),
+        },
+        {
+          label: "rubric CSV",
+          description: "rubric matrix for gradebooks or spreadsheets",
+          action: () => download_rubric_csv(task, plan.title, plan.subject, plan.grade_level),
+        },
+      ];
     },
     [plan]
   );
+
+  // bulk export options (all tasks in plan)
+  const bulk_exports = useMemo((): ExportOption[] => {
+    if (!plan) return [];
+    const task_count = Object.keys(tasks).length;
+    if (task_count === 0) return [];
+
+    return [
+      {
+        label: "QTI 2.1 package (.zip)",
+        description: `all ${task_count} tasks as LMS import package`,
+        action: () => download_qti_plan(tasks, plan.objectives, plan.title, plan.subject, plan.grade_level),
+      },
+      {
+        label: "all rubrics (CSV)",
+        description: `${task_count} rubric matrices in one spreadsheet`,
+        action: () => download_plan_rubrics_csv(tasks, plan.objectives, plan.title, plan.subject, plan.grade_level),
+      },
+    ];
+  }, [plan, tasks]);
 
   if (!plan) {
     return (
@@ -198,6 +240,16 @@ export default function PlanPage() {
           active_levels={Array.from(new Set(plan.objectives.map((o) => o.blooms_level)))}
         />
 
+        {/* bulk export */}
+        {bulk_exports.length > 0 && (
+          <div className="flex items-center justify-between bg-white/5 border border-white/10 rounded-lg px-4 py-3">
+            <p className="text-xs text-[var(--color-text-on-dark-muted)]">
+              {Object.keys(tasks).length} task{Object.keys(tasks).length !== 1 ? "s" : ""} generated
+            </p>
+            <ExportMenu options={bulk_exports} label="export all" />
+          </div>
+        )}
+
         {/* objectives */}
         <div className="space-y-4">
           <h2 className="text-sm font-semibold tracking-[0.15em] text-[var(--color-text-on-dark-muted)]">
@@ -218,7 +270,7 @@ export default function PlanPage() {
                     task={tasks[obj.id]}
                     on_view_rubric={(t) => { set_selected_task(t); set_view("rubric"); }}
                     on_view_scaffold={(t) => { set_selected_task(t); set_view("scaffold"); }}
-                    on_download={handle_download}
+                    export_options={build_task_exports(tasks[obj.id])}
                   />
                 </div>
               )}

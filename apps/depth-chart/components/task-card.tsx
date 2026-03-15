@@ -3,6 +3,7 @@
 import { BloomsBadge } from "./blooms-badge";
 import { AuthenticityRadar } from "./authenticity-radar";
 import { BrandStrip } from "./brand-strip";
+import { ExportMenu, type ExportOption } from "./export-menu";
 import { TASK_FORMATS } from "@/lib/task-formats";
 import type { GeneratedTask } from "@/lib/types";
 
@@ -10,10 +11,10 @@ interface TaskCardProps {
   task: GeneratedTask;
   on_view_rubric?: (task: GeneratedTask) => void;
   on_view_scaffold?: (task: GeneratedTask) => void;
-  on_download?: (task: GeneratedTask) => void;
+  export_options?: ExportOption[];
 }
 
-export function TaskCard({ task, on_view_rubric, on_view_scaffold, on_download }: TaskCardProps) {
+export function TaskCard({ task, on_view_rubric, on_view_scaffold, export_options }: TaskCardProps) {
   const format_info = TASK_FORMATS[task.task_format];
 
   return (
@@ -60,7 +61,7 @@ export function TaskCard({ task, on_view_rubric, on_view_scaffold, on_download }
       )}
 
       {/* actions */}
-      <div className="flex gap-3 pt-1">
+      <div className="flex items-center gap-3 pt-1">
         {on_view_rubric && (
           <button
             onClick={() => on_view_rubric(task)}
@@ -77,13 +78,10 @@ export function TaskCard({ task, on_view_rubric, on_view_scaffold, on_download }
             view ej scaffold →
           </button>
         )}
-        {on_download && (
-          <button
-            onClick={() => on_download(task)}
-            className="text-xs font-medium text-[var(--color-text-on-dark-muted)] hover:text-[var(--wv-champagne)] transition-colors ml-auto"
-          >
-            download PDF ↓
-          </button>
+        {export_options && export_options.length > 0 && (
+          <div className="ml-auto">
+            <ExportMenu options={export_options} />
+          </div>
         )}
       </div>
 
