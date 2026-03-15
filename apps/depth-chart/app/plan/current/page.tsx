@@ -6,7 +6,9 @@ import { TaskCard } from "@/components/task-card";
 import { AlignmentReport } from "@/components/alignment-report";
 import { RubricTable } from "@/components/rubric-table";
 import { EJScaffoldPanel } from "@/components/ej-scaffold-panel";
+import { TeacherConfigPanel } from "@/components/teacher-config-panel";
 import { get_valid_formats } from "@/lib/blooms";
+import { get_formats_for_level } from "@/lib/task-formats";
 import type {
   LearningObjective,
   GeneratedTask,
@@ -57,6 +59,7 @@ export default function PlanPage() {
   const [generating, set_generating] = useState<string | null>(null);
   const [selected_task, set_selected_task] = useState<GeneratedTask | null>(null);
   const [view, set_view] = useState<"rubric" | "scaffold" | null>(null);
+  const [config, set_config] = useState<TeacherConfig>(DEFAULT_CONFIG);
 
   useEffect(() => {
     const stored_plan = localStorage.getItem("depth_chart_plan");
@@ -67,6 +70,15 @@ export default function PlanPage() {
     if (stored_tasks) {
       set_tasks(JSON.parse(stored_tasks));
     }
+    const stored_config = localStorage.getItem("depth_chart_config");
+    if (stored_config) {
+      set_config(JSON.parse(stored_config));
+    }
+  }, []);
+
+  const update_config = useCallback((next: TeacherConfig) => {
+    set_config(next);
+    localStorage.setItem("depth_chart_config", JSON.stringify(next));
   }, []);
 
   const generate_task = useCallback(
@@ -75,8 +87,18 @@ export default function PlanPage() {
       set_generating(objective.id);
 
       try {
-        const formats = get_valid_formats(objective.blooms_level);
-        const format = formats[0]; // pick first valid format
+        const valid = get_valid_formats(objective.blooms_level);
+        // prefer teacher-selected formats that are valid for this level, else fall back
+        const preferred = config.preferred_formats.filter((f) => valid.includes(f));
+        // if collaboration mode requires it, further filter
+        const collab_only = config.collaboration_mode !== "individual";
+        const collab_valid = collab_only
+          ? get_formats_for_level(objective.blooms_level, true).map((f) => f.format)
+          : valid;
+        const candidates = preferred.length > 0
+          ? preferred.filter((f) => collab_valid.includes(f))
+          : collab_valid;
+        const format = candidates[0] || valid[0];
 
         const res = await fetch("/depth-chart/api/generate", {
           method: "POST",
@@ -91,7 +113,7 @@ export default function PlanPage() {
             subject: plan.subject,
             grade_level: plan.grade_level,
             task_format: format,
-            teacher_config: DEFAULT_CONFIG,
+            teacher_config: config,
           }),
         });
 
@@ -114,7 +136,7 @@ export default function PlanPage() {
         set_generating(null);
       }
     },
-    [plan]
+    [plan, config]
   );
 
   if (!plan) {
@@ -158,6 +180,13 @@ export default function PlanPage() {
 
         {/* alignment report */}
         <AlignmentReport report={report} />
+
+        {/* teacher config */}
+        <TeacherConfigPanel
+          config={config}
+          on_change={update_config}
+          active_levels={Array.from(new Set(plan.objectives.map((o) => o.blooms_level)))}
+        />
 
         {/* objectives */}
         <div className="space-y-4">

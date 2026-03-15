@@ -55,11 +55,24 @@ export default function UploadPage() {
     []
   );
 
-  // once parsed, store in localStorage and navigate to results
+  // once parsed, store in localStorage (current + history) and navigate
   useEffect(() => {
     if (parsed && parsed.objectives.length > 0) {
       localStorage.setItem("depth_chart_plan", JSON.stringify(parsed));
       localStorage.removeItem("depth_chart_tasks");
+
+      // append to history
+      const raw = localStorage.getItem("depth_chart_plan_history");
+      const history = raw ? JSON.parse(raw) : [];
+      history.unshift({
+        ...parsed,
+        saved_at: new Date().toISOString(),
+        objectives_count: parsed.objectives.length,
+      });
+      // keep last 20 plans
+      if (history.length > 20) history.length = 20;
+      localStorage.setItem("depth_chart_plan_history", JSON.stringify(history));
+
       router.push("/depth-chart/plan/current");
     }
   }, [parsed, router]);
