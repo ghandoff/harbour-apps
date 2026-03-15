@@ -23,21 +23,23 @@ function DockCard({
       onClick={onClick}
       aria-expanded={isActive}
       aria-controls={`dock-detail-${game.slug}`}
-      className={`game-card dock-card group relative rounded-2xl bg-gradient-to-br ${game.color} p-6 sm:p-8 border text-left transition-all duration-300 ${
+      className={`game-card dock-card group relative rounded-2xl bg-gradient-to-br ${game.color} p-6 sm:p-8 border text-left transition-all duration-300 flex flex-col justify-between aspect-[5/3] ${
         isActive
           ? "border-white/20 shadow-2xl ring-2 ring-white/10 scale-[1.02]"
           : "border-white/5 shadow-lg hover:border-white/10"
       }`}
       style={{ transitionDelay: `${index * 80}ms` }}
     >
-      <span className="text-3xl sm:text-4xl block mb-3">{game.icon}</span>
-      <h3 className="text-lg sm:text-xl font-bold text-[var(--color-text-on-dark)] tracking-tight mb-1">
-        {game.name}
-      </h3>
-      <p className="text-xs sm:text-sm text-[var(--color-text-on-dark-muted)] tracking-wider">
-        {game.tagline}
-      </p>
-      <div className="flex items-center justify-between mt-4">
+      <div>
+        {game.icon && <span className="text-3xl sm:text-4xl block mb-3">{game.icon}</span>}
+        <h3 className="text-lg sm:text-xl font-bold text-[var(--color-text-on-dark)] tracking-tight mb-1">
+          {game.name}
+        </h3>
+        <p className="text-xs sm:text-sm text-[var(--color-text-on-dark-muted)] tracking-wider">
+          {game.tagline}
+        </p>
+      </div>
+      <div className="flex items-center justify-between">
         {game.status === "live" ? (
           <span
             className={`${game.accentColor} text-[var(--color-text-on-dark)] text-[10px] sm:text-xs font-semibold px-2.5 py-0.5 rounded-full`}
