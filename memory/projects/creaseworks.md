@@ -231,7 +231,7 @@ All core features A–Y are implemented. See `docs/creaseworks-backlog-2026-02-2
 - ✅ PR #43: harbor → harbour (British English spelling correction) — merged to main
 - ✅ Notion CMS updated: Site Content CMS rows, Harbour Games database, all Href fields
 - ✅ All live URLs verified: `/harbour/*` → 200, `/harbor/*` → 404, `/reservoir/*` → 404
-- ⚠️ **Worktree caveat**: `laughing-pare` worktree branched from pre-rename main (`claude/reservoir-admin-dashboard`), so its local files still say "reservoir" in many places. The harbour-sync feature code uses correct `/harbour/` paths via `apiUrl()` which reads `BASE_PATH` at runtime.
+- ✅ **Worktree caveat resolved**: `laughing-pare` worktree branch is still named `claude/reservoir-admin-dashboard` (git branch names can't be renamed in-place), but all code and Notion references now use "harbour". The branch name is cosmetic only.
 
 ### Open Questions Resolved (session 43)
 - Q1: next/image migration — DEFERRED (document cost implications for budgeting)
