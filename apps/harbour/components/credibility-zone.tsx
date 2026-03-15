@@ -82,8 +82,8 @@ export function CredibilityZone() {
 
     {/* ── Connection ──────────────────────────────────────── */}
     <section
-      id="connection"
-      aria-label="connection"
+      id="us"
+      aria-label="us"
       className="py-20 sm:py-28 bg-[var(--wv-cadet)]"
     >
       <div className="max-w-5xl mx-auto px-6">
