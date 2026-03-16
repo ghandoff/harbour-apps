@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, use } from "react";
 import { ObjectiveCard } from "@/components/objective-card";
 import { TaskCard } from "@/components/task-card";
 import { AlignmentReport } from "@/components/alignment-report";
@@ -8,6 +8,7 @@ import { RubricTable } from "@/components/rubric-table";
 import { EJScaffoldPanel } from "@/components/ej-scaffold-panel";
 import { TeacherConfigPanel } from "@/components/teacher-config-panel";
 import { ExportMenu, type ExportOption } from "@/components/export-menu";
+import { FeedbackButton } from "@/components/feedback-button";
 import { get_valid_formats } from "@/lib/blooms";
 import { get_formats_for_level } from "@/lib/task-formats";
 import { download_task_pdf } from "@/lib/download-pdf";
@@ -25,14 +26,6 @@ import type {
   TeacherConfig,
 } from "@/lib/types";
 
-interface StoredPlan {
-  title: string;
-  subject: string;
-  grade_level: string;
-  raw_text: string;
-  objectives: LearningObjective[];
-}
-
 const DEFAULT_CONFIG: TeacherConfig = {
   authenticity_weights: {},
   max_minutes: 45,
@@ -44,14 +37,9 @@ function build_alignment_report(objectives: LearningObjective[]): AlignmentRepor
   const distribution: Record<BloomsLevel, number> = {
     remember: 0, understand: 0, apply: 0, analyse: 0, evaluate: 0, create: 0,
   };
-
-  for (const obj of objectives) {
-    distribution[obj.blooms_level]++;
-  }
-
+  for (const obj of objectives) distribution[obj.blooms_level]++;
   const hocs_count = distribution.analyse + distribution.evaluate + distribution.create;
   const total = objectives.length;
-
   return {
     objectives_count: total,
     covered_count: total,
@@ -61,28 +49,48 @@ function build_alignment_report(objectives: LearningObjective[]): AlignmentRepor
   };
 }
 
-export default function PlanPage() {
-  const [plan, set_plan] = useState<StoredPlan | null>(null);
+export default function DBPlanPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id: plan_id } = use(params);
+
+  const [plan, set_plan] = useState<{ title: string; subject: string; grade_level: string; raw_text: string; objectives: LearningObjective[] } | null>(null);
   const [tasks, set_tasks] = useState<Record<string, GeneratedTask>>({});
   const [generating, set_generating] = useState<string | null>(null);
   const [selected_task, set_selected_task] = useState<GeneratedTask | null>(null);
   const [view, set_view] = useState<"rubric" | "scaffold" | null>(null);
   const [config, set_config] = useState<TeacherConfig>(DEFAULT_CONFIG);
+  const [loading, set_loading] = useState(true);
+  const [error, set_error] = useState<string | null>(null);
 
+  // load plan from DB
   useEffect(() => {
-    const stored_plan = localStorage.getItem("depth_chart_plan");
-    if (stored_plan) {
-      set_plan(JSON.parse(stored_plan));
+    async function load() {
+      try {
+        const res = await fetch(`/harbour/depth-chart/api/plans/${plan_id}`);
+        if (!res.ok) {
+          set_error("plan not found or you don't have access.");
+          set_loading(false);
+          return;
+        }
+        const data = await res.json();
+        set_plan({
+          title: data.plan.title,
+          subject: data.plan.subject,
+          grade_level: data.plan.grade_level,
+          raw_text: data.plan.raw_text,
+          objectives: data.objectives,
+        });
+        set_tasks(data.tasks || {});
+      } catch {
+        set_error("failed to load plan.");
+      } finally {
+        set_loading(false);
+      }
     }
-    const stored_tasks = localStorage.getItem("depth_chart_tasks");
-    if (stored_tasks) {
-      set_tasks(JSON.parse(stored_tasks));
-    }
+    load();
+
     const stored_config = localStorage.getItem("depth_chart_config");
-    if (stored_config) {
-      set_config(JSON.parse(stored_config));
-    }
-  }, []);
+    if (stored_config) set_config(JSON.parse(stored_config));
+  }, [plan_id]);
 
   const update_config = useCallback((next: TeacherConfig) => {
     set_config(next);
@@ -120,6 +128,8 @@ export default function PlanPage() {
             grade_level: plan.grade_level,
             task_format: format,
             teacher_config: config,
+            objective_id: objective.id,
+            plan_id,
           }),
         });
 
@@ -131,21 +141,16 @@ export default function PlanPage() {
         task.blooms_level = objective.blooms_level;
         task.task_format = format;
 
-        set_tasks((prev) => {
-          const next = { ...prev, [objective.id]: task };
-          localStorage.setItem("depth_chart_tasks", JSON.stringify(next));
-          return next;
-        });
+        set_tasks((prev) => ({ ...prev, [objective.id]: task }));
       } catch (e) {
         console.error("[generate]", e);
       } finally {
         set_generating(null);
       }
     },
-    [plan, config]
+    [plan, config, plan_id]
   );
 
-  // per-task export options builder
   const build_task_exports = useCallback(
     (task: GeneratedTask): ExportOption[] => {
       if (!plan) return [];
@@ -171,12 +176,10 @@ export default function PlanPage() {
     [plan]
   );
 
-  // bulk export options (all tasks in plan)
   const bulk_exports = useMemo((): ExportOption[] => {
     if (!plan) return [];
     const task_count = Object.keys(tasks).length;
     if (task_count === 0) return [];
-
     return [
       {
         label: "QTI 2.1 package (.zip)",
@@ -191,18 +194,21 @@ export default function PlanPage() {
     ];
   }, [plan, tasks]);
 
-  if (!plan) {
+  if (loading) {
+    return (
+      <main id="main" className="min-h-screen flex items-center justify-center px-6">
+        <p className="text-sm text-[var(--color-text-on-dark-muted)] animate-pulse">loading plan...</p>
+      </main>
+    );
+  }
+
+  if (error || !plan) {
     return (
       <main id="main" className="min-h-screen flex items-center justify-center px-6">
         <div className="text-center space-y-4">
-          <p className="text-[var(--color-text-on-dark-muted)]">
-            no lesson plan found. upload one first.
-          </p>
-          <a
-            href="/harbour/depth-chart/upload"
-            className="text-sm text-[var(--wv-champagne)] hover:opacity-80"
-          >
-            ← go to upload
+          <p className="text-[var(--color-text-on-dark-muted)]">{error || "plan not found."}</p>
+          <a href="/harbour/depth-chart/upload" className="text-sm text-[var(--wv-champagne)] hover:opacity-80">
+            ← upload a new plan
           </a>
         </div>
       </main>
@@ -214,14 +220,21 @@ export default function PlanPage() {
   return (
     <main id="main" className="min-h-screen px-6 pt-24 pb-16">
       <div className="max-w-4xl mx-auto space-y-8">
-        {/* header */}
         <div className="space-y-2">
-          <a
-            href="/harbour/depth-chart/upload"
-            className="text-xs text-[var(--color-text-on-dark-muted)] hover:text-[var(--wv-champagne)] transition-colors"
-          >
-            ← upload another
-          </a>
+          <div className="flex items-center gap-4">
+            <a
+              href="/harbour/depth-chart/upload"
+              className="text-xs text-[var(--color-text-on-dark-muted)] hover:text-[var(--wv-champagne)] transition-colors"
+            >
+              ← upload another
+            </a>
+            <a
+              href="/harbour/depth-chart/plan/history"
+              className="text-xs text-[var(--color-text-on-dark-muted)] hover:text-[var(--wv-champagne)] transition-colors"
+            >
+              plan history
+            </a>
+          </div>
           <h1 className="text-2xl font-bold text-[var(--color-text-on-dark)]">
             {plan.title || "untitled lesson plan"}
           </h1>
@@ -230,17 +243,13 @@ export default function PlanPage() {
           </p>
         </div>
 
-        {/* alignment report */}
         <AlignmentReport report={report} />
-
-        {/* teacher config */}
         <TeacherConfigPanel
           config={config}
           on_change={update_config}
           active_levels={Array.from(new Set(plan.objectives.map((o) => o.blooms_level)))}
         />
 
-        {/* bulk export */}
         {bulk_exports.length > 0 && (
           <div className="flex items-center justify-between bg-white/5 border border-white/10 rounded-lg px-4 py-3">
             <p className="text-xs text-[var(--color-text-on-dark-muted)]">
@@ -250,7 +259,6 @@ export default function PlanPage() {
           </div>
         )}
 
-        {/* objectives */}
         <div className="space-y-4">
           <h2 className="text-sm font-semibold tracking-[0.15em] text-[var(--color-text-on-dark-muted)]">
             learning objectives
@@ -272,13 +280,13 @@ export default function PlanPage() {
                     on_view_scaffold={(t) => { set_selected_task(t); set_view("scaffold"); }}
                     export_options={build_task_exports(tasks[obj.id])}
                   />
+                  <FeedbackButton task_id={tasks[obj.id].id} plan_id={plan_id} />
                 </div>
               )}
             </div>
           ))}
         </div>
 
-        {/* detail panels */}
         {selected_task && view === "rubric" && (
           <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-6 z-50">
             <div className="bg-[var(--wv-cadet)] border border-white/10 rounded-2xl p-6 max-w-4xl w-full max-h-[80vh] overflow-y-auto">
@@ -313,18 +321,6 @@ export default function PlanPage() {
           </div>
         )}
 
-        {/* sign-in prompt for anonymous users */}
-        <div className="bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-center">
-          <p className="text-xs text-[var(--color-text-on-dark-muted)]">
-            this plan is stored in your browser only.{" "}
-            <a href="/harbour/depth-chart/login" className="text-[var(--wv-champagne)] hover:opacity-80 underline">
-              sign in
-            </a>{" "}
-            to save plans to your account and access them from any device.
-          </p>
-        </div>
-
-        {/* footer */}
         <footer className="text-center py-8 text-xs text-[var(--color-text-on-dark-muted)]">
           <p>
             tasks generated using constructive alignment (Biggs), scored against

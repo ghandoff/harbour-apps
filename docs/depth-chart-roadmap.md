@@ -1,6 +1,6 @@
 # depth.chart — product roadmap & business plan
 
-*a winded.vertigo project. last updated: 14 march 2026.*
+*a winded.vertigo project. last updated: 15 march 2026.*
 
 > **notion mirror**: [depth.chart — product roadmap & business plan](https://www.notion.so/324e4ee74ba481aabac2e6798d4e71bd) — keep both the markdown and Notion page in sync as we iterate.
 
@@ -26,6 +26,143 @@ depth.chart is a formative assessment generator that transforms lesson plans int
 - [x] plan history (localStorage, last 20 plans)
 - [x] Bloom's taxonomy reference on landing page
 - [x] alignment report (distribution across cognitive levels)
+- [x] QTI 2.1 XML export for LMS-compatible assessment packages
+- [x] CSV rubric export for gradebook-compatible rubric matrices
+- [x] export menu (per-task + bulk download: PDF, QTI, CSV)
+- [x] interactive landing page with animated components (Bloom's staircase, demo preview, stat counters, timeline, try-it-now box)
+
+---
+
+## pilot prep architecture (march → april 2026)
+
+### auth strategy
+
+depth-chart will adopt the same Auth.js + JWT pattern as creaseworks, sharing the `.windedvertigo.com` domain cookie for potential SSO across apps.
+
+**providers:** Google OAuth + Resend magic link (same as creaseworks)
+**session strategy:** JWT (stateless, no session table needed)
+**cookie path:** `/harbour/depth-chart/api/auth` (app-scoped, like creaseworks uses `/harbour/creaseworks/api/auth`)
+
+**key decision:** depth-chart gets its own Auth.js instance and user table (not shared with creaseworks). reasons:
+- separate Neon project = clean isolation for billing, backups, and eventual independent scaling
+- user data models diverge (teacher profiles vs creaseworks user profiles)
+- if depth.chart moves to its own subdomain later, auth is already self-contained
+
+**files to create:**
+- `apps/depth-chart/lib/auth.ts` — Auth.js config (adapt from creaseworks pattern)
+- `apps/depth-chart/app/api/auth/[...nextauth]/route.ts` — auth route handler
+- `apps/depth-chart/middleware.ts` — protect `/plan/*` routes, allow `/`, `/upload` as public
+
+### database schema
+
+**Neon project:** separate from creaseworks (recommended for isolation).
+**client:** `@vercel/postgres` (same as creaseworks — raw SQL, no ORM).
+
+```sql
+-- 001_initial_schema.sql
+
+create table users (
+  id            text primary key default gen_random_uuid()::text,
+  email         text unique not null,
+  name          text,
+  email_verified timestamptz,
+  institution   text,          -- optional, for analytics
+  created_at    timestamptz default now()
+);
+
+create table plans (
+  id              text primary key default gen_random_uuid()::text,
+  user_id         text references users(id),
+  title           text,
+  subject         text,
+  grade_level     text,
+  raw_text        text not null,
+  source_format   text default 'text',  -- text, pdf, docx
+  created_at      timestamptz default now(),
+  updated_at      timestamptz default now()
+);
+
+create table objectives (
+  id                text primary key default gen_random_uuid()::text,
+  plan_id           text references plans(id) on delete cascade,
+  raw_text          text not null,
+  cognitive_verb    text,
+  blooms_level      text not null,
+  knowledge_dimension text,
+  content_topic     text,
+  confidence        real,
+  sort_order        int default 0
+);
+
+create table tasks (
+  id                  text primary key default gen_random_uuid()::text,
+  objective_id        text references objectives(id) on delete cascade,
+  blooms_level        text not null,
+  task_format         text not null,
+  prompt_text         text not null,
+  time_estimate_min   int,
+  collaboration_mode  text,
+  rubric_json         jsonb,       -- AnalyticRubric as JSON
+  ej_scaffold_json    jsonb,       -- EJScaffold as JSON
+  authenticity_json   jsonb,       -- AuthenticityScores as JSON
+  reliability_notes   text[],
+  created_at          timestamptz default now()
+);
+
+create table feedback (
+  id          text primary key default gen_random_uuid()::text,
+  user_id     text references users(id),
+  task_id     text references tasks(id),
+  rating      int check (rating between 1 and 5),
+  comment     text,
+  created_at  timestamptz default now()
+);
+
+-- usage telemetry (aggregated, not per-request)
+create table usage_events (
+  id          text primary key default gen_random_uuid()::text,
+  user_id     text references users(id),
+  event_type  text not null,   -- 'plan_created', 'task_generated', 'export_pdf', 'export_qti', 'export_csv'
+  metadata    jsonb,           -- blooms_level, task_format, etc.
+  created_at  timestamptz default now()
+);
+
+create index idx_plans_user on plans(user_id);
+create index idx_objectives_plan on objectives(plan_id);
+create index idx_tasks_objective on tasks(objective_id);
+create index idx_usage_user on usage_events(user_id, event_type);
+create index idx_usage_created on usage_events(created_at);
+```
+
+### migration from localStorage/sessionStorage
+
+the current flow stores plans in `sessionStorage` (plan data) and `localStorage` (plan history). the migration path:
+
+1. **anonymous users** (no auth): continue using localStorage for plan history (free tier, 3 plans/month tracked via localStorage counter)
+2. **authenticated users**: all plans persist to Neon. on first sign-in, offer to import any plans from localStorage into the DB.
+3. **API routes**: add optional `user_id` parameter. if present, save to DB. if absent, return data without persisting (anonymous flow).
+
+### env vars needed (Vercel)
+
+| var | purpose |
+|-----|---------|
+| `POSTGRES_URL` | Neon connection string (new project) |
+| `AUTH_SECRET` | Auth.js JWT signing key |
+| `AUTH_GOOGLE_ID` | Google OAuth client ID |
+| `AUTH_GOOGLE_SECRET` | Google OAuth client secret |
+| `RESEND_API_KEY` | magic link emails (shared with creaseworks or separate) |
+| `ANTHROPIC_API_KEY` | already set |
+
+### token economics: infrastructure costs for pilot
+
+| service | pilot cost (april-june) | launch cost (august, monthly) |
+|---------|------------------------|-------------------------------|
+| Neon Postgres | free tier (0.5 GiB) | free tier through ~10K plans |
+| Claude API | $40-100 total | $167-426/mo (see GTM section) |
+| Vercel hosting | free tier | free tier (Pro at $20/mo if needed) |
+| Resend emails | free tier (100/day) | free tier |
+| Google OAuth | free | free |
+| **total pilot infra** | **$40-100** | — |
 
 ---
 
@@ -82,10 +219,10 @@ depth.chart should fit into faculty workflows by supporting direct export to lea
 
 **approach (phased):**
 
-**phase 1 — export formats**
-- QTI (question and test interoperability) XML export for rubrics — supported by Canvas, Blackboard, Moodle, Brightspace
+**phase 1 — export formats** ✅ partially shipped (QTI 2.1 + CSV)
+- ~~QTI (question and test interoperability) XML export for rubrics — supported by Canvas, Blackboard, Moodle, Brightspace~~ ✅ shipped (QTI 2.1 assessment item export)
 - IMS Common Cartridge package for full assessment bundles
-- CSV export for gradebook-compatible rubric matrices
+- ~~CSV export for gradebook-compatible rubric matrices~~ ✅ shipped
 
 **phase 2 — LTI integration**
 - implement LTI 1.3 (learning tools interoperability) as an external tool
@@ -101,23 +238,24 @@ depth.chart should fit into faculty workflows by supporting direct export to lea
 
 **competitive note:** most assessment tools stop at PDF export. LTI integration is a major differentiator for institutional adoption.
 
-### 5. visual design & imagery
+### 5. ~~visual design & imagery~~ ✅ shipped (landing page redesign)
 
-the current UI is functional but text-heavy. images, illustrations, and visual cues would improve the aesthetic experience and reinforce the educational methodology.
+the landing page was redesigned with interactive, animated components replacing the text-heavy layout. no external assets needed — all visuals are CSS + React.
 
-**approach:**
-- commission or source illustrations for each Bloom's taxonomy level (6 illustrations)
-- hero image or animation on the landing page — something that communicates "depth" visually
-- subtle background textures or patterns using the brand palette (cadet/champagne/sienna gradients)
-- iconography for the "how it works" steps (currently text-only cards)
-- consider lottie animations for the parse → generate → scaffold flow
-- photography style per brand guidelines: "candid, warm-lit imagery... muted earth tones"
+**what shipped (15 march 2026):**
+- `bloom-staircase.tsx` — ascending bar chart of 6 Bloom's levels with scale-in animation, LOCS/HOCS divider
+- `blooms-grid.tsx` — interactive Bloom's taxonomy cards with hover glow, color borders, staggered verb pills
+- `how-it-works.tsx` — vertical timeline with inline SVG icons and IntersectionObserver scroll-triggered reveal
+- `demo-preview.tsx` — before/after showing objective → generated task transformation with rubric + authenticity scores
+- `stat-counters.tsx` — animated count-up numbers (6 cognitive levels, 11 task formats, 4 export formats)
+- `try-it-box.tsx` — inline textarea that routes to upload page with pre-filled text
+- alternating section backgrounds with `bg-white/[0.02]` and `border-white/5` for visual rhythm
+- credibility strip with bold framework names (Bloom's taxonomy, constructive alignment, authenticity criteria, evaluative judgment)
 
-**assets needed:**
-- 6 Bloom's level illustrations (custom commission or curated stock)
-- landing page hero visual
-- step-by-step iconography (4 icons)
-- background texture/pattern files
+**still open for future iteration:**
+- commissioned illustrations for each Bloom's taxonomy level
+- lottie animations for the parse → generate → scaffold flow
+- photography assets per brand guidelines
 
 ---
 
@@ -184,50 +322,121 @@ this misalignment is well-documented:
 
 ### go-to-market strategy
 
-**phase 1 — validation (current → Q3 2026)**
-- deploy MVP at windedvertigo.com/harbour/depth-chart
-- recruit 10-15 faculty beta testers from winded.vertigo's existing network
+*aligned to academic calendar — fall term start is the launch window.*
+
+**phase 1 — pilot prep (march → april 2026)**
+
+build the infrastructure needed for a real pilot with tracked usage:
+
+- [ ] **auth**: Auth.js (Google + email magic link) — faculty log in to persist plans across sessions
+- [ ] **persistent storage**: Neon Postgres (consistent with creaseworks) — migrate from sessionStorage/localStorage to server-side plan storage per user
+- [ ] **usage telemetry**: track per-user metrics — Bloom's level distribution, format preferences, AI override rate, generation count, time-to-export
+- [ ] **feedback mechanism**: in-app post-generation feedback ("was this task useful?" + optional free text), stored in DB
+- [ ] **free tier enforcement**: plan count tracking (3 plans/month for unauthenticated, unlimited for pilot cohort)
+- [ ] **pilot onboarding email**: branded invite via Resend with quick-start guide
+
+**phase 2 — faculty pilot (april → june 2026, spring term)**
+
+- recruit 10-15 faculty beta testers from wv's existing network
+- pilot cohort gets unlimited access (no tier limits during pilot)
 - collect usage data: which Bloom's levels are most common, which formats are preferred, where faculty override AI suggestions
 - iterate on generation quality based on feedback
+- bi-weekly check-ins (email or short survey) to capture qualitative feedback
+- target: each pilot faculty generates at least 5 plans across the term
 
-**phase 2 — launch (Q4 2026)**
-- add multi-format upload (PDF, DOCX, Google Docs)
-- add branded PDF export
-- launch free + faculty tiers
-- content marketing: blog posts on constructive alignment, conference presentations (OLC, EDUCAUSE)
-- SEO: target "assessment generator," "rubric builder," "constructive alignment tool"
+**pilot success metrics:**
+- ≥10 active users (generated ≥3 plans each)
+- task quality rating ≥4/5 average
+- ≥60% of generated tasks used without major edits
+- clear signal on which export formats matter most (PDF vs QTI vs CSV)
 
-**phase 3 — institutional (2027)**
+**pilot token economics:**
+
+| metric | estimate |
+|--------|----------|
+| 15 faculty × ~4 plans/month × 3 months | ~180 plan generations |
+| cost per plan (5 objectives, Opus 4.6) | $0.22-0.56 |
+| **total pilot API cost** | **$40-100** |
+| with Sonnet for parse step | ~$25-60 |
+
+**phase 3 — launch prep (june → july 2026)**
+
+- [ ] **Stripe billing**: free tier (3 plans/month, enforced) + faculty tier ($12/month or $99/year)
+- [ ] **tier enforcement**: rate limiting on API routes, plan count tracking per billing period
+- [ ] **marketing content**: SEO metadata, 2-3 blog posts on constructive alignment + assessment design, short demo video
+- [ ] **conference submissions**: OLC Accelerate (deadline typically July), EDUCAUSE annual (deadline typically June)
+- [ ] **SEO**: target "assessment generator," "rubric builder," "constructive alignment tool," "Bloom's taxonomy assessment"
+- [ ] **testimonials**: collect quotes from pilot faculty for landing page social proof
+
+**phase 4 — public launch (august 2026, fall term start)**
+
+- launch free + faculty tiers — timed so faculty have it in-hand for fall syllabi prep
+- landing page social proof from pilot testimonials
+- content marketing push: blog posts, social, targeted ed-tech communities
+- monitor conversion: free → faculty tier
+- support channel (email or Slack) for early adopters
+
+**launch-month token economics (projected):**
+
+| metric | monthly estimate |
+|--------|-----------------|
+| 200 free users × 3 plans/month | 600 plans → $132-336/mo API |
+| 20 paid users × ~8 plans/month | 160 plans → $35-90/mo API |
+| **total monthly API cost** | **$167-426** |
+| **monthly revenue (20 × $12)** | **$240** |
+
+*margins are thin at launch. Sonnet-for-parse optimization (40-50% cost reduction on parse step) should be implemented before launch. breakeven at ~35 paid faculty users.*
+
+**phase 5 — growth (Q4 2026 → Q1 2027)**
+
+- iterate on pricing based on conversion data and usage patterns
+- department tier ($49/month, 10 seats) for chairs/programme leads
+- IMS Common Cartridge export for richer LMS interop
+- case studies from pilot and early-adopter faculty
+
+**phase 6 — institutional (2027)**
+
 - LTI 1.3 integration for Canvas, Blackboard, Moodle
-- department and institutional tiers
+- institutional tier (custom pricing, SSO, dedicated support)
 - pilot with 2-3 institutions from wv's consulting network
-- case studies from pilot institutions
 - apply for ed-tech grants (Gates Foundation, EDUCAUSE)
 
-**phase 4 — platform (2027-2028)**
+**phase 7 — platform (2027-2028)**
+
 - API for third-party integrations
 - assessment analytics dashboard (programme-level alignment gaps)
 - peer review workflow (faculty review each other's assessments)
 - expand to K-12 with standards integration
 
-### unit economics (projected)
+### unit economics (projected, launch august 2026)
+
+*year 1 = august 2026 → july 2027. years are launch-relative, not calendar.*
 
 | metric | year 1 | year 2 | year 3 |
 |--------|--------|--------|--------|
 | free users | 500 | 2,000 | 5,000 |
 | paid faculty | 50 | 300 | 1,000 |
-| department licences | 0 | 15 | 60 |
-| institutional licences | 0 | 2 | 8 |
-| MRR | $600 | $4,335 | $16,735 |
-| ARR | $7,200 | $52,020 | $200,820 |
+| department licences | 5 | 25 | 80 |
+| institutional licences | 0 | 3 | 10 |
+| MRR | $845 | $5,585 | $20,735 |
+| ARR | $10,140 | $67,020 | $248,820 |
+
+**revenue breakdown (year 1 end):**
+- 50 faculty × $12/mo = $600/mo
+- 5 departments × $49/mo = $245/mo
+- total MRR: $845
 
 **cost structure:**
 - Claude API: ~$0.02-0.05 per plan parse + ~$0.05-0.15 per task generation (opus for quality)
-- estimated API cost per active user: $2-5/month at moderate usage
+- estimated API cost per active user: $2-5/month at moderate usage (optimized with Sonnet parse: $1.50-3.50)
 - Vercel hosting: currently free tier; Pro ($20/month) when traffic warrants
-- total infrastructure cost year 1: ~$3,000-5,000
+- Neon Postgres: free tier covers pilot + early launch; Pro ($19/month) at ~10K stored plans
+- Stripe fees: 2.9% + $0.30 per transaction
+- total infrastructure cost year 1: ~$3,500-6,000
 
-**margin note:** at $12/month per faculty user with $3-5/month API cost, gross margin is 58-75%. institutional licences have even better margins due to bulk pricing and lower per-user generation frequency.
+**margin note:** at $12/month per faculty user with $2-4/month API cost (Sonnet parse optimized), gross margin is 67-83%. department licences have even better per-seat margins. breakeven (API costs covered by revenue) at ~35 paid faculty users.
+
+**key milestone:** breakeven at ~35 paid faculty — target by month 6 (february 2027).
 
 ### token economics
 
@@ -240,9 +449,10 @@ this misalignment is well-documented:
 *based on Claude Opus 4.6 pricing: $15/M input, $75/M output tokens. costs decrease if sonnet is viable for parse step.*
 
 **cost optimisation levers:**
-- use claude-sonnet-4-6 for parse step (classification is well-structured, doesn't need opus reasoning)
+- use claude-sonnet-4-6 for parse step — **implement before launch (july 2026)**. classification is well-structured, doesn't need opus reasoning. estimated 40-50% cost reduction on parse step.
 - cache common Bloom's level → format mappings to reduce redundant generation
 - batch objectives in a single generation call where appropriate
+- monitor per-user API spend during pilot (april-june) to validate cost model before pricing goes live
 
 ### risks and mitigations
 
@@ -271,8 +481,11 @@ it follows the find → fold → unfold → find again methodology:
 
 ## open questions
 
-- [ ] should depth.chart have its own subdomain (depthchart.windedvertigo.com) or stay under the harbour?
-- [ ] what's the right model split? opus for generation quality vs sonnet for cost at scale?
-- [ ] should we pursue SOC 2 compliance early for institutional sales, or wait until there's demand?
-- [ ] how do we handle FERPA considerations if/when student data enters the system via LTI?
-- [ ] should the business plan target VC funding or bootstrap via wv's consulting revenue?
+- [ ] should depth.chart have its own subdomain (depthchart.windedvertigo.com) or stay under the harbour? — *decide before august launch; subdomain aids SEO and brand identity*
+- [x] what's the right model split? — **Sonnet for parse, Opus for generation.** implement Sonnet parse before launch (july 2026). monitor quality during pilot.
+- [ ] should we pursue SOC 2 compliance early for institutional sales, or wait until there's demand? — *defer to phase 6 (2027), unless a pilot institution requires it*
+- [ ] how do we handle FERPA considerations if/when student data enters the system via LTI? — *defer to phase 6; no student data in the system until LTI ships*
+- [ ] should the business plan target VC funding or bootstrap via wv's consulting revenue? — *bootstrap through launch; re-evaluate if ARR exceeds $50K*
+- [ ] pilot recruitment: who are the 10-15 faculty? — *source from wv's consulting network by end of march*
+- [ ] auth provider choice: Google-only or also email magic link? — *decide during pilot prep (march)*
+- [ ] database: separate Neon project or shared with creaseworks? — *separate project recommended for isolation*
