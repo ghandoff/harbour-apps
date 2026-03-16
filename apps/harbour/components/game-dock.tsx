@@ -163,6 +163,10 @@ export function GameDock({ games }: GameDockProps) {
       ref={dockRef}
       className="dock-entrance max-w-5xl mx-auto px-6 py-16 sm:py-20"
     >
+      <p className="text-sm text-[var(--color-text-on-dark-muted)] text-center mb-6">
+        tap a card to see what&apos;s inside.
+      </p>
+
       {/* 2x2 grid on desktop, 2-col on tablet, stacked on mobile */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
         {games.map((game, i) => (
