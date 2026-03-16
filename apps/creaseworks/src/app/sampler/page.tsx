@@ -39,28 +39,42 @@ interface TeaserPlaydate {
 }
 
 export default async function SamplerPage() {
-  const session = await getSession();
-
-  // Everyone sees sampler-channel playdates only.
-  // Admins who need the full catalog should use /admin/playdates.
-  const playdates = await getTeaserPlaydates();
-
-  // Batch-fetch pack info for FOMO badges on sampler cards
-  const packInfoMap = await batchGetPackInfoForPlaydates(
-    playdates.map((p: TeaserPlaydate) => p.id),
-  );
-
-  // Check if signed-in user needs onboarding
-  const onboarding = session
-    ? await getUserOnboardingStatus(session.userId)
-    : null;
-  const needsOnboarding = session && onboarding && !onboarding.onboarding_completed;
-
-  // Check if user has any runs logged
-  let userRuns = [];
-  if (session && !needsOnboarding) {
-    userRuns = await getRunsForUser(session, 1, 0);
+  let session = null;
+  try {
+    session = await getSession();
+  } catch {
+    // Auth may fail if DB is unreachable — continue as guest
   }
+
+  let playdates: TeaserPlaydate[] = [];
+  let packInfoMap = new Map<string, { packSlug: string; packTitle: string }>();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let onboarding: any = null;
+  let userRuns: unknown[] = [];
+
+  try {
+    // Everyone sees sampler-channel playdates only.
+    playdates = await getTeaserPlaydates();
+
+    // Batch-fetch pack info for FOMO badges on sampler cards
+    packInfoMap = await batchGetPackInfoForPlaydates(
+      playdates.map((p: TeaserPlaydate) => p.id),
+    );
+
+    // Check if signed-in user needs onboarding
+    onboarding = session
+      ? await getUserOnboardingStatus(session.userId)
+      : null;
+
+    // Check if user has any runs logged
+    if (session && !(onboarding && !onboarding.onboarding_completed)) {
+      userRuns = await getRunsForUser(session, 1, 0);
+    }
+  } catch (err) {
+    console.error("SamplerPage data fetch failed:", err);
+  }
+
+  const needsOnboarding = session && onboarding && !onboarding.onboarding_completed;
   const hasRuns = userRuns.length > 0;
 
   return (

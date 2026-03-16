@@ -33,11 +33,21 @@ interface Pack {
 }
 
 export default async function PacksCataloguePage() {
-  const session = await getSession();
+  let session = null;
+  try {
+    session = await getSession();
+  } catch {
+    // continue as guest
+  }
   const isCollective = session?.isInternal ?? false;
 
-  // Collective sees all packs (including non-visible and drafts)
-  const packs = isCollective ? await getAllPacks() : await getVisiblePacks();
+  let packs: Pack[] = [];
+  try {
+    // Collective sees all packs (including non-visible and drafts)
+    packs = isCollective ? await getAllPacks() : await getVisiblePacks();
+  } catch (err) {
+    console.error("PacksCataloguePage data fetch failed:", err);
+  }
 
   return (
     <main className="min-h-screen px-6 pt-16 pb-24 sm:pb-16 max-w-4xl mx-auto">

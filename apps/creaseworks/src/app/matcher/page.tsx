@@ -29,12 +29,21 @@ export const dynamic = "force-dynamic";
 export const revalidate = 3600;
 
 export default async function MatcherPage() {
-  const [materials, forms, slots, contexts] = await Promise.all([
-    getAllMaterials(),
-    getDistinctForms(),
-    getDistinctSlots(),
-    getDistinctContexts(),
-  ]);
+  let materials: Awaited<ReturnType<typeof getAllMaterials>> = [];
+  let forms: string[] = [];
+  let slots: string[] = [];
+  let contexts: string[] = [];
+
+  try {
+    [materials, forms, slots, contexts] = await Promise.all([
+      getAllMaterials(),
+      getDistinctForms(),
+      getDistinctSlots(),
+      getDistinctContexts(),
+    ]);
+  } catch (err) {
+    console.error("MatcherPage data fetch failed:", err);
+  }
 
   return (
     <main

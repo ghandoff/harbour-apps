@@ -42,7 +42,12 @@ export default async function LogPage({
 }: {
   searchParams: Promise<{ playdate?: string; page?: string }>;
 }) {
-  const session = await getSession();
+  let session = null;
+  try {
+    session = await getSession();
+  } catch {
+    // continue as guest
+  }
 
   return (
     <main className="min-h-screen px-6 pt-16 pb-24 sm:pb-16 max-w-5xl mx-auto">
@@ -128,35 +133,49 @@ async function ReflectionSection({
 }) {
   const { playdate: playdateSlug } = await searchParams;
 
-  const [playdates, materials] = await Promise.all([
-    getReadyPlaydatesForPicker(),
-    getAllMaterials(),
-  ]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let playdates: any[] = [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let materials: any[] = [];
+  let packInfo: ReflectionPackInfo | null = null;
+
+  try {
+    [playdates, materials] = await Promise.all([
+      getReadyPlaydatesForPicker(),
+      getAllMaterials(),
+    ]);
+
+    // Resolve slug to ID for pre-selection
+    const matchedPlaydate = playdateSlug
+      ? playdates.find((p: any) => p.slug === playdateSlug)
+      : null;
+
+    // Look up pack info for upsell CTA (only for unentitled packs)
+    if (matchedPlaydate) {
+      const pack = await getFirstVisiblePackForPlaydate(matchedPlaydate.id);
+      if (pack) {
+        const isEntitled = await checkEntitlement(orgId, pack.id, userId);
+        if (!isEntitled) {
+          const fullPack = await getPackBySlug(pack.slug);
+          if (fullPack) {
+            packInfo = {
+              packSlug: pack.slug,
+              packTitle: pack.title,
+              playdateCount: Number(fullPack.playdate_count) || 0,
+            };
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.error("ReflectionSection data fetch failed:", err);
+  }
 
   // Resolve slug to ID for pre-selection
   const matchedPlaydate = playdateSlug
     ? playdates.find((p: any) => p.slug === playdateSlug)
     : null;
   const initialPlaydateId = matchedPlaydate?.id ?? "";
-
-  // Look up pack info for upsell CTA (only for unentitled packs)
-  let packInfo: ReflectionPackInfo | null = null;
-  if (matchedPlaydate) {
-    const pack = await getFirstVisiblePackForPlaydate(matchedPlaydate.id);
-    if (pack) {
-      const isEntitled = await checkEntitlement(orgId, pack.id, userId);
-      if (!isEntitled) {
-        const fullPack = await getPackBySlug(pack.slug);
-        if (fullPack) {
-          packInfo = {
-            packSlug: pack.slug,
-            packTitle: pack.title,
-            playdateCount: Number(fullPack.playdate_count) || 0,
-          };
-        }
-      }
-    }
-  }
 
   /**
    * Practitioner-level access for evidence capture:
@@ -204,10 +223,17 @@ async function GallerySection({
   const page = Math.max(1, parseInt(params.page ?? "1", 10));
   const offset = (page - 1) * GALLERY_ITEMS_PER_PAGE;
 
-  const [items, total] = await Promise.all([
-    getGalleryEvidence(GALLERY_ITEMS_PER_PAGE, offset),
-    countGalleryEvidence(),
-  ]);
+  let items: Awaited<ReturnType<typeof getGalleryEvidence>> = [];
+  let total = 0;
+
+  try {
+    [items, total] = await Promise.all([
+      getGalleryEvidence(GALLERY_ITEMS_PER_PAGE, offset),
+      countGalleryEvidence(),
+    ]);
+  } catch (err) {
+    console.error("GallerySection data fetch failed:", err);
+  }
 
   const totalPages = Math.ceil(total / GALLERY_ITEMS_PER_PAGE);
   const hasMore = page < totalPages;

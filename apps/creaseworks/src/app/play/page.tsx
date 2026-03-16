@@ -40,7 +40,12 @@ export const metadata: Metadata = {
 };
 
 export default async function PlayPage() {
-  const session = await getSession();
+  let session = null;
+  try {
+    session = await getSession();
+  } catch {
+    // Auth may fail if DB is unreachable — continue as guest
+  }
 
   return (
     <main className="min-h-screen px-6 pt-16 pb-24 sm:pb-16 max-w-5xl mx-auto">
@@ -77,13 +82,26 @@ export default async function PlayPage() {
  * ───────────────────────────────────────────────────────────── */
 
 async function PlaybookSection({ userId }: { userId: string }) {
-  await recomputeUserProgress(userId);
+  try {
+    await recomputeUserProgress(userId);
+  } catch {
+    // non-critical — continue with stale progress
+  }
 
-  const [collections, summary, suggestion] = await Promise.all([
-    getCollectionsWithProgress(userId),
-    getUserProgressSummary(userId),
-    getNextSuggestion(userId),
-  ]);
+  let collections: Awaited<ReturnType<typeof getCollectionsWithProgress>> = [];
+  let summary = { total_tried: 0, total_found: 0, total_folded: 0, total_found_again: 0 };
+  let suggestion: Awaited<ReturnType<typeof getNextSuggestion>> = null;
+
+  try {
+    [collections, summary, suggestion] = await Promise.all([
+      getCollectionsWithProgress(userId),
+      getUserProgressSummary(userId),
+      getNextSuggestion(userId),
+    ]);
+  } catch (err) {
+    console.error("PlaybookSection data fetch failed:", err);
+    return null;
+  }
 
   const hasProgress = summary.total_tried > 0;
 
@@ -181,24 +199,35 @@ interface TeaserPlaydate {
 }
 
 async function SamplerSection() {
-  const session = await getSession();
-  const playdates = await getTeaserPlaydates();
-
-  const packInfoMap = await batchGetPackInfoForPlaydates(
-    playdates.map((p: TeaserPlaydate) => p.id),
-  );
-
-  // Check if signed-in user needs onboarding
-  const onboarding = session
-    ? await getUserOnboardingStatus(session.userId)
-    : null;
-  const needsOnboarding = session && onboarding && !onboarding.onboarding_completed;
-
-  // Check if user has any runs logged
-  let userRuns: unknown[] = [];
-  if (session && !needsOnboarding) {
-    userRuns = await getRunsForUser(session, 1, 0);
+  let session = null;
+  try {
+    session = await getSession();
+  } catch {
+    // continue as guest
   }
+
+  let playdates: TeaserPlaydate[] = [];
+  let packInfoMap = new Map<string, { packSlug: string; packTitle: string }>();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let onboarding: any = null;
+  let userRuns: unknown[] = [];
+
+  try {
+    playdates = await getTeaserPlaydates();
+    packInfoMap = await batchGetPackInfoForPlaydates(
+      playdates.map((p: TeaserPlaydate) => p.id),
+    );
+    onboarding = session
+      ? await getUserOnboardingStatus(session.userId)
+      : null;
+    if (session && !(onboarding && !onboarding.onboarding_completed)) {
+      userRuns = await getRunsForUser(session, 1, 0);
+    }
+  } catch (err) {
+    console.error("SamplerSection data fetch failed:", err);
+  }
+
+  const needsOnboarding = session && onboarding && !onboarding.onboarding_completed;
   const hasRuns = userRuns.length > 0;
 
   return (

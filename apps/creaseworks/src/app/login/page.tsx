@@ -9,7 +9,12 @@ export default async function LoginPage({
 }: {
   searchParams: Promise<{ verify?: string; callbackUrl?: string; error?: string }>;
 }) {
-  const session = await auth();
+  let session = null;
+  try {
+    session = await auth();
+  } catch {
+    // Auth may fail if DB is unreachable — show login form anyway
+  }
   const params = await searchParams;
 
   // Already logged in — honour the callbackUrl or go home

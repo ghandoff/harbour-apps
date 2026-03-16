@@ -29,7 +29,12 @@ interface Material {
 
 export default async function PlaydateTeaserPage({ params }: Props) {
   const { slug } = await params;
-  const session = await getSession();
+  let session = null;
+  try {
+    session = await getSession();
+  } catch {
+    // Auth may fail if DB is unreachable — continue as guest
+  }
 
   // ── Internal user → always show full collective view ──
   if (session?.isInternal) {

@@ -41,12 +41,24 @@ export default async function GalleryPage({
   const page = Math.max(1, parseInt(params.page ?? "1", 10));
   const offset = (page - 1) * ITEMS_PER_PAGE;
 
-  const session = await getSession();
+  let session = null;
+  try {
+    session = await getSession();
+  } catch {
+    // continue as guest
+  }
 
-  const [items, total] = await Promise.all([
-    getGalleryEvidence(ITEMS_PER_PAGE, offset),
-    countGalleryEvidence(),
-  ]);
+  let items: Awaited<ReturnType<typeof getGalleryEvidence>> = [];
+  let total = 0;
+
+  try {
+    [items, total] = await Promise.all([
+      getGalleryEvidence(ITEMS_PER_PAGE, offset),
+      countGalleryEvidence(),
+    ]);
+  } catch (err) {
+    console.error("GalleryPage data fetch failed:", err);
+  }
 
   const totalPages = Math.ceil(total / ITEMS_PER_PAGE);
   const hasMore = page < totalPages;

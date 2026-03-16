@@ -25,11 +25,22 @@ export const metadata: Metadata = {
 };
 
 export default async function CommunityPage() {
-  const session = await getSession();
+  let session = null;
+  try {
+    session = await getSession();
+  } catch {
+    // continue as guest
+  }
 
   // Fetch leaderboard and user's opt-in status
-  const leaderboard = await getLeaderboard(session?.userId, 20);
-  const userStatus = session ? await getLeaderboardStatus(session.userId) : null;
+  let leaderboard: Awaited<ReturnType<typeof getLeaderboard>> = [];
+  let userStatus: Awaited<ReturnType<typeof getLeaderboardStatus>> | null = null;
+  try {
+    leaderboard = await getLeaderboard(session?.userId, 20);
+    userStatus = session ? await getLeaderboardStatus(session.userId) : null;
+  } catch (err) {
+    console.error("CommunityPage data fetch failed:", err);
+  }
 
   return (
     <main className="min-h-screen px-4 pt-8 pb-24 sm:px-6 sm:pt-12 sm:pb-12 max-w-[900px] mx-auto">
