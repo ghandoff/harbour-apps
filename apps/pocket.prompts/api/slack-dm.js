@@ -1,5 +1,5 @@
 import { send_message, find_dm_channel } from '../lib/slack.js';
-import { get_slack_user_id } from '../lib/users.js';
+import { get_slack_user_id, get_slack_channel_id } from '../lib/users.js';
 
 export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
@@ -26,9 +26,12 @@ export default async function handler(req, res) {
   }
 
   try {
-    const channel_id = await find_dm_channel({ token, user_id: slack_user_id });
+    // prefer dedicated notification channel over bot DM
+    const channel_id = get_slack_channel_id(user)
+      || await find_dm_channel({ token, user_id: slack_user_id });
+
     if (!channel_id) {
-      return res.status(500).json({ error: 'could not open dm channel' });
+      return res.status(500).json({ error: 'could not resolve notification channel' });
     }
 
     const result = await send_message({ token, channel_id, text, thread_ts });

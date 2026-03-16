@@ -2,7 +2,7 @@ import { detect_intent } from '../lib/intent.js';
 import { create_capture } from '../lib/notion.js';
 import { create_task } from '../lib/notion-tasks.js';
 import { create_code_task, get_latest_code_task, update_code_task } from '../lib/notion-code-tasks.js';
-import { resolve_member, get_slack_user_id } from '../lib/users.js';
+import { resolve_member, get_slack_user_id, get_slack_channel_id } from '../lib/users.js';
 import { get_recent_messages, send_message, find_dm_channel } from '../lib/slack.js';
 import { log_voice_interaction } from '../lib/voice-log.js';
 import { get_token } from '../lib/kv.js';
@@ -429,7 +429,8 @@ async function handle_code_conversation(intent, ctx, res) {
     const slack_user_id = get_slack_user_id(ctx.user_id);
 
     if (slack_user_id && token) {
-      const channel_id = await find_dm_channel({ token, user_id: slack_user_id });
+      const channel_id = get_slack_channel_id(ctx.user_id)
+        || await find_dm_channel({ token, user_id: slack_user_id });
       if (channel_id) {
         await send_message({
           token,

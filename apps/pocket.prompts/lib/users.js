@@ -43,3 +43,8 @@ export function get_slack_user_id(name) {
   const member = resolve_member(name);
   return member?.slack_user_id || null;
 }
+
+export function get_slack_channel_id(name) {
+  const member = resolve_member(name);
+  return member?.slack_channel_id || null;
+}

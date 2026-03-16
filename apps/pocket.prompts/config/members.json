@@ -2,6 +2,7 @@
   "garrett": {
     "notion_user_id": "16ed872b-594c-8148-a446-000287a90f4c",
     "slack_user_id": "U06Q4UN4PKR",
+    "slack_channel_id": "C0ALVGEEXSQ",
     "email": "garrett@windedvertigo.com",
     "voice_log_db_id": "a539f6a6-2b98-4c13-a59a-6818c3f917b0",
     "code_tasks_db_id": "4497e3d0-f543-4dd2-aea6-f59789fe7a8f"
