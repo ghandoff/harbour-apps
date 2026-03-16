@@ -20,7 +20,7 @@ export function CredibilityZone() {
         {/* Section heading */}
         <ScrollReveal>
           <div className="text-center mb-16 sm:mb-20">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-accent-on-dark)] mb-4">
+            <p className="text-xs font-semibold tracking-[0.2em] text-[var(--color-accent-on-dark)] mb-4">
               {credibilityData.sectionLabel}
             </p>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[var(--color-text-on-dark)] leading-tight max-w-2xl mx-auto">
@@ -62,7 +62,7 @@ export function CredibilityZone() {
       <div className="max-w-5xl mx-auto px-6">
         <ScrollReveal>
           <div className="text-center mb-12">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-accent-on-dark)] mb-4">
+            <p className="text-xs font-semibold tracking-[0.2em] text-[var(--color-accent-on-dark)] mb-4">
               us
             </p>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[var(--color-text-on-dark)] leading-tight max-w-2xl mx-auto">
