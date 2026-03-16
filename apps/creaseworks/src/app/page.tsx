@@ -1,7 +1,5 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
-import { getSession } from "@/lib/auth-helpers";
 import { getPublicStats } from "@/lib/queries/stats";
 
 /**
@@ -57,13 +55,6 @@ const jsonLd = {
 };
 
 export default async function Home() {
-  const session = await getSession();
-
-  // Redirect logged-in users to their playbook
-  if (session) {
-    redirect("/playbook");
-  }
-
   const stats = await getPublicStats();
   return (
     <main className="min-h-screen" style={{ backgroundColor: "var(--wv-cadet)" }}>
