@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
      multi-zone rewrites (see apps/site/vercel.json). basePath ensures Next.js
      generates correct asset URLs and internal links under that prefix. */
   basePath: "/reservoir/creaseworks",
-  transpilePackages: ["@windedvertigo/tokens"],
+  transpilePackages: ["@windedvertigo/tokens", "next-auth"],
 
   /* Custom loader routes all next/image requests through Cloudflare CDN
      (cdn.creaseworks.co) instead of Vercel's /_next/image proxy.
