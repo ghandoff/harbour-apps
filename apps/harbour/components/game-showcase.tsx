@@ -9,6 +9,7 @@ export interface Game {
   color: string;          // tailwind bg gradient from
   accentColor: string;    // pill/badge color
   icon: string;           // emoji or short text for the card icon
+  image?: string;         // optional background image path (relative to public/)
   features: string[];
   href: string;
   status: "live" | "coming-soon";

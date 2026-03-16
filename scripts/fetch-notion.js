@@ -623,8 +623,15 @@ async function fetchHarbourGames() {
     'fetchHarbourGames'
   );
 
+  // Ensure tile image directory exists
+  const imageDir = path.join(__dirname, '..', 'apps', 'harbour', 'public', 'images');
+  if (!fs.existsSync(imageDir)) {
+    fs.mkdirSync(imageDir, { recursive: true });
+  }
+
   const games = [];
   let skipped = 0;
+  let imagesDownloaded = 0;
 
   for (const page of response.results) {
     if (!validatePage(page, required, 'Harbour Games')) {
@@ -634,13 +641,31 @@ async function fetchHarbourGames() {
 
     const props = page.properties;
     const featuresRaw = getTextValue(props[propMap.features]);
+    const slug = getTextValue(props[propMap.slug]);
+
+    // Download tile image from Notion (signed URLs expire, so we cache locally)
+    let image = '';
+    const tileImageUrl = getFilesValue(props[propMap.tileImage]);
+    if (tileImageUrl) {
+      try {
+        const ext = getCoverExtension(tileImageUrl);
+        const filename = slug + ext;
+        const filepath = path.join(imageDir, filename);
+        await downloadFile(tileImageUrl, filepath);
+        image = '/harbour/images/' + filename;
+        imagesDownloaded++;
+      } catch (err) {
+        console.warn('  Warning: Could not download tile image for ' + slug + ': ' + err.message);
+      }
+    }
 
     games.push({
-      slug: getTextValue(props[propMap.slug]),
+      slug,
       name: getTitleValue(props[propMap.name]),
       tagline: getTextValue(props[propMap.tagline]),
       description: getTextValue(props[propMap.description]),
       icon: getTextValue(props[propMap.icon]),
+      image,
       color: getTextValue(props[propMap.brandColor]),
       accentColor: getTextValue(props[propMap.accentColor]),
       features: featuresRaw ? featuresRaw.split(',').map(f => f.trim()).filter(Boolean) : [],
@@ -650,7 +675,7 @@ async function fetchHarbourGames() {
     });
   }
 
-  console.log('  OK Harbour Games: ' + games.length + ' games' + (skipped ? ' (' + skipped + ' skipped)' : ''));
+  console.log('  OK Harbour Games: ' + games.length + ' games, ' + imagesDownloaded + ' tile images' + (skipped ? ', ' + skipped + ' skipped' : ''));
   return games;
 }
 
