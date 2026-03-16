@@ -1,13 +1,18 @@
 import Link from "next/link";
-import { BLOOMS_ORDER, BLOOMS_LEVELS } from "@/lib/blooms";
+import BloomStaircase from "@/components/bloom-staircase";
+import StatCounters from "@/components/stat-counters";
+import HowItWorks from "@/components/how-it-works";
+import DemoPreview from "@/components/demo-preview";
+import BloomsGrid from "@/components/blooms-grid";
+import TryItBox from "@/components/try-it-box";
 
 export default function DepthChartHome() {
   return (
-    <main id="main" className="min-h-screen flex flex-col">
+    <main id="main" className="flex flex-col">
       {/* hero */}
       <section
         aria-label="hero"
-        className="flex-1 flex flex-col items-center justify-center text-center px-6 pt-24 pb-16"
+        className="flex flex-col items-center justify-center text-center px-6 pt-24 pb-12"
       >
         <div className="max-w-2xl space-y-6">
           <p className="text-xs font-semibold tracking-[0.25em] text-[var(--color-accent-on-dark)]">
@@ -39,105 +44,78 @@ export default function DepthChartHome() {
         </div>
       </section>
 
-      {/* how it works */}
+      {/* bloom's staircase visualization */}
+      <section aria-label="bloom's staircase" className="px-6 pb-12 relative">
+        <BloomStaircase />
+      </section>
+
+      {/* stat counters */}
+      <section aria-label="stats" className="px-6 pb-16">
+        <StatCounters />
+      </section>
+
+      {/* credibility strip */}
+      <div className="text-center px-6 pb-16">
+        <p className="text-[11px] text-[var(--color-text-on-dark-muted)] max-w-2xl mx-auto leading-relaxed">
+          grounded in peer-reviewed frameworks:&ensp;
+          <span className="text-[var(--color-text-on-dark)] font-medium">constructive alignment</span> (Biggs &amp; Tang, 2011)
+          &ensp;·&ensp;
+          <span className="text-[var(--color-text-on-dark)] font-medium">evaluative judgment</span> (Tai et al., 2018)
+          &ensp;·&ensp;
+          <span className="text-[var(--color-text-on-dark)] font-medium">six authenticity criteria</span> (Baquero-Vargas &amp; Pérez-Salas, 2023)
+        </p>
+      </div>
+
+      {/* how it works — animated timeline */}
       <section
         aria-label="how it works"
-        className="max-w-4xl mx-auto px-6 pb-24 w-full"
+        className="bg-white/[0.02] border-y border-white/5 py-20 px-6"
       >
-        <h2 className="text-sm font-semibold tracking-[0.2em] text-[var(--color-text-on-dark-muted)] mb-8 text-center">
+        <h2 className="text-sm font-semibold tracking-[0.2em] text-[var(--color-text-on-dark-muted)] mb-10 text-center">
           how it works
         </h2>
+        <HowItWorks />
+      </section>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[
-            {
-              step: "1",
-              title: "upload",
-              desc: "paste or upload your lesson plan, syllabus, or course outline",
-            },
-            {
-              step: "2",
-              title: "parse",
-              desc: "we extract learning objectives and classify them on Bloom's taxonomy",
-            },
-            {
-              step: "3",
-              title: "generate",
-              desc: "each objective gets a constructively aligned assessment task with rubric",
-            },
-            {
-              step: "4",
-              title: "scaffold",
-              desc: "every task includes an evaluative judgment scaffold for student self-assessment",
-            },
-          ].map((item) => (
-            <div
-              key={item.step}
-              className="bg-white/5 border border-white/10 rounded-xl p-5 space-y-2"
-            >
-              <span className="text-xs font-bold text-[var(--wv-champagne)]">
-                {item.step}
-              </span>
-              <h3 className="text-sm font-semibold text-[var(--color-text-on-dark)]">
-                {item.title}
-              </h3>
-              <p className="text-xs text-[var(--color-text-on-dark-muted)] leading-relaxed">
-                {item.desc}
-              </p>
-            </div>
-          ))}
-        </div>
+      {/* live demo preview */}
+      <section
+        aria-label="live demo"
+        className="py-20 px-6"
+      >
+        <h2 className="text-sm font-semibold tracking-[0.2em] text-[var(--color-text-on-dark-muted)] mb-3 text-center">
+          see what you get
+        </h2>
+        <p className="text-xs text-[var(--color-text-on-dark-muted)] text-center mb-10 max-w-md mx-auto">
+          click below to see how a single learning objective transforms into a
+          complete assessment package
+        </p>
+        <DemoPreview />
       </section>
 
       {/* Bloom's taxonomy reference */}
       <section
         aria-label="bloom's taxonomy"
-        className="max-w-4xl mx-auto px-6 pb-24 w-full"
+        className="bg-white/[0.02] border-y border-white/5 py-20 px-6"
       >
-        <h2 className="text-sm font-semibold tracking-[0.2em] text-[var(--color-text-on-dark-muted)] mb-8 text-center">
-          cognitive levels
-        </h2>
-
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {BLOOMS_ORDER.map((level) => {
-            const info = BLOOMS_LEVELS[level];
-            return (
-              <div
-                key={level}
-                className="bg-white/5 border border-white/10 rounded-lg p-4 space-y-1"
-              >
-                <div className="flex items-center gap-2">
-                  <span
-                    className="w-2 h-2 rounded-full"
-                    style={{ backgroundColor: info.color }}
-                  />
-                  <span className="text-sm font-semibold text-[var(--color-text-on-dark)]">
-                    {info.label}
-                  </span>
-                  <span className="text-[10px] text-[var(--color-text-on-dark-muted)] ml-auto">
-                    {info.category}
-                  </span>
-                </div>
-                <p className="text-xs text-[var(--color-text-on-dark-muted)]">
-                  {info.description}
-                </p>
-                <p className="text-[10px] text-[var(--color-text-on-dark-muted)]">
-                  {info.example_verbs.slice(0, 4).join(", ")}
-                </p>
-              </div>
-            );
-          })}
+        <div className="max-w-4xl mx-auto w-full">
+          <h2 className="text-sm font-semibold tracking-[0.2em] text-[var(--color-text-on-dark-muted)] mb-8 text-center">
+            cognitive levels
+          </h2>
+          <BloomsGrid />
         </div>
       </section>
 
-      {/* attribution */}
-      <footer className="text-center py-8 px-6 text-xs text-[var(--color-text-on-dark-muted)]">
-        <p>
-          built on constructive alignment (Biggs, 1996), evaluative judgment
-          theory (Sadler, 1989), and the six authenticity criteria
-          (Baquero-Vargas & Pérez-Salas, 2023).
-        </p>
-        <p className="mt-2 opacity-50">
+      {/* try it now */}
+      <section aria-label="try it now" className="py-20 px-6">
+        <h2 className="text-sm font-semibold tracking-[0.2em] text-[var(--color-text-on-dark-muted)] mb-8 text-center">
+          try it now
+        </h2>
+        <TryItBox />
+      </section>
+
+      {/* footer */}
+      <footer className="text-center py-8 px-6 text-xs text-[var(--color-text-on-dark-muted)] border-t border-white/5">
+        <p className="opacity-50">
           a winded.vertigo project
         </p>
       </footer>

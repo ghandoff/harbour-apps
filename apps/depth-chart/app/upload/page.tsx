@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState, useCallback, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { UploadForm } from "@/components/upload-form";
 import type { LearningObjective } from "@/lib/types";
 
@@ -13,8 +13,10 @@ interface ParsedPlan {
   objectives: LearningObjective[];
 }
 
-export default function UploadPage() {
+function UploadPageInner() {
   const router = useRouter();
+  const search_params = useSearchParams();
+  const prefill = search_params.get("q") || "";
   const [is_loading, set_is_loading] = useState(false);
   const [error, set_error] = useState<string | null>(null);
   const [parsed, set_parsed] = useState<ParsedPlan | null>(null);
@@ -112,8 +114,16 @@ export default function UploadPage() {
           </div>
         )}
 
-        <UploadForm on_submit={handle_submit} is_loading={is_loading} />
+        <UploadForm on_submit={handle_submit} is_loading={is_loading} initial_text={prefill} />
       </div>
     </main>
+  );
+}
+
+export default function UploadPage() {
+  return (
+    <Suspense>
+      <UploadPageInner />
+    </Suspense>
   );
 }

@@ -25,10 +25,11 @@ interface UploadFormProps {
     title: string;
   }) => void;
   is_loading: boolean;
+  initial_text?: string;
 }
 
-export function UploadForm({ on_submit, is_loading }: UploadFormProps) {
-  const [raw_text, set_raw_text] = useState("");
+export function UploadForm({ on_submit, is_loading, initial_text }: UploadFormProps) {
+  const [raw_text, set_raw_text] = useState(initial_text || "");
   const [subject, set_subject] = useState("");
   const [grade_level, set_grade_level] = useState("");
   const [title, set_title] = useState("");
