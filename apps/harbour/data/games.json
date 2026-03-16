@@ -24,6 +24,7 @@
     "tagline": "wake up your group",
     "description": "a growing library of group activities, ice-breakers, and energisers — gathered from years of facilitation across cultures, classrooms, and community spaces. every activity has been field-tested with real humans in real rooms. find the right game for any group size, energy level, or moment — and notice what it tells you about where the group actually is.",
     "icon": "",
+    "image": "/harbour/images/vertigo-vault.png",
     "color": "from-[var(--wv-redwood)] to-[var(--wv-champagne)]",
     "accentColor": "bg-[var(--wv-sienna)]",
     "features": [
@@ -44,6 +45,7 @@
     "tagline": "past 'today was fine'",
     "description": "a card game for teachers and parents who want to actually connect with children ages 6–14. layered conversation prompts move from light to deep. wild-card modifiers lower the stakes of vulnerable questions. playful mini-games keep everyone in the room. designed so the hard conversations happen sideways — not because children can't handle directness, but because the sideways path is often where the real thing lives.",
     "icon": "",
+    "image": "/harbour/images/deep-deck.png",
     "color": "from-[var(--wv-champagne)] to-[var(--color-surface-raised)]",
     "accentColor": "bg-[var(--wv-redwood)]",
     "features": [
@@ -65,12 +67,16 @@
     "tagline": "see where they actually are",
     "description": "an ai-powered assessment task generator for educators who want to measure what matters — not just what's easy to test. describe your learning goals, and depth.chart builds developmentally appropriate tasks that reveal where learners actually are. no more guessing, no more one-size-fits-all rubrics.",
     "icon": "",
+    "image": "/harbour/images/depth-chart.png",
     "color": "from-[var(--color-surface-raised)] to-[var(--wv-sienna)]",
     "accentColor": "bg-[var(--wv-redwood)]",
     "features": [
       "ai-generated assessment tasks from learning goals",
       "developmentally sequenced by age and stage",
-      "multiple task formats (performance, portfolio, observation, conversation)",
+      "multiple task formats (performance",
+      "portfolio",
+      "observation",
+      "conversation)",
       "aligned to curriculum frameworks without being trapped by them"
     ],
     "href": "/harbour/depth-chart",
