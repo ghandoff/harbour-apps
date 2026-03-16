@@ -3,6 +3,8 @@ import Anthropic from "@anthropic-ai/sdk";
 import { GENERATE_TASK_SYSTEM, build_generate_prompt } from "@/lib/prompts/generate-task";
 import { passes_authenticity_gate } from "@/lib/authenticity";
 import { get_valid_formats } from "@/lib/blooms";
+import { auth } from "@/lib/auth";
+import { save_task, track_event } from "@/lib/queries";
 import type { GenerateTaskInput } from "@/lib/prompts/generate-task";
 import type { AuthenticityProfile } from "@/lib/types";
 
@@ -11,7 +13,13 @@ const MAX_RETRIES = 2;
 
 export async function POST(request: Request) {
   try {
-    const body = (await request.json()) as GenerateTaskInput;
+    const session = await auth();
+    const user_id = session?.user?.id ?? null;
+
+    const body = (await request.json()) as GenerateTaskInput & {
+      objective_id?: string;
+      plan_id?: string;
+    };
 
     if (!body.objective_raw_text?.trim()) {
       return NextResponse.json(
@@ -58,12 +66,33 @@ export async function POST(request: Request) {
       last_result = result;
 
       const scores = result.authenticity_scores as AuthenticityProfile;
-      if (passes_authenticity_gate(scores) || attempt === MAX_RETRIES) {
-        return NextResponse.json({
+      const passed = passes_authenticity_gate(scores);
+      if (passed || attempt === MAX_RETRIES) {
+        const task_data = {
           ...result,
-          authenticity_passed: passes_authenticity_gate(scores),
+          authenticity_passed: passed,
           generation_attempts: attempt + 1,
-        });
+        };
+
+        // persist to DB if authenticated and objective_id provided
+        if (user_id && body.objective_id) {
+          try {
+            const task_id = `task_${body.objective_id}`;
+            await save_task(body.objective_id, { ...task_data, id: task_id, objective_id: body.objective_id, blooms_level: body.blooms_level, task_format: body.task_format }, attempt + 1, passed);
+            await track_event(user_id, "task_generated", {
+              plan_id: body.plan_id,
+              objective_id: body.objective_id,
+              blooms_level: body.blooms_level,
+              task_format: body.task_format,
+              attempts: attempt + 1,
+              authenticity_passed: passed,
+            });
+          } catch (e) {
+            console.error("[generate] db save failed:", e);
+          }
+        }
+
+        return NextResponse.json(task_data);
       }
     }
 

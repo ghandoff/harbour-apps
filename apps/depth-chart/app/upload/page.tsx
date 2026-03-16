@@ -2,6 +2,7 @@
 
 import { Suspense, useState, useCallback, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { UploadForm } from "@/components/upload-form";
 import type { LearningObjective } from "@/lib/types";
 
@@ -11,11 +12,13 @@ interface ParsedPlan {
   grade_level: string;
   raw_text: string;
   objectives: LearningObjective[];
+  source_format?: string;
 }
 
 function UploadPageInner() {
   const router = useRouter();
   const search_params = useSearchParams();
+  const { data: session } = useSession();
   const prefill = search_params.get("q") || "";
   const [is_loading, set_is_loading] = useState(false);
   const [error, set_error] = useState<string | null>(null);
@@ -28,8 +31,10 @@ function UploadPageInner() {
 
       try {
         let res: Response;
+        let source_format = "text";
 
         if (data.file) {
+          source_format = data.file.name.endsWith(".pdf") ? "pdf" : data.file.name.endsWith(".docx") ? "docx" : "text";
           const form = new FormData();
           form.append("file", data.file);
           form.append("subject", data.subject);
@@ -64,6 +69,7 @@ function UploadPageInner() {
           grade_level: data.grade_level,
           raw_text: data.raw_text || extracted_text || "",
           objectives,
+          source_format,
         });
       } catch (e) {
         set_error(e instanceof Error ? e.message : "something went wrong");
@@ -74,13 +80,43 @@ function UploadPageInner() {
     []
   );
 
-  // once parsed, store in localStorage (current + history) and navigate
+  // once parsed, save and navigate
   useEffect(() => {
-    if (parsed && parsed.objectives.length > 0) {
+    if (!parsed || parsed.objectives.length === 0) return;
+
+    async function save_and_navigate() {
+      if (!parsed) return;
+
+      if (session?.user?.id) {
+        // authenticated — save to DB
+        try {
+          const res = await fetch("/harbour/depth-chart/api/plans", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              title: parsed.title,
+              subject: parsed.subject,
+              grade_level: parsed.grade_level,
+              raw_text: parsed.raw_text,
+              source_format: parsed.source_format || "text",
+              objectives: parsed.objectives,
+            }),
+          });
+
+          if (res.ok) {
+            const { plan_id } = await res.json();
+            router.push(`/plan/${plan_id}`);
+            return;
+          }
+        } catch (e) {
+          console.error("[upload] db save failed, falling back to localStorage:", e);
+        }
+      }
+
+      // anonymous or DB save failed — use localStorage
       localStorage.setItem("depth_chart_plan", JSON.stringify(parsed));
       localStorage.removeItem("depth_chart_tasks");
 
-      // append to history
       const raw = localStorage.getItem("depth_chart_plan_history");
       const history = raw ? JSON.parse(raw) : [];
       history.unshift({
@@ -93,7 +129,9 @@ function UploadPageInner() {
 
       router.push("/plan/current");
     }
-  }, [parsed, router]);
+
+    save_and_navigate();
+  }, [parsed, session, router]);
 
   return (
     <main id="main" className="min-h-screen flex flex-col items-center px-6 pt-24 pb-16">
@@ -104,8 +142,16 @@ function UploadPageInner() {
           </h1>
           <p className="text-sm text-[var(--color-text-on-dark-muted)]">
             upload a PDF, DOCX, or paste your lesson plan below.
-            we'll extract learning objectives and classify them on Bloom's taxonomy.
+            we&apos;ll extract learning objectives and classify them on Bloom&apos;s taxonomy.
           </p>
+          {!session?.user && (
+            <p className="text-xs text-[var(--wv-champagne)]">
+              <a href="/harbour/depth-chart/login" className="underline hover:opacity-80">
+                sign in
+              </a>{" "}
+              to save plans to your account.
+            </p>
+          )}
         </div>
 
         {error && (

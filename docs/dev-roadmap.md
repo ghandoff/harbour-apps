@@ -9,7 +9,7 @@
 | **site** (windedvertigo.com) | Live, CMS-backed | Wire remaining pages to Notion CMS |
 | **creaseworks** | Live (Phase 3 + Stripe) | Onboarding polish, next/image evaluation |
 | **harbour** | In development | Wire to CMS JSON, game showcase content |
-| **depth-chart** | Live (MVP+) | LMS integration (QTI export), visual design |
+| **depth-chart** | Live (MVP+) | Pilot prep (auth + storage) → Q2 faculty pilot → Aug launch |
 | **deep-deck** | In development | — |
 | **nordic-sqr-rct** | Live | Potential Supabase migration |
 | **vertigo-vault** | In development | — |
@@ -118,14 +118,32 @@ See `docs/creaseworks-backlog-2026-02-28.md` for the detailed backlog with all f
 - [x] Plan history (localStorage, last 20 plans)
 - [x] Hosted under harbour at /harbour/depth-chart
 - [x] Vercel deployment with turbo-ignore
-
-### Next Up
-
 - [x] Multi-format upload (PDF, DOCX) with server-side text extraction
 - [x] winded.vertigo branding on task cards, rubric, and EJ scaffold
 - [x] Downloadable branded PDF export with watermark and styled rubric
-- [ ] LMS integration (QTI export → LTI 1.3)
-- [ ] Visual design and illustrations
+- [x] QTI 2.1 XML export + CSV rubric export + export menu (15 Mar 2026)
+- [x] Landing page redesign with interactive components (15 Mar 2026) — Bloom's staircase, demo preview, stat counters, animated timeline, try-it-now box
+
+### Next Up — accelerated GTM (target: August 2026 launch)
+
+**pilot prep (march → april 2026)**
+- [ ] Auth.js integration (Google + email magic link)
+- [ ] Neon Postgres for persistent plan storage (migrate from sessionStorage)
+- [ ] Usage telemetry (Bloom's distribution, format preferences, override rate)
+- [ ] In-app feedback mechanism
+- [ ] Free tier enforcement (3 plans/month unauthenticated)
+
+**faculty pilot (april → june 2026)**
+- [ ] Recruit 10-15 faculty beta testers
+- [ ] Iterate on generation quality from pilot feedback
+
+**launch prep (june → july 2026)**
+- [ ] Stripe billing (free + faculty tiers)
+- [ ] Sonnet-for-parse cost optimization
+- [ ] Marketing content + SEO
+- [ ] Pilot testimonials for social proof
+
+**public launch (august 2026)** — timed to fall term start
 
 ## apps/deep-deck, apps/harbour & apps/vertigo-vault
 

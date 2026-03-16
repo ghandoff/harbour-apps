@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import AuthSessionProvider from "@/components/session-provider";
+import AuthButton from "@/components/auth-button";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -58,10 +60,15 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-[var(--wv-cadet)] text-[var(--color-text-on-dark)] font-[family-name:var(--font-body)] antialiased">
-        <a href="#main" className="skip-link">
-          skip to content
-        </a>
-        {children}
+        <AuthSessionProvider>
+          <a href="#main" className="skip-link">
+            skip to content
+          </a>
+          <nav className="fixed top-0 right-0 z-40 p-4">
+            <AuthButton />
+          </nav>
+          {children}
+        </AuthSessionProvider>
       </body>
     </html>
   );

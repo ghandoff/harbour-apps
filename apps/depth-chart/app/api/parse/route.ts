@@ -3,6 +3,8 @@ import Anthropic from "@anthropic-ai/sdk";
 import { PARSE_OBJECTIVES_SYSTEM, build_parse_prompt } from "@/lib/prompts/parse-objectives";
 import type { ParseObjectivesInput } from "@/lib/prompts/parse-objectives";
 import { extract_text } from "@/lib/extractors";
+import { auth } from "@/lib/auth";
+import { track_event } from "@/lib/queries";
 
 const client = new Anthropic();
 
@@ -63,6 +65,15 @@ export async function POST(request: Request) {
     }
 
     const objectives = JSON.parse(json_match[0]);
+
+    // track parse event (non-blocking)
+    const session = await auth();
+    const user_id = session?.user?.id ?? null;
+    track_event(user_id, "plan_parsed", {
+      objectives_count: objectives.length,
+      blooms_levels: objectives.map((o: { blooms_level: string }) => o.blooms_level),
+      source_format: content_type.includes("multipart") ? "file" : "text",
+    }).catch(() => {});
 
     return NextResponse.json({ objectives, extracted_text: raw_text });
   } catch (error) {
