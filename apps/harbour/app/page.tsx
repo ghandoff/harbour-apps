@@ -49,7 +49,7 @@ export default function HarbourPage() {
         </section>
 
         {/* ── play. — games and toys ─────────────────────────── */}
-        <div id="play">
+        <div id="play" className="scroll-mt-24">
           <GameDock games={GAMES} />
         </div>
 
