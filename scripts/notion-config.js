@@ -93,6 +93,7 @@ module.exports = {
       tagline: 'Tagline',
       description: 'Description',
       icon: 'Icon',
+      tileImage: 'Tile Image',
       brandColor: 'Brand Color',
       accentColor: 'Accent Color',
       features: 'Features',

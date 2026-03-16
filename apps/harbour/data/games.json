@@ -5,6 +5,7 @@
     "tagline": "where play meets evidence",
     "description": "design a playful experience. run it with a real group. see what actually happens — not what you hoped would happen. fold what you notice into the next iteration. crease.works is for facilitators who take play seriously and know that the best designs come from paying attention.",
     "icon": "",
+    "image": "/harbour/images/creaseworks.png",
     "color": "from-[var(--wv-sienna)] to-[var(--wv-redwood)]",
     "accentColor": "bg-[var(--wv-redwood)]",
     "features": [
