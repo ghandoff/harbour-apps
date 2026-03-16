@@ -41,6 +41,9 @@ export default function RunForm({
   isPractitioner = false,
   initialPlaydateId = "",
   packInfo,
+  runTypes,
+  contextTags,
+  traceEvidenceOptions,
 }: {
   playdates: Playdate[];
   materials: Material[];
@@ -50,6 +53,10 @@ export default function RunForm({
   initialPlaydateId?: string;
   /** Optional pack info for post-reflection upsell CTA. */
   packInfo?: ReflectionPackInfo | null;
+  /** CMS-managed enum overrides — fall back to hard-coded defaults if omitted. */
+  runTypes?: string[];
+  contextTags?: string[];
+  traceEvidenceOptions?: string[];
 }) {
   const router = useRouter();
   const state = useRunFormState(initialPlaydateId);
@@ -247,7 +254,7 @@ export default function RunForm({
       aria-label="log a reflection"
       aria-describedby={state.error ? "reflection-error" : undefined}
     >
-      <RunFormEssentials state={state} playdates={playdates} />
+      <RunFormEssentials state={state} playdates={playdates} runTypes={runTypes} />
 
       {/* ── evidence capture section (practitioner tier) ──────────────── */}
       <EvidenceCaptureSection
@@ -257,7 +264,7 @@ export default function RunForm({
         isPractitioner={isPractitioner}
       />
 
-      <RunFormOptional state={state} materials={materials} />
+      <RunFormOptional state={state} materials={materials} contextTags={contextTags} traceEvidenceOptions={traceEvidenceOptions} />
 
       <RunFormActions state={state} />
     </form>

@@ -5,58 +5,52 @@ import { useRouter } from "next/navigation";
 import StepProgress from "@/components/ui/step-progress";
 import { apiUrl } from "@/lib/api-url";
 
-/* ── option definitions ── */
+/* ── option types ── */
 
-const TIER_OPTIONS = [
-  {
-    value: "casual",
-    label: "just play",
-    sub: "simple play ideas, no tracking",
-    icon: "🎈",
-  },
-  {
-    value: "curious",
-    label: "play + learn",
-    sub: "ideas with developmental context",
-    icon: "📖",
-  },
-  {
-    value: "collaborator",
-    label: "play + grow",
-    sub: "reflections, community, evidence",
-    icon: "🌱",
-  },
-] as const;
+export interface WizardOption {
+  value: string;
+  label: string;
+  sub?: string;
+  icon?: string;
+}
 
-const AGE_GROUPS = [
+/* ── hard-coded defaults (used when CMS config is not available) ── */
+
+const DEFAULT_TIER_OPTIONS: WizardOption[] = [
+  { value: "casual", label: "just play", sub: "simple play ideas, no tracking", icon: "🎈" },
+  { value: "curious", label: "play + learn", sub: "ideas with developmental context", icon: "📖" },
+  { value: "collaborator", label: "play + grow", sub: "reflections, community, evidence", icon: "🌱" },
+];
+
+const DEFAULT_AGE_GROUPS: WizardOption[] = [
   { value: "toddler", label: "toddlers", sub: "1-3 yrs" },
   { value: "preschool", label: "preschool", sub: "3-5 yrs" },
   { value: "school-age", label: "school age", sub: "5-8 yrs" },
   { value: "older", label: "older kids", sub: "8+" },
-] as const;
+];
 
-const CONTEXTS = [
+const DEFAULT_CONTEXTS: WizardOption[] = [
   { value: "home", label: "at home", icon: "🏠" },
   { value: "classroom", label: "in a classroom", icon: "🏫" },
   { value: "outdoors", label: "outdoors", icon: "🌳" },
   { value: "travel", label: "on the go", icon: "✈️" },
-] as const;
+];
 
-const ENERGY = [
+const DEFAULT_ENERGY: WizardOption[] = [
   { value: "chill", label: "chill", sub: "low mess, minimal setup", icon: "🌿" },
   { value: "medium", label: "medium", sub: "some supplies, moderate mess", icon: "🌤️" },
   { value: "active", label: "active", sub: "big mess, big fun", icon: "⚡" },
   { value: "any", label: "surprise me", sub: "show me everything", icon: "🎲" },
-] as const;
+];
 
-const CONTEXT_NAME_SUGGESTIONS = [
+const DEFAULT_CONTEXT_NAME_SUGGESTIONS = [
   "at home",
   "school time",
   "outdoors adventure",
   "road trip",
   "rainy day",
   "weekend play",
-] as const;
+];
 
 type Step = 0 | 1 | 2 | 3 | 4;
 
@@ -70,13 +64,29 @@ interface WizardProps {
   } | null;
   /** Pack names the user already has access to (via invite). Triggers a welcome message. */
   invitePackNames?: string[];
+  /** CMS-managed option overrides — fall back to hard-coded defaults if omitted. */
+  tierOptions?: WizardOption[];
+  ageGroupOptions?: WizardOption[];
+  contextOptions?: WizardOption[];
+  energyOptions?: WizardOption[];
+  contextNameSuggestions?: string[];
 }
 
 export default function OnboardingWizard({
   editMode = false,
   initialValues,
   invitePackNames = [],
+  tierOptions,
+  ageGroupOptions,
+  contextOptions,
+  energyOptions,
+  contextNameSuggestions,
 }: WizardProps) {
+  const TIER_OPTIONS = tierOptions ?? DEFAULT_TIER_OPTIONS;
+  const AGE_GROUPS = ageGroupOptions ?? DEFAULT_AGE_GROUPS;
+  const CONTEXTS = contextOptions ?? DEFAULT_CONTEXTS;
+  const ENERGY = energyOptions ?? DEFAULT_ENERGY;
+  const CONTEXT_NAME_SUGGESTIONS = contextNameSuggestions ?? DEFAULT_CONTEXT_NAME_SUGGESTIONS;
   const router = useRouter();
   const isInvitedUser = invitePackNames.length > 0;
   // New flow: tier → ages → contexts → energy (+ name in edit mode)

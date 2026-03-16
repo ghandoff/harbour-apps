@@ -41,6 +41,8 @@ import ProfileManageToggle from "./manage-toggle";
 import NotificationPrefs from "./notification-prefs";
 import AccessibilityPrefs from "./accessibility-prefs";
 import TierSwitcher from "./tier-switcher";
+import type { TierOption } from "./tier-switcher";
+import { getConfigObjects } from "@/lib/queries/cms-config";
 import PlayContextSwitcher from "./play-context-switcher";
 import SyncTrigger from "@/app/admin/sync/sync-trigger";
 
@@ -119,13 +121,23 @@ export default async function ProfilePage({
   // Always fetch packs — user-level entitlements (from invites) work
   // even without an org. getOrgPacksWithProgress handles null orgId.
   // Credits are only shown for collaborator tier, so skip the query for others.
-  const [ownedPacks, recommendedPacks, creditBalance] = await Promise.all([
+  const [ownedPacks, recommendedPacks, creditBalance, cmsTierRows] = await Promise.all([
     getOrgPacksWithProgress(session.orgId ?? null, session.userId).catch(() => []),
     getRecommendedPacks(session.orgId, session.userId).catch(() => []),
     tier === "collaborator"
       ? getUserCredits(session.userId).catch(() => 0)
       : Promise.resolve(0),
+    getConfigObjects<{ label: string; emoji: string; desc: string }>("tier_switcher_options").catch(() => []),
   ]);
+  const cmsTierOptions: TierOption[] | undefined =
+    cmsTierRows.length > 0
+      ? cmsTierRows.map((r) => ({
+          value: r.value as TierOption["value"],
+          label: r.metadata?.label ?? r.value,
+          emoji: r.metadata?.emoji ?? "",
+          desc: r.metadata?.desc ?? "",
+        }))
+      : undefined;
 
   /* show manage toggle for everyone (notification prefs are universal) */
   const canManage = true;
@@ -304,7 +316,7 @@ export default async function ProfilePage({
                   className="rounded-xl border p-4"
                   style={{ borderColor: "var(--cw-border)", backgroundColor: "var(--cw-card-bg)" }}
                 >
-                  <TierSwitcher initialTier={tier} />
+                  <TierSwitcher initialTier={tier} tierOptions={cmsTierOptions} />
                 </div>
               </section>
 

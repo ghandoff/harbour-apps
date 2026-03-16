@@ -13,6 +13,7 @@ import { getReadyPlaydatesForPicker } from "@/lib/queries/runs";
 import { getAllMaterials } from "@/lib/queries/materials";
 import { getFirstVisiblePackForPlaydate, getPackBySlug } from "@/lib/queries/packs";
 import { checkEntitlement } from "@/lib/queries/entitlements";
+import { getConfigValues } from "@/lib/queries/cms-config";
 import RunForm from "@/components/ui/run-form/run-form";
 import type { ReflectionPackInfo } from "@/components/ui/run-form/run-form";
 
@@ -31,9 +32,12 @@ export default async function NewReflectionPage({ searchParams }: Props) {
   const session = await requireAuth();
   const { playdate: playdateSlug } = await searchParams;
 
-  const [playdates, materials] = await Promise.all([
+  const [playdates, materials, runTypes, contextTags, traceEvidenceOptions] = await Promise.all([
     getReadyPlaydatesForPicker(),
     getAllMaterials(),
+    getConfigValues("run_types"),
+    getConfigValues("context_tags"),
+    getConfigValues("trace_evidence_options"),
   ]);
 
   // Resolve slug to ID for pre-selection
@@ -87,6 +91,9 @@ export default async function NewReflectionPage({ searchParams }: Props) {
         isPractitioner={isPractitioner}
         initialPlaydateId={initialPlaydateId}
         packInfo={packInfo}
+        runTypes={runTypes}
+        contextTags={contextTags}
+        traceEvidenceOptions={traceEvidenceOptions}
       />
     </main>
   );

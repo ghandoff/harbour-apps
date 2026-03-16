@@ -7,9 +7,13 @@ import type { RunFormState } from "./use-run-form-state";
 interface RunFormOptionalProps {
   state: RunFormState;
   materials: Material[];
+  contextTags?: string[];
+  traceEvidenceOptions?: string[];
 }
 
-export function RunFormOptional({ state, materials }: RunFormOptionalProps) {
+export function RunFormOptional({ state, materials, contextTags, traceEvidenceOptions }: RunFormOptionalProps) {
+  const tags = contextTags ?? CONTEXT_TAGS;
+  const evidenceOpts = traceEvidenceOptions ?? TRACE_EVIDENCE_OPTIONS;
   // Filter materials by search
   const filteredMaterials = materials.filter(
     (m: Material) =>
@@ -52,7 +56,7 @@ export function RunFormOptional({ state, materials }: RunFormOptionalProps) {
               context tags
             </label>
             <div className="flex flex-wrap gap-2">
-              {CONTEXT_TAGS.map((tag) => (
+              {tags.map((tag) => (
                 <button
                   key={tag}
                   type="button"
@@ -83,7 +87,7 @@ export function RunFormOptional({ state, materials }: RunFormOptionalProps) {
               trace evidence captured
             </label>
             <div className="flex flex-wrap gap-2">
-              {TRACE_EVIDENCE_OPTIONS.map((ev) => (
+              {evidenceOpts.map((ev) => (
                 <button
                   key={ev}
                   type="button"

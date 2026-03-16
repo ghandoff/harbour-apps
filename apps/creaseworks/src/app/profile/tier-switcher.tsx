@@ -21,28 +21,27 @@ import { apiUrl } from "@/lib/api-url";
 
 type Tier = "casual" | "curious" | "collaborator";
 
-const TIER_OPTIONS: { value: Tier; label: string; emoji: string; desc: string }[] = [
-  {
-    value: "casual",
-    label: "just play",
-    emoji: "🎈",
-    desc: "simple play ideas, no tracking",
-  },
-  {
-    value: "curious",
-    label: "play + learn",
-    emoji: "📖",
-    desc: "ideas with developmental context",
-  },
-  {
-    value: "collaborator",
-    label: "play + grow",
-    emoji: "🌱",
-    desc: "reflections, community, evidence",
-  },
+export interface TierOption {
+  value: Tier;
+  label: string;
+  emoji: string;
+  desc: string;
+}
+
+const DEFAULT_TIER_OPTIONS: TierOption[] = [
+  { value: "casual", label: "just play", emoji: "🎈", desc: "simple play ideas, no tracking" },
+  { value: "curious", label: "play + learn", emoji: "📖", desc: "ideas with developmental context" },
+  { value: "collaborator", label: "play + grow", emoji: "🌱", desc: "reflections, community, evidence" },
 ];
 
-export default function TierSwitcher({ initialTier }: { initialTier: string }) {
+export default function TierSwitcher({
+  initialTier,
+  tierOptions,
+}: {
+  initialTier: string;
+  tierOptions?: TierOption[];
+}) {
+  const TIER_OPTIONS = tierOptions ?? DEFAULT_TIER_OPTIONS;
   const { update: updateSession } = useSession();
   const [tier, setTier] = useState<Tier>((initialTier as Tier) || "casual");
   const [saving, setSaving] = useState(false);

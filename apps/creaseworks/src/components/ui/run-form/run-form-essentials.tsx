@@ -7,9 +7,11 @@ import type { RunFormState } from "./use-run-form-state";
 interface RunFormEssentialsProps {
   state: RunFormState;
   playdates: Playdate[];
+  runTypes?: string[];
 }
 
-export function RunFormEssentials({ state, playdates }: RunFormEssentialsProps) {
+export function RunFormEssentials({ state, playdates, runTypes }: RunFormEssentialsProps) {
+  const types = runTypes ?? RUN_TYPES;
   return (
     <div className="rounded-xl border border-cadet/10 bg-champagne/30 p-5 space-y-4">
       <h2 className="text-sm font-semibold text-cadet/80">essentials</h2>
@@ -41,7 +43,7 @@ export function RunFormEssentials({ state, playdates }: RunFormEssentialsProps) 
           required
         >
           <option value="">select type…</option>
-          {RUN_TYPES.map((t) => (
+          {types.map((t) => (
             <option key={t} value={t}>
               {t}
             </option>

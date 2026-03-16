@@ -158,6 +158,82 @@ verified session 35: all engagement features are fully wired into user flows.
 
 ---
 
+## CMS content migration — move hard-coded content to Notion
+
+**Goal:** Let the collective author and update app content through Notion instead of requiring code changes. Each tier follows the existing sync pattern: Notion DB → sync handler → Postgres → components read from DB with hard-coded fallback.
+
+**Architecture:** One new Notion database ("App Config") with rows per config entry. Each row has a `key` (select), `value` (title), `sort_order` (number), and `metadata` (rich text JSON for complex items like icons/descriptions). Synced to a `cms_config` table in Postgres. Components read from DB at render time with hard-coded defaults as fallback when no DB rows exist.
+
+---
+
+### CMS tier 1 — form constants & enum arrays
+
+Move the simple string arrays used in form dropdowns and filters. Lowest risk — these rarely change but should be authorable without deploys.
+
+| # | item | source file | hard-coded values | status |
+|---|------|-------------|-------------------|--------|
+| C1 | **run type options** | `lib/constants/enums.ts:11-18` | home session, classroom activity, outdoor play, on-the-go, group session, one-on-one | ✅ done |
+| C2 | **trace evidence options** | `lib/constants/enums.ts:20-26` | photo, video, quote, artifact, notes | ✅ done |
+| C3 | **context tags** | `lib/constants/enums.ts:28-35` | classroom, home, remote, low-resource, travel-kit, mess-sensitive | ✅ done |
+
+**Implementation:**
+1. Migration 045: `cms_config` table (key TEXT, value TEXT, sort_order INT, group_key TEXT, metadata JSONB, notion_id TEXT UNIQUE, updated_at TIMESTAMPTZ)
+2. Sync handler: `src/lib/sync/cms-config.ts` — queries Notion "App Config" DB, upserts rows
+3. Query helper: `src/lib/queries/cms-config.ts` — `getConfigValues(key)` returns string[] with hard-coded fallback
+4. Update `enums.ts` exports to async DB reads; keep current arrays as fallback defaults
+
+---
+
+### CMS tier 2 — onboarding & user-facing option sets
+
+Move the structured option objects used in the onboarding wizard, profile tier switcher, and consent flows. Medium complexity — each option has multiple fields (label, icon, description).
+
+| # | item | source file | items | status |
+|---|------|-------------|-------|--------|
+| C4 | **onboarding tier options** | `app/onboarding/wizard.tsx:10-29` | 3 options (casual/curious/collaborator) with value, label, icon, sub | ✅ done |
+| C5 | **age group options** | `app/onboarding/wizard.tsx:31-36` | 4 groups (toddler, preschool, school-age, older) with value, label, sub | ✅ done |
+| C6 | **context options** | `app/onboarding/wizard.tsx:38-43` | 4 contexts (home, classroom, outdoors, travel) with value, label, icon | ✅ done |
+| C7 | **energy level options** | `app/onboarding/wizard.tsx:45-50` | 4 levels (chill, medium, active, any) with value, label, sub, icon | ✅ done |
+| C8 | **context name suggestions** | `app/onboarding/wizard.tsx:52-59` | 6 suggestions (at home, school time, etc.) | ✅ done |
+| C9 | **tier switcher options** | `app/profile/tier-switcher.tsx:24-43` | 3 options (mirrors C4 with emoji field) | ✅ done |
+| C10 | **photo consent tier descriptions** | `components/photo-consent-classifier.tsx:29-51` | 3 tiers (artifact, activity, face) with emoji, label, description, autoMarketing | 🔵 deferred — 4 levels of prop drilling |
+| C11 | **photo release age ranges** | `components/photo-release-waiver.tsx:17-23` | 5 ranges (under 5, 5–8, 9–12, 13–17, 18+) | 🔵 deferred — 4 levels of prop drilling |
+
+**Implementation:**
+1. Uses same `cms_config` table from tier 1 — complex items stored in `metadata` JSONB
+2. Query helper: `getConfigObjects(key)` returns parsed metadata objects with hard-coded fallback
+3. Update wizard, tier-switcher, consent components to read from DB
+4. Notion database: each option is a row with `key=onboarding_tier_options`, `value=casual`, `metadata={"label":"just play","icon":"🎈","sub":"simple play ideas, no tracking"}`
+
+---
+
+### CMS tier 3 — pricing, marketing & landing page content
+
+Move business-critical content that the collective should be able to update independently. Highest impact but needs careful handling — pricing changes affect Stripe integration, landing page is the public face.
+
+| # | item | source file | content | status |
+|---|------|-------------|---------|--------|
+| C12 | **subscription tier definitions** | `components/ui/tier-card.tsx:26-74` | 4 tiers (sampler/explorer/practitioner/collective) with name, price, tagline, feature lists | 🟡 |
+| C13 | **landing page hero section** | `app/page.tsx:82-126` | headline, subheading, CTAs | 🟡 |
+| C14 | **landing page feature cards** | `app/page.tsx:150-171` | 4 feature cards with title + description | 🟡 |
+| C15 | **landing page how-it-works** | `app/page.tsx:223-240` | 3-step process with titles + descriptions | 🟡 |
+| C16 | **landing page who-it's-for** | `app/page.tsx:258-271` | 3 audience cards (parents, teachers, anyone) | 🟡 |
+| C17 | **admin dashboard sections** | `app/admin/page.tsx:18-79` | 10 sections with title, href, description, icon | 🟡 |
+| C18 | **valid invite tiers** | `app/api/admin/invites/route.ts` | explorer, practitioner | 🟡 |
+
+**Implementation:**
+1. C12: New `subscription_tiers` Notion DB (or rows in App Config with `key=subscription_tiers`). Sync to `cms_config`. Tier card reads from DB.
+2. C13-C16: Extend existing `cms_pages` pattern — create a Notion page for the landing page, sync body as structured sections. Or use App Config rows per section.
+3. C17-C18: App Config rows. Admin page reads from DB.
+
+**Not migrating** (code configuration, not authored content):
+- Playdate card visual mappings (`playdate-card.tsx:13-61`) — CSS class names tied to code
+- Column selectors (`lib/security/column-selectors.ts`) — security policy, not content
+- Footer HTML (`packages/tokens/footer-html.ts`) — already managed via shared template
+- Tier ordering/hierarchy (`tier-card.tsx:79-84`) — structural, not content
+
+---
+
 ## open questions / future work
 
 1. ~~next/image migration~~ — ✅ DONE (session 50). all card components + CMS body images use `next/image` with a custom Cloudflare loader (`cloudflare-image-loader.ts`). no Vercel image optimization cost — images served directly from R2 public URL.

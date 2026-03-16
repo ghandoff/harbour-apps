@@ -26,6 +26,7 @@ import { getAllMaterials } from "@/lib/queries/materials";
 import { getFirstVisiblePackForPlaydate, getPackBySlug } from "@/lib/queries/packs";
 import { checkEntitlement } from "@/lib/queries/entitlements";
 import { getGalleryEvidence, countGalleryEvidence } from "@/lib/queries/gallery";
+import { getConfigValues } from "@/lib/queries/cms-config";
 import RunForm from "@/components/ui/run-form/run-form";
 import type { ReflectionPackInfo } from "@/components/ui/run-form/run-form";
 
@@ -138,11 +139,17 @@ async function ReflectionSection({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let materials: any[] = [];
   let packInfo: ReflectionPackInfo | null = null;
+  let runTypes: string[] | undefined;
+  let contextTags: string[] | undefined;
+  let traceEvidenceOptions: string[] | undefined;
 
   try {
-    [playdates, materials] = await Promise.all([
+    [playdates, materials, runTypes, contextTags, traceEvidenceOptions] = await Promise.all([
       getReadyPlaydatesForPicker(),
       getAllMaterials(),
+      getConfigValues("run_types"),
+      getConfigValues("context_tags"),
+      getConfigValues("trace_evidence_options"),
     ]);
 
     // Resolve slug to ID for pre-selection
@@ -202,6 +209,9 @@ async function ReflectionSection({
           isPractitioner={isPractitioner}
           initialPlaydateId={initialPlaydateId}
           packInfo={packInfo}
+          runTypes={runTypes}
+          contextTags={contextTags}
+          traceEvidenceOptions={traceEvidenceOptions}
         />
       </div>
     </section>
