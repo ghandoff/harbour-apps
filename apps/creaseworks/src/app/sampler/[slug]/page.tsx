@@ -38,13 +38,24 @@ export default async function PlaydateTeaserPage({ params }: Props) {
 
   // ── Internal user → always show full collective view ──
   if (session?.isInternal) {
-    const fullPlaydate = await getCollectivePlaydateBySlug(slug);
+    let fullPlaydate;
+    try {
+      fullPlaydate = await getCollectivePlaydateBySlug(slug);
+    } catch (err) {
+      console.error("sampler/[slug] getCollectivePlaydateBySlug failed:", err);
+    }
     if (!fullPlaydate) return notFound();
 
-    const [materials, pack] = await Promise.all([
-      getTeaserMaterialsForPlaydate(fullPlaydate.id),
-      getFirstVisiblePackForPlaydate(fullPlaydate.id),
-    ]);
+    let materials: Material[] = [];
+    let pack: Awaited<ReturnType<typeof getFirstVisiblePackForPlaydate>> = null;
+    try {
+      [materials, pack] = await Promise.all([
+        getTeaserMaterialsForPlaydate(fullPlaydate.id),
+        getFirstVisiblePackForPlaydate(fullPlaydate.id),
+      ]);
+    } catch (err) {
+      console.error("sampler/[slug] internal materials/pack failed:", err);
+    }
 
     // If the playdate IS in a pack, redirect to the pack view
     if (pack) {
@@ -74,19 +85,34 @@ export default async function PlaydateTeaserPage({ params }: Props) {
   }
 
   // ── Everyone else → sampler teaser path ──
-  const playdate = await getTeaserPlaydateBySlug(slug);
+  let playdate;
+  try {
+    playdate = await getTeaserPlaydateBySlug(slug);
+  } catch (err) {
+    console.error("sampler/[slug] getTeaserPlaydateBySlug failed:", err);
+  }
   if (!playdate) return notFound();
 
-  const [materials, pack] = await Promise.all([
-    getTeaserMaterialsForPlaydate(playdate.id),
-    getFirstVisiblePackForPlaydate(playdate.id),
-  ]);
+  let materials: Material[] = [];
+  let pack: Awaited<ReturnType<typeof getFirstVisiblePackForPlaydate>> = null;
+  try {
+    [materials, pack] = await Promise.all([
+      getTeaserMaterialsForPlaydate(playdate.id),
+      getFirstVisiblePackForPlaydate(playdate.id),
+    ]);
+  } catch (err) {
+    console.error("sampler/[slug] materials/pack query failed:", err);
+  }
 
   // Entitled user WITH a pack → redirect to the pack's playdate page
   if (session && pack) {
-    const isEntitled = await checkEntitlement(session.orgId, pack.id, session.userId);
-    if (isEntitled) {
-      redirect(`/packs/${pack.slug}/playdates/${slug}?from=sampler`);
+    try {
+      const isEntitled = await checkEntitlement(session.orgId, pack.id, session.userId);
+      if (isEntitled) {
+        redirect(`/packs/${pack.slug}/playdates/${slug}?from=sampler`);
+      }
+    } catch (err) {
+      console.error("sampler/[slug] checkEntitlement failed:", err);
     }
   }
 

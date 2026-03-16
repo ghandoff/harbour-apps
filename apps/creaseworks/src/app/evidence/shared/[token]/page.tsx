@@ -25,7 +25,12 @@ export default async function SharedEvidencePage({
   params: Promise<{ token: string }>;
 }) {
   const { token } = await params;
-  const share = await getShareByToken(token);
+  let share;
+  try {
+    share = await getShareByToken(token);
+  } catch (err) {
+    console.error("shared evidence getShareByToken failed:", err);
+  }
 
   if (!share) {
     notFound();
@@ -36,13 +41,17 @@ export default async function SharedEvidencePage({
   const evidenceType = (filters.type as EvidenceType) ?? undefined;
   const playdateSlug = (filters.playdate as string) ?? undefined;
 
-  // Fetch evidence using the share owner's userId + filters
-  const items = await getPortfolioEvidence(share.user_id, {
-    evidenceType,
-    playdateSlug,
-    limit: 100,
-    offset: 0,
-  });
+  let items: Awaited<ReturnType<typeof getPortfolioEvidence>> = [];
+  try {
+    items = await getPortfolioEvidence(share.user_id, {
+      evidenceType,
+      playdateSlug,
+      limit: 100,
+      offset: 0,
+    });
+  } catch (err) {
+    console.error("shared evidence getPortfolioEvidence failed:", err);
+  }
 
   // Sign photo URLs on the server side
   const enriched = await Promise.all(

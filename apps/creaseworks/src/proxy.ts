@@ -107,11 +107,20 @@ export async function proxy(req: NextRequest) {
   // On HTTPS (production), NextAuth v5 prefixes cookies with __Secure-.
   // We must tell getToken() so it looks for the right cookie name.
   const useSecureCookies = req.nextUrl.protocol === "https:";
-  const token = await getToken({
-    req,
-    secret: process.env.AUTH_SECRET,
-    secureCookie: useSecureCookies,
-  });
+  let token = null;
+  try {
+    token = await getToken({
+      req,
+      secret: process.env.AUTH_SECRET,
+      secureCookie: useSecureCookies,
+    });
+  } catch (err) {
+    console.error("proxy getToken failed:", err);
+    if (isPublicRoute(pathname)) return NextResponse.next();
+    const loginUrl = req.nextUrl.clone();
+    loginUrl.pathname = "/login";
+    return NextResponse.redirect(loginUrl);
+  }
   const isAuthed = !!token;
 
   // Rate limit API routes (except cron, auth, and webhooks)

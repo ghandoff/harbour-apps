@@ -17,10 +17,19 @@ interface CoPlayPageProps {
 
 export default async function CoPlayPage({ params }: CoPlayPageProps) {
   const { code } = await params;
-  const session = await getSession();
+  let session = null;
+  try {
+    session = await getSession();
+  } catch {
+    // Auth may fail if DB is unreachable
+  }
 
-  // Fetch run details by invite code
-  const run = await getRunByInviteCode(code);
+  let run = null;
+  try {
+    run = await getRunByInviteCode(code);
+  } catch (err) {
+    console.error("co-play getRunByInviteCode failed:", err);
+  }
 
   if (!run) {
     return (
