@@ -49,18 +49,7 @@ function DockCard({
           {game.tagline}
         </p>
       </div>
-      <div className="relative z-10 flex items-center justify-between">
-        {game.status === "live" ? (
-          <span
-            className={`${game.accentColor} text-[var(--color-text-on-dark)] text-[10px] sm:text-xs font-semibold px-2.5 py-0.5 rounded-full`}
-          >
-            play now
-          </span>
-        ) : (
-          <span className="bg-white/10 text-[var(--color-text-on-dark-muted)] text-[10px] sm:text-xs font-semibold px-2.5 py-0.5 rounded-full">
-            coming soon
-          </span>
-        )}
+      <div className="relative z-10 flex items-center justify-end">
         <span
           className={`text-[var(--color-text-on-dark-muted)] text-sm transition-transform duration-200 ${
             isActive ? "rotate-45" : ""
