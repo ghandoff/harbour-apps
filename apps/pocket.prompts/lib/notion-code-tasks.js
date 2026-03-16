@@ -10,8 +10,13 @@ function get_client(token) {
   return new Client({ auth: token || (process.env.NOTION_API_KEY || '').trim() });
 }
 
-function get_db_id(requested_by) {
-  if (requested_by && members[requested_by]?.code_tasks_db_id) {
+/**
+ * Resolve which DB to use. Per-user DBs require the user's own OAuth token
+ * (the shared integration token doesn't have access to private DBs).
+ * Until per-user OAuth is wired, always fall back to the shared DB.
+ */
+function get_db_id(requested_by, token) {
+  if (token && requested_by && members[requested_by]?.code_tasks_db_id) {
     return members[requested_by].code_tasks_db_id;
   }
   return shared_db_id;
@@ -28,7 +33,7 @@ function get_db_id(requested_by) {
  * @returns {{ success: boolean, page_id?: string, url?: string, error?: string }}
  */
 export async function create_code_task({ content, project, requested_by, token }) {
-  const db_id = get_db_id(requested_by);
+  const db_id = get_db_id(requested_by, token);
   if (!db_id) {
     console.error('[code-tasks] no code tasks db id for user or env');
     return { success: false, error: 'no code tasks database configured' };
@@ -90,7 +95,7 @@ export async function create_code_task({ content, project, requested_by, token }
  * @returns {object|null} — { request, status, plan_summary, plan, project, page_id, url } or null
  */
 export async function get_latest_code_task({ requested_by, status, token } = {}) {
-  const db_id = get_db_id(requested_by);
+  const db_id = get_db_id(requested_by, token);
   if (!db_id) return null;
 
   try {
@@ -145,7 +150,7 @@ export async function get_latest_code_task({ requested_by, status, token } = {})
  * @returns {Array} — array of task objects
  */
 export async function get_code_tasks_by_status({ status, requested_by, token } = {}) {
-  const db_id = get_db_id(requested_by);
+  const db_id = get_db_id(requested_by, token);
   if (!db_id || !status) return [];
 
   try {

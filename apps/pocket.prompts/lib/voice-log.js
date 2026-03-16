@@ -6,8 +6,13 @@ const members = require('../config/members.json');
 
 const shared_log_db_id = (process.env.NOTION_VOICE_LOG_DB_ID || '').trim();
 
-function get_log_db_id(user_id) {
-  if (user_id && members[user_id]?.voice_log_db_id) {
+/**
+ * Per-user DBs require the user's own OAuth token.
+ * Until per-user OAuth is live, always fall back to shared DB.
+ * The shared integration token can't access private DBs.
+ */
+function get_log_db_id(user_id, has_personal_token) {
+  if (has_personal_token && user_id && members[user_id]?.voice_log_db_id) {
     return members[user_id].voice_log_db_id;
   }
   return shared_log_db_id;
@@ -30,7 +35,8 @@ export async function log_voice_interaction({
   timestamp,
   platform
 }) {
-  const log_db_id = get_log_db_id(user_id);
+  // no per-user token yet — always uses shared integration token
+  const log_db_id = get_log_db_id(user_id, false);
   if (!log_db_id) {
     console.log('[voice-log] no voice log db id for user or env, skipping');
     return;
