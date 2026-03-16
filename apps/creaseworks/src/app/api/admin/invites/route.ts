@@ -15,8 +15,9 @@ import {
 } from "@/lib/queries/invites";
 import { sendInviteEmail } from "@/lib/email/send-invite";
 import { sql } from "@/lib/db";
+import { getConfigValues } from "@/lib/queries/cms-config";
 
-const VALID_TIERS = ["explorer", "practitioner"];
+const DEFAULT_VALID_TIERS = ["explorer", "practitioner"];
 
 /* ── POST: create invite(s) ── */
 export async function POST(req: NextRequest) {
@@ -43,9 +44,18 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const tier = VALID_TIERS.includes(body.tier as string)
-    ? (body.tier as "explorer" | "practitioner")
-    : "explorer";
+  // Fetch CMS-managed valid invite tiers (falls back to hard-coded defaults)
+  let validTiers = DEFAULT_VALID_TIERS;
+  try {
+    const cmsTiers = await getConfigValues("valid_invite_tiers");
+    if (cmsTiers.length > 0) validTiers = cmsTiers;
+  } catch {
+    // CMS fetch failed — use defaults
+  }
+
+  const tier = validTiers.includes(body.tier as string)
+    ? (body.tier as string)
+    : validTiers[0] ?? "explorer";
 
   const note = body.note ? String(body.note).slice(0, 200) : undefined;
 
@@ -87,7 +97,7 @@ export async function POST(req: NextRequest) {
     try {
       await createInviteWithPacks(
         email,
-        tier,
+        tier as "explorer" | "practitioner",
         session.userId,
         packIds,
         note,

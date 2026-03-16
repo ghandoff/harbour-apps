@@ -213,13 +213,13 @@ Move business-critical content that the collective should be able to update inde
 
 | # | item | source file | content | status |
 |---|------|-------------|---------|--------|
-| C12 | **subscription tier definitions** | `components/ui/tier-card.tsx:26-74` | 4 tiers (sampler/explorer/practitioner/collective) with name, price, tagline, feature lists | 🟡 |
-| C13 | **landing page hero section** | `app/page.tsx:82-126` | headline, subheading, CTAs | 🟡 |
-| C14 | **landing page feature cards** | `app/page.tsx:150-171` | 4 feature cards with title + description | 🟡 |
-| C15 | **landing page how-it-works** | `app/page.tsx:223-240` | 3-step process with titles + descriptions | 🟡 |
-| C16 | **landing page who-it's-for** | `app/page.tsx:258-271` | 3 audience cards (parents, teachers, anyone) | 🟡 |
-| C17 | **admin dashboard sections** | `app/admin/page.tsx:18-79` | 10 sections with title, href, description, icon | 🟡 |
-| C18 | **valid invite tiers** | `app/api/admin/invites/route.ts` | explorer, practitioner | 🟡 |
+| C12 | **subscription tier definitions** | `components/ui/tier-card.tsx:26-74` | 4 tiers (sampler/explorer/practitioner/collective) with name, price, tagline, feature lists | ✅ done |
+| C13 | **landing page hero section** | `app/page.tsx:82-126` | headline, subheading, CTAs | ✅ done |
+| C14 | **landing page feature cards** | `app/page.tsx:150-171` | 4 feature cards with title + description | ✅ done |
+| C15 | **landing page how-it-works** | `app/page.tsx:223-240` | 3-step process with titles + descriptions | ✅ done |
+| C16 | **landing page who-it's-for** | `app/page.tsx:258-271` | 3 audience cards (parents, teachers, anyone) | ✅ done |
+| C17 | **admin dashboard sections** | `app/admin/page.tsx:18-79` | 10 sections with title, href, description, icon | ✅ done |
+| C18 | **valid invite tiers** | `app/api/admin/invites/route.ts` | explorer, practitioner | ✅ done |
 
 **Implementation:**
 1. C12: New `subscription_tiers` Notion DB (or rows in App Config with `key=subscription_tiers`). Sync to `cms_config`. Tier card reads from DB.

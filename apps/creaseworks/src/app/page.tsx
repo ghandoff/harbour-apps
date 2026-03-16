@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth-helpers";
 import { getPublicStats } from "@/lib/queries/stats";
+import { getConfigObjects } from "@/lib/queries/cms-config";
 
 /**
  * Landing page for creaseworks.
@@ -56,6 +57,38 @@ const jsonLd = {
   ],
 };
 
+/* ── hard-coded defaults for landing page sections ─────────────── */
+
+interface HeroCopy { headline: string; subheading: string; cta_primary: string; cta_secondary: string }
+const DEFAULT_HERO: HeroCopy = {
+  headline: "playdates that use what you already have",
+  subheading: "simple, tested playdates for parents, teachers, and kids. notice the world around you, see possibility everywhere, and make things with whatever\u2019s on hand.",
+  cta_primary: "see free playdates",
+  cta_secondary: "get a pack",
+};
+
+interface FeatureCopy { title: string; description: string }
+const DEFAULT_FEATURES: FeatureCopy[] = [
+  { title: "step-by-step guide", description: "a simple three-part playdate you can do in under two hours. clear steps, timing, and tips \u2014 no prep degree needed." },
+  { title: "use what you have", description: "every playdate tells you what to grab \u2014 cardboard, tape, sticks, whatever\u2019s around. plus easy swaps when you don\u2019t have the exact thing." },
+  { title: "find again", description: "the fun part after playing. a prompt that helps you notice the same idea popping up in totally different places." },
+  { title: "printable cards", description: "download any playdate as a handy PDF card. keep it in your bag, stick it on the fridge, or hand it to a babysitter." },
+];
+
+interface StepCopy { title: string; description: string }
+const DEFAULT_STEPS: StepCopy[] = [
+  { title: "find a playdate", description: "browse free previews or tell us what you have on hand \u2014 we\u2019ll find playdates that work with your stuff." },
+  { title: "grab a pack", description: "packs are bundles of playdates. buy once and everyone in your family or classroom gets access forever." },
+  { title: "play!", description: "follow the steps, see what happens, and try to find the same idea in the wild. no new toys needed." },
+];
+
+interface AudienceCopy { title: string; description: string }
+const DEFAULT_AUDIENCES: AudienceCopy[] = [
+  { title: "parents", description: "play right now with whatever\u2019s around. no shopping trip needed." },
+  { title: "teachers", description: "bring hands-on playdates into your classroom. works with any budget and any age." },
+  { title: "anyone, really", description: "babysitters, grandparents, camp counselors, kids on their own \u2014 if you like making things, you\u2019ll find something here." },
+];
+
 export default async function Home() {
   let session = null;
   try {
@@ -69,7 +102,29 @@ export default async function Home() {
     redirect("/playbook");
   }
 
-  const stats = await getPublicStats();
+  // Fetch CMS-managed content in parallel with stats
+  const [stats, cmsHeroRows, cmsFeatureRows, cmsStepRows, cmsAudienceRows] = await Promise.all([
+    getPublicStats(),
+    getConfigObjects<HeroCopy>("landing_hero").catch(() => []),
+    getConfigObjects<FeatureCopy>("landing_features").catch(() => []),
+    getConfigObjects<StepCopy>("landing_steps").catch(() => []),
+    getConfigObjects<AudienceCopy>("landing_audiences").catch(() => []),
+  ]);
+
+  // Resolve CMS content with hard-coded fallbacks
+  const hero: HeroCopy = cmsHeroRows.length > 0 && cmsHeroRows[0].metadata
+    ? cmsHeroRows[0].metadata
+    : DEFAULT_HERO;
+  const features: FeatureCopy[] = cmsFeatureRows.length > 0
+    ? cmsFeatureRows.map((r) => r.metadata!).filter(Boolean)
+    : DEFAULT_FEATURES;
+  const steps: StepCopy[] = cmsStepRows.length > 0
+    ? cmsStepRows.map((r) => r.metadata!).filter(Boolean)
+    : DEFAULT_STEPS;
+  const audiences: AudienceCopy[] = cmsAudienceRows.length > 0
+    ? cmsAudienceRows.map((r) => r.metadata!).filter(Boolean)
+    : DEFAULT_AUDIENCES;
+
   return (
     <main className="min-h-screen" style={{ backgroundColor: "var(--wv-cadet)" }}>
       {/* structured data */}
@@ -91,16 +146,14 @@ export default async function Home() {
           className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-6 leading-tight"
           style={{ color: "var(--wv-white)", maxWidth: 800, margin: "0 auto 24px" }}
         >
-          playdates that use what you already have
+          {hero.headline}
         </h1>
 
         <p
           className="text-lg sm:text-xl mb-12 leading-relaxed"
           style={{ color: "var(--color-text-on-dark-muted)", maxWidth: 600, margin: "0 auto 48px" }}
         >
-          simple, tested playdates for parents, teachers, and kids. notice
-          the world around you, see possibility everywhere, and make things
-          with whatever&rsquo;s on hand.
+          {hero.subheading}
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -109,7 +162,7 @@ export default async function Home() {
             className="inline-block rounded-lg px-8 py-3.5 font-medium transition-colors"
             style={{ backgroundColor: "var(--wv-redwood)", color: "var(--wv-white)" }}
           >
-            see free playdates
+            {hero.cta_primary}
           </Link>
           <Link
             href="/packs"
@@ -120,7 +173,7 @@ export default async function Home() {
               backgroundColor: "transparent",
             }}
           >
-            get a pack
+            {hero.cta_secondary}
           </Link>
         </div>
       </section>
@@ -148,26 +201,14 @@ export default async function Home() {
         </p>
 
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          <FeatureCard
-            icon={<ScriptIcon />}
-            title="step-by-step guide"
-            description="a simple three-part playdate you can do in under two hours. clear steps, timing, and tips — no prep degree needed."
-          />
-          <FeatureCard
-            icon={<MaterialsIcon />}
-            title="use what you have"
-            description="every playdate tells you what to grab — cardboard, tape, sticks, whatever's around. plus easy swaps when you don't have the exact thing."
-          />
-          <FeatureCard
-            icon={<TransferIcon />}
-            title="find again"
-            description="the fun part after playing. a prompt that helps you notice the same idea popping up in totally different places."
-          />
-          <FeatureCard
-            icon={<PdfIcon />}
-            title="printable cards"
-            description="download any playdate as a handy PDF card. keep it in your bag, stick it on the fridge, or hand it to a babysitter."
-          />
+          {features.map((f, i) => (
+            <FeatureCard
+              key={f.title}
+              icon={[<ScriptIcon key="s" />, <MaterialsIcon key="m" />, <TransferIcon key="t" />, <PdfIcon key="p" />][i] ?? <ScriptIcon />}
+              title={f.title}
+              description={f.description}
+            />
+          ))}
         </div>
       </section>
 
@@ -222,21 +263,14 @@ export default async function Home() {
         </h2>
 
         <div className="space-y-8" style={{ maxWidth: 640, margin: "0 auto" }}>
-          <Step
-            number="1"
-            title="find a playdate"
-            description="browse free previews or tell us what you have on hand — we'll find playdates that work with your stuff."
-          />
-          <Step
-            number="2"
-            title="grab a pack"
-            description="packs are bundles of playdates. buy once and everyone in your family or classroom gets access forever."
-          />
-          <Step
-            number="3"
-            title="play!"
-            description="follow the steps, see what happens, and try to find the same idea in the wild. no new toys needed."
-          />
+          {steps.map((s, i) => (
+            <Step
+              key={s.title}
+              number={String(i + 1)}
+              title={s.title}
+              description={s.description}
+            />
+          ))}
         </div>
       </section>
 
@@ -256,18 +290,13 @@ export default async function Home() {
         </h2>
 
         <div className="grid gap-5 sm:grid-cols-3" style={{ maxWidth: 900, margin: "0 auto" }}>
-          <AudienceCard
-            title="parents"
-            description="play right now with whatever's around. no shopping trip needed."
-          />
-          <AudienceCard
-            title="teachers"
-            description="bring hands-on playdates into your classroom. works with any budget and any age."
-          />
-          <AudienceCard
-            title="anyone, really"
-            description="babysitters, grandparents, camp counselors, kids on their own — if you like making things, you'll find something here."
-          />
+          {audiences.map((a) => (
+            <AudienceCard
+              key={a.title}
+              title={a.title}
+              description={a.description}
+            />
+          ))}
         </div>
       </section>
 

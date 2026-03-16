@@ -6,6 +6,7 @@
 
 import type { Metadata } from "next";
 import { requireAdmin } from "@/lib/auth-helpers";
+import { getConfigObjects } from "@/lib/queries/cms-config";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -15,71 +16,39 @@ export const metadata: Metadata = {
   description: "creaseworks admin hub — manage playdates, entitlements, and campaigns.",
 };
 
-const sections = [
-  {
-    title: "playdates",
-    href: "/admin/playdates",
-    description: "full catalog view — sampler, campaign, and internal-only channels",
-    icon: "🎯",
-  },
-  {
-    title: "entitlements",
-    href: "/admin/entitlements",
-    description: "grant and revoke pack access for organisations",
-    icon: "🔑",
-  },
-  {
-    title: "invites",
-    href: "/admin/invites",
-    description: "grant complimentary access to specific email addresses",
-    icon: "✉️",
-  },
-  {
-    title: "gallery",
-    href: "/admin/gallery",
-    description: "review and approve community gallery submissions",
-    icon: "🖼️",
-  },
-  {
-    title: "campaigns",
-    href: "/admin/campaigns",
-    description: "manage promotional campaigns and scavenger hunts",
-    icon: "📣",
-  },
-  {
-    title: "domains",
-    href: "/admin/domains",
-    description: "manage the email domain blocklist",
-    icon: "🌐",
-  },
-  {
-    title: "admins",
-    href: "/admin/admins",
-    description: "manage the admin allowlist",
-    icon: "👤",
-  },
-  {
-    title: "sync",
-    href: "/admin/sync",
-    description: "trigger a manual Notion sync",
-    icon: "🔄",
-  },
-  {
-    title: "analytics",
-    href: "/analytics",
-    description: "view reflection analytics and usage dashboard",
-    icon: "📊",
-  },
-  {
-    title: "team",
-    href: "/team",
-    description: "manage organisation members and roles",
-    icon: "👥",
-  },
+interface AdminSection {
+  title: string;
+  href: string;
+  description: string;
+  icon: string;
+}
+
+const DEFAULT_SECTIONS: AdminSection[] = [
+  { title: "playdates", href: "/admin/playdates", description: "full catalog view — sampler, campaign, and internal-only channels", icon: "🎯" },
+  { title: "entitlements", href: "/admin/entitlements", description: "grant and revoke pack access for organisations", icon: "🔑" },
+  { title: "invites", href: "/admin/invites", description: "grant complimentary access to specific email addresses", icon: "✉️" },
+  { title: "gallery", href: "/admin/gallery", description: "review and approve community gallery submissions", icon: "🖼️" },
+  { title: "campaigns", href: "/admin/campaigns", description: "manage promotional campaigns and scavenger hunts", icon: "📣" },
+  { title: "domains", href: "/admin/domains", description: "manage the email domain blocklist", icon: "🌐" },
+  { title: "admins", href: "/admin/admins", description: "manage the admin allowlist", icon: "👤" },
+  { title: "sync", href: "/admin/sync", description: "trigger a manual Notion sync", icon: "🔄" },
+  { title: "analytics", href: "/analytics", description: "view reflection analytics and usage dashboard", icon: "📊" },
+  { title: "team", href: "/team", description: "manage organisation members and roles", icon: "👥" },
 ];
 
 export default async function AdminPage() {
   const session = await requireAdmin();
+
+  // Fetch CMS-managed admin sections (falls back to hard-coded defaults)
+  let sections = DEFAULT_SECTIONS;
+  try {
+    const rows = await getConfigObjects<AdminSection>("admin_sections");
+    if (rows.length > 0) {
+      sections = rows.map((r) => r.metadata!).filter(Boolean);
+    }
+  } catch {
+    // CMS fetch failed — use defaults
+  }
 
   return (
     <main className="min-h-screen px-6 py-16 max-w-4xl mx-auto">

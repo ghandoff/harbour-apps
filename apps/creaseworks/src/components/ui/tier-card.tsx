@@ -23,7 +23,8 @@ export interface TierDef {
   features: string[];
 }
 
-export const TIERS: TierDef[] = [
+/** Hard-coded defaults — used when CMS config is not available. */
+export const DEFAULT_TIERS: TierDef[] = [
   {
     key: "sampler",
     name: "sampler",
@@ -72,6 +73,9 @@ export const TIERS: TierDef[] = [
     ],
   },
 ];
+
+/** @deprecated Use DEFAULT_TIERS instead. Kept for backwards compatibility. */
+export const TIERS = DEFAULT_TIERS;
 
 /* ── helpers ─────────────────────────────────────────────────────── */
 
