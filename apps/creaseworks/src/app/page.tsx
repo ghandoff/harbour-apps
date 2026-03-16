@@ -57,7 +57,12 @@ const jsonLd = {
 };
 
 export default async function Home() {
-  const session = await getSession();
+  let session = null;
+  try {
+    session = await getSession();
+  } catch {
+    // Auth may fail if DB is unreachable — continue as guest
+  }
 
   // Redirect logged-in users to their playbook
   if (session) {
