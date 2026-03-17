@@ -81,6 +81,7 @@ body { font-family: var(--font-body); font-size: 16px; color: var(--grey1); }
   user-select: none;
 }
 .room-object:hover { transform: scale(1.02); }
+.speaker-area:hover { transform: translateX(-50%) scale(1.00); }
 
 /* motivational poster */
 .poster {
@@ -191,6 +192,14 @@ body { font-family: var(--font-body); font-size: 16px; color: var(--grey1); }
   text-decoration-color: rgba(95,158,160,0.4);
   text-underline-offset: 3px;
 }
+@keyframes roomShake {
+  0% { transform: translateX(0); }
+  20% { transform: translateX(-3px); }
+  40% { transform: translateX(3px); }
+  60% { transform: translateX(-2px); }
+  80% { transform: translateX(1px); }
+  100% { transform: translateX(0); }
+}
 @keyframes alivePulse {
   0%, 100% { text-shadow: 0 0 0px transparent; opacity: 0.7; }
   50% { text-shadow: 0 0 18px rgba(95,158,160,0.6), 0 0 4px rgba(95,158,160,0.3); opacity: 1; }
@@ -279,14 +288,28 @@ body { font-family: var(--font-body); font-size: 16px; color: var(--grey1); }
 }
 .s1-text {
   font-family: var(--font-body); font-size: 18px;
-  color: var(--grey2); opacity: 0;
+  color: var(--grey1); opacity: 0;
   transition: opacity 1s ease;
   cursor: pointer;
   margin-top: 40px;
+  background: #fff;
+  padding: 20px 32px;
+  border-radius: 12px;
+  box-shadow: 0 6px 30px rgba(0,0,0,0.15);
+  position: relative;
+  z-index: 20;
 }
 .s1-text.visible { opacity: 1; }
 .s1-text::after {
   content: ' →'; font-size: 14px; opacity: 0.4;
+}
+.s1-text::before {
+  content: ''; position: absolute;
+  bottom: -10px; left: 50%; transform: translateX(-50%);
+  width: 0; height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 10px solid #fff;
 }
 
 /* ── SCREEN 2 ── */
@@ -1077,7 +1100,7 @@ body { font-family: var(--font-body); font-size: 16px; color: var(--grey1); }
     </div>
 
     <!-- speaker area -->
-    <div class="room-object speaker-area" id="speaker" data-response="slide 47 of 112." role="button" aria-label="presentation slide" tabindex="0">
+    <div class="room-object speaker-area" id="speaker" data-response="you've seen this deck before. everyone has." role="button" aria-label="presentation slide" tabindex="0">
       <div class="slide-screen" id="slide-screen">
         <div class="slide-title">evidence-based<br>pedagogical frameworks</div>
         <div class="slide-bullets">
@@ -1512,15 +1535,38 @@ function triggerTransformation(e) {
   const cx = wordRect.left - roomRect.left + wordRect.width / 2;
   const cy = wordRect.top - roomRect.top + wordRect.height / 2;
 
+  // slide counter text changes
+  const counter = document.querySelector('.slide-counter');
+  if (counter) { counter.textContent = 'slide 1 of ∞'; }
+  // poster text changes
+  const poster = document.getElementById('poster');
+  if (poster) { poster.innerHTML = 'learn.<br>create.<br>belong.<br><span style="font-size:12px;margin-top:6px;display:block;color:inherit;opacity:0.6;">— this conference</span>'; }
+  // clock hand jumps
+  const minuteHand = document.querySelector('.clock line:nth-of-type(2)');
+  if (minuteHand) { minuteHand.setAttribute('x2', '52'); minuteHand.setAttribute('y2', '28'); }
+
+  // brief room shake to signal something is happening
+  room.style.animation = 'roomShake 0.3s ease';
+  room.addEventListener('animationend', () => { room.style.animation = ''; }, { once: true });
+
   // hide grey layer with expanding circle mask
   const greyLayer = document.getElementById('room-grey');
   const overlay = document.getElementById('grey-overlay');
 
   let size = 0;
   const maxSize = 1800;
+  let revealDone = false;
+
+  function finishReveal() {
+    if (revealDone) return;
+    revealDone = true;
+    greyLayer.style.display = 'none';
+    overlay.style.display = 'none';
+    onTransformComplete();
+  }
 
   function animateReveal() {
-    size += 20;
+    size += 30;
     const mask = `radial-gradient(circle ${size}px at ${cx}px ${cy}px, transparent ${size - 5}px, white ${size}px)`;
     greyLayer.style.maskImage = mask;
     greyLayer.style.webkitMaskImage = mask;
@@ -1530,12 +1576,12 @@ function triggerTransformation(e) {
     if (size < maxSize) {
       requestAnimationFrame(animateReveal);
     } else {
-      greyLayer.style.display = 'none';
-      overlay.style.display = 'none';
-      onTransformComplete();
+      finishReveal();
     }
   }
   requestAnimationFrame(animateReveal);
+  // safety fallback in case rAF stalls
+  setTimeout(finishReveal, 4000);
 
   // colour the objects
   setTimeout(() => {
