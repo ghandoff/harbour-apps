@@ -296,6 +296,31 @@
       "client": "",
       "order": null,
       "icon": ""
+    },
+    {
+      "id": "conf-exp-2025-innovate-forward",
+      "name": "innovate forward summit 2025",
+      "slug": "innovate-forward-summit-2025",
+      "assetType": "web-app",
+      "quadrants": [
+        "people-design"
+      ],
+      "quadrantKey": "people-design",
+      "url": "https://conference-experience-seven.vercel.app",
+      "thumbnailUrl": "",
+      "description": "an immersive conference simulation that guides participants through gamified activities, collaborative drawing, and reflective exercises to demonstrate learning design principles",
+      "tags": [
+        "prototype",
+        "case-study"
+      ],
+      "featured": false,
+      "showInPackageBuilder": false,
+      "showInPortfolio": true,
+      "passwordProtected": false,
+      "passwordHash": "",
+      "client": "",
+      "order": 10,
+      "icon": ""
     }
   ]
 }
