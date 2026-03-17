@@ -181,6 +181,27 @@ When you update an anchor ID here, also update the corresponding URL in `/do/ind
 
 ---
 
+## Hosted Interactive Demos
+
+Self-contained web-apps live in `/portfolio/assets/<name>/`. Current demos:
+
+| Demo | Directory | Size | Added |
+|------|-----------|------|-------|
+| MindShift Missions | `assets/mindshift-missions/` | ~120KB (4 files) | 2025 |
+| Conference Experience | `assets/conference-experience/` | ~107KB (1 file) | 2026-03 |
+
+### Scaling note (revisit at 5+ demos)
+
+These demos are currently hosted inline in the site repo. This is fine for a
+small number of self-contained HTML/CSS/JS files, but if the count grows (5+)
+or demos start needing build tools, consider migrating to **Option C: Vercel
+rewrite proxy** — each demo becomes its own Vercel project under `apps/`, and
+`vercel.json` rewrites route them through `windedvertigo.com/portfolio/assets/*`.
+This gives independent deploys without inflating the site bundle. See the
+harbour rewrite pattern in `vercel.json` for reference.
+
+---
+
 ## Quick Checklist: Publishing an Asset
 
 1. [ ] Add file to `/portfolio/assets/` (if self-hosted)
