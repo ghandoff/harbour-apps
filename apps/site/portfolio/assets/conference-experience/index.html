@@ -1778,6 +1778,12 @@ function floatResponse(el, text) {
 // editable badge name
 document.getElementById('badge-name-input').addEventListener('input', (e) => {
   state.attendeeName = e.target.value.trim() || 'attendee';
+  // update map avatar letter
+  const avatarText = document.querySelector('#map-avatar text');
+  if (avatarText) {
+    const letter = state.attendeeName.charAt(0).toUpperCase();
+    avatarText.textContent = letter === 'A' && state.attendeeName === 'attendee' ? '#47' : letter;
+  }
 });
 document.getElementById('badge-name-input').addEventListener('click', (e) => {
   e.stopPropagation();
