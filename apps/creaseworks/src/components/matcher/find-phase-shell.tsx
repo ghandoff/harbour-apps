@@ -14,7 +14,7 @@
 
 import { useState, useCallback } from "react";
 import Link from "next/link";
-import type { Material } from "@/lib/queries/materials";
+import type { Material } from "./types";
 import type { FindMode } from "./find-mode-selector";
 
 /* ── lazy imports for code-split — each mode only loads when used ── */
