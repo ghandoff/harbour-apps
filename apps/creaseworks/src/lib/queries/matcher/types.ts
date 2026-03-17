@@ -33,6 +33,10 @@ export interface RankedPlaydate {
   energyLevel: string | null;  // computed energy level label
   startIn120s: boolean;
   coverage: CoverageDetail;
+  /** full materials list — used by scavenger hunt checklist */
+  materials: { id: string; title: string; formPrimary: string }[];
+  /** optional slots — used by scavenger hunt bonus items */
+  slotsOptional: string[];
   substitutionsNotes: string | null;
   hasFindAgain: boolean;
   findAgainMode: string | null;

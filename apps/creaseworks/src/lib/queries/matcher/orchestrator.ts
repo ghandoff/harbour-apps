@@ -176,6 +176,8 @@ export async function performMatching(
         energyLevel: s.playdate.energyLevel,
         startIn120s: s.playdate.startIn120s,
         coverage: s.coverage,
+        materials: s.playdate.materials,
+        slotsOptional: s.playdate.slotsOptional,
         substitutionsNotes: isEntitled ? s.playdate.substitutionsNotes : null,
         hasFindAgain: s.playdate.findAgainMode != null,
         findAgainMode: isEntitled ? s.playdate.findAgainMode : null,

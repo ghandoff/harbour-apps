@@ -1,9 +1,15 @@
 /**
- * /matcher — playdate finder.
+ * /matcher — the "find" phase of find, fold, unfold, find again.
  *
- * The most playful page in creaseworks. A child should be able to
- * look at this and know exactly what to do: pick your stuff, pick
- * your place, and find something fun to make together.
+ * The flat paper at rest, waiting to be noticed. This page celebrates
+ * the joy of looking, noticing, and discovering what's around you.
+ * Every cardboard box is a castle. Every stick is a magic wand.
+ *
+ * Three ways to find:
+ *   - explore rooms  → spatial, kid-first, emoji tiles by place
+ *   - classic picker → the original pill-based material selector
+ *   - challenge      → timed noticing game (separate route)
+ *   - scavenger hunt → reversed matcher, go find stuff (separate route)
  *
  * Server component that fetches picker data and passes to the
  * client-side form component.
@@ -13,9 +19,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "playdate finder",
+  title: "find",
   description:
-    "tell us what stuff you have around the house and we'll find playdates that work. cardboard, sticks, fabric, tape — whatever you can find!",
+    "look around — what do you notice? pick what you find and we'll show you something amazing to make together.",
 };
 import { getAllMaterials } from "@/lib/queries/materials";
 import {
@@ -24,17 +30,27 @@ import {
   getDistinctContexts,
 } from "@/lib/queries/matcher";
 import MatcherInputForm from "@/components/matcher/matcher-input-form";
+import RoomExplorer from "@/components/matcher/room-explorer";
+import FindModeSelector from "@/components/matcher/find-mode-selector";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 3600;
 
-export default async function MatcherPage() {
+export default async function MatcherPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ mode?: string }>;
+}) {
+  const params = await searchParams;
+
   const [materials, forms, slots, contexts] = await Promise.all([
     getAllMaterials(),
     getDistinctForms(),
     getDistinctSlots(),
     getDistinctContexts(),
   ]);
+
+  const mode = params.mode === "classic" ? "classic" : "rooms";
 
   return (
     <main
@@ -54,7 +70,7 @@ export default async function MatcherPage() {
         </Link>
 
         {/* ── playful hero heading ──────────────────────────── */}
-        <div className="relative mb-8 sm:mb-10">
+        <div className="relative mb-6 sm:mb-8">
           {/* decorative floating shapes — desktop only */}
           <div
             className="hidden sm:block absolute -left-10 top-2 w-5 h-5 rounded-lg"
@@ -83,15 +99,14 @@ export default async function MatcherPage() {
             className="text-3xl sm:text-4xl font-bold tracking-tight mb-3"
             style={{ color: "var(--wv-cadet)" }}
           >
-            let&apos;s find something to make!{" "}
+            what do you notice?{" "}
             <span
               className="inline-block"
               style={{
-                animation:
-                  "heroWave 2s ease-in-out infinite",
+                animation: "heroWave 2s ease-in-out infinite",
               }}
             >
-              🎨
+              👀
             </span>
           </h1>
           <p
@@ -99,17 +114,29 @@ export default async function MatcherPage() {
             style={{ color: "var(--wv-cadet)", opacity: 0.55 }}
           >
             look around — what stuff do you have? cardboard boxes, sticks, old
-            t-shirts, tape? pick what you find and we&apos;ll show you something
-            amazing to make together.
+            t-shirts, tape? pick what you find and we&apos;ll show you what
+            these can become.
           </p>
         </div>
 
-        <MatcherInputForm
-          materials={materials}
-          forms={forms}
-          slots={slots}
-          contexts={contexts}
-        />
+        {/* ── find mode links ──────────────────────────────── */}
+        <FindModeSelector currentMode={mode} />
+
+        {/* ── main content ─────────────────────────────────── */}
+        {mode === "rooms" ? (
+          <RoomExplorer
+            materials={materials}
+            slots={slots}
+            contexts={contexts}
+          />
+        ) : (
+          <MatcherInputForm
+            materials={materials}
+            forms={forms}
+            slots={slots}
+            contexts={contexts}
+          />
+        )}
       </div>
 
       <style>{`
