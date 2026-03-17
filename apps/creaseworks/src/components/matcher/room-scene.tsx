@@ -78,10 +78,10 @@ export function RoomScene({
           onClick={onBack}
           className="rounded-xl px-3 py-2 text-sm font-medium active:scale-95"
           style={{
-            color: "var(--wv-cadet)",
+            color: "var(--wv-champagne)",
             opacity: 0.6,
             transition: `all 180ms ease`,
-            border: "1.5px solid rgba(39, 50, 72, 0.1)",
+            border: "1.5px solid rgba(255, 255, 255, 0.12)",
           }}
           aria-label="back to rooms"
         >
@@ -99,7 +99,7 @@ export function RoomScene({
       {/* room prompt — the invitation to notice */}
       <p
         className="text-base font-bold mb-4"
-        style={{ color: "var(--wv-cadet)" }}
+        style={{ color: "var(--wv-champagne)" }}
       >
         {room.prompt}
       </p>
@@ -122,7 +122,7 @@ export function RoomScene({
       ) : (
         <p
           className="text-sm py-8 text-center"
-          style={{ color: "var(--wv-cadet)", opacity: 0.4 }}
+          style={{ color: "var(--wv-champagne)", opacity: 0.4 }}
         >
           nothing here yet — try another room!
         </p>
@@ -134,14 +134,14 @@ export function RoomScene({
           <div
             className="flex items-center gap-2 mb-3 mt-2"
             style={{
-              borderTop: "1px solid rgba(39, 50, 72, 0.06)",
+              borderTop: "1px solid rgba(255, 255, 255, 0.08)",
               paddingTop: 12,
             }}
           >
             <span className="text-xs" style={{ opacity: 0.3 }}>🔧</span>
             <span
               className="text-xs font-bold tracking-wider"
-              style={{ color: "var(--wv-cadet)", opacity: 0.4 }}
+              style={{ color: "var(--wv-champagne)", opacity: 0.4 }}
             >
               tools you might need here
             </span>

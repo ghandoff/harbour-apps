@@ -78,12 +78,12 @@ export function FloatingBasket({
       <div
         className="flex items-center gap-3 px-4 py-3 sm:rounded-2xl sm:border-2 sm:border-dashed"
         style={{
-          backgroundColor: "rgba(255, 255, 255, 0.97)",
+          backgroundColor: "rgba(39, 50, 72, 0.97)",
           backdropFilter: "blur(12px)",
           WebkitBackdropFilter: "blur(12px)",
-          borderTop: "2px solid rgba(203, 120, 88, 0.15)",
+          borderTop: "2px solid rgba(203, 120, 88, 0.2)",
           paddingBottom: "max(12px, env(safe-area-inset-bottom, 12px))",
-          // desktop: dashed border style matching existing treasure basket
+          // desktop: dashed border style
           borderColor: "rgba(203, 120, 88, 0.3)",
         }}
       >
@@ -139,7 +139,7 @@ export function FloatingBasket({
           onClick={onClear}
           className="flex-shrink-0 text-xs font-medium active:scale-95"
           style={{
-            color: "var(--wv-cadet)",
+            color: "var(--wv-champagne)",
             opacity: 0.4,
             minHeight: 48,
             padding: "0 8px",

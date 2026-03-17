@@ -77,13 +77,13 @@ export default function ChallengeShell({
       <div className="text-center">
         <p
           className="text-lg font-bold mb-2"
-          style={{ color: "var(--wv-cadet)" }}
+          style={{ color: "var(--wv-champagne)" }}
         >
           how much can you notice?
         </p>
         <p
           className="text-sm mb-6"
-          style={{ color: "var(--wv-cadet)", opacity: 0.5 }}
+          style={{ color: "var(--wv-champagne)", opacity: 0.5 }}
         >
           pick a time, then look around and tap what you spot!
         </p>
@@ -100,9 +100,9 @@ export default function ChallengeShell({
               }
               className="rounded-2xl px-6 py-4 text-base font-bold active:scale-[0.96] border-2"
               style={{
-                borderColor: "rgba(39, 50, 72, 0.08)",
-                backgroundColor: "rgba(255, 255, 255, 0.7)",
-                color: "var(--wv-cadet)",
+                borderColor: "rgba(255, 255, 255, 0.1)",
+                backgroundColor: "rgba(255, 255, 255, 0.06)",
+                color: "var(--wv-champagne)",
                 transition: `all 220ms ${SPRING}`,
                 WebkitTapHighlightColor: "transparent",
               }}
@@ -157,7 +157,7 @@ export default function ChallengeShell({
 
           <p
             className="text-sm mt-3 font-bold"
-            style={{ color: "var(--wv-cadet)", opacity: 0.6 }}
+            style={{ color: "var(--wv-champagne)", opacity: 0.6 }}
           >
             spotted: {state.found.size}
           </p>
@@ -219,7 +219,7 @@ export default function ChallengeShell({
 
         <p
           className="text-xl font-bold mb-2"
-          style={{ color: "var(--wv-cadet)" }}
+          style={{ color: "var(--wv-champagne)" }}
         >
           you noticed {state.found.size} thing
           {state.found.size !== 1 ? "s" : ""}!
@@ -227,7 +227,7 @@ export default function ChallengeShell({
 
         <p
           className="text-sm mb-8"
-          style={{ color: "var(--wv-cadet)", opacity: 0.5 }}
+          style={{ color: "var(--wv-champagne)", opacity: 0.5 }}
         >
           let&apos;s see what these can become
         </p>
@@ -268,7 +268,7 @@ export default function ChallengeShell({
             type="button"
             onClick={state.reset}
             className="text-sm font-medium"
-            style={{ color: "var(--wv-cadet)", opacity: 0.4 }}
+            style={{ color: "var(--wv-champagne)", opacity: 0.4 }}
           >
             look again
           </button>
@@ -299,7 +299,7 @@ export default function ChallengeShell({
       <div className="text-center mb-4">
         <p
           className="text-sm font-bold"
-          style={{ color: "var(--wv-cadet)", opacity: 0.5 }}
+          style={{ color: "var(--wv-champagne)", opacity: 0.5 }}
         >
           you noticed {state.found.size} thing
           {state.found.size !== 1 ? "s" : ""} — here&apos;s what they can become
@@ -318,7 +318,7 @@ export default function ChallengeShell({
           type="button"
           onClick={state.reset}
           className="text-sm font-medium"
-          style={{ color: "var(--wv-cadet)", opacity: 0.4 }}
+          style={{ color: "var(--wv-champagne)", opacity: 0.4 }}
         >
           look again
         </button>

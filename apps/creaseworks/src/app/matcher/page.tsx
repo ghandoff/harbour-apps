@@ -5,14 +5,17 @@
  * the joy of looking, noticing, and discovering what's around you.
  * Every cardboard box is a castle. Every stick is a magic wand.
  *
- * Three ways to find:
+ * Four ways to find:
  *   - explore rooms  → spatial, kid-first, emoji tiles by place
- *   - classic picker → the original pill-based material selector
+ *   - classic picker → the original tile-based material selector
  *   - challenge      → timed noticing game (separate route)
  *   - scavenger hunt → reversed matcher, go find stuff (separate route)
  *
  * Server component that fetches picker data and passes to the
  * client-side form component.
+ *
+ * Background is cadet blue for contrast — UDL accessibility concern
+ * with white-on-champagne readability.
  */
 
 import type { Metadata } from "next";
@@ -56,15 +59,16 @@ export default async function MatcherPage({
     <main
       className="min-h-screen px-4 pt-8 pb-24 sm:px-6 sm:pt-14 sm:pb-16"
       style={{
+        backgroundColor: "var(--wv-cadet)",
         background:
-          "linear-gradient(175deg, rgba(255,235,210,0.25) 0%, rgba(228,196,137,0.06) 30%, rgba(255,255,255,0) 55%)",
+          "linear-gradient(175deg, rgba(39,50,72,1) 0%, rgba(39,50,72,0.97) 40%, rgba(39,50,72,0.95) 100%)",
       }}
     >
       <div className="max-w-5xl mx-auto">
         <Link
           href="/"
           className="text-sm hover:opacity-80 transition-opacity mb-5 sm:mb-7 inline-flex items-center gap-1.5"
-          style={{ color: "var(--wv-cadet)", opacity: 0.45 }}
+          style={{ color: "var(--wv-champagne)", opacity: 0.45 }}
         >
           <span>&larr;</span> creaseworks
         </Link>
@@ -76,7 +80,7 @@ export default async function MatcherPage({
             className="hidden sm:block absolute -left-10 top-2 w-5 h-5 rounded-lg"
             style={{
               backgroundColor: "var(--wv-champagne)",
-              opacity: 0.4,
+              opacity: 0.15,
               transform: "rotate(12deg)",
             }}
           />
@@ -84,7 +88,7 @@ export default async function MatcherPage({
             className="hidden sm:block absolute -left-6 top-12 w-3 h-3 rounded-full"
             style={{
               backgroundColor: "var(--wv-sienna)",
-              opacity: 0.25,
+              opacity: 0.2,
             }}
           />
           <div
@@ -97,7 +101,7 @@ export default async function MatcherPage({
 
           <h1
             className="text-3xl sm:text-4xl font-bold tracking-tight mb-3"
-            style={{ color: "var(--wv-cadet)" }}
+            style={{ color: "var(--wv-champagne)" }}
           >
             what do you notice?{" "}
             <span
@@ -111,7 +115,7 @@ export default async function MatcherPage({
           </h1>
           <p
             className="text-base sm:text-lg leading-relaxed max-w-xl"
-            style={{ color: "var(--wv-cadet)", opacity: 0.55 }}
+            style={{ color: "var(--wv-champagne)", opacity: 0.55 }}
           >
             look around — what stuff do you have? cardboard boxes, sticks, old
             t-shirts, tape? pick what you find and we&apos;ll show you what

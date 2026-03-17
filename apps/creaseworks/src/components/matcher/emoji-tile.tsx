@@ -29,6 +29,8 @@ export interface EmojiTileProps {
   disabled?: boolean;
   /** optional badge (e.g. "bonus") shown in top-right */
   badge?: string;
+  /** optional image URL for custom emoji — replaces the text emoji */
+  emojiSrc?: string;
 }
 
 const SIZE_CONFIG: Record<EmojiTileSize, {
@@ -55,6 +57,7 @@ export function EmojiTile({
   showLabel = true,
   disabled = false,
   badge,
+  emojiSrc,
 }: EmojiTileProps) {
   const cfg = SIZE_CONFIG[size];
   const tapRef = useRef<HTMLButtonElement>(null);
@@ -87,13 +90,13 @@ export function EmojiTile({
         borderRadius: cfg.radius,
         border: selected
           ? `2.5px solid ${accentColor}`
-          : "2px solid rgba(39, 50, 72, 0.08)",
+          : "2px solid rgba(255, 255, 255, 0.1)",
         backgroundColor: selected
-          ? `color-mix(in srgb, ${accentColor} 10%, transparent)`
-          : "rgba(255, 255, 255, 0.7)",
+          ? `color-mix(in srgb, ${accentColor} 15%, rgba(39, 50, 72, 0.6))`
+          : "rgba(255, 255, 255, 0.06)",
         boxShadow: selected
-          ? `0 0 0 3px ${accentColor}25, 0 2px 8px ${accentColor}15`
-          : "0 1px 4px rgba(0,0,0,0.04)",
+          ? `0 0 0 3px color-mix(in srgb, ${accentColor} 25%, transparent), 0 2px 8px color-mix(in srgb, ${accentColor} 15%, transparent)`
+          : "0 1px 4px rgba(0,0,0,0.1)",
         opacity: disabled ? 0.35 : 1,
         cursor: disabled ? "default" : "pointer",
         transition: `all 220ms ${SPRING}`,
@@ -115,19 +118,36 @@ export function EmojiTile({
         </span>
       )}
 
-      {/* emoji — the primary signifier */}
-      <span
-        className="leading-none"
-        style={{
-          fontSize: cfg.emoji,
-          transition: `transform 220ms ${SPRING}`,
-          transform: selected ? "scale(1.15)" : "scale(1)",
-          filter: disabled ? "grayscale(0.8)" : "none",
-        }}
-        aria-hidden="true"
-      >
-        {emoji}
-      </span>
+      {/* emoji — the primary signifier (text emoji or custom image) */}
+      {emojiSrc ? (
+        <img
+          src={emojiSrc}
+          alt={label}
+          className="object-contain"
+          style={{
+            width: cfg.emoji,
+            height: cfg.emoji,
+            transition: `transform 220ms ${SPRING}`,
+            transform: selected ? "scale(1.15)" : "scale(1)",
+            filter: disabled ? "grayscale(0.8)" : "none",
+          }}
+          aria-hidden="true"
+          draggable={false}
+        />
+      ) : (
+        <span
+          className="leading-none"
+          style={{
+            fontSize: cfg.emoji,
+            transition: `transform 220ms ${SPRING}`,
+            transform: selected ? "scale(1.15)" : "scale(1)",
+            filter: disabled ? "grayscale(0.8)" : "none",
+          }}
+          aria-hidden="true"
+        >
+          {emoji}
+        </span>
+      )}
 
       {/* label — secondary, optional */}
       {showLabel && (
@@ -135,7 +155,7 @@ export function EmojiTile({
           className="text-center leading-tight font-medium truncate w-full px-1"
           style={{
             fontSize: cfg.label,
-            color: selected ? accentColor : "var(--wv-cadet)",
+            color: selected ? accentColor : "var(--wv-champagne)",
             opacity: selected ? 1 : 0.55,
             transition: `color 180ms ease, opacity 180ms ease`,
           }}

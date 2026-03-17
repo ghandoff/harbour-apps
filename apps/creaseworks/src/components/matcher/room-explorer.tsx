@@ -18,7 +18,7 @@
 
 import { useState, useMemo, useCallback } from "react";
 import { Material, MatcherResult } from "./types";
-import { ROOMS, filterRoomsForAvailableContexts, RoomConfig } from "./room-config";
+import { ROOMS, RoomConfig } from "./room-config";
 import { RoomGrid } from "./room-grid";
 import { RoomScene } from "./room-scene";
 import { FloatingBasket } from "./floating-basket";
@@ -53,11 +53,13 @@ export default function RoomExplorer({
 
   /* ── derived data ───────────────────────────────────────────── */
 
-  /** rooms filtered to only those with valid context tags in the DB */
-  const availableRooms = useMemo(
-    () => filterRoomsForAvailableContexts(ROOMS, contexts),
-    [contexts],
-  );
+  /**
+   * Show all rooms always — rooms are a UX concept (spatial grouping),
+   * not a data filter. Context filtering happens at API submission time.
+   * Previously filtered by DB contexts, which left only 1 room visible
+   * when the DB had limited context_tags.
+   */
+  const availableRooms = ROOMS;
 
   /** slug → Material index for O(1) lookups in RoomScene */
   const slugIndex = useMemo(() => {

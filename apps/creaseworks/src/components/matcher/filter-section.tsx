@@ -3,9 +3,11 @@
 import { useState, useId } from "react";
 
 /**
- * Playful accordion section with emoji icon, warm colors when active,
+ * Playful accordion section with emoji icon, warm colours when active,
  * and a bouncy expand/collapse animation. Designed to feel like opening
  * a treasure chest, not filling out a form.
+ *
+ * Updated for cadet-blue page background.
  */
 export function FilterSection({
   title,
@@ -33,13 +35,13 @@ export function FilterSection({
       style={{
         borderColor: hasItems
           ? "rgba(203, 120, 88, 0.25)"
-          : "rgba(39, 50, 72, 0.06)",
+          : "rgba(255, 255, 255, 0.08)",
         backgroundColor: hasItems
-          ? "rgba(255, 235, 210, 0.2)"
-          : "var(--wv-white)",
+          ? "rgba(203, 120, 88, 0.08)"
+          : "rgba(255, 255, 255, 0.04)",
         boxShadow: hasItems
           ? "0 2px 12px rgba(203, 120, 88, 0.08)"
-          : "0 1px 4px rgba(0,0,0,0.03)",
+          : "0 1px 4px rgba(0,0,0,0.1)",
       }}
     >
       {/* section header — tappable, playful */}
@@ -66,14 +68,14 @@ export function FilterSection({
           <div className="min-w-0">
             <h2
               className="text-sm font-bold truncate"
-              style={{ color: "var(--wv-cadet)" }}
+              style={{ color: "var(--wv-champagne)" }}
             >
               {title}
             </h2>
             {subtitle && !open && (
               <p
                 className="text-xs truncate mt-0.5"
-                style={{ color: "var(--wv-cadet)", opacity: 0.4 }}
+                style={{ color: "var(--wv-champagne)", opacity: 0.4 }}
               >
                 {subtitle}
               </p>
@@ -111,7 +113,7 @@ export function FilterSection({
         >
           <path
             d="M4 6L8 10L12 6"
-            stroke="var(--wv-cadet)"
+            stroke="var(--wv-champagne)"
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -125,7 +127,7 @@ export function FilterSection({
           {subtitle && (
             <p
               className="text-xs mb-3"
-              style={{ color: "var(--wv-cadet)", opacity: 0.45 }}
+              style={{ color: "var(--wv-champagne)", opacity: 0.45 }}
             >
               {subtitle}
             </p>

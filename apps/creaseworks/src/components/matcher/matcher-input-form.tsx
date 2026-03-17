@@ -3,17 +3,18 @@
 /**
  * Matcher input form — playful, child-friendly material picker.
  *
- * Transforms the filter experience from a boring form into a treasure
- * hunt: kids and parents pick what's around the house, choose where
- * they're playing, and hit the big bouncy "let's play!" button.
+ * "classic picker" mode — the original full material list using
+ * EmojiTile cards instead of pills. Big, tappable tiles with emoji
+ * above labels, designed for kids who can't read yet.
  *
- * Child-accessible: large touch targets, emoji-rich pills, simple
- * language, visual feedback, and a "treasure basket" showing picks.
+ * Groups materials by form (paper, cardboard, fabric…) with
+ * collapsible sections on mobile. Search bar for parents who
+ * know what they're looking for.
  */
 
 import { MatcherInputFormProps, Material } from "./types";
 import { FilterSection } from "./filter-section";
-import { Pill } from "./pill";
+import { EmojiTile } from "./emoji-tile";
 import { useMatcherState } from "./use-matcher-state";
 import { MatcherResults } from "./matcher-results";
 import { getMaterialEmoji, getMaterialIcon } from "./material-emoji";
@@ -111,27 +112,27 @@ export default function MatcherInputForm({
 
   return (
     <div>
-      {/* --- treasure basket: selected items float at top --- */}
+      {/* --- discovery bag: selected items float at top --- */}
       {hasSelection && (
         <div
           className="mb-5 rounded-2xl border-2 border-dashed px-5 py-4"
           style={{
             borderColor: "rgba(203, 120, 88, 0.3)",
-            backgroundColor: "rgba(255, 235, 210, 0.15)",
+            backgroundColor: "rgba(39, 50, 72, 0.06)",
             animation: "basketAppear 400ms cubic-bezier(0.34, 1.56, 0.64, 1)",
           }}
         >
           <div className="flex items-center gap-2 mb-3">
-            <span className="text-lg">🧺</span>
+            <span className="text-lg">🎒</span>
             <span
               className="text-xs font-bold tracking-wider"
               style={{ color: "var(--wv-sienna)" }}
             >
-              your treasure basket
+              your discovery bag
             </span>
             <span
               className="text-xs"
-              style={{ color: "var(--wv-cadet)", opacity: 0.4 }}
+              style={{ color: "var(--wv-champagne)", opacity: 0.7 }}
             >
               {totalSelections} thing{totalSelections !== 1 ? "s" : ""} picked
             </span>
@@ -150,10 +151,10 @@ export default function MatcherInputForm({
                   onClick={() =>
                     toggleSet(selectedMaterials, setSelectedMaterials, id)
                   }
-                  className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all active:scale-90"
+                  className="inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-medium transition-all active:scale-90"
                   style={{
-                    backgroundColor: "rgba(177, 80, 67, 0.12)",
-                    color: "var(--wv-redwood)",
+                    backgroundColor: "rgba(177, 80, 67, 0.15)",
+                    color: "var(--wv-champagne)",
                   }}
                 >
                   {iconPath ? (
@@ -172,10 +173,10 @@ export default function MatcherInputForm({
                 type="button"
                 aria-label={`remove ${f}`}
                 onClick={() => toggleSet(selectedForms, setSelectedForms, f)}
-                className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all active:scale-90"
+                className="inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-medium transition-all active:scale-90"
                 style={{
-                  backgroundColor: "rgba(203, 120, 88, 0.12)",
-                  color: "var(--wv-sienna)",
+                  backgroundColor: "rgba(203, 120, 88, 0.15)",
+                  color: "var(--wv-champagne)",
                 }}
               >
                 {f}
@@ -190,10 +191,10 @@ export default function MatcherInputForm({
                 onClick={() =>
                   toggleSet(selectedContexts, setSelectedContexts, c)
                 }
-                className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all active:scale-90"
+                className="inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-medium transition-all active:scale-90"
                 style={{
-                  backgroundColor: "rgba(203, 120, 88, 0.1)",
-                  color: "var(--wv-sienna)",
+                  backgroundColor: "rgba(203, 120, 88, 0.12)",
+                  color: "var(--wv-champagne)",
                 }}
               >
                 {getEmoji(CONTEXT_EMOJI, c)} {c}
@@ -206,11 +207,11 @@ export default function MatcherInputForm({
                 type="button"
                 aria-label={`remove ${s}`}
                 onClick={() => toggleSet(selectedSlots, setSelectedSlots, s)}
-                className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all active:scale-90"
+                className="inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-medium transition-all active:scale-90"
                 style={{
                   backgroundColor: "rgba(228, 196, 137, 0.2)",
-                  color: "var(--wv-cadet)",
-                  opacity: 0.7,
+                  color: "var(--wv-champagne)",
+                  opacity: 0.9,
                 }}
               >
                 {getEmoji(SLOT_EMOJI, s, "⭐")} {s}
@@ -245,12 +246,12 @@ export default function MatcherInputForm({
               aria-label="search materials"
               value={materialSearch}
               onChange={(e) => setMaterialSearch(e.target.value)}
-              className="w-full rounded-xl border pl-10 pr-4 py-3 text-sm outline-none focus:ring-2 focus:ring-sienna/30"
+              className="w-full rounded-xl border pl-10 pr-4 py-3 text-sm outline-none focus:ring-2"
               style={{
-                borderColor: "rgba(39, 50, 72, 0.1)",
-                color: "var(--wv-cadet)",
+                borderColor: "rgba(255, 255, 255, 0.15)",
+                color: "var(--wv-champagne)",
                 minHeight: 48,
-                backgroundColor: "rgba(255, 255, 255, 0.8)",
+                backgroundColor: "rgba(255, 255, 255, 0.08)",
               }}
             />
           </div>
@@ -259,8 +260,8 @@ export default function MatcherInputForm({
           <div
             className="space-y-2 max-h-[55vh] overflow-y-auto rounded-xl border p-3 -webkit-overflow-scrolling-touch"
             style={{
-              borderColor: "rgba(39, 50, 72, 0.06)",
-              backgroundColor: "rgba(255, 255, 255, 0.5)",
+              borderColor: "rgba(255, 255, 255, 0.08)",
+              backgroundColor: "rgba(255, 255, 255, 0.04)",
             }}
           >
             {Array.from(filteredMaterialsByForm.entries()).map(
@@ -278,13 +279,16 @@ export default function MatcherInputForm({
                     <button
                       type="button"
                       onClick={() => toggleFormGroup(form)}
-                      className="w-full flex items-center justify-between py-2 px-2 text-left rounded-lg hover:bg-champagne/20 transition-colors"
+                      className="w-full flex items-center justify-between py-2 px-2 text-left rounded-lg transition-colors"
+                      style={{
+                        backgroundColor: "transparent",
+                      }}
                     >
                       <span className="flex items-center gap-2">
                         <span className="text-base">{formEmoji}</span>
                         <span
                           className="text-xs font-bold tracking-wider"
-                          style={{ color: "var(--wv-cadet)", opacity: 0.6 }}
+                          style={{ color: "var(--wv-champagne)", opacity: 0.7 }}
                         >
                           {form}
                         </span>
@@ -314,7 +318,7 @@ export default function MatcherInputForm({
                       >
                         <path
                           d="M4 6L8 10L12 6"
-                          stroke="var(--wv-cadet)"
+                          stroke="var(--wv-champagne)"
                           strokeWidth="1.5"
                           strokeLinecap="round"
                           strokeLinejoin="round"
@@ -322,18 +326,18 @@ export default function MatcherInputForm({
                       </svg>
                     </button>
 
-                    {/* material pills — always visible on desktop, collapsible on mobile */}
+                    {/* material tiles — always visible on desktop, collapsible on mobile */}
                     <div
-                      className={`flex flex-wrap gap-2 mt-1.5 ${
-                        isExpanded ? "" : "hidden sm:flex"
+                      className={`grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2 mt-1.5 ${
+                        isExpanded ? "" : "hidden sm:grid"
                       }`}
                     >
                       {mats.map((mat: Material) => (
-                        <Pill
+                        <EmojiTile
                           key={mat.id}
-                          label={mat.title}
                           emoji={getMaterialEmoji(mat.title, mat.form_primary, mat.emoji)}
                           icon={getMaterialIcon(mat.title, mat.form_primary, mat.emoji)}
+                          label={mat.title}
                           selected={selectedMaterials.has(mat.id)}
                           onClick={() =>
                             toggleSet(
@@ -342,6 +346,7 @@ export default function MatcherInputForm({
                               mat.id,
                             )
                           }
+                          size="sm"
                         />
                       ))}
                     </div>
@@ -352,34 +357,11 @@ export default function MatcherInputForm({
             {filteredMaterialsByForm.size === 0 && (
               <p
                 className="text-sm py-6 text-center"
-                style={{ color: "var(--wv-cadet)", opacity: 0.4 }}
+                style={{ color: "var(--wv-champagne)", opacity: 0.5 }}
               >
                 hmm, nothing matches that search. try a different word!
               </p>
             )}
-          </div>
-        </FilterSection>
-
-        {/* ---- forms: "what kind of stuff?" ---- */}
-        <FilterSection
-          title="what kind of stuff?"
-          subtitle="pick the types of materials you like to use."
-          emoji="🧩"
-          selectedCount={selectedForms.size}
-          defaultOpen={true}
-        >
-          <div className="flex flex-wrap gap-2">
-            {forms.map((form) => (
-              <Pill
-                key={form}
-                label={form}
-                emoji={FORM_EMOJI[form.toLowerCase()] ?? "✨"}
-                selected={selectedForms.has(form)}
-                onClick={() =>
-                  toggleSet(selectedForms, setSelectedForms, form)
-                }
-              />
-            ))}
           </div>
         </FilterSection>
 
@@ -391,42 +373,45 @@ export default function MatcherInputForm({
           selectedCount={selectedContexts.size}
           defaultOpen={true}
         >
-          <div className="flex flex-wrap gap-2">
+          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
             {contexts.map((ctx) => (
-              <Pill
+              <EmojiTile
                 key={ctx}
-                label={ctx}
                 emoji={getEmoji(CONTEXT_EMOJI, ctx, "📍")}
+                label={ctx}
                 selected={selectedContexts.has(ctx)}
                 accentColor="var(--wv-sienna)"
                 onClick={() =>
                   toggleSet(selectedContexts, setSelectedContexts, ctx)
                 }
+                size="sm"
               />
             ))}
           </div>
         </FilterSection>
 
-        {/* ---- slots: "bonus stuff!" ---- */}
+        {/* ---- slots: "bonus stuff!" — integrated into main flow ---- */}
         {slots.length > 0 && (
           <FilterSection
             title="bonus stuff!"
             subtitle="got any of these? we'll find even more playdates."
             emoji="⭐"
             selectedCount={selectedSlots.size}
-            defaultOpen={false}
+            defaultOpen={true}
           >
-            <div className="flex flex-wrap gap-2">
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
               {slots.map((slot) => (
-                <Pill
+                <EmojiTile
                   key={slot}
-                  label={slot}
                   emoji={getEmoji(SLOT_EMOJI, slot, "⭐")}
+                  label={slot}
                   selected={selectedSlots.has(slot)}
                   accentColor="var(--wv-sienna)"
                   onClick={() =>
                     toggleSet(selectedSlots, setSelectedSlots, slot)
                   }
+                  size="sm"
+                  badge="bonus"
                 />
               ))}
             </div>
@@ -458,7 +443,7 @@ export default function MatcherInputForm({
                 searching…
               </>
             ) : (
-              <>let&apos;s play! 🎉</>
+              <>what can these become? ✨</>
             )}
           </button>
 
@@ -467,7 +452,7 @@ export default function MatcherInputForm({
               type="button"
               onClick={handleClear}
               className="text-sm font-medium transition-opacity hover:opacity-80"
-              style={{ color: "var(--wv-cadet)", opacity: 0.45 }}
+              style={{ color: "var(--wv-champagne)", opacity: 0.45 }}
             >
               start over
             </button>
@@ -489,10 +474,10 @@ export default function MatcherInputForm({
       <div
         className="fixed bottom-0 left-0 right-0 z-50 flex items-center gap-3 px-4 pt-3 sm:hidden"
         style={{
-          backgroundColor: "rgba(255, 255, 255, 0.97)",
+          backgroundColor: "rgba(39, 50, 72, 0.97)",
           backdropFilter: "blur(12px)",
           WebkitBackdropFilter: "blur(12px)",
-          borderTop: "2px solid rgba(203, 120, 88, 0.15)",
+          borderTop: "2px solid rgba(203, 120, 88, 0.2)",
           paddingBottom: "max(12px, env(safe-area-inset-bottom, 12px))",
         }}
       >
@@ -518,7 +503,7 @@ export default function MatcherInputForm({
             </>
           ) : hasSelection ? (
             <>
-              let&apos;s play! 🎉{" "}
+              what can these become? ✨{" "}
               <span className="opacity-60">
                 ({totalSelections})
               </span>
@@ -534,7 +519,7 @@ export default function MatcherInputForm({
             onClick={handleClear}
             className="flex-shrink-0 rounded-xl py-3.5 px-4 text-sm font-medium transition-opacity active:scale-95"
             style={{
-              color: "var(--wv-cadet)",
+              color: "var(--wv-champagne)",
               opacity: 0.45,
               minHeight: 48,
             }}
@@ -561,19 +546,8 @@ export default function MatcherInputForm({
           from { opacity: 0; transform: translateY(-8px) scale(0.97); }
           to   { opacity: 1; transform: translateY(0) scale(1); }
         }
-        @keyframes pillCheckPop {
-          from { transform: scale(0); }
-          to   { transform: scale(1); }
-        }
-        @keyframes filterBadgePop {
-          0%   { transform: scale(0.5); }
-          60%  { transform: scale(1.2); }
-          100% { transform: scale(1); }
-        }
         @media (prefers-reduced-motion: reduce) {
           @keyframes basketAppear { from, to { opacity: 1; transform: none; } }
-          @keyframes pillCheckPop { from, to { transform: scale(1); } }
-          @keyframes filterBadgePop { from, to { transform: scale(1); } }
         }
       `}</style>
     </div>

@@ -8,6 +8,8 @@
  *
  * The rooms aren't categories — they're provocations. They ask kids
  * to look at a familiar place with fresh eyes.
+ *
+ * Designed to sit on a cadet-blue background.
  */
 
 import { RoomConfig } from "./room-config";
@@ -31,7 +33,7 @@ export function RoomGrid({
     <div>
       <p
         className="text-sm mb-5 text-center"
-        style={{ color: "var(--wv-cadet)", opacity: 0.6 }}
+        style={{ color: "var(--wv-champagne)", opacity: 0.6 }}
       >
         pick a place and see what you notice
       </p>
@@ -54,13 +56,13 @@ export function RoomGrid({
                   ? room.color
                   : visited
                     ? `color-mix(in srgb, ${room.color} 25%, transparent)`
-                    : "rgba(39, 50, 72, 0.08)",
+                    : "rgba(255, 255, 255, 0.1)",
                 backgroundColor: count > 0
-                  ? `color-mix(in srgb, ${room.color} 5%, transparent)`
-                  : "rgba(255, 255, 255, 0.7)",
+                  ? `color-mix(in srgb, ${room.color} 12%, rgba(39, 50, 72, 0.8))`
+                  : "rgba(255, 255, 255, 0.06)",
                 boxShadow: count > 0
-                  ? `0 2px 12px color-mix(in srgb, ${room.color} 12%, transparent)`
-                  : "0 1px 4px rgba(0,0,0,0.04)",
+                  ? `0 2px 12px color-mix(in srgb, ${room.color} 20%, transparent)`
+                  : "0 1px 4px rgba(0,0,0,0.1)",
                 transition: `all 250ms ${SPRING}`,
                 WebkitTapHighlightColor: "transparent",
               } as React.CSSProperties}
@@ -94,7 +96,7 @@ export function RoomGrid({
               {/* room label */}
               <span
                 className="text-xs font-bold tracking-wider"
-                style={{ color: count > 0 ? room.color : "var(--wv-cadet)" }}
+                style={{ color: count > 0 ? room.color : "var(--wv-champagne)" }}
               >
                 {room.label}
               </span>
@@ -103,7 +105,7 @@ export function RoomGrid({
               <span
                 className="text-xs mt-0.5 leading-snug"
                 style={{
-                  color: "var(--wv-cadet)",
+                  color: "var(--wv-champagne)",
                   opacity: 0.4,
                   fontSize: "0.6rem",
                 }}
