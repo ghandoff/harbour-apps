@@ -1295,7 +1295,12 @@ const STAGES = [
     narration: 'This isn\'t a sit-and-listen keynote. The speaker shares research-backed provocations, then asks the whole room to draw, build, and name what they\'re making. 47 people respond at once — participation at scale.',
     designIntent: 'A keynote that makes the audience create, not just consume. The drawing prompt and shared wall demonstrate that participation scales. The build activity turns inspiration into artefact.' },
   { id: 4, key: 'workshop', label: 'Workshop & Debrief', time: '14:00', showDot: true, init: () => initWorkshop(),
-    narration: 'Now you\'re journaling — making sense of what you learned. Card 1 is private (your reflections). Card 2 is shared (the room sees your answer). Card 3 is a choice (what do you want next?). This could be a printed journal, a companion app, or both — a physical-digital bridge between the conference and your Monday morning.',
+    narration: 'You walk into room 4b and your cohort is already there — jamie, sam, and priya. You were matched by how you answered the scavenger hunt scenarios. The workshop hasn\'t started yet, but you already have something to talk about.',
+    subNarrations: {
+      workshop: 'You walk into room 4b and your cohort is already there — jamie, sam, and priya. You were matched by how you answered the scavenger hunt scenarios. The workshop hasn\'t started yet, but you already have something to talk about.',
+      documentation: 'This is the journaling moment. Each card scaffolds a different depth of reflection: card 1 is private (just for you), card 2 is shared (the room sees your answer), and card 3 is a choice about what comes next. Imagine a printed journal on the table and a companion app on your phone — a physical-digital record that travels home with you.',
+      dashboard: 'Everything the attendee just did — the scenarios, the drawing, the reflections, the choices — becomes measurable learning data. This is what the conference buyer sees: engagement scores, learning signals, connection metrics. They had fun. You have evidence.',
+    },
     designIntent: 'The debrief uses progressive disclosure to scaffold reflection depth. Private → shared → choice. The dashboard reframes all of this as measurable learning data for the buyer.' },
   { id: 5, key: 'final', label: 'Close & Next Steps', time: '16:00', showDot: true, init: () => initFinal(),
     narration: 'You\'ve just experienced what a conference can feel like when every touchpoint is intentionally designed. The question isn\'t "did you like it?" — it\'s "what are you trying to change?"',
@@ -1426,14 +1431,18 @@ function buildProgressBar() {
 buildProgressBar();
 
 /* ── NARRATOR MODE ── */
-function updateNarrator() {
+function updateNarrator(subKey) {
   const overlay = document.getElementById('narrator-overlay');
   const label = document.getElementById('narrator-stage-label');
   const text = document.getElementById('narrator-text');
   const stage = STAGES.find(s => s.id === state.screen);
   if (!stage) return;
   label.textContent = stage.label;
-  text.textContent = stage.narration;
+  if (subKey && stage.subNarrations && stage.subNarrations[subKey]) {
+    text.textContent = stage.subNarrations[subKey];
+  } else {
+    text.textContent = stage.narration;
+  }
   if (state.narratorOn) overlay.classList.add('visible');
   else overlay.classList.remove('visible');
 }
@@ -2225,6 +2234,7 @@ function initWorkshop() {
 }
 
 function showPartA(container) {
+  updateNarrator('workshop');
   const optLabels = { a: 'option a', b: 'option b', c: 'option c', d: 'option d' };
   const sjtTexts = {
     a: 'also chose to let them observe first',
@@ -2278,6 +2288,7 @@ function showPartA(container) {
 }
 
 function showPartB(container) {
+  updateNarrator('documentation');
   const section = document.createElement('div');
   section.className = 's4-section';
   section.id = 's4b';
@@ -2401,6 +2412,7 @@ function showResponseWall() {
 }
 
 function showPartC(container) {
+  updateNarrator('dashboard');
   // fold away debrief
   const debrief = document.getElementById('s4b');
   debrief.style.transition = 'all 0.8s ease';
