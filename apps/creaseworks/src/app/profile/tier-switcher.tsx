@@ -21,7 +21,14 @@ import { apiUrl } from "@/lib/api-url";
 
 type Tier = "casual" | "curious" | "collaborator";
 
-const TIER_OPTIONS: { value: Tier; label: string; emoji: string; desc: string }[] = [
+interface TierOption {
+  value: Tier;
+  label: string;
+  emoji: string;
+  desc: string;
+}
+
+const FALLBACK_TIERS: TierOption[] = [
   {
     value: "casual",
     label: "just play",
@@ -42,7 +49,13 @@ const TIER_OPTIONS: { value: Tier; label: string; emoji: string; desc: string }[
   },
 ];
 
-export default function TierSwitcher({ initialTier }: { initialTier: string }) {
+export default function TierSwitcher({
+  initialTier,
+  tierOptions,
+}: {
+  initialTier: string;
+  tierOptions?: TierOption[];
+}) {
   const { update: updateSession } = useSession();
   const [tier, setTier] = useState<Tier>((initialTier as Tier) || "casual");
   const [saving, setSaving] = useState(false);
@@ -93,9 +106,11 @@ export default function TierSwitcher({ initialTier }: { initialTier: string }) {
     }
   }
 
+  const options = tierOptions ?? FALLBACK_TIERS;
+
   return (
     <div className="space-y-2">
-      {TIER_OPTIONS.map((opt) => {
+      {options.map((opt) => {
         const isSelected = tier === opt.value;
         return (
           <button

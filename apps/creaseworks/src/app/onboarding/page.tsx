@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth-helpers";
 import { sql } from "@/lib/db";
+import { getConfigGroup, parseMetadata } from "@/lib/queries/app-config";
 import OnboardingWizard from "./wizard";
 
 export const metadata = { title: "welcome" };
@@ -67,12 +68,36 @@ export default async function OnboardingPage({
     invitePackNames = packRows.rows.map((r: { title: string }) => r.title);
   }
 
+  // Fetch CMS config for all onboarding option groups in parallel
+  const [tierConfig, ageConfig, ctxConfig, energyConfig] = await Promise.all([
+    getConfigGroup("ui-tiers"),
+    getConfigGroup("onboarding").then((items) => items.filter((i) => i.key === "age-groups")),
+    getConfigGroup("onboarding").then((items) => items.filter((i) => i.key === "contexts")),
+    getConfigGroup("onboarding").then((items) => items.filter((i) => i.key === "energy-levels")),
+  ]);
+
+  const cmsOptions = {
+    tiers: tierConfig.length > 0
+      ? tierConfig.map((i) => { const m = parseMetadata<{ value: string; icon: string; desc: string }>(i); return { value: m.value, label: i.name, sub: m.desc, icon: m.icon }; })
+      : undefined,
+    ages: ageConfig.length > 0
+      ? ageConfig.map((i) => { const m = parseMetadata<{ value: string; sub: string }>(i); return { value: m.value, label: i.name, sub: m.sub }; })
+      : undefined,
+    contexts: ctxConfig.length > 0
+      ? ctxConfig.map((i) => { const m = parseMetadata<{ value: string; icon: string }>(i); return { value: m.value, label: i.name, icon: m.icon }; })
+      : undefined,
+    energy: energyConfig.length > 0
+      ? energyConfig.map((i) => { const m = parseMetadata<{ value: string; sub: string; icon: string }>(i); return { value: m.value, label: i.name, sub: m.sub, icon: m.icon }; })
+      : undefined,
+  };
+
   return (
     <main className="min-h-screen flex items-center justify-center bg-champagne/20 px-4 py-12">
       <OnboardingWizard
         editMode={isEditMode}
         initialValues={initialValues}
         invitePackNames={invitePackNames}
+        cmsOptions={cmsOptions}
       />
     </main>
   );

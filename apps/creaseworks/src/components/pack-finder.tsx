@@ -14,36 +14,22 @@ interface Pack {
   family_count?: number;
 }
 
-type Situation = "classroom" | "sibling" | "rainy" | "summer" | "all" | null;
+type Situation = string | null;
 
-const SITUATIONS: { value: Situation; label: string; detail: string; season?: string }[] = [
-  {
-    value: "classroom",
-    label: "classroom or group",
-    detail: "activities for a class, playgroup, or co-op",
-  },
-  {
-    value: "sibling",
-    label: "new baby in the house",
-    detail: "play that helps older kids adjust",
-  },
-  {
-    value: "rainy",
-    label: "stuck indoors",
-    detail: "quick boredom busters, no prep needed",
-    season: "winter",
-  },
-  {
-    value: "summer",
-    label: "summer break",
-    detail: "outdoor adventures and longer projects",
-    season: "summer",
-  },
-  {
-    value: "all",
-    label: "everything!",
-    detail: "full access to all 30 playdates",
-  },
+interface SituationOpt {
+  value: string;
+  label: string;
+  detail: string;
+  slug: string;
+  season?: string;
+}
+
+const FALLBACK_SITUATIONS: SituationOpt[] = [
+  { value: "classroom", label: "classroom or group", detail: "activities for a class, playgroup, or co-op", slug: "classroom-starter" },
+  { value: "sibling", label: "new baby in the house", detail: "play that helps older kids adjust", slug: "new-baby-sibling" },
+  { value: "rainy", label: "stuck indoors", detail: "quick boredom busters, no prep needed", slug: "rainy-day-rescue", season: "winter" },
+  { value: "summer", label: "summer break", detail: "outdoor adventures and longer projects", slug: "summer-play-camp", season: "summer" },
+  { value: "all", label: "everything!", detail: "full access to all 30 playdates", slug: "the-whole-collection" },
 ];
 
 /** Simple season detection for seasonal callouts. */
@@ -62,24 +48,23 @@ const SEASON_EMOJI: Record<string, string> = {
   winter: "❄️",
 };
 
-// Mapping from situation to pack slug
-const SITUATION_TO_SLUG: Record<string, string> = {
-  classroom: "classroom-starter",
-  sibling: "new-baby-sibling",
-  rainy: "rainy-day-rescue",
-  summer: "summer-play-camp",
-  all: "the-whole-collection",
-};
-
-export default function PackFinder({ packs }: { packs: Pack[] }) {
+export default function PackFinder({
+  packs,
+  situations: cmsSituations,
+}: {
+  packs: Pack[];
+  situations?: SituationOpt[];
+}) {
+  const situations = cmsSituations ?? FALLBACK_SITUATIONS;
   const [situation, setSituation] = useState<Situation>(null);
   const [showCompare, setShowCompare] = useState(false);
 
   const currentSeason = getCurrentSeason();
   const seasonEmoji = SEASON_EMOJI[currentSeason] ?? "";
-  const seasonalSituation = SITUATIONS.find((s) => s.season === currentSeason);
+  const seasonalSituation = situations.find((s) => s.season === currentSeason);
 
-  const recommendedSlug = situation ? SITUATION_TO_SLUG[situation] : null;
+  const slugMap = Object.fromEntries(situations.map((s) => [s.value, s.slug]));
+  const recommendedSlug = situation ? slugMap[situation] : null;
   const recommended = recommendedSlug
     ? packs.find((p) => p.slug === recommendedSlug) ?? null
     : null;
@@ -110,7 +95,7 @@ export default function PackFinder({ packs }: { packs: Pack[] }) {
         </p>
 
         <div className="flex flex-wrap gap-2 mb-4">
-          {SITUATIONS.map((s) => {
+          {situations.map((s) => {
             const isSeasonal = s.season === currentSeason;
             return (
               <button

@@ -5,6 +5,7 @@ import PackFinder from "@/components/pack-finder";
 import { getVisiblePacks, getAllPacks } from "@/lib/queries/packs";
 import { getSession } from "@/lib/auth-helpers";
 import { getCopyForPage } from "@/lib/queries/site-copy";
+import { getConfigGroup, parseMetadata } from "@/lib/queries/app-config";
 
 export const dynamic = "force-dynamic";
 
@@ -38,10 +39,18 @@ export default async function PacksCataloguePage() {
   const isCollective = session?.isInternal ?? false;
 
   // Collective sees all packs (including non-visible and drafts)
-  const [packs, c] = await Promise.all([
+  const [packs, c, situationConfig] = await Promise.all([
     isCollective ? getAllPacks() : getVisiblePacks(),
     getCopyForPage("packs"),
+    getConfigGroup("pack-finder"),
   ]);
+
+  const situations = situationConfig.length > 0
+    ? situationConfig.map((i) => {
+        const m = parseMetadata<{ value: string; detail: string; slug: string; season?: string }>(i);
+        return { value: m.value, label: i.name, detail: m.detail, slug: m.slug, season: m.season };
+      })
+    : undefined;
 
   return (
     <main className="min-h-screen px-6 pt-16 pb-24 sm:pb-16 max-w-4xl mx-auto">
@@ -87,15 +96,18 @@ export default async function PacksCataloguePage() {
       </div>
 
       {/* guided pack finder */}
-      <PackFinder packs={packs.map((p: Pack) => ({
-        slug: p.slug,
-        title: p.title,
-        description: p.description,
-        playdate_count: p.playdate_count,
-        price_cents: p.price_cents,
-        currency: p.currency,
-        family_count: p.family_count,
-      }))} />
+      <PackFinder
+        packs={packs.map((p: Pack) => ({
+          slug: p.slug,
+          title: p.title,
+          description: p.description,
+          playdate_count: p.playdate_count,
+          price_cents: p.price_cents,
+          currency: p.currency,
+          family_count: p.family_count,
+        }))}
+        situations={situations}
+      />
 
       <p className="text-xs text-cadet/40 mb-8">
         {c["packs.nudge.prefix"]?.copy ?? "not sure yet?"}{" "}

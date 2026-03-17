@@ -23,7 +23,7 @@ import { getSeasonalTags } from "@/lib/seasonal";
  * @returns Array of playdate rows matching seasonal criteria
  */
 export async function getSeasonalPlaydates(limit: number = 6) {
-  const seasonalTags = getSeasonalTags();
+  const seasonalTags = await getSeasonalTags();
   const safe = await safeCols(PLAYDATE_TEASER_COLUMNS);
   const cols = safe.map((c) => `p.${c}`).join(", ");
 

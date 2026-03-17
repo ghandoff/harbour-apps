@@ -5,49 +5,41 @@ import { useRouter } from "next/navigation";
 import StepProgress from "@/components/ui/step-progress";
 import { apiUrl } from "@/lib/api-url";
 
-/* ── option definitions ── */
+/* ── option types ── */
 
-const TIER_OPTIONS = [
-  {
-    value: "casual",
-    label: "just play",
-    sub: "simple play ideas, no tracking",
-    icon: "🎈",
-  },
-  {
-    value: "curious",
-    label: "play + learn",
-    sub: "ideas with developmental context",
-    icon: "📖",
-  },
-  {
-    value: "collaborator",
-    label: "play + grow",
-    sub: "reflections, community, evidence",
-    icon: "🌱",
-  },
-] as const;
+interface TierOpt { value: string; label: string; sub: string; icon: string }
+interface AgeOpt { value: string; label: string; sub: string }
+interface CtxOpt { value: string; label: string; icon: string }
+interface EnergyOpt { value: string; label: string; sub: string; icon: string }
 
-const AGE_GROUPS = [
+/* ── fallback defaults (used when CMS config is unavailable) ── */
+
+const FALLBACK_TIERS: TierOpt[] = [
+  { value: "casual", label: "just play", sub: "simple play ideas, no tracking", icon: "🎈" },
+  { value: "curious", label: "play + learn", sub: "ideas with developmental context", icon: "📖" },
+  { value: "collaborator", label: "play + grow", sub: "reflections, community, evidence", icon: "🌱" },
+];
+
+const FALLBACK_AGES: AgeOpt[] = [
   { value: "toddler", label: "toddlers", sub: "1-3 yrs" },
   { value: "preschool", label: "preschool", sub: "3-5 yrs" },
   { value: "school-age", label: "school age", sub: "5-8 yrs" },
   { value: "older", label: "older kids", sub: "8+" },
-] as const;
+];
 
-const CONTEXTS = [
+const FALLBACK_CONTEXTS: CtxOpt[] = [
   { value: "home", label: "at home", icon: "🏠" },
   { value: "classroom", label: "in a classroom", icon: "🏫" },
   { value: "outdoors", label: "outdoors", icon: "🌳" },
   { value: "travel", label: "on the go", icon: "✈️" },
-] as const;
+];
 
-const ENERGY = [
+const FALLBACK_ENERGY: EnergyOpt[] = [
   { value: "chill", label: "chill", sub: "low mess, minimal setup", icon: "🌿" },
   { value: "medium", label: "medium", sub: "some supplies, moderate mess", icon: "🌤️" },
   { value: "active", label: "active", sub: "big mess, big fun", icon: "⚡" },
   { value: "any", label: "surprise me", sub: "show me everything", icon: "🎲" },
-] as const;
+];
 
 const CONTEXT_NAME_SUGGESTIONS = [
   "at home",
@@ -70,12 +62,20 @@ interface WizardProps {
   } | null;
   /** Pack names the user already has access to (via invite). Triggers a welcome message. */
   invitePackNames?: string[];
+  /** CMS-provided options — falls back to hard-coded defaults when absent. */
+  cmsOptions?: {
+    tiers?: TierOpt[];
+    ages?: AgeOpt[];
+    contexts?: CtxOpt[];
+    energy?: EnergyOpt[];
+  };
 }
 
 export default function OnboardingWizard({
   editMode = false,
   initialValues,
   invitePackNames = [],
+  cmsOptions,
 }: WizardProps) {
   const router = useRouter();
   const isInvitedUser = invitePackNames.length > 0;
@@ -90,6 +90,12 @@ export default function OnboardingWizard({
   const [contextName, setContextName] = useState<string>(initialValues?.contextName ?? "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Resolve CMS options with fallbacks
+  const tierOptions = cmsOptions?.tiers ?? FALLBACK_TIERS;
+  const ageOptions = cmsOptions?.ages ?? FALLBACK_AGES;
+  const ctxOptions = cmsOptions?.contexts ?? FALLBACK_CONTEXTS;
+  const energyOptions = cmsOptions?.energy ?? FALLBACK_ENERGY;
 
   const toggle = useCallback(
     (list: string[], setList: (v: string[]) => void, val: string) => {
@@ -189,7 +195,7 @@ export default function OnboardingWizard({
               you can change this anytime from your profile
             </p>
             <div className="space-y-3">
-              {TIER_OPTIONS.map((opt) => (
+              {tierOptions.map((opt) => (
                 <button
                   key={opt.value}
                   type="button"
@@ -221,7 +227,7 @@ export default function OnboardingWizard({
               pick all that apply — we&apos;ll tailor {editMode ? "this context" : "your first playdate"}
             </p>
             <div className="grid grid-cols-2 gap-3">
-              {AGE_GROUPS.map((opt) => (
+              {ageOptions.map((opt) => (
                 <button
                   key={opt.value}
                   type="button"
@@ -252,7 +258,7 @@ export default function OnboardingWizard({
               pick your most common spots
             </p>
             <div className="grid grid-cols-2 gap-3">
-              {CONTEXTS.map((opt) => (
+              {ctxOptions.map((opt) => (
                 <button
                   key={opt.value}
                   type="button"
@@ -283,7 +289,7 @@ export default function OnboardingWizard({
               we&apos;ll recommend a playdate to match
             </p>
             <div className="space-y-3">
-              {ENERGY.map((opt) => (
+              {energyOptions.map((opt) => (
                 <button
                   key={opt.value}
                   type="button"

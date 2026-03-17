@@ -11,7 +11,7 @@ import { getSeasonalTheme } from "@/lib/seasonal";
 import { PlaydateCard } from "@/components/ui/playdate-card";
 
 export default async function SeasonalBanner() {
-  const theme = getSeasonalTheme();
+  const theme = await getSeasonalTheme();
   const playdates = await getSeasonalPlaydates(6);
 
   // Don't show the banner if no seasonal playdates are available

@@ -22,7 +22,7 @@ import { getSeasonalTheme, getCurrentSeason } from "@/lib/seasonal";
 export async function GET(_req: NextRequest) {
   try {
     const season = getCurrentSeason();
-    const theme = getSeasonalTheme();
+    const theme = await getSeasonalTheme();
     const playdates = await getSeasonalPlaydates(6);
 
     return NextResponse.json({

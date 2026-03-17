@@ -43,6 +43,7 @@ import AccessibilityPrefs from "./accessibility-prefs";
 import TierSwitcher from "./tier-switcher";
 import PlayContextSwitcher from "./play-context-switcher";
 import SyncTrigger from "@/app/admin/sync/sync-trigger";
+import { getConfigGroup, parseMetadata } from "@/lib/queries/app-config";
 
 export const dynamic = "force-dynamic";
 
@@ -81,8 +82,19 @@ export default async function ProfilePage({
   } catch {
     // non-critical — progress recompute can fail without blocking the page
   }
-  const profileStats = await getProfileStats(session.userId);
+  const [profileStats, tierConfig] = await Promise.all([
+    getProfileStats(session.userId),
+    getConfigGroup("ui-tiers"),
+  ]);
   const hasActivity = profileStats.totalRuns > 0;
+
+  // Transform config rows into TierSwitcher shape (falls back in component)
+  const tierOptions = tierConfig.length > 0
+    ? tierConfig.map((item) => {
+        const m = parseMetadata<{ value: string; icon: string; desc: string }>(item);
+        return { value: m.value as "casual" | "curious" | "collaborator", label: item.name, emoji: m.icon, desc: m.desc };
+      })
+    : undefined;
 
   /* ---- play contexts ------------------------------------------------ */
   let playContexts: Array<{
@@ -304,7 +316,7 @@ export default async function ProfilePage({
                   className="rounded-xl border p-4"
                   style={{ borderColor: "var(--cw-border)", backgroundColor: "var(--cw-card-bg)" }}
                 >
-                  <TierSwitcher initialTier={tier} />
+                  <TierSwitcher initialTier={tier} tierOptions={tierOptions} />
                 </div>
               </section>
 
