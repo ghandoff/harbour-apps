@@ -576,12 +576,6 @@ body { font-family: var(--font-body); font-size: 16px; color: var(--grey1); }
   letter-spacing: 1.5px; color: var(--grey3);
   margin-bottom: 12px;
 }
-.avatar-slot {
-  display: flex; align-items: center; gap: 10px;
-  margin: 10px 0; opacity: 0.2;
-  transition: opacity 0.5s ease;
-}
-.avatar-slot.found { opacity: 1; }
 .avatar-circle {
   width: 36px; height: 36px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
@@ -1045,7 +1039,7 @@ body { font-family: var(--font-body); font-size: 16px; color: var(--grey1); }
 /* ── PROGRESS INDICATOR (AGENDA STYLE) ── */
 .progress-dots {
   position: fixed; bottom: 16px; left: 50%;
-  transform: translateX(-50%); z-index: 50;
+  transform: translateX(-50%); z-index: 40;
   display: flex; flex-direction: column; gap: 0;
   padding: 12px 16px;
   background: rgba(255,255,255,0.88);
@@ -1205,6 +1199,141 @@ body { font-family: var(--font-body); font-size: 16px; color: var(--grey1); }
   pointer-events: none;
 }
 .cold-start-hint.visible { opacity: 1; }
+
+/* ── AVATAR SILHOUETTE + FOUND STATES ── */
+.avatar-slot {
+  display: flex; align-items: center; gap: 10px;
+  margin: 10px 0; opacity: 1;
+  transition: all 0.5s ease;
+}
+.avatar-slot .avatar-circle {
+  position: relative; overflow: hidden;
+}
+.avatar-slot:not(.found) .avatar-circle {
+  background: var(--grey6) !important;
+}
+.avatar-slot:not(.found) .avatar-circle svg { opacity: 0; }
+.avatar-slot:not(.found) .avatar-circle::after {
+  content: '?'; position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-size: 16px; color: var(--grey4);
+}
+.avatar-slot:not(.found) .avatar-name { color: var(--grey5); }
+.avatar-slot.found .avatar-circle { animation: avatarPop 0.4s ease; }
+@keyframes avatarPop {
+  0% { transform: scale(0.6); opacity: 0; }
+  60% { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.avatar-found-at {
+  font-size: 10px; color: var(--grey4); font-style: italic; margin-top: -2px;
+}
+
+/* ── COHORT TOAST ── */
+.cohort-toast {
+  position: fixed; bottom: 80px; right: 20px; z-index: 110;
+  background: rgba(26,26,26,0.92); color: rgba(255,255,255,0.88);
+  font-family: var(--font-body); font-size: 13px; line-height: 1.5;
+  padding: 12px 16px; border-radius: 10px; max-width: 300px;
+  opacity: 0; transform: translateY(8px);
+  transition: all 0.4s ease; pointer-events: none;
+}
+.cohort-toast.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
+
+/* ── GROUP COMPLETE CARD ── */
+.group-complete-card {
+  position: fixed; inset: 0; z-index: 120;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(26,26,26,0.6);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  opacity: 0; pointer-events: none; transition: opacity 0.5s ease;
+}
+.group-complete-card.visible { opacity: 1; pointer-events: auto; }
+.group-complete-inner {
+  background: #fff; border-radius: 14px; padding: 32px 36px;
+  max-width: 420px; width: 90%; text-align: center;
+  box-shadow: 0 12px 60px rgba(0,0,0,0.2);
+}
+.group-complete-inner h3 {
+  font-family: var(--font-display); font-size: 20px;
+  color: var(--grey1); margin-bottom: 16px;
+}
+.group-complete-inner p {
+  font-family: var(--font-body); font-size: 14px;
+  color: var(--grey2); line-height: 1.7; margin: 8px 0;
+  font-style: italic;
+}
+
+/* ── CLUE LOG ── */
+.clue-log-btn {
+  position: absolute; top: 12px; left: 12px; z-index: 10;
+  padding: 5px 10px; border-radius: 16px;
+  background: rgba(255,255,255,0.85); border: 1px solid var(--grey6);
+  font-family: var(--font-body); font-size: 11px; color: var(--grey3);
+  cursor: pointer; display: flex; align-items: center; gap: 5px;
+  transition: all 0.2s;
+}
+.clue-log-btn:hover { background: #fff; border-color: var(--sienna); color: var(--grey1); }
+.clue-log-panel {
+  position: absolute; top: 44px; left: 12px; z-index: 10;
+  background: #fff; border-radius: 10px; padding: 14px 16px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.12); max-width: 280px;
+  font-family: var(--font-body); font-size: 12px; color: var(--grey2);
+  opacity: 0; transform: translateY(-4px);
+  transition: all 0.3s ease; pointer-events: none;
+}
+.clue-log-panel.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
+.clue-log-item {
+  padding: 6px 0; border-bottom: 1px solid var(--grey8);
+  font-style: italic; line-height: 1.5;
+}
+.clue-log-item:last-child { border-bottom: none; }
+.clue-log-empty { color: var(--grey5); font-style: italic; }
+
+/* ── BADGE HANDOVER ANIMATION ── */
+.badge-handover {
+  position: fixed; inset: 0; z-index: 150;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  background: rgba(247,231,206,0.95);
+  opacity: 0; pointer-events: none; transition: opacity 0.6s ease;
+}
+.badge-handover.visible { opacity: 1; pointer-events: auto; }
+.badge-hands {
+  width: 200px; height: 160px; position: relative; margin-bottom: 20px;
+}
+.badge-lanyard {
+  width: 4px; height: 60px; background: var(--sienna); margin: 0 auto 0;
+  border-radius: 2px;
+}
+.badge-reveal {
+  background: #fff; border-radius: 10px; padding: 20px 28px;
+  text-align: center; box-shadow: 0 8px 40px rgba(0,0,0,0.12);
+  border: 2px solid var(--cadet);
+  transform: rotateY(90deg); transition: transform 0.8s ease;
+}
+.badge-reveal.flipped { transform: rotateY(0deg); }
+@keyframes badgeGlow {
+  0%, 100% { box-shadow: 0 8px 40px rgba(0,0,0,0.12); }
+  50% { box-shadow: 0 8px 40px rgba(95,158,160,0.35), 0 0 20px rgba(95,158,160,0.15); }
+}
+.badge-reveal.glowing { animation: badgeGlow 1.5s ease-in-out 2; }
+
+/* ── PERSISTENT CORNER BADGE ── */
+.corner-badge {
+  position: fixed; top: 16px; left: 16px; z-index: 45;
+  background: #fff; border-radius: 8px; padding: 6px 12px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+  border: 1px solid var(--cadet);
+  font-family: var(--font-body); font-size: 11px; color: var(--grey2);
+  display: flex; align-items: center; gap: 8px;
+  opacity: 0; transform: scale(0.5);
+  transition: all 0.5s ease; pointer-events: none;
+}
+.corner-badge.visible { opacity: 1; transform: scale(1); pointer-events: auto; }
+.corner-badge-dot {
+  width: 8px; height: 8px; border-radius: 50%; background: var(--cadet); flex-shrink: 0;
+}
 
 /* ── DEBRIEF LOCK LABEL ── */
 .debrief-lock {
@@ -1476,25 +1605,25 @@ body { font-family: var(--font-body); font-size: 16px; color: var(--grey1); }
     <!-- sidebar -->
     <div class="hunt-sidebar">
       <div class="group-panel">
-        <div class="group-title">your group</div>
-        <div class="group-subtitle" style="font-size:11px;color:var(--grey4);font-style:italic;margin:-6px 0 10px;">playful networking — matched by your scenario answers</div>
+        <div class="group-title">your afternoon group</div>
+        <div class="group-subtitle" style="font-size:11px;color:var(--grey4);font-style:italic;margin:-6px 0 10px;">matched by your scenario answers</div>
         <div class="avatar-slot" id="avatar-1">
           <div class="avatar-circle" style="background:var(--sienna);">
             <svg viewBox="0 0 36 36" width="36" height="36"><circle cx="18" cy="13" r="7" fill="#fff" opacity="0.3"/><path d="M6 36 Q6 24, 18 22 Q30 24, 30 36" fill="#fff" opacity="0.3"/><text x="18" y="17" text-anchor="middle" font-size="11" fill="#fff" font-family="Fraunces,serif" font-weight="600">J</text></svg>
           </div>
-          <div class="avatar-name">jamie</div>
+          <div><div class="avatar-name">jamie</div><div class="avatar-found-at" id="avatar-1-loc"></div></div>
         </div>
         <div class="avatar-slot" id="avatar-2">
           <div class="avatar-circle" style="background:var(--cadet);">
             <svg viewBox="0 0 36 36" width="36" height="36"><circle cx="18" cy="13" r="7" fill="#fff" opacity="0.3"/><path d="M6 36 Q6 24, 18 22 Q30 24, 30 36" fill="#fff" opacity="0.3"/><text x="18" y="17" text-anchor="middle" font-size="11" fill="#fff" font-family="Fraunces,serif" font-weight="600">S</text></svg>
           </div>
-          <div class="avatar-name">sam</div>
+          <div><div class="avatar-name">sam</div><div class="avatar-found-at" id="avatar-2-loc"></div></div>
         </div>
         <div class="avatar-slot" id="avatar-3">
           <div class="avatar-circle" style="background:var(--redwood);">
             <svg viewBox="0 0 36 36" width="36" height="36"><circle cx="18" cy="13" r="7" fill="#fff" opacity="0.3"/><path d="M6 36 Q6 24, 18 22 Q30 24, 30 36" fill="#fff" opacity="0.3"/><text x="18" y="17" text-anchor="middle" font-size="11" fill="#fff" font-family="Fraunces,serif" font-weight="600">P</text></svg>
           </div>
-          <div class="avatar-name">priya</div>
+          <div><div class="avatar-name">priya</div><div class="avatar-found-at" id="avatar-3-loc"></div></div>
         </div>
       </div>
     </div>
@@ -1504,6 +1633,40 @@ body { font-family: var(--font-body); font-size: 16px; color: var(--grey1); }
 <!-- zone modal (shared, content injected via JS) -->
 <div class="zone-modal" id="zone-modal">
   <div class="zone-modal-card" id="zone-modal-card"></div>
+</div>
+
+<!-- cohort toast -->
+<div class="cohort-toast" id="cohort-toast"></div>
+
+<!-- group complete card -->
+<div class="group-complete-card" id="group-complete-card">
+  <div class="group-complete-inner">
+    <h3>your group is complete.</h3>
+    <p>jamie, sam, and priya are real people at this conference.</p>
+    <p>you were matched based on how you think, not just what you do.</p>
+    <p>most conference groups are formed by chance. this one wasn't.</p>
+    <button class="zone-challenge-btn" id="group-complete-continue" style="margin-top:20px;">continue →</button>
+  </div>
+</div>
+
+<!-- badge handover animation -->
+<div class="badge-handover" id="badge-handover">
+  <div class="badge-hands">
+    <div class="badge-lanyard"></div>
+    <div class="badge-reveal" id="badge-reveal">
+      <div style="font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--grey4);margin-bottom:8px;">learning forward summit 2025</div>
+      <div style="font-family:var(--font-display);font-size:22px;color:var(--grey1);margin-bottom:6px;" id="badge-name"></div>
+      <div style="font-size:12px;color:var(--cadet);">designing for belonging · room 4b · 14:00</div>
+    </div>
+  </div>
+  <div style="font-family:var(--font-body);font-size:16px;color:var(--grey2);font-style:italic;margin-top:16px;opacity:0;transition:opacity 0.6s ease 0.8s;" id="badge-line">there you are.</div>
+  <button class="zone-challenge-btn" id="badge-keep" style="margin-top:20px;opacity:0;transition:opacity 0.5s ease;">keep it →</button>
+</div>
+
+<!-- persistent corner badge -->
+<div class="corner-badge" id="corner-badge">
+  <span class="corner-badge-dot"></span>
+  <span id="corner-badge-text"></span>
 </div>
 
 <!-- ════════ SCREEN 3 — THE KEYNOTE ════════ -->
@@ -1564,8 +1727,8 @@ const STAGES = [
     narration: 'One click and the whole room changed. Colour, warmth, people — the same space, redesigned with intention. That\'s the gap between a typical event and a designed experience.',
     designIntent: 'The colour reveal is the first emotional beat — showing what the same space looks like when it\'s designed with intention. The pause lets the contrast land before asking the user to opt in.' },
   { id: 2, key: 'hunt', label: 'Registration & Scavenger Hunt', time: '09:00', showDot: true, init: () => initHunt(),
-    narration: 'Registration isn\'t a queue — it\'s a scavenger hunt. You\'ll answer real teaching dilemmas (SJTs) at each stop, and your answers determine who you\'ll sit with later. Each clue leads to the next location on the floor plan. Solve all three to earn your personalised badge and meet your group.',
-    designIntent: 'Registration reimagined as exploration. SJTs surface real facilitation dilemmas while building a cohort. Each clue leads to a physical location — the floor plan and avatar panel give spatial and social progress cues.' },
+    narration: 'Registration isn\'t a queue — it\'s a scavenger hunt. At each stop, you\'ll face a real teaching scenario from the conference topics (equity, facilitation, inclusion). Your answers reveal your instincts as an educator — and they\'re quietly matching you with people who think differently. That\'s how your afternoon group forms. Solve all three to earn your badge and meet your cohort.',
+    designIntent: 'Registration reimagined as exploration. SJTs use real conference content (not event logistics) to surface facilitation instincts. Answers silently build cohorts — people matched by complementary approaches, not identical ones. The group panel shows this forming in real time.' },
   { id: 3, key: 'keynote', label: 'Opening Keynote', time: '10:30', showDot: true, init: () => initKeynote(),
     narration: 'This isn\'t a sit-and-listen keynote. The speaker shares research-backed provocations, then asks the whole room to draw, build, and name what they\'re making. 47 people respond at once — participation at scale.',
     designIntent: 'A keynote that makes the audience create, not just consume. The drawing prompt and shared wall demonstrate that participation scales. The build activity turns inspiration into artefact.' },
@@ -1607,17 +1770,21 @@ const state = {
 
 const sjtResponses = {
   1: {
-    a: "sometimes the invitation to observe is the most generous thing you can offer.",
-    b: "a role that honours their boundaries. smart.",
-    c: "transparent, direct. it takes courage to pause the whole group.",
-    d: "sometimes the best intervention is patience."
+    a: "public performance can empower — or terrify. it depends on the child. you value visibility.",
+    b: "a paired activity lowers the stakes. you design for safety before scale.",
+    c: "private encouragement builds trust. you lead with relationship.",
+    d: "changing the environment instead of changing the student. you think like a designer."
   },
   2: {
-    a: "the path of least resistance. understandable.",
-    b: "someone always goes first. the question is: what does it cost them?",
-    c: "reframing is generous. it gives people a second door.",
-    d: "silence has its own intelligence. not everyone agrees."
+    a: "starting with the content is logical. you lead with evidence.",
+    b: "observation before judgement. you want to see what's actually happening in the room.",
+    c: "going straight to the students — bold. you centre the learner's voice.",
+    d: "investing in teachers first. you believe the implementation is where change lives."
   }
+};
+const sjtPostResponse = {
+  1: "there's no single right answer — it depends on the child, the context, and what you know about the room. that's exactly what we'll be exploring today.",
+  2: "most people pick a different answer — and most people are right for their context. this afternoon's workshop will dig into exactly this."
 };
 
 /* ═══════════════════════════════════════════
@@ -1973,15 +2140,16 @@ const ZONES = {
     boringScene: `<svg viewBox="0 0 400 140"><rect width="400" height="140" fill="#e8e8e8"/><rect x="100" y="60" width="200" height="24" rx="3" fill="#ccc"/><circle cx="200" cy="40" r="12" fill="#aaa"/><rect x="195" y="53" width="10" height="6" rx="1" fill="#aaa"/><text x="200" y="130" text-anchor="middle" font-size="9" fill="#999" font-family="Inter">WELCOME — PLEASE TAKE A NUMBER.</text><rect x="60" y="80" width="30" height="8" rx="1" fill="#bbb" opacity="0.5"/><rect x="62" y="72" width="26" height="6" rx="1" fill="#bbb" opacity="0.4"/><rect x="310" y="70" width="30" height="20" rx="2" fill="#ddd"/><text x="325" y="84" text-anchor="middle" font-size="6" fill="#aaa">attendant</text></svg>`,
     aliveText: 'that took 45 seconds. you already have a connection and a direction.',
     aliveScene: `<svg viewBox="0 0 400 140"><rect width="400" height="140" fill="#F7E7CE"/><rect x="100" y="60" width="200" height="24" rx="3" fill="#d4c4a8" stroke="#c4a882" stroke-width="0.5"/><circle cx="200" cy="38" r="12" fill="#E97451" opacity="0.7"/><rect x="195" y="51" width="10" height="6" rx="1" fill="#E97451" opacity="0.5"/><circle cx="310" cy="65" r="5" fill="#b8c9a0" opacity="0.6"/><rect x="307" y="71" width="6" height="12" rx="1" fill="#8aaa6a" opacity="0.4"/><rect x="50" y="55" width="30" height="40" rx="3" fill="#fff" stroke="#5F9EA0" stroke-width="0.8"/><text x="65" y="80" text-anchor="middle" font-size="6" fill="#5F9EA0">QR</text></svg>`,
+    sjtNarrator: 'the person at the registration table smiles and slides a card towards you. "we do things a little differently here," they say. "before you get your badge, we\'d love to know how you think." it\'s not a test. there are no wrong answers. it\'s just a way to find your people.',
     sjt: { num: 1,
-      question: 'you\'re designing the registration experience for a conference. how do you want attendees to feel in their first 60 seconds?',
+      question: 'a teacher notices that one student always has the right answer but never shares it with the group. what should the teacher do first?',
       options: [
-        { key: 'a', text: 'efficient — badge in hand, schedule sorted, off they go' },
-        { key: 'b', text: 'welcomed — they leave the table already knowing someone' },
-        { key: 'c', text: 'informed — they understand every session before sitting down' },
-        { key: 'd', text: 'independent — they find their own way, no hand-holding' },
+        { key: 'a', text: 'ask the student to present their answer to the class' },
+        { key: 'b', text: 'create a paired activity so the student shares with just one person first' },
+        { key: 'c', text: 'praise the student privately and encourage them to speak up' },
+        { key: 'd', text: 'redesign the group activity so participation feels lower stakes for everyone' },
       ],
-      clue: 'your next clue is brewing somewhere warm.'
+      clue: 'your next clue is somewhere warm. follow the smell of coffee. ☕'
     },
     avatar: { slot: 1 }, hint: 'start at the registration table — a volunteer has your first clue.',
   },
@@ -1991,15 +2159,16 @@ const ZONES = {
     boringScene: `<svg viewBox="0 0 400 140"><rect width="400" height="140" fill="#e8e8e8"/><circle cx="120" cy="70" r="20" fill="#ddd" stroke="#ccc" stroke-width="0.5"/><circle cx="200" cy="60" r="18" fill="#ddd" stroke="#ccc" stroke-width="0.5"/><circle cx="280" cy="75" r="20" fill="#ddd" stroke="#ccc" stroke-width="0.5"/><circle cx="130" cy="50" r="6" fill="#bbb"/><rect x="128" y="57" width="4" height="3" rx="1" fill="#bbb"/><circle cx="210" cy="40" r="6" fill="#bbb"/><rect x="208" y="47" width="4" height="3" rx="1" fill="#bbb"/><circle cx="270" cy="48" r="6" fill="#bbb"/><rect x="268" y="55" width="4" height="3" rx="1" fill="#bbb"/><rect x="150" y="110" width="80" height="12" rx="2" fill="#ddd"/><text x="190" y="120" text-anchor="middle" font-size="6" fill="#aaa">sad fruit platter</text></svg>`,
     aliveText: 'the conversation started before the session did.',
     aliveScene: `<svg viewBox="0 0 400 140"><rect width="400" height="140" fill="#fce8db"/><circle cx="120" cy="70" r="20" fill="#ede3d0" stroke="#E97451" stroke-width="0.5"/><circle cx="200" cy="60" r="18" fill="#ede3d0" stroke="#E97451" stroke-width="0.5"/><circle cx="280" cy="75" r="20" fill="#ede3d0" stroke="#E97451" stroke-width="0.5"/><rect x="112" y="64" width="16" height="10" rx="1" fill="#fff" opacity="0.6"/><rect x="192" y="54" width="16" height="10" rx="1" fill="#fff" opacity="0.6"/><rect x="272" y="69" width="16" height="10" rx="1" fill="#fff" opacity="0.6"/><circle cx="130" cy="45" r="6" fill="#E97451" opacity="0.6"/><circle cx="210" cy="38" r="6" fill="#5F9EA0" opacity="0.6"/><circle cx="268" cy="50" r="6" fill="#A0522D" opacity="0.6"/><rect x="100" y="110" width="200" height="16" rx="2" fill="#1a1a1a" opacity="0.06"/><text x="200" y="122" text-anchor="middle" font-size="7" fill="#A0522D" font-style="italic">today's question: what brought you here that isn't on your CV?</text></svg>`,
+    sjtNarrator: 'tucked under a coffee cup, there\'s a folded card with your name on it. it says: "one more question before the keynote."',
     sjt: { num: 2,
-      question: 'a keynote speaker asks the audience a question. silence. thirty seconds pass. what should happen next?',
+      question: 'a school introduces a new curriculum. three months in, teachers report that students are disengaged. what is the most important first step?',
       options: [
-        { key: 'a', text: 'the speaker answers their own question' },
-        { key: 'b', text: 'someone in the audience breaks the silence' },
-        { key: 'c', text: 'the speaker reframes the question' },
-        { key: 'd', text: 'the silence is allowed to last a little longer' },
+        { key: 'a', text: 'review the curriculum content for relevance and difficulty' },
+        { key: 'b', text: 'observe classrooms to understand how the curriculum is being implemented' },
+        { key: 'c', text: 'survey students directly about their experience' },
+        { key: 'd', text: 'give teachers more planning time and professional development' },
       ],
-      clue: 'something is posted on a board that wasn\'t there this morning.'
+      clue: 'something on the session board has your name on it. look carefully. 📌'
     },
     avatar: { slot: 2 }, hint: 'head to the coffee station — someone with a red-dot badge is waiting.',
   },
@@ -2044,7 +2213,9 @@ function initHunt() {
   state.zoneAlive = {};
   state.badgeFound = false;
   state.allHuntDone = false;
+  state.clueLog = [];
   initMap();
+  updateClueLogBtn();
 }
 
 function initMap() {
@@ -2100,6 +2271,93 @@ function unlockZone(zone) {
 function unlockAvatar(n) {
   const slot = document.getElementById('avatar-' + n);
   if (slot) slot.classList.add('found');
+  const locEl = document.getElementById('avatar-' + n + '-loc');
+  const locs = { 1: 'found at: registration & welcome', 2: 'found at: coffee station', 3: 'found at: session board' };
+  if (locEl) locEl.textContent = locs[n] || '';
+}
+
+function showCohortToast(zoneKey) {
+  const toasts = {
+    registration: 'you and jamie will be in the same workshop this afternoon. you just don\'t know each other yet.',
+    coffee: 'sam answered that question differently to you. that\'s exactly why you\'re in the same group.',
+    board: 'priya is also looking for their badge. you\'re closer than you think.',
+  };
+  const msg = toasts[zoneKey];
+  if (!msg) return;
+  const el = document.getElementById('cohort-toast');
+  el.textContent = msg;
+  el.classList.add('visible');
+  setTimeout(() => el.classList.remove('visible'), 5000);
+}
+
+function showGroupCompleteCard() {
+  const el = document.getElementById('group-complete-card');
+  el.classList.add('visible');
+  document.getElementById('group-complete-continue').addEventListener('click', () => {
+    el.classList.remove('visible');
+  });
+}
+
+function triggerBadgeHandover(onComplete) {
+  const name = state.attendeeName || 'attendee';
+  document.getElementById('badge-name').textContent = name;
+  const handover = document.getElementById('badge-handover');
+  handover.classList.add('visible');
+  // step 1: flip badge face-up
+  setTimeout(() => {
+    const badge = document.getElementById('badge-reveal');
+    badge.classList.add('flipped');
+    console.log('[hunt] badge flipped');
+    // step 2: glow
+    setTimeout(() => {
+      badge.classList.add('glowing');
+      document.getElementById('badge-line').style.opacity = '1';
+      // step 3: show keep button
+      setTimeout(() => {
+        const keepBtn = document.getElementById('badge-keep');
+        keepBtn.style.opacity = '1';
+        keepBtn.addEventListener('click', () => {
+          console.log('[hunt] badge kept');
+          handover.classList.remove('visible');
+          // pin corner badge
+          const corner = document.getElementById('corner-badge');
+          document.getElementById('corner-badge-text').textContent = `${name} · room 4b · 14:00`;
+          corner.classList.add('visible');
+          if (onComplete) onComplete();
+        });
+      }, 2000);
+    }, 800);
+  }, 600);
+}
+
+function updateClueLogBtn() {
+  let btn = document.getElementById('clue-log-btn');
+  if (!btn) {
+    btn = document.createElement('button');
+    btn.id = 'clue-log-btn';
+    btn.className = 'clue-log-btn';
+    btn.innerHTML = '🔍 clues';
+    document.getElementById('conference-map').appendChild(btn);
+
+    const panel = document.createElement('div');
+    panel.id = 'clue-log-panel';
+    panel.className = 'clue-log-panel';
+    document.getElementById('conference-map').appendChild(panel);
+
+    btn.addEventListener('click', () => {
+      const p = document.getElementById('clue-log-panel');
+      p.classList.toggle('visible');
+      if (p.classList.contains('visible')) {
+        if (!state.clueLog || state.clueLog.length === 0) {
+          p.innerHTML = '<div class="clue-log-empty">no clues found yet.</div>';
+        } else {
+          p.innerHTML = state.clueLog.map(c => `<div class="clue-log-item"><strong>${c.zone}:</strong> "${c.clue}"</div>`).join('');
+        }
+      }
+    });
+  }
+  const count = (state.clueLog || []).length;
+  btn.innerHTML = `🔍 clues (${count})`;
 }
 
 function showMapHint(text) {
@@ -2277,8 +2535,12 @@ function renderChallenge(zoneKey) {
   const body = document.getElementById('zm-body');
 
   if (z.sjt) {
+    console.log('[hunt] renderChallenge:', zoneKey, '— showing SJT');
+    // show narrator framing if available
+    const narratorIntro = z.sjtNarrator ? `<div style="font-style:italic;color:var(--grey3);font-size:13px;line-height:1.7;margin-bottom:16px;padding:10px 14px;background:rgba(95,158,160,0.06);border-radius:8px;">${z.sjtNarrator}</div>` : '';
     body.innerHTML = `
       <div class="zone-scene">${z.aliveScene}</div>
+      ${narratorIntro}
       <div class="sjt-card" style="border:none;box-shadow:none;padding:0;">
         <div class="sjt-question">${z.sjt.question}</div>
         <ul class="sjt-options" id="sjt-opts"></ul>
@@ -2294,24 +2556,55 @@ function renderChallenge(zoneKey) {
         li.classList.add('selected');
         if (z.sjt.num === 1) state.sjt1 = opt.key;
         else state.sjt2 = opt.key;
+        console.log('[hunt] SJT', z.sjt.num, 'answered:', opt.key);
+
         const resp = document.getElementById('sjt-resp');
-        resp.innerHTML = `${sjtResponses[z.sjt.num][opt.key]}<div class="sjt-clue">"${z.sjt.clue}"</div>`;
+        // Step 1: show non-judgmental response
+        resp.innerHTML = `<p style="margin-bottom:6px;">${sjtResponses[z.sjt.num][opt.key]}</p><p style="font-size:13px;color:var(--grey3);margin-top:8px;">${sjtPostResponse[z.sjt.num]}</p>`;
         resp.classList.add('visible');
+        console.log('[hunt] step 1: response shown');
+
+        // Step 2: after 2s, show clue card
         setTimeout(() => {
+          console.log('[hunt] step 2: revealing clue');
+          resp.innerHTML += `
+            <div class="sjt-clue" style="font-size:15px;padding:14px 18px;background:var(--champagne);border-radius:8px;border-left:3px solid var(--sienna);margin:16px 0;">"${z.sjt.clue}"</div>
+            <button class="zone-challenge-btn" id="sjt-continue" style="margin-top:12px;">got it →</button>
+          `;
+          // save clue to log
+          if (!state.clueLog) state.clueLog = [];
+          state.clueLog.push({ zone: z.label, clue: z.sjt.clue });
+          updateClueLogBtn();
+
+          // unlock zone + avatar
           unlockZone(zoneKey);
-          // update the tab to show unlocked
           document.getElementById('zm-tab-alive').innerHTML = 'alive';
           document.getElementById('zm-tab-alive').classList.remove('locked');
-          renderAliveTab(zoneKey);
-          // show next hint
-          const nextHints = { registration: ZONES.coffee.hint, coffee: ZONES.board.hint };
-          if (nextHints[zoneKey]) setTimeout(() => showMapHint(nextHints[zoneKey]), 500);
-        }, 1800);
+          console.log('[hunt] step 3: zone unlocked, clue saved');
+
+          // Step 3: highlight next zone on map
+          const nextZone = { registration: 'coffee', coffee: 'board' };
+          if (nextZone[zoneKey]) {
+            const nz = document.getElementById('zone-' + nextZone[zoneKey]);
+            if (nz) nz.querySelector('.zone-bg').style.animation = 'zonePulse 1.5s ease-in-out infinite';
+          }
+
+          // show cohort toast
+          showCohortToast(zoneKey);
+
+          document.getElementById('sjt-continue').addEventListener('click', () => {
+            console.log('[hunt] step 4: user dismissed clue, closing modal');
+            closeZoneModal();
+            const nextHints = { registration: ZONES.coffee.hint, coffee: ZONES.board.hint };
+            if (nextHints[zoneKey]) setTimeout(() => showMapHint(nextHints[zoneKey]), 400);
+          });
+        }, 2000);
       });
       optsList.appendChild(li);
     });
   } else if (z.badge) {
     // session board badge reveal
+    console.log('[hunt] renderChallenge: board — session grid');
     const sessions = [
       'assessment for equity', 'trauma-informed pedagogy', 'student voice in curriculum', 'culturally responsive teaching',
       'designing for belonging', 'neurodiversity in the classroom', 'formative feedback loops', 'restorative practices',
@@ -2332,19 +2625,18 @@ function renderChallenge(zoneKey) {
       document.querySelectorAll('.session-card').forEach(card => {
         if (parseInt(card.dataset.idx) === 4) {
           card.addEventListener('click', () => {
-            const name = state.attendeeName || 'attendee';
-            body.innerHTML = `
-              <div class="personal-badge visible" style="opacity:1;transform:none;">
-                <div class="pb-conf">learning forward summit 2025</div>
-                <div class="pb-name">${name}</div>
-                <div class="pb-session">designing for belonging · room 4b · 14:00</div>
-              </div>
-              <p style="font-size:14px;color:var(--grey2);font-style:italic;line-height:1.7;margin-top:16px;">you didn't find this by accident. the clues brought you here. your group for this afternoon is complete.</p>
-              <div class="zone-text">${z.aliveText}</div>
-            `;
-            unlockZone(zoneKey);
-            document.getElementById('zm-tab-alive').innerHTML = 'alive';
-            document.getElementById('zm-tab-alive').classList.remove('locked');
+            console.log('[hunt] badge card clicked — starting handover');
+            closeZoneModal();
+            triggerBadgeHandover(() => {
+              unlockZone(zoneKey);
+              document.getElementById('zm-tab-alive').innerHTML = 'alive';
+              document.getElementById('zm-tab-alive').classList.remove('locked');
+              showCohortToast('board');
+              // check if group is complete
+              if (state.zoneAlive.registration && state.zoneAlive.coffee && state.zoneAlive.board) {
+                setTimeout(showGroupCompleteCard, 1200);
+              }
+            });
           });
         }
       });
