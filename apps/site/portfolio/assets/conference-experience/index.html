@@ -426,6 +426,15 @@ body { font-family: var(--font-body); font-size: 16px; color: var(--grey1); }
   background: none; border: none; color: var(--grey4);
   cursor: pointer; font-size: 14px; padding: 0 2px;
 }
+.map-show-clue {
+  position: absolute; top: 12px; left: 12px; z-index: 10;
+  background: #fff; border: 1px solid var(--grey7);
+  border-radius: 6px; padding: 5px 10px;
+  font-family: var(--font-body); font-size: 11px;
+  color: var(--grey3); cursor: pointer;
+  transition: all 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.map-show-clue:hover { background: var(--champagne); border-color: var(--sienna); color: var(--grey1); }
 /* celebration overlay */
 .map-celebration {
   position: absolute; inset: 0; z-index: 15;
@@ -1178,6 +1187,13 @@ body { font-family: var(--font-body); font-size: 16px; color: var(--grey1); }
   text-transform: uppercase; letter-spacing: 1.5px;
   color: var(--cadet); margin-bottom: 6px;
 }
+.narrator-dismiss-hint {
+  margin-top: 10px; padding-top: 8px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  font-size: 11px; color: rgba(255,255,255,0.4);
+  transition: opacity 0.4s ease;
+}
+.narrator-dismiss-hint strong { color: rgba(255,255,255,0.6); }
 
 /* ── COLD-START HINT ── */
 .cold-start-hint {
@@ -1328,6 +1344,7 @@ body { font-family: var(--font-body); font-size: 16px; color: var(--grey1); }
 <div class="narrator-overlay" id="narrator-overlay">
   <div class="narrator-stage-label" id="narrator-stage-label"></div>
   <div id="narrator-text"></div>
+  <div class="narrator-dismiss-hint" id="narrator-dismiss-hint">tap the <strong>narrator</strong> button (top-right) to hide this overlay</div>
 </div>
 
 <!-- grey/colour toggle -->
@@ -1450,6 +1467,8 @@ body { font-family: var(--font-body); font-size: 16px; color: var(--grey1); }
 
       <!-- hint card -->
       <div class="map-hint" id="map-hint"></div>
+      <!-- show clue button (persistent) -->
+      <button class="map-show-clue" id="map-show-clue" title="show current clue">🔍 clue</button>
       <!-- celebration overlay -->
       <div class="map-celebration" id="map-celebration"></div>
     </div>
@@ -1716,6 +1735,9 @@ document.getElementById('narrator-toggle').addEventListener('click', () => {
   state.narratorOn = !state.narratorOn;
   document.getElementById('narrator-toggle').classList.toggle('active', state.narratorOn);
   updateNarrator();
+  // hide dismiss hint after first toggle
+  const hint = document.getElementById('narrator-dismiss-hint');
+  if (hint) hint.style.display = 'none';
 });
 // start with narrator on
 document.getElementById('narrator-toggle').classList.add('active');
@@ -1946,12 +1968,12 @@ const ZONES = {
     aliveText: 'that took 45 seconds. you already have a connection and a direction.',
     aliveScene: `<svg viewBox="0 0 400 140"><rect width="400" height="140" fill="#F7E7CE"/><rect x="100" y="60" width="200" height="24" rx="3" fill="#d4c4a8" stroke="#c4a882" stroke-width="0.5"/><circle cx="200" cy="38" r="12" fill="#E97451" opacity="0.7"/><rect x="195" y="51" width="10" height="6" rx="1" fill="#E97451" opacity="0.5"/><circle cx="310" cy="65" r="5" fill="#b8c9a0" opacity="0.6"/><rect x="307" y="71" width="6" height="12" rx="1" fill="#8aaa6a" opacity="0.4"/><rect x="50" y="55" width="30" height="40" rx="3" fill="#fff" stroke="#5F9EA0" stroke-width="0.8"/><text x="65" y="80" text-anchor="middle" font-size="6" fill="#5F9EA0">QR</text></svg>`,
     sjt: { num: 1,
-      question: 'a new attendee walks in alone and looks lost. what does the registration team do?',
+      question: 'you\'re designing the registration experience for a conference. how do you want attendees to feel in their first 60 seconds?',
       options: [
-        { key: 'a', text: 'hand them the schedule and point to the coffee' },
-        { key: 'b', text: 'introduce them to another attendee with something in common' },
-        { key: 'c', text: 'ask them to fill in a feedback form first' },
-        { key: 'd', text: 'direct them to their seat and wish them luck' },
+        { key: 'a', text: 'efficient — badge in hand, schedule sorted, off they go' },
+        { key: 'b', text: 'welcomed — they leave the table already knowing someone' },
+        { key: 'c', text: 'informed — they understand every session before sitting down' },
+        { key: 'd', text: 'independent — they find their own way, no hand-holding' },
       ],
       clue: 'your next clue is brewing somewhere warm.'
     },
@@ -2076,9 +2098,24 @@ function unlockAvatar(n) {
 
 function showMapHint(text) {
   const el = document.getElementById('map-hint');
+  state.lastHint = text;
   el.innerHTML = `<span>${text}</span><button class="map-hint-dismiss" onclick="this.parentElement.classList.remove('visible')">✕</button>`;
   el.classList.add('visible');
 }
+
+function getCurrentHint() {
+  if (!state.zoneAlive.registration) return ZONES.registration.hint;
+  if (!state.zoneAlive.coffee) return ZONES.coffee.hint;
+  if (!state.zoneAlive.board) return ZONES.board.hint;
+  if (state.allHuntDone && !state.zoneAlive.keynote) return 'all hunt zones complete — the keynote hall is now alive.';
+  if (state.badgeFound && !state.zoneAlive.workshop) return 'your badge is found — check the workshop rooms.';
+  if (state.badgeFound && !state.zoneAlive.lounge) return 'try the networking lounge — your badge unlocks it.';
+  return 'explore any zone you haven\'t unlocked yet.';
+}
+
+document.getElementById('map-show-clue').addEventListener('click', () => {
+  showMapHint(getCurrentHint());
+});
 
 function checkAllComplete() {
   const allAlive = Object.keys(ZONES).every(z => state.zoneAlive[z]);
