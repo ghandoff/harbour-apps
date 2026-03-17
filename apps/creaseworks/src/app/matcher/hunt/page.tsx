@@ -31,14 +31,7 @@ export default async function HuntPage() {
   const contexts = await getDistinctContexts();
 
   return (
-    <main
-      className="min-h-screen px-4 pt-8 pb-24 sm:px-6 sm:pt-14 sm:pb-16"
-      style={{
-        backgroundColor: "var(--wv-cadet)",
-        background:
-          "linear-gradient(175deg, rgba(39,50,72,1) 0%, rgba(39,50,72,0.97) 40%, rgba(39,50,72,0.95) 100%)",
-      }}
-    >
+    <main className="px-4 pt-8 pb-24 sm:px-6 sm:pt-14 sm:pb-16">
       <div className="max-w-lg mx-auto">
         <Link
           href="/matcher"

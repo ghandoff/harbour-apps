@@ -56,14 +56,7 @@ export default async function MatcherPage({
   const mode = params.mode === "classic" ? "classic" : "rooms";
 
   return (
-    <main
-      className="min-h-screen px-4 pt-8 pb-24 sm:px-6 sm:pt-14 sm:pb-16"
-      style={{
-        backgroundColor: "var(--wv-cadet)",
-        background:
-          "linear-gradient(175deg, rgba(39,50,72,1) 0%, rgba(39,50,72,0.97) 40%, rgba(39,50,72,0.95) 100%)",
-      }}
-    >
+    <main className="px-4 pt-8 pb-24 sm:px-6 sm:pt-14 sm:pb-16">
       <div className="max-w-5xl mx-auto">
         <Link
           href="/"
