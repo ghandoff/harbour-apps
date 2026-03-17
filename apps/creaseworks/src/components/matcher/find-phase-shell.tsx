@@ -41,9 +41,9 @@ const HEROES: Record<FindMode, { heading: string; emoji: string; body: string }>
     body: "pick a time, then look around and tap what you spot!",
   },
   hunt: {
-    heading: "what sounds fun?",
+    heading: "who's exploring?",
     emoji: "🗺️",
-    body: "pick a vibe and we'll find you an adventure",
+    body: "pick your crew and we'll find you an adventure",
   },
 };
 
@@ -52,7 +52,7 @@ const CONTENT_WIDTH: Record<FindMode, string> = {
   rooms: "max-w-5xl",
   classic: "max-w-5xl",
   challenge: "max-w-3xl",
-  hunt: "max-w-lg",
+  hunt: "max-w-sm",
 };
 
 const SPRING = "cubic-bezier(0.34, 1.56, 0.64, 1)";
@@ -80,10 +80,18 @@ export default function FindPhaseShell({
   contexts,
 }: FindPhaseShellProps) {
   const [mode, setMode] = useState<FindMode>(initialMode);
+  /* resetKey bumps when user clicks the already-active mode → forces remount */
+  const [resetKey, setResetKey] = useState(0);
   const hero = HEROES[mode];
 
   const switchMode = useCallback((next: FindMode) => {
-    setMode(next);
+    setMode((prev) => {
+      if (prev === next) {
+        /* clicking the current mode resets that experience */
+        setResetKey((k) => k + 1);
+      }
+      return next;
+    });
     /* update URL without server round-trip — preserves basePath */
     const path = next === "rooms" ? "/matcher" : `/matcher?mode=${next}`;
     const basePath = "/harbour/creaseworks";
@@ -185,6 +193,7 @@ export default function FindPhaseShell({
       <div className={`${CONTENT_WIDTH[mode]} mx-auto`}>
         {mode === "rooms" && (
           <RoomExplorer
+            key={`rooms-${resetKey}`}
             materials={materials}
             slots={slots}
             contexts={contexts}
@@ -192,6 +201,7 @@ export default function FindPhaseShell({
         )}
         {mode === "classic" && (
           <MatcherInputForm
+            key={`classic-${resetKey}`}
             materials={materials}
             forms={forms}
             slots={slots}
@@ -199,10 +209,10 @@ export default function FindPhaseShell({
           />
         )}
         {mode === "challenge" && (
-          <ChallengeShell materials={materials} slots={slots} />
+          <ChallengeShell key={`challenge-${resetKey}`} materials={materials} slots={slots} />
         )}
         {mode === "hunt" && (
-          <HuntShell contexts={contexts} />
+          <HuntShell key={`hunt-${resetKey}`} contexts={contexts} />
         )}
       </div>
     </>

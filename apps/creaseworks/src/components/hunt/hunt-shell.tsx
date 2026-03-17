@@ -89,7 +89,7 @@ function splitItemsForPlayers(items: ChecklistItem[]): {
 }
 
 const INITIAL_STATE: HuntState = {
-  phase: "vibe",
+  phase: "mode-select",
   vibe: null,
   candidates: [],
   playdate: null,
@@ -109,6 +109,11 @@ export default function HuntShell({ contexts }: HuntShellProps) {
   );
 
   /* ── actions ────────────────────────────────────────────────── */
+
+  /** Step 1: choose solo or two-player (now first, not after picking a playdate) */
+  const chooseMode = useCallback((mode: HuntMode) => {
+    setState((s) => ({ ...s, mode, phase: "vibe" as const }));
+  }, []);
 
   const selectVibe = useCallback(async (vibe: VibeConfig) => {
     setState((s) => ({ ...s, phase: "loading", vibe, error: null }));
@@ -199,9 +204,12 @@ export default function HuntShell({ contexts }: HuntShellProps) {
     const items = buildChecklistItems(playdate);
     setState((s) => ({
       ...s,
-      phase: "mode-select",
+      /* mode already chosen at step 1 — go straight to checklist (or unlock if empty) */
+      phase: items.length > 0 ? ("checklist" as const) : ("unlocked" as const),
       playdate,
       items,
+      activePlayer: 1 as HuntPlayer,
+      checked: { 1: new Set<string>(), 2: new Set<string>() },
     }));
   }, []);
 
@@ -211,16 +219,7 @@ export default function HuntShell({ contexts }: HuntShellProps) {
     }
   }, [state.candidates, pickPlaydate]);
 
-  const setMode = useCallback((mode: HuntMode) => {
-    setState((s) => ({
-      ...s,
-      mode,
-      /* skip checklist if there are no items to find — go straight to unlock */
-      phase: s.items.length > 0 ? ("checklist" as const) : ("unlocked" as const),
-      activePlayer: 1 as HuntPlayer,
-      checked: { 1: new Set<string>(), 2: new Set<string>() },
-    }));
-  }, []);
+  /* setMode is now chooseMode (step 1) — kept for reference */
 
   const checkItem = useCallback((itemId: string) => {
     setState((prev) => {
@@ -279,10 +278,54 @@ export default function HuntShell({ contexts }: HuntShellProps) {
 
   /* ── render ─────────────────────────────────────────────────── */
 
-  /* vibe selection */
+  /* step 1: mode select — solo or two-player (first!) */
+  if (state.phase === "mode-select") {
+    return (
+      <div className="text-center">
+        <div className="flex flex-col gap-3 max-w-xs mx-auto">
+          <button
+            type="button"
+            onClick={() => chooseMode("solo")}
+            className="rounded-2xl px-6 py-4 text-base font-bold border-2 active:scale-[0.97]"
+            style={{
+              borderColor: "rgba(255, 255, 255, 0.1)",
+              backgroundColor: "rgba(255, 255, 255, 0.06)",
+              color: "var(--wv-champagne)",
+              transition: `all 220ms ${SPRING}`,
+              WebkitTapHighlightColor: "transparent",
+            }}
+          >
+            🧭 just me
+          </button>
+          <button
+            type="button"
+            onClick={() => chooseMode("two-player")}
+            className="rounded-2xl px-6 py-4 text-base font-bold border-2 active:scale-[0.97]"
+            style={{
+              borderColor: "rgba(255, 255, 255, 0.1)",
+              backgroundColor: "rgba(255, 255, 255, 0.06)",
+              color: "var(--wv-champagne)",
+              transition: `all 220ms ${SPRING}`,
+              WebkitTapHighlightColor: "transparent",
+            }}
+          >
+            👯 with a friend
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  /* step 2: vibe selection */
   if (state.phase === "vibe") {
     return (
       <div>
+        <p
+          className="text-sm text-center mb-4 font-bold"
+          style={{ color: "var(--wv-champagne)", opacity: 0.5 }}
+        >
+          {state.mode === "two-player" ? "what sounds fun to you two?" : "what sounds fun?"}
+        </p>
         <div className="flex flex-col gap-3 max-w-sm mx-auto">
           {availableVibes.length === 0 && (
             <p
@@ -421,53 +464,6 @@ export default function HuntShell({ contexts }: HuntShellProps) {
             }}
           >
             🎲 surprise me!
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  /* mode select */
-  if (state.phase === "mode-select") {
-    return (
-      <div className="text-center">
-        <p
-          className="text-lg font-bold mb-2"
-          style={{ color: "var(--wv-champagne)" }}
-        >
-          {state.playdate?.title}
-        </p>
-        <p
-          className="text-sm mb-6"
-          style={{ color: "var(--wv-champagne)", opacity: 0.5 }}
-        >
-          who&apos;s going on this adventure?
-        </p>
-
-        <div className="flex flex-col gap-3 max-w-xs mx-auto">
-          <button
-            type="button"
-            onClick={() => setMode("solo")}
-            className="rounded-2xl px-6 py-4 text-base font-bold border-2 active:scale-[0.97]"
-            style={{
-              borderColor: "rgba(255, 255, 255, 0.1)",
-              color: "var(--wv-champagne)",
-              transition: `all 220ms ${SPRING}`,
-            }}
-          >
-            🧭 just me
-          </button>
-          <button
-            type="button"
-            onClick={() => setMode("two-player")}
-            className="rounded-2xl px-6 py-4 text-base font-bold border-2 active:scale-[0.97]"
-            style={{
-              borderColor: "rgba(255, 255, 255, 0.1)",
-              color: "var(--wv-champagne)",
-              transition: `all 220ms ${SPRING}`,
-            }}
-          >
-            👯 with a friend
           </button>
         </div>
       </div>

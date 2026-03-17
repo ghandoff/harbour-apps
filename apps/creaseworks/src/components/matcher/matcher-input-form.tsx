@@ -25,6 +25,7 @@ const FORM_EMOJI: Record<string, string> = {
   paper: "📄",
   cardboard: "📦",
   fabric: "🧵",
+  textile: "🧣",
   wood: "🪵",
   plastic: "🫙",
   metal: "🔩",
@@ -32,11 +33,21 @@ const FORM_EMOJI: Record<string, string> = {
   food: "🍎",
   clay: "🏺",
   string: "🧶",
+  rope: "🪢",
   tape: "🩹",
   paint: "🎨",
   recycled: "♻️",
   found: "🔍",
-  other: "✨",
+  glass: "🪟",
+  rubber: "🎈",
+  foam: "🧽",
+  "containers / vessels": "🫙",
+  "cutting / dividing": "✂️",
+  "joining / fastening": "🔗",
+  "marking / coloring": "🖍️",
+  "shaping / molding": "🤲",
+  "building / stacking": "🏗️",
+  other: "🧩",
 };
 
 const CONTEXT_EMOJI: Record<string, string> = {
@@ -224,9 +235,34 @@ export default function MatcherInputForm({
 
       {/* --- input sections --- */}
       <div className="space-y-4">
-        {/* ---- materials: "what's around the house?" ---- */}
+        {/* ---- context: "where's the fun happening?" — first so kids orient ---- */}
         <FilterSection
-          title="what's around the house?"
+          title="where's the fun happening?"
+          subtitle="we'll only show playdates that work here."
+          emoji="🗺️"
+          selectedCount={selectedContexts.size}
+          defaultOpen={true}
+        >
+          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+            {contexts.map((ctx) => (
+              <EmojiTile
+                key={ctx}
+                emoji={getEmoji(CONTEXT_EMOJI, ctx, "📍")}
+                label={ctx}
+                selected={selectedContexts.has(ctx)}
+                accentColor="var(--wv-sienna)"
+                onClick={() =>
+                  toggleSet(selectedContexts, setSelectedContexts, ctx)
+                }
+                size="sm"
+              />
+            ))}
+          </div>
+        </FilterSection>
+
+        {/* ---- materials: "what's within reach?" ---- */}
+        <FilterSection
+          title="what's within reach?"
           subtitle="tap everything you can find!"
           emoji="🔎"
           selectedCount={selectedMaterials.size}
@@ -270,8 +306,11 @@ export default function MatcherInputForm({
                   selectedMaterials.has(m.id),
                 ).length;
                 const isExpanded = expandedFormGroups.has(form);
+                const formLower = form.toLowerCase();
                 const formEmoji =
-                  FORM_EMOJI[form.toLowerCase()] ?? FORM_EMOJI.other;
+                  FORM_EMOJI[formLower] ??
+                  Object.entries(FORM_EMOJI).find(([k]) => formLower.includes(k) || k.includes(formLower))?.[1] ??
+                  FORM_EMOJI.other;
 
                 return (
                   <div key={form} className="py-1">
@@ -362,40 +401,27 @@ export default function MatcherInputForm({
                 hmm, nothing matches that search. try a different word!
               </p>
             )}
+
+            {/* encouragement for unlisted items */}
+            <p
+              className="text-xs text-center py-3 mt-2 rounded-lg"
+              style={{
+                color: "var(--wv-champagne)",
+                opacity: 0.4,
+                backgroundColor: "rgba(255, 255, 255, 0.02)",
+              }}
+            >
+              💡 found something not listed? pick the closest match — creativity counts!
+            </p>
           </div>
         </FilterSection>
 
-        {/* ---- context: "where's the fun happening?" ---- */}
-        <FilterSection
-          title="where's the fun happening?"
-          subtitle="we'll only show playdates that work here."
-          emoji="🗺️"
-          selectedCount={selectedContexts.size}
-          defaultOpen={true}
-        >
-          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-            {contexts.map((ctx) => (
-              <EmojiTile
-                key={ctx}
-                emoji={getEmoji(CONTEXT_EMOJI, ctx, "📍")}
-                label={ctx}
-                selected={selectedContexts.has(ctx)}
-                accentColor="var(--wv-sienna)"
-                onClick={() =>
-                  toggleSet(selectedContexts, setSelectedContexts, ctx)
-                }
-                size="sm"
-              />
-            ))}
-          </div>
-        </FilterSection>
-
-        {/* ---- slots: "bonus stuff!" — integrated into main flow ---- */}
+        {/* ---- slots: "tools you have" — below materials ---- */}
         {slots.length > 0 && (
           <FilterSection
-            title="bonus stuff!"
-            subtitle="got any of these? we'll find even more playdates."
-            emoji="⭐"
+            title="tools you have"
+            subtitle="got scissors, glue, markers? we'll unlock more playdates."
+            emoji="✂️"
             selectedCount={selectedSlots.size}
             defaultOpen={true}
           >
@@ -403,7 +429,7 @@ export default function MatcherInputForm({
               {slots.map((slot) => (
                 <EmojiTile
                   key={slot}
-                  emoji={getEmoji(SLOT_EMOJI, slot, "⭐")}
+                  emoji={getEmoji(SLOT_EMOJI, slot, "🔧")}
                   label={slot}
                   selected={selectedSlots.has(slot)}
                   accentColor="var(--wv-sienna)"
@@ -411,7 +437,6 @@ export default function MatcherInputForm({
                     toggleSet(selectedSlots, setSelectedSlots, slot)
                   }
                   size="sm"
-                  badge="bonus"
                 />
               ))}
             </div>

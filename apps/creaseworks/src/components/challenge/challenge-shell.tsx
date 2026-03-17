@@ -213,11 +213,30 @@ export default function ChallengeShell({
         </p>
 
         <p
+          className="text-sm mb-3"
+          style={{ color: "var(--wv-sienna)" }}
+        >
+          🤫 whisper what you found to someone — or shout it out!
+        </p>
+
+        <p
           className="text-sm mb-8"
           style={{ color: "var(--wv-champagne)", opacity: 0.5 }}
         >
           let&apos;s see what these can become
         </p>
+
+        {/* look again — close to the top for easy restart */}
+        <div className="mb-5">
+          <button
+            type="button"
+            onClick={state.reset}
+            className="text-sm font-medium"
+            style={{ color: "var(--wv-champagne)", opacity: 0.4 }}
+          >
+            🔄 look again
+          </button>
+        </div>
 
         <button
           type="button"
@@ -250,17 +269,6 @@ export default function ChallengeShell({
           </p>
         )}
 
-        <div className="mt-6">
-          <button
-            type="button"
-            onClick={state.reset}
-            className="text-sm font-medium"
-            style={{ color: "var(--wv-champagne)", opacity: 0.4 }}
-          >
-            look again
-          </button>
-        </div>
-
         <style>{`
           @keyframes celebrationPop {
             from { opacity: 0; transform: scale(0.9); }
@@ -283,7 +291,16 @@ export default function ChallengeShell({
   /* ── results phase ──────────────────────────────────────────── */
   return (
     <div>
+      {/* look again — near the top, close to mode selector */}
       <div className="text-center mb-4">
+        <button
+          type="button"
+          onClick={state.reset}
+          className="text-sm font-medium mb-3"
+          style={{ color: "var(--wv-champagne)", opacity: 0.4 }}
+        >
+          🔄 look again
+        </button>
         <p
           className="text-sm font-bold"
           style={{ color: "var(--wv-champagne)", opacity: 0.5 }}
@@ -299,17 +316,6 @@ export default function ChallengeShell({
         resultsRef={state.resultsRef as React.RefObject<HTMLDivElement>}
         selectedMaterialsSize={state.found.size}
       />
-
-      <div className="text-center mt-6">
-        <button
-          type="button"
-          onClick={state.reset}
-          className="text-sm font-medium"
-          style={{ color: "var(--wv-champagne)", opacity: 0.4 }}
-        >
-          look again
-        </button>
-      </div>
     </div>
   );
 }
