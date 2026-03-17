@@ -29,6 +29,8 @@ export const NOTION_DBS = {
   packs: process.env.NOTION_DB_PACKS ?? "",
   reflections: process.env.NOTION_DB_REFLECTIONS ?? "",
   collections: process.env.NOTION_DB_COLLECTIONS ?? "",
+  siteCopy: process.env.NOTION_DB_SITE_COPY ?? "",
+  appConfig: process.env.NOTION_DB_APP_CONFIG ?? "",
 } as const;
 
 /**

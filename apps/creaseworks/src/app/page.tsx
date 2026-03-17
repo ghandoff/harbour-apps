@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { getPublicStats } from "@/lib/queries/stats";
+import { getCopyForPage } from "@/lib/queries/site-copy";
 
 /**
  * Landing page for creaseworks.
@@ -10,11 +11,9 @@ import { getPublicStats } from "@/lib/queries/stats";
  *   - redwood accent, champagne hover, lowercase everything
  *   - layout and integration style matches vertigo-vault
  *
- * Session 11: replaced placeholder with marketing landing page.
- * Session 12: redesigned to match windedvertigo.com dark theme and
- *   vertigo-vault integration pattern.
- * Session 21: added matcher section, social proof stats, JSON-LD.
- * Session 27: redirect logged-in users to playbook.
+ * Copy is sourced from the Notion "site copy" database via getCopyForPage().
+ * Each text element uses a fallback so the page renders identically even
+ * before the first sync runs.
  */
 
 export const revalidate = 3600;
@@ -55,13 +54,20 @@ const jsonLd = {
 };
 
 export default async function Home() {
-  const stats = await getPublicStats();
+  const [stats, c] = await Promise.all([
+    getPublicStats(),
+    getCopyForPage("landing"),
+  ]);
+
+  // JSON-LD is a static schema.org object — safe for serialisation
+  const jsonLdHtml = JSON.stringify(jsonLd);
+
   return (
     <main className="min-h-screen" style={{ backgroundColor: "var(--wv-cadet)" }}>
-      {/* structured data */}
+      {/* structured data — static schema.org, not user content */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdHtml }}
       />
 
       {/* -- hero ------------------------------------------------- */}
@@ -70,23 +76,21 @@ export default async function Home() {
           className="text-xs font-semibold tracking-widest mb-6"
           style={{ color: "var(--wv-redwood)", letterSpacing: "0.1em" }}
         >
-          a winded.vertigo project
+          {c["landing.hero.kicker"]?.copy ?? "a winded.vertigo project"}
         </p>
 
         <h1
           className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-6 leading-tight"
           style={{ color: "var(--wv-white)", maxWidth: 800, margin: "0 auto 24px" }}
         >
-          playdates that use what you already have
+          {c["landing.hero.headline"]?.copy ?? "playdates that use what you already have"}
         </h1>
 
         <p
           className="text-lg sm:text-xl mb-12 leading-relaxed"
           style={{ color: "var(--color-text-on-dark-muted)", maxWidth: 600, margin: "0 auto 48px" }}
         >
-          simple, tested playdates for parents, teachers, and kids. notice
-          the world around you, see possibility everywhere, and make things
-          with whatever&rsquo;s on hand.
+          {c["landing.hero.subheading"]?.copy ?? "simple, tested playdates for parents, teachers, and kids. notice the world around you, see possibility everywhere, and make things with whatever\u2019s on hand."}
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -95,7 +99,7 @@ export default async function Home() {
             className="inline-block rounded-lg px-8 py-3.5 font-medium transition-colors"
             style={{ backgroundColor: "var(--wv-redwood)", color: "var(--wv-white)" }}
           >
-            see free playdates
+            {c["landing.hero.cta-primary"]?.copy ?? "see free playdates"}
           </Link>
           <Link
             href="/packs"
@@ -106,7 +110,7 @@ export default async function Home() {
               backgroundColor: "transparent",
             }}
           >
-            get a pack
+            {c["landing.hero.cta-secondary"]?.copy ?? "get a pack"}
           </Link>
         </div>
       </section>
@@ -117,42 +121,41 @@ export default async function Home() {
           className="text-xs font-semibold tracking-widest text-center mb-3"
           style={{ color: "var(--wv-redwood)", letterSpacing: "0.08em" }}
         >
-          what&rsquo;s included
+          {c["landing.features.kicker"]?.copy ?? "what\u2019s included"}
         </p>
         <h2
           className="text-2xl sm:text-3xl font-bold tracking-tight mb-4 text-center"
           style={{ color: "var(--wv-white)" }}
         >
-          everything you need to get started
+          {c["landing.features.headline"]?.copy ?? "everything you need to get started"}
         </h2>
         <p
           className="text-center mb-12"
           style={{ color: "var(--color-text-on-dark-muted)", maxWidth: 560, margin: "0 auto 48px" }}
         >
-          every playdate is a complete package — not just a concept, but step-by-step
-          instructions so you can jump in right away.
+          {c["landing.features.description"]?.copy ?? "every playdate is a complete package \u2014 not just a concept, but step-by-step instructions so you can jump in right away."}
         </p>
 
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           <FeatureCard
             icon={<ScriptIcon />}
-            title="step-by-step guide"
-            description="a simple three-part playdate you can do in under two hours. clear steps, timing, and tips — no prep degree needed."
+            title={c["landing.features.card.1.title"]?.copy ?? "step-by-step guide"}
+            description={c["landing.features.card.1.description"]?.copy ?? "a simple three-part playdate you can do in under two hours. clear steps, timing, and tips \u2014 no prep degree needed."}
           />
           <FeatureCard
             icon={<MaterialsIcon />}
-            title="use what you have"
-            description="every playdate tells you what to grab — cardboard, tape, sticks, whatever's around. plus easy swaps when you don't have the exact thing."
+            title={c["landing.features.card.2.title"]?.copy ?? "use what you have"}
+            description={c["landing.features.card.2.description"]?.copy ?? "every playdate tells you what to grab \u2014 cardboard, tape, sticks, whatever's around. plus easy swaps when you don't have the exact thing."}
           />
           <FeatureCard
             icon={<TransferIcon />}
-            title="find again"
-            description="the fun part after playing. a prompt that helps you notice the same idea popping up in totally different places."
+            title={c["landing.features.card.3.title"]?.copy ?? "find again"}
+            description={c["landing.features.card.3.description"]?.copy ?? "the fun part after playing. a prompt that helps you notice the same idea popping up in totally different places."}
           />
           <FeatureCard
             icon={<PdfIcon />}
-            title="printable cards"
-            description="download any playdate as a handy PDF card. keep it in your bag, stick it on the fridge, or hand it to a babysitter."
+            title={c["landing.features.card.4.title"]?.copy ?? "printable cards"}
+            description={c["landing.features.card.4.description"]?.copy ?? "download any playdate as a handy PDF card. keep it in your bag, stick it on the fridge, or hand it to a babysitter."}
           />
         </div>
       </section>
@@ -167,27 +170,26 @@ export default async function Home() {
             className="text-xs font-semibold tracking-widest mb-3"
             style={{ color: "var(--wv-sienna)", letterSpacing: "0.08em" }}
           >
-            free tool
+            {c["landing.matcher.kicker"]?.copy ?? "free tool"}
           </p>
           <h2
             className="text-2xl sm:text-3xl font-bold tracking-tight mb-4"
             style={{ color: "var(--wv-white)" }}
           >
-            what do you have on hand?
+            {c["landing.matcher.headline"]?.copy ?? "what do you have on hand?"}
           </h2>
           <p
             className="mb-8 leading-relaxed"
             style={{ color: "var(--color-text-on-dark-muted)", maxWidth: 500, margin: "0 auto 32px" }}
           >
-            tell us what&rsquo;s around — cardboard, sticks, fabric, whatever —
-            and we&rsquo;ll instantly match you with playdates that work.
+            {c["landing.matcher.description"]?.copy ?? "tell us what\u2019s around \u2014 cardboard, sticks, fabric, whatever \u2014 and we\u2019ll instantly match you with playdates that work."}
           </p>
           <Link
             href="/matcher"
             className="inline-block rounded-lg px-8 py-3.5 font-medium transition-colors"
             style={{ backgroundColor: "var(--wv-sienna)", color: "var(--wv-white)" }}
           >
-            try the matcher
+            {c["landing.matcher.cta"]?.copy ?? "try the matcher"}
           </Link>
         </div>
       </section>
@@ -198,30 +200,30 @@ export default async function Home() {
           className="text-xs font-semibold tracking-widest text-center mb-3"
           style={{ color: "var(--wv-redwood)", letterSpacing: "0.08em" }}
         >
-          getting started
+          {c["landing.how-it-works.kicker"]?.copy ?? "getting started"}
         </p>
         <h2
           className="text-2xl sm:text-3xl font-bold tracking-tight mb-12 text-center"
           style={{ color: "var(--wv-white)" }}
         >
-          how it works
+          {c["landing.how-it-works.headline"]?.copy ?? "how it works"}
         </h2>
 
         <div className="space-y-8" style={{ maxWidth: 640, margin: "0 auto" }}>
           <Step
             number="1"
-            title="find a playdate"
-            description="browse free previews or tell us what you have on hand — we'll find playdates that work with your stuff."
+            title={c["landing.how-it-works.step.1.title"]?.copy ?? "find a playdate"}
+            description={c["landing.how-it-works.step.1.description"]?.copy ?? "browse free previews or tell us what you have on hand \u2014 we'll find playdates that work with your stuff."}
           />
           <Step
             number="2"
-            title="grab a pack"
-            description="packs are bundles of playdates. buy once and everyone in your family or classroom gets access forever."
+            title={c["landing.how-it-works.step.2.title"]?.copy ?? "grab a pack"}
+            description={c["landing.how-it-works.step.2.description"]?.copy ?? "packs are bundles of playdates. buy once and everyone in your family or classroom gets access forever."}
           />
           <Step
             number="3"
-            title="play!"
-            description="follow the steps, see what happens, and try to find the same idea in the wild. no new toys needed."
+            title={c["landing.how-it-works.step.3.title"]?.copy ?? "play!"}
+            description={c["landing.how-it-works.step.3.description"]?.copy ?? "follow the steps, see what happens, and try to find the same idea in the wild. no new toys needed."}
           />
         </div>
       </section>
@@ -232,27 +234,27 @@ export default async function Home() {
           className="text-xs font-semibold tracking-widest text-center mb-3"
           style={{ color: "var(--wv-redwood)", letterSpacing: "0.08em" }}
         >
-          who it&rsquo;s for
+          {c["landing.who-its-for.kicker"]?.copy ?? "who it\u2019s for"}
         </p>
         <h2
           className="text-2xl sm:text-3xl font-bold tracking-tight mb-12 text-center"
           style={{ color: "var(--wv-white)" }}
         >
-          made for kids, parents, teachers, and anyone who likes to make things
+          {c["landing.who-its-for.headline"]?.copy ?? "made for kids, parents, teachers, and anyone who likes to make things"}
         </h2>
 
         <div className="grid gap-5 sm:grid-cols-3" style={{ maxWidth: 900, margin: "0 auto" }}>
           <AudienceCard
-            title="parents"
-            description="play right now with whatever's around. no shopping trip needed."
+            title={c["landing.who-its-for.card.1.title"]?.copy ?? "parents"}
+            description={c["landing.who-its-for.card.1.description"]?.copy ?? "play right now with whatever's around. no shopping trip needed."}
           />
           <AudienceCard
-            title="teachers"
-            description="bring hands-on playdates into your classroom. works with any budget and any age."
+            title={c["landing.who-its-for.card.2.title"]?.copy ?? "teachers"}
+            description={c["landing.who-its-for.card.2.description"]?.copy ?? "bring hands-on playdates into your classroom. works with any budget and any age."}
           />
           <AudienceCard
-            title="anyone, really"
-            description="babysitters, grandparents, camp counselors, kids on their own — if you like making things, you'll find something here."
+            title={c["landing.who-its-for.card.3.title"]?.copy ?? "anyone, really"}
+            description={c["landing.who-its-for.card.3.description"]?.copy ?? "babysitters, grandparents, camp counselors, kids on their own \u2014 if you like making things, you'll find something here."}
           />
         </div>
       </section>
@@ -270,7 +272,7 @@ export default async function Home() {
                   {stats.playdateCount}
                 </p>
                 <p className="text-sm" style={{ color: "var(--color-text-on-dark-muted)" }}>
-                  playdates and counting
+                  {c["landing.stats.playdates"]?.copy ?? "playdates and counting"}
                 </p>
               </div>
             )}
@@ -283,7 +285,7 @@ export default async function Home() {
                   {stats.materialCount}
                 </p>
                 <p className="text-sm" style={{ color: "var(--color-text-on-dark-muted)" }}>
-                  everyday materials
+                  {c["landing.stats.materials"]?.copy ?? "everyday materials"}
                 </p>
               </div>
             )}
@@ -296,7 +298,7 @@ export default async function Home() {
                   {stats.reflectionCount}
                 </p>
                 <p className="text-sm" style={{ color: "var(--color-text-on-dark-muted)" }}>
-                  reflections logged
+                  {c["landing.stats.reflections"]?.copy ?? "reflections logged"}
                 </p>
               </div>
             )}
@@ -310,21 +312,20 @@ export default async function Home() {
           className="text-2xl sm:text-3xl font-bold tracking-tight mb-4"
           style={{ color: "var(--wv-white)" }}
         >
-          start exploring — it&rsquo;s free
+          {c["landing.cta.headline"]?.copy ?? "start exploring \u2014 it\u2019s free"}
         </h2>
         <p
           className="mb-8 leading-relaxed"
           style={{ color: "var(--color-text-on-dark-muted)", maxWidth: 500, margin: "0 auto 32px" }}
         >
-          peek at playdates, try the matcher, and see if creaseworks is your
-          kind of thing — no sign-up needed.
+          {c["landing.cta.description"]?.copy ?? "peek at playdates, try the matcher, and see if creaseworks is your kind of thing \u2014 no sign-up needed."}
         </p>
         <Link
           href="/sampler"
           className="inline-block rounded-lg px-8 py-3.5 font-medium transition-colors"
           style={{ backgroundColor: "var(--wv-redwood)", color: "var(--wv-white)" }}
         >
-          see free playdates
+          {c["landing.cta.button"]?.copy ?? "see free playdates"}
         </Link>
       </section>
 

@@ -17,8 +17,10 @@
 /* eslint-disable @next/next/no-img-element */
 
 import { apiUrl } from "@/lib/api-url";
+import { getCopyForPage } from "@/lib/queries/site-copy";
 
-export default function Footer() {
+export default async function Footer() {
+  const c = await getCopyForPage("global");
   return (
     <footer className="wv-footer">
       <div className="wv-footer-inner">
@@ -36,7 +38,7 @@ export default function Footer() {
         </a>
 
         <p className="wv-footer-copyright">
-          &copy; copyright winded.vertigo, 2024&ndash;2026. all rights reserved.
+          {c["global.footer.copyright"]?.copy ?? "\u00A9 copyright winded.vertigo, 2024\u20132026. all rights reserved."}
         </p>
 
         <nav className="wv-footer-social" aria-label="social links">

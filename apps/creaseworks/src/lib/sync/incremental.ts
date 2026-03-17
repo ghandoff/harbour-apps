@@ -4,7 +4,7 @@
  * Used by the webhook handler to sync individual pages as they change,
  * rather than the full daily cron sync.
  *
- * Supports: playdates, materials, packs, runs, collections.
+ * Supports: playdates, materials, packs, runs, collections, site-copy, app-config.
  * Falls back gracefully — if the page type is unknown, logs and skips.
  *
  * MVP 7 — Notion webhook listener.
@@ -53,7 +53,7 @@ const REQUIRED_RUN_PROPS = [
 /*  database ID → type mapping                                         */
 /* ------------------------------------------------------------------ */
 
-type ContentType = "playdates" | "materials" | "packs" | "runs" | "collections";
+type ContentType = "playdates" | "materials" | "packs" | "runs" | "collections" | "site-copy" | "app-config";
 
 function resolveContentType(databaseId: string): ContentType | null {
   // Normalise: Notion sometimes sends IDs with dashes, sometimes without
@@ -65,6 +65,8 @@ function resolveContentType(databaseId: string): ContentType | null {
     [NOTION_DBS.packs.replace(/-/g, "")]: "packs",
     [NOTION_DBS.reflections.replace(/-/g, "")]: "runs",
     ...(NOTION_DBS.collections ? { [NOTION_DBS.collections.replace(/-/g, "")]: "collections" as ContentType } : {}),
+    ...(NOTION_DBS.siteCopy ? { [NOTION_DBS.siteCopy.replace(/-/g, "")]: "site-copy" as ContentType } : {}),
+    ...(NOTION_DBS.appConfig ? { [NOTION_DBS.appConfig.replace(/-/g, "")]: "app-config" as ContentType } : {}),
   };
 
   return map[normalised] ?? null;
@@ -106,6 +108,12 @@ export async function syncSinglePage(
     case "collections":
       await upsertCollection(page);
       break;
+    case "site-copy":
+      await upsertSiteCopy(page);
+      break;
+    case "app-config":
+      await upsertAppConfig(page);
+      break;
   }
 
   console.log(`[webhook-sync] ${contentType} page ${pageId} synced`);
@@ -143,6 +151,12 @@ export async function handlePageDeletion(
       break;
     case "collections":
       await sql.query(`DELETE FROM collections WHERE notion_id = $1`, [normalised]);
+      break;
+    case "site-copy":
+      await sql.query(`UPDATE site_copy_cache SET status = 'archived', synced_at = NOW() WHERE notion_id = $1`, [normalised]);
+      break;
+    case "app-config":
+      await sql.query(`DELETE FROM app_config_cache WHERE notion_id = $1`, [normalised]);
       break;
   }
   console.log(`[webhook-sync] deleted ${contentType} ${pageId}`);
@@ -614,4 +628,76 @@ async function upsertCollection(page: NotionPage) {
       throw err;
     }
   }
+}
+
+/* ------------------------------------------------------------------ */
+/*  site-copy + app-config upsert helpers                              */
+/* ------------------------------------------------------------------ */
+
+async function upsertSiteCopy(page: NotionPage) {
+  const props = page.properties;
+  const notionId = extractPageId(page);
+  const key = extractTitle(props, "key");
+  const copy = extractRichText(props, "copy");
+  const copyHtml = extractRichTextHtml(props, "copy");
+  const pageVal = extractSelect(props, "page");
+  const section = extractSelect(props, "section");
+  const status = extractSelect(props, "status") || "draft";
+  const sortOrder = extractNumber(props, "sort order") ?? 0;
+  const notes = extractRichText(props, "notes");
+  const lastEdited = extractLastEdited(page);
+
+  await sql`
+    INSERT INTO site_copy_cache (
+      notion_id, key, copy, copy_html, page, section,
+      status, sort_order, notes,
+      notion_last_edited, synced_at
+    ) VALUES (
+      ${notionId}, ${key}, ${copy}, ${copyHtml},
+      ${pageVal}, ${section}, ${status},
+      ${sortOrder}, ${notes},
+      ${lastEdited}, NOW()
+    )
+    ON CONFLICT (notion_id) DO UPDATE SET
+      key = EXCLUDED.key,
+      copy = EXCLUDED.copy,
+      copy_html = EXCLUDED.copy_html,
+      page = EXCLUDED.page,
+      section = EXCLUDED.section,
+      status = EXCLUDED.status,
+      sort_order = EXCLUDED.sort_order,
+      notes = EXCLUDED.notes,
+      notion_last_edited = EXCLUDED.notion_last_edited,
+      synced_at = NOW()
+  `;
+}
+
+async function upsertAppConfig(page: NotionPage) {
+  const props = page.properties;
+  const notionId = extractPageId(page);
+  const name = extractTitle(props, "name");
+  const key = extractSelect(props, "key");
+  const group = extractSelect(props, "group");
+  const sortOrder = extractNumber(props, "sort order") ?? 0;
+  const metadata = extractRichText(props, "metadata");
+  const lastEdited = extractLastEdited(page);
+
+  await sql`
+    INSERT INTO app_config_cache (
+      notion_id, name, key, grp, sort_order, metadata,
+      notion_last_edited, synced_at
+    ) VALUES (
+      ${notionId}, ${name}, ${key}, ${group},
+      ${sortOrder}, ${metadata},
+      ${lastEdited}, NOW()
+    )
+    ON CONFLICT (notion_id) DO UPDATE SET
+      name = EXCLUDED.name,
+      key = EXCLUDED.key,
+      grp = EXCLUDED.grp,
+      sort_order = EXCLUDED.sort_order,
+      metadata = EXCLUDED.metadata,
+      notion_last_edited = EXCLUDED.notion_last_edited,
+      synced_at = NOW()
+  `;
 }

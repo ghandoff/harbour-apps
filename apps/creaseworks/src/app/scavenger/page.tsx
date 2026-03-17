@@ -13,6 +13,7 @@ import type { Metadata } from "next";
 import { getAllCampaignPlaydates } from "@/lib/queries/playdates";
 import { PlaydateCard } from "@/components/ui/playdate-card";
 import Link from "next/link";
+import { getCopyForPage } from "@/lib/queries/site-copy";
 
 export const metadata: Metadata = {
   title: "scavenger hunts",
@@ -43,7 +44,8 @@ interface CampaignPlaydate {
   gallery_visible_fields?: string[] | null;
 }
 
-// Campaign display metadata — extend as campaigns are added.
+// Campaign display metadata — hard-coded fallbacks, overrideable via CMS.
+// CMS keys: scavenger.campaign.{slug}.title / .tagline / .emoji
 const CAMPAIGN_META: Record<
   string,
   { title: string; tagline: string; emoji: string }
@@ -56,18 +58,24 @@ const CAMPAIGN_META: Record<
   },
 };
 
-function campaignMeta(slug: string) {
-  return (
-    CAMPAIGN_META[slug] ?? {
-      title: slug.replace(/-/g, " "),
-      tagline: `a collection of playdates from the ${slug.replace(/-/g, " ")} trail.`,
-      emoji: "🗺️",
-    }
-  );
+function campaignMeta(slug: string, c: Record<string, { copy: string }>) {
+  const fallback = CAMPAIGN_META[slug] ?? {
+    title: slug.replace(/-/g, " "),
+    tagline: `a collection of playdates from the ${slug.replace(/-/g, " ")} trail.`,
+    emoji: "🗺️",
+  };
+  return {
+    title: c[`scavenger.campaign.${slug}.title`]?.copy ?? fallback.title,
+    tagline: c[`scavenger.campaign.${slug}.tagline`]?.copy ?? fallback.tagline,
+    emoji: c[`scavenger.campaign.${slug}.emoji`]?.copy ?? fallback.emoji,
+  };
 }
 
 export default async function ScavengerPage() {
-  const allPlaydates = await getAllCampaignPlaydates();
+  const [allPlaydates, c] = await Promise.all([
+    getAllCampaignPlaydates(),
+    getCopyForPage("scavenger"),
+  ]);
 
   // Group playdates by campaign tag (a playdate can appear in multiple campaigns)
   const campaignMap = new Map<string, typeof allPlaydates>();
@@ -93,30 +101,29 @@ export default async function ScavengerPage() {
           &larr; creaseworks
         </Link>
         <h1 className="text-3xl font-semibold tracking-tight mb-2">
-          scavenger hunts
+          {c["scavenger.headline"]?.copy ?? "scavenger hunts"}
         </h1>
         <p className="text-cadet/60 max-w-lg">
-          themed playdate trails — each hunt is a set of activities linked by a
-          common material or idea. pick a trail and start exploring.
+          {c["scavenger.description"]?.copy ?? "themed playdate trails — each hunt is a set of activities linked by a common material or idea. pick a trail and start exploring."}
         </p>
       </header>
 
       {campaigns.length === 0 ? (
         <div className="text-center py-20">
           <p className="text-cadet/40 mb-4">
-            no scavenger hunts are live yet — check back soon.
+            {c["scavenger.empty-state"]?.copy ?? "no scavenger hunts are live yet — check back soon."}
           </p>
           <Link
             href="/sampler"
             className="text-sm text-sienna/70 hover:text-sienna transition-colors"
           >
-            browse the sampler instead &rarr;
+            {c["scavenger.empty.sampler-cta"]?.copy ?? "browse the sampler instead"} &rarr;
           </Link>
         </div>
       ) : (
         <div className="space-y-16">
           {campaigns.map(([tag, playdates]) => {
-            const meta = campaignMeta(tag);
+            const meta = campaignMeta(tag, c);
             return (
               <section key={tag}>
                 {/* campaign header */}
@@ -172,7 +179,7 @@ export default async function ScavengerPage() {
       {/* CTA */}
       <div className="mt-16 text-center">
         <p className="text-cadet/50 text-sm mb-3">
-          want to explore beyond the trails?
+          {c["scavenger.cta"]?.copy ?? "want to explore beyond the trails?"}
         </p>
         <Link
           href="/sampler"
@@ -182,7 +189,7 @@ export default async function ScavengerPage() {
             color: "var(--wv-white)",
           }}
         >
-          browse all playdates
+          {c["scavenger.cta.button"]?.copy ?? "browse all playdates"}
         </Link>
       </div>
     </main>

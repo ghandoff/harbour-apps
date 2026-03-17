@@ -37,6 +37,7 @@ import CreditProgressBar from "@/components/credit-progress-bar";
 import CreditRedemption from "@/components/credit-redemption";
 import { getUnownedPacks } from "@/lib/queries/packs";
 import { getUserCredits } from "@/lib/queries/credits";
+import { getCopyForPage } from "@/lib/queries/site-copy";
 
 export const dynamic = "force-dynamic";
 
@@ -47,7 +48,7 @@ export default async function PlaybookPage() {
   await recomputeUserProgress(session.userId);
 
   // Fetch everything in parallel (unownedPacks wrapped in try-catch to prevent page crash)
-  const [collections, summary, arcs, suggestion, recentRuns, onboarding, unownedPacks, creditBalance] =
+  const [collections, summary, arcs, suggestion, recentRuns, onboarding, unownedPacks, creditBalance, c] =
     await Promise.all([
       getCollectionsWithProgress(session.userId),
       getUserProgressSummary(session.userId),
@@ -60,6 +61,7 @@ export default async function PlaybookPage() {
         return [] as Awaited<ReturnType<typeof getUnownedPacks>>;
       }),
       getUserCredits(session.userId).catch(() => 0),
+      getCopyForPage("playbook"),
     ]);
 
   const hasProgress = summary.total_tried > 0;
@@ -69,10 +71,10 @@ export default async function PlaybookPage() {
     <main className="min-h-screen px-6 pt-16 pb-24 sm:pb-16 max-w-4xl mx-auto">
       {/* ── header ── */}
       <h1 className="text-3xl font-semibold tracking-tight mb-1">
-        my playbook
+        {c["playbook.headline"]?.copy ?? "my playbook"}
       </h1>
       <p className="text-cadet/50 text-sm mb-8">
-        your collections, badges, and play history — all in one place.
+        {c["playbook.description"]?.copy ?? "your collections, badges, and play history — all in one place."}
       </p>
 
       {/* ── first-visit banner for users with no play contexts ── */}
@@ -148,12 +150,12 @@ export default async function PlaybookPage() {
       <CreditRedemption balance={creditBalance} unownedPacks={unownedPacks} />
 
       {/* ── section 2: collections grid ── */}
-      <h2 className="text-lg font-semibold text-cadet mb-3">collections</h2>
+      <h2 className="text-lg font-semibold text-cadet mb-3">{c["playbook.collections.heading"]?.copy ?? "collections"}</h2>
       {collections.length === 0 ? (
         <EmptyState
           type="bookshelf"
-          heading="collections are being built"
-          body="your creative collections will fill these shelves soon — check back shortly!"
+          heading={c["playbook.collections.empty-heading"]?.copy ?? "collections are being built"}
+          body={c["playbook.collections.empty-body"]?.copy ?? "your creative collections will fill these shelves soon — check back shortly!"}
         />
       ) : (
         <PlaybookSearch collections={collections} hasProgress={hasProgress} />
@@ -171,10 +173,10 @@ export default async function PlaybookPage() {
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-sm font-semibold text-cadet">
-              your portfolio
+              {c["playbook.portfolio.heading"]?.copy ?? "your portfolio"}
             </h3>
             <p className="text-xs text-cadet/40 mt-0.5">
-              photos, quotes, and observations from your reflections.
+              {c["playbook.portfolio.description"]?.copy ?? "photos, quotes, and observations from your reflections."}
             </p>
           </div>
           <span className="text-cadet/30 text-sm">&rarr;</span>
@@ -190,20 +192,20 @@ export default async function PlaybookPage() {
       {/* ── section 4: recent reflections ── */}
       <div className="border-t border-cadet/10 pt-8">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-cadet">recent reflections</h2>
+          <h2 className="text-lg font-semibold text-cadet">{c["playbook.reflections.heading"]?.copy ?? "recent reflections"}</h2>
           <div className="flex items-center gap-3">
             <Link
               href="/playbook/reflections"
               className="text-xs text-cadet/40 hover:text-cadet/60 transition-colors"
             >
-              see all &rarr;
+              {c["playbook.reflections.see-all"]?.copy ?? "see all"} &rarr;
             </Link>
             <Link
               href="/reflections/new"
               className="rounded-lg px-4 py-2 text-xs font-medium text-white transition-all hover:opacity-90"
               style={{ backgroundColor: "var(--wv-redwood)" }}
             >
-              log a reflection
+              {c["playbook.reflections.log-cta"]?.copy ?? "log a reflection"}
             </Link>
           </div>
         </div>
@@ -211,9 +213,9 @@ export default async function PlaybookPage() {
         {recentRuns.length === 0 ? (
           <EmptyState
             type="journal"
-            heading="no reflections yet"
-            body="after you try a playdate, jot down what you noticed — your journal starts here."
-            cta={{ label: "log a reflection", href: "/reflections/new" }}
+            heading={c["playbook.reflections.empty-heading"]?.copy ?? "no reflections yet"}
+            body={c["playbook.reflections.empty-body"]?.copy ?? "after you try a playdate, jot down what you noticed — your journal starts here."}
+            cta={{ label: c["playbook.reflections.log-cta"]?.copy ?? "log a reflection", href: "/reflections/new" }}
           />
         ) : (
           <div className="space-y-2">

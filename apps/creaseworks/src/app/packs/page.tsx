@@ -4,6 +4,7 @@ import PackCard from "@/components/ui/pack-card";
 import PackFinder from "@/components/pack-finder";
 import { getVisiblePacks, getAllPacks } from "@/lib/queries/packs";
 import { getSession } from "@/lib/auth-helpers";
+import { getCopyForPage } from "@/lib/queries/site-copy";
 
 export const dynamic = "force-dynamic";
 
@@ -37,12 +38,15 @@ export default async function PacksCataloguePage() {
   const isCollective = session?.isInternal ?? false;
 
   // Collective sees all packs (including non-visible and drafts)
-  const packs = isCollective ? await getAllPacks() : await getVisiblePacks();
+  const [packs, c] = await Promise.all([
+    isCollective ? getAllPacks() : getVisiblePacks(),
+    getCopyForPage("packs"),
+  ]);
 
   return (
     <main className="min-h-screen px-6 pt-16 pb-24 sm:pb-16 max-w-4xl mx-auto">
       <div className="flex items-center gap-3 mb-2">
-        <h1 className="text-3xl font-semibold tracking-tight">packs</h1>
+        <h1 className="text-3xl font-semibold tracking-tight">{c["packs.headline"]?.copy ?? "packs"}</h1>
         {isCollective && (
           <span className="text-2xs font-semibold tracking-wide px-2 py-0.5 rounded-full bg-champagne/20 text-champagne">
             collective view
@@ -50,7 +54,7 @@ export default async function PacksCataloguePage() {
         )}
       </div>
       <p className="text-cadet/60 mb-6">
-        each pack is a bundle of playdates. buy once, keep forever.
+        {c["packs.description"]?.copy ?? "each pack is a bundle of playdates. buy once, keep forever."}
       </p>
 
       {/* value proposition */}
@@ -59,21 +63,27 @@ export default async function PacksCataloguePage() {
         style={{ borderColor: "rgba(39, 50, 72, 0.1)", backgroundColor: "var(--wv-white)" }}
       >
         {[
-          { label: "step-by-step guides", detail: "clear three-part instructions" },
-          { label: "materials + swaps", detail: "use what you already have" },
-          { label: "find again prompts", detail: "keep noticing after play" },
-          { label: "printable PDF cards", detail: "for the fridge or your bag" },
-          { label: "reflection prompts", detail: "capture evidence of learning" },
-        ].map((item) => (
-          <div key={item.label} className="text-center sm:text-left">
-            <p className="text-xs font-semibold" style={{ color: "var(--wv-cadet)" }}>
-              {item.label}
-            </p>
-            <p className="text-xs mt-0.5" style={{ color: "var(--wv-cadet)", opacity: 0.45 }}>
-              {item.detail}
-            </p>
-          </div>
-        ))}
+          c["packs.features.1"]?.copy ?? "step-by-step guides — clear three-part instructions",
+          c["packs.features.2"]?.copy ?? "materials + swaps — use what you already have",
+          c["packs.features.3"]?.copy ?? "find again prompts — keep noticing after play",
+          c["packs.features.4"]?.copy ?? "printable PDF cards — for the fridge or your bag",
+          c["packs.features.5"]?.copy ?? "reflection prompts — capture evidence of learning",
+        ].map((text) => {
+          const [label, ...rest] = text.split(" — ");
+          const detail = rest.join(" — ");
+          return (
+            <div key={label} className="text-center sm:text-left">
+              <p className="text-xs font-semibold" style={{ color: "var(--wv-cadet)" }}>
+                {label}
+              </p>
+              {detail && (
+                <p className="text-xs mt-0.5" style={{ color: "var(--wv-cadet)", opacity: 0.45 }}>
+                  {detail}
+                </p>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {/* guided pack finder */}
@@ -88,34 +98,34 @@ export default async function PacksCataloguePage() {
       }))} />
 
       <p className="text-xs text-cadet/40 mb-8">
-        not sure yet?{" "}
+        {c["packs.nudge.prefix"]?.copy ?? "not sure yet?"}{" "}
         <Link href="/sampler" className="text-redwood hover:text-sienna transition-colors">
-          try free playdates first
+          {c["packs.nudge.sampler"]?.copy ?? "try free playdates first"}
         </Link>
         {" "}or{" "}
         <Link href="/matcher" className="text-redwood hover:text-sienna transition-colors">
-          use the matcher
+          {c["packs.nudge.matcher"]?.copy ?? "use the matcher"}
         </Link>
-        {" "}to see what fits.
+        {" "}{c["packs.nudge.suffix"]?.copy ?? "to see what fits."}
       </p>
 
       {packs.length === 0 ? (
         <div className="text-center py-16">
           <p className="text-cadet/40 text-sm">
-            no packs available yet — we&rsquo;re putting the finishing touches on something good.
+            {c["packs.empty-state"]?.copy ?? "no packs available yet — we\u2019re putting the finishing touches on something good."}
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center mt-4">
             <Link
               href="/sampler"
               className="text-sm text-redwood hover:text-sienna transition-colors"
             >
-              browse free playdates &rarr;
+              {c["packs.empty.sampler-cta"]?.copy ?? "browse free playdates"} &rarr;
             </Link>
             <Link
               href="/matcher"
               className="text-sm text-redwood hover:text-sienna transition-colors"
             >
-              try the matcher &rarr;
+              {c["packs.empty.matcher-cta"]?.copy ?? "try the matcher"} &rarr;
             </Link>
           </div>
         </div>
