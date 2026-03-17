@@ -1556,7 +1556,7 @@ const STAGES = [
 const state = {
   screen: 0,
   maxStageReached: 0,
-  narratorOn: false,
+  narratorOn: true,
   attendeeName: 'attendee',
   sjt1: null,
   sjt2: null,
@@ -1705,6 +1705,9 @@ document.getElementById('narrator-toggle').addEventListener('click', () => {
   document.getElementById('narrator-toggle').classList.toggle('active', state.narratorOn);
   updateNarrator();
 });
+// start with narrator on
+document.getElementById('narrator-toggle').classList.add('active');
+updateNarrator();
 
 /* ── GREY/COLOUR TOGGLE ── */
 document.getElementById('grey-toggle').addEventListener('click', () => {
