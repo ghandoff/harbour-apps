@@ -44,6 +44,7 @@ body { font-family: var(--font-body); font-size: 16px; color: var(--grey1); }
   position: relative; width: 1100px; height: 650px;
   background: var(--grey7);
   border-radius: 8px; overflow: hidden;
+  flex-shrink: 0;
 }
 .room-coloured {
   position: absolute; inset: 0; z-index: 1;
@@ -148,7 +149,7 @@ body { font-family: var(--font-body); font-size: 16px; color: var(--grey1); }
 
 /* agenda */
 .agenda {
-  top: 44%; left: 4%; width: 210px;
+  top: 40%; left: 4%; width: 210px;
   background: var(--grey8); padding: 16px;
   border-left: 3px solid var(--grey5);
   font-size: 12px; line-height: 2;
@@ -197,7 +198,7 @@ body { font-family: var(--font-body); font-size: 16px; color: var(--grey1); }
 
 /* name badge */
 .badge {
-  bottom: 12%; right: 8%; width: 170px; height: 100px;
+  bottom: 8%; right: 8%; width: 170px; height: 100px;
   background: var(--grey8); border: 2px solid var(--grey6);
   border-radius: 6px; display: flex; flex-direction: column;
   align-items: center; justify-content: center;
@@ -499,21 +500,21 @@ body { font-family: var(--font-body); font-size: 16px; color: var(--grey1); }
   display: flex; align-items: flex-end; justify-content: center;
 }
 .keynote-speaker-silhouette {
-  width: 220px; height: 340px; opacity: 0.08;
-  position: absolute; bottom: 0; left: 8%;
+  width: 260px; height: 380px; opacity: 0.15;
+  position: absolute; bottom: 0; left: 6%;
 }
 .keynote-podium {
-  width: 120px; height: 80px;
-  position: absolute; bottom: 0; left: calc(8% + 50px);
-  opacity: 0.06;
+  width: 140px; height: 90px;
+  position: absolute; bottom: 0; left: calc(6% + 60px);
+  opacity: 0.12;
 }
 .keynote-audience-row {
   position: absolute; bottom: 0; width: 100%;
   display: flex; justify-content: center; gap: 6px;
-  opacity: 0.04;
+  opacity: 0.07;
 }
 .keynote-audience-row.row-1 { bottom: 0; }
-.keynote-audience-row.row-2 { bottom: 30px; opacity: 0.03; }
+.keynote-audience-row.row-2 { bottom: 30px; opacity: 0.05; }
 .keynote-container {
   width: 100%; max-width: 900px;
   display: flex; flex-direction: column;
@@ -1184,7 +1185,7 @@ body { font-family: var(--font-body); font-size: 16px; color: var(--grey1); }
     <!-- group panel -->
     <div class="group-panel">
       <div class="group-title">your group</div>
-      <div class="group-subtitle" style="font-size:11px;color:var(--grey4);font-style:italic;margin:-6px 0 10px;">matched by your scenario answers</div>
+      <div class="group-subtitle" style="font-size:11px;color:var(--grey4);font-style:italic;margin:-6px 0 10px;">playful networking — matched by your scenario answers</div>
       <div class="avatar-slot" id="avatar-1">
         <div class="avatar-circle" style="background:var(--sienna);">
           <svg viewBox="0 0 36 36" width="36" height="36"><circle cx="18" cy="13" r="7" fill="#fff" opacity="0.3"/><path d="M6 36 Q6 24, 18 22 Q30 24, 30 36" fill="#fff" opacity="0.3"/><text x="18" y="17" text-anchor="middle" font-size="11" fill="#fff" font-family="Fraunces,serif" font-weight="600">J</text></svg>
@@ -1246,7 +1247,7 @@ body { font-family: var(--font-body); font-size: 16px; color: var(--grey1); }
   <div class="s5-line2" id="s5-line2">this is what's possible. what are you trying to change?</div>
   <div class="s5-buttons" id="s5-buttons">
     <a href="https://windedvertigo.com/do" class="btn-secondary" tabindex="0">see what we do</a>
-    <a href="https://windedvertigo.com/do" class="btn-primary" tabindex="0">book a call with us</a>
+    <a href="https://calendly.com/windedvertigo" class="btn-primary" tabindex="0" target="_blank" rel="noopener">book a call with us</a>
   </div>
 </div>
 
@@ -1259,17 +1260,23 @@ body { font-family: var(--font-body); font-size: 16px; color: var(--grey1); }
    ═══════════════════════════════════════════ */
 const STAGES = [
   { id: 0, key: 'grey-conference', label: 'Arrival', time: '08:30', showDot: true, init: null,
-    narration: 'This is the "before" state — a deliberately grey, lifeless conference. Every object is clickable but unrewarding, mirroring the passive attendee experience. The word "alive" is the only real affordance.' },
+    narration: 'You\'ve just arrived at a conference. It feels... familiar. Click around — everything looks the same as every conference you\'ve been to. But look closely at the agenda. There\'s a word that doesn\'t belong.',
+    designIntent: 'This is the "before" state — a deliberately grey, lifeless conference. Every object is clickable but unrewarding, mirroring the passive attendee experience. The word "alive" is the only real affordance.' },
   { id: 1, key: 'transformation', label: 'Transformation', time: '', showDot: false, init: null,
-    narration: 'The colour reveal is the first emotional beat — showing what the same space looks like when it\'s designed with intention. The pause lets the contrast land before asking the user to opt in.' },
+    narration: 'One click and the whole room changed. Colour, warmth, people — the same space, redesigned with intention. That\'s the gap between a typical event and a designed experience.',
+    designIntent: 'The colour reveal is the first emotional beat — showing what the same space looks like when it\'s designed with intention. The pause lets the contrast land before asking the user to opt in.' },
   { id: 2, key: 'hunt', label: 'Registration & Scavenger Hunt', time: '09:00', showDot: true, init: () => initHunt(),
-    narration: 'Registration reimagined as exploration. Situational judgement tests surface real facilitation dilemmas while building a cohort. Each clue leads to a physical location — the floor plan and avatar panel give spatial and social progress cues.' },
+    narration: 'Registration isn\'t a queue — it\'s a scavenger hunt. You\'ll answer real teaching dilemmas (SJTs) at each stop, and your answers determine who you\'ll sit with later. Each clue leads to the next location on the floor plan. Solve all three to earn your personalised badge and meet your group.',
+    designIntent: 'Registration reimagined as exploration. SJTs surface real facilitation dilemmas while building a cohort. Each clue leads to a physical location — the floor plan and avatar panel give spatial and social progress cues.' },
   { id: 3, key: 'keynote', label: 'Opening Keynote', time: '10:30', showDot: true, init: () => initKeynote(),
-    narration: 'A keynote that makes the audience create, not just consume. The drawing prompt and shared wall demonstrate that participation scales — 47 people answered at once. The build activity turns inspiration into artefact.' },
+    narration: 'This isn\'t a sit-and-listen keynote. The speaker shares research-backed provocations, then asks the whole room to draw, build, and name what they\'re making. 47 people respond at once — participation at scale.',
+    designIntent: 'A keynote that makes the audience create, not just consume. The drawing prompt and shared wall demonstrate that participation scales. The build activity turns inspiration into artefact.' },
   { id: 4, key: 'workshop', label: 'Workshop & Debrief', time: '14:00', showDot: true, init: () => initWorkshop(),
-    narration: 'The debrief uses progressive disclosure (locked cards) to scaffold reflection depth. Private → shared → choice. This is a physical-digital journaling moment — participants make sense of what they learned, creating a personal record that bridges the conference and their practice. The dashboard reframes all of this as measurable learning data for the buyer.' },
+    narration: 'Now you\'re journaling — making sense of what you learned. Card 1 is private (your reflections). Card 2 is shared (the room sees your answer). Card 3 is a choice (what do you want next?). This could be a printed journal, a companion app, or both — a physical-digital bridge between the conference and your Monday morning.',
+    designIntent: 'The debrief uses progressive disclosure to scaffold reflection depth. Private → shared → choice. The dashboard reframes all of this as measurable learning data for the buyer.' },
   { id: 5, key: 'final', label: 'Close & Next Steps', time: '16:00', showDot: true, init: () => initFinal(),
-    narration: 'The sell without selling. After experiencing the product, the CTA lands differently — "what are you trying to change?" instead of "buy our thing."' },
+    narration: 'You\'ve just experienced what a conference can feel like when every touchpoint is intentionally designed. The question isn\'t "did you like it?" — it\'s "what are you trying to change?"',
+    designIntent: 'The sell without selling. After experiencing the product, the CTA lands differently.' },
 ];
 
 const state = {
@@ -1612,16 +1619,28 @@ function showHuntStop(stop) {
 function showStop1(container) {
   container.innerHTML = `
     <div class="hunt-backdrop" style="text-align:center;margin-bottom:16px;">
-      <svg viewBox="0 0 320 80" width="320" height="80" style="opacity:0.15;">
-        <rect x="80" y="10" width="160" height="60" rx="4" fill="none" stroke="currentColor" stroke-width="1.5"/>
-        <text x="160" y="45" text-anchor="middle" font-size="8" fill="currentColor" font-family="Inter">REGISTRATION</text>
-        <circle cx="50" cy="50" r="14" fill="none" stroke="currentColor" stroke-width="1.5"/>
-        <line x1="50" y1="36" x2="50" y2="30" stroke="currentColor" stroke-width="1.5"/>
-        <rect x="40" y="55" width="20" height="20" rx="2" fill="none" stroke="currentColor" stroke-width="1"/>
+      <svg viewBox="0 0 400 120" width="400" height="120" style="opacity:0.18;">
+        <!-- registration table -->
+        <rect x="100" y="60" width="200" height="30" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/>
+        <text x="200" y="80" text-anchor="middle" font-size="8" fill="currentColor" font-family="Inter">REGISTRATION</text>
+        <!-- volunteer behind table -->
+        <circle cx="200" cy="35" r="12" fill="none" stroke="currentColor" stroke-width="1.5"/>
+        <rect x="190" y="48" width="20" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1"/>
+        <!-- folded card being handed over -->
+        <rect x="225" y="50" width="24" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1" transform="rotate(-15,237,58)"/>
+        <text x="237" y="61" text-anchor="middle" font-size="5" fill="currentColor" transform="rotate(-15,237,58)">QR</text>
+        <!-- attendee approaching -->
+        <circle cx="320" cy="55" r="10" fill="none" stroke="currentColor" stroke-width="1.5"/>
+        <rect x="312" y="66" width="16" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1"/>
+        <!-- arrow showing direction -->
+        <path d="M305 65 L275 60" fill="none" stroke="currentColor" stroke-width="0.8" stroke-dasharray="3 2"/>
+        <text x="200" y="108" text-anchor="middle" font-size="7" fill="currentColor" font-family="Inter">stop 1 of 3 — registration table</text>
       </svg>
     </div>
-    <div class="hunt-narration" id="hn">you arrive at the registration table. the volunteer smiles and hands you a folded card. <em>"your first clue,"</em> they say. <em>"solve the scenario, find your badge, find your people."</em></div>
-    <div class="hunt-line" id="hn2" style="font-size:13px;color:var(--grey3);margin:-12px 0 16px;">this is a scavenger hunt — each clue leads to the next stop on the conference map, and each answer gets you closer to your personalised badge and your group for the day.</div>
+    <div class="hunt-narration" id="hn">you arrive at the registration table. a volunteer smiles and slides a folded card across to you. <em>"welcome to the scavenger hunt,"</em> they say. <em>"this QR code is your first clue. answer the scenario inside, and it'll tell you where to go next."</em></div>
+    <div class="hunt-line" id="hn2" style="font-size:13px;color:var(--grey3);margin:-12px 0 16px;line-height:1.6;">
+      <strong style="color:var(--redwood);">how this works:</strong> this is a scavenger hunt with 3 stops across the venue. at each stop, you'll answer a real teaching dilemma (a situational judgement test). your answers shape who you're grouped with — and once you complete all three, you earn your personalised conference badge. follow the clues on the floor plan →
+    </div>
     <div class="hunt-interaction" id="hi">
       <div class="qr-card" id="qr-card">
         <div class="qr-graphic"></div>
@@ -1762,7 +1781,7 @@ function showPersonalBadge(container) {
       <div class="pb-name">${name}</div>
       <div class="pb-session">designing for belonging · room 4b · 14:00</div>
     </div>
-    <div class="hunt-line" id="hl">you found your badge! now here's the twist — the people in your group were matched by how you answered the scenarios. this is playful networking: you already have something in common before you even sit down.</div>
+    <div class="hunt-line" id="hl">you found your badge! here's the twist — jamie, sam, and priya aren't random. they were matched to you based on how you answered the scenarios. this is <strong style="color:var(--cadet);">playful networking</strong>: instead of forced small talk, you already have something in common before you even sit down. you're about to meet people who think like you do about teaching.</div>
   `;
   fillFloorPlan('board');
   unlockAvatar(3);
@@ -1826,9 +1845,9 @@ function showContinue(container, onClick) {
    SCREEN 3 — THE KEYNOTE
    ═══════════════════════════════════════════ */
 const keynoteSlides = [
-  { text: '"belonging is not a feeling. it is a design decision."', cite: 'Walton & Cohen, 2011 — belonging uncertainty in educational environments' },
-  { text: '"what does your learning environment signal to the people in it?"', cite: 'Steele & Aronson, 1995 — identity threat and situational cues' },
-  { text: '"the most important question you can ask is: who is this for?"', cite: 'Costanza-Chock, 2020 — Design Justice' },
+  { text: '"belonging is not a feeling. it is a design decision."', cite: 'Walton & Cohen (2011). "A Brief Social-Belonging Intervention Improves Academic Outcomes." Science, 331(6023), 1447–1451.' },
+  { text: '"what does your learning environment signal to the people in it?"', cite: 'Steele & Aronson (1995). "Stereotype Threat and the Intellectual Test Performance of African Americans." Journal of Personality and Social Psychology, 69(5), 797–811.' },
+  { text: '"the most important question you can ask is: who is this for?"', cite: 'Costanza-Chock, S. (2020). Design Justice: Community-Led Practices to Build the Worlds We Need. MIT Press.' },
 ];
 
 function initKeynote() {
@@ -2219,8 +2238,9 @@ function showPartB(container) {
   state.debriefStep = 0;
 
   section.innerHTML = `
-    <div style="text-align:center;margin-bottom:16px;font-size:13px;color:var(--grey3);font-style:italic;max-width:500px;">
-      this is the journaling moment — a physical-digital bridge where participants make sense of what they learned. each card builds on the last, moving from private reflection to shared insight. in a live setting, this could be a printed journal, a digital companion app, or both.
+    <div style="text-align:center;margin-bottom:16px;font-size:13px;color:var(--grey3);max-width:540px;line-height:1.7;">
+      <strong style="color:var(--redwood);font-style:normal;">documentation & journaling</strong><br>
+      <span style="font-style:italic;">this is where participants make sense of what they learned — a physical-digital experience that bridges the conference and their practice. imagine a printed journal on the table and a companion app on their phone. each card builds on the last: private reflection → shared insight → a choice about what comes next. the record they create here travels home with them.</span>
     </div>
     <div class="debrief-cards" id="debrief-cards">
       <div class="debrief-card" id="dc1">
@@ -2247,11 +2267,11 @@ function showPartB(container) {
         <div class="debrief-inner">
           <div class="debrief-front">3<span class="debrief-lock" id="lock3">complete card 2 first</span><span style="display:block;font-size:10px;font-family:var(--font-body);margin-top:6px;opacity:0.7;">next steps</span></div>
           <div class="debrief-back">
-            <div class="debrief-prompt">which session track do you want to explore next?</div>
-            <div class="debrief-mc-option" data-val="Designing for Belonging (workshop series)">designing for belonging — 3-part workshop series</div>
-            <div class="debrief-mc-option" data-val="Equitable Assessment & Feedback (seminar)">equitable assessment & feedback — half-day seminar</div>
-            <div class="debrief-mc-option" data-val="Playful Pedagogy Lab (hands-on)">playful pedagogy lab — hands-on intensive</div>
-            <div class="debrief-mc-option" data-val="Making the Case: Evidence for Stakeholders (panel)">making the case: evidence for stakeholders — panel + Q&A</div>
+            <div class="debrief-prompt">what do you want to keep exploring? pick your next session.</div>
+            <div class="debrief-mc-option" data-val="Designing for Belonging (workshop series)"><strong>designing for belonging</strong> — 3-part workshop series · rm 4b · 14:30</div>
+            <div class="debrief-mc-option" data-val="Equitable Assessment & Feedback (seminar)"><strong>equitable assessment & feedback</strong> — half-day seminar · rm 2a · 14:30</div>
+            <div class="debrief-mc-option" data-val="Playful Pedagogy Lab (hands-on)"><strong>playful pedagogy lab</strong> — hands-on intensive · rm 6 · 14:30</div>
+            <div class="debrief-mc-option" data-val="Making the Case: Evidence for Stakeholders (panel)"><strong>making the case</strong> — evidence for stakeholders · main hall · 14:30</div>
           </div>
         </div>
       </div>
@@ -2454,6 +2474,48 @@ function initFinal() {
   setTimeout(() => document.getElementById('s5-line2').classList.add('visible'), 600);
   setTimeout(() => document.getElementById('s5-buttons').classList.add('visible'), 800);
 }
+
+/* ═══════════════════════════════════════════
+   FIRST-RUN GUIDANCE
+   ═══════════════════════════════════════════ */
+(function initOnboarding() {
+  const ONBOARD_KEY = 'conf-exp-onboarded';
+  if (localStorage.getItem(ONBOARD_KEY)) return;
+
+  const overlay = document.createElement('div');
+  overlay.id = 'onboard-overlay';
+  overlay.style.cssText = `
+    position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.7);
+    display:flex;align-items:center;justify-content:center;
+    opacity:0;transition:opacity 0.5s ease;
+  `;
+  overlay.innerHTML = `
+    <div style="background:#fff;border-radius:12px;padding:32px 36px;max-width:420px;width:90%;text-align:center;box-shadow:0 12px 60px rgba(0,0,0,0.3);">
+      <div style="font-family:var(--font-display);font-size:20px;color:var(--grey1);margin-bottom:12px;">welcome to the simulator</div>
+      <div style="font-size:14px;color:var(--grey3);line-height:1.7;margin-bottom:20px;">
+        this is a walkthrough of what a conference day could feel like.<br><br>
+        <strong style="color:var(--grey1);">click</strong> objects on screen to interact.<br>
+        <strong style="color:var(--grey1);">the agenda</strong> at the bottom tracks your progress — click completed items to revisit.<br>
+        <strong style="color:var(--grey1);">narrator mode</strong> (top right) explains what's happening and why.
+      </div>
+      <button id="onboard-go" style="padding:10px 28px;background:var(--cadet);color:#fff;border:none;border-radius:6px;font-family:var(--font-body);font-size:14px;cursor:pointer;">got it — let's start</button>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  requestAnimationFrame(() => { overlay.style.opacity = '1'; });
+
+  document.getElementById('onboard-go').addEventListener('click', () => {
+    overlay.style.opacity = '0';
+    setTimeout(() => overlay.remove(), 500);
+    localStorage.setItem(ONBOARD_KEY, '1');
+  });
+})();
+
+// replay onboarding
+document.getElementById('narrator-toggle').addEventListener('dblclick', () => {
+  localStorage.removeItem('conf-exp-onboarded');
+  location.reload();
+});
 </script>
 </body>
 </html>
