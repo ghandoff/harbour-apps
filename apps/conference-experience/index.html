@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>innovate forward summit 2025</title>
+<title>horizons in learning summit 2025</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -148,7 +148,7 @@ body { font-family: var(--font-body); font-size: 16px; color: var(--grey1); }
 
 /* agenda */
 .agenda {
-  top: 42%; left: 4%; width: 210px;
+  top: 44%; left: 4%; width: 210px;
   background: var(--grey8); padding: 16px;
   border-left: 3px solid var(--grey5);
   font-size: 12px; line-height: 2;
@@ -170,10 +170,20 @@ body { font-family: var(--font-body); font-size: 16px; color: var(--grey1); }
 .agenda.coloured .agenda-header { color: var(--redwood); border-bottom-color: var(--sienna); }
 .agenda-item { padding: 2px 0; }
 .alive-word {
-  color: var(--cadet); font-weight: 600;
+  font-weight: 600;
   cursor: pointer; position: relative; z-index: 10;
   pointer-events: auto;
 }
+.alive-word::after {
+  content: 'want to add some colour to this conference?';
+  position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
+  background: var(--grey1); color: #fff; padding: 6px 12px;
+  border-radius: 6px; font-size: 11px; font-weight: 400;
+  font-style: italic; white-space: nowrap;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.3s ease; z-index: 100;
+}
+.alive-word:hover::after { opacity: 1; }
 .alive-word.pulsing {
   animation: alivePulse 2.5s ease-in-out infinite;
   text-decoration: underline;
@@ -187,7 +197,7 @@ body { font-family: var(--font-body); font-size: 16px; color: var(--grey1); }
 
 /* name badge */
 .badge {
-  bottom: 12%; left: 8%; width: 170px; height: 100px;
+  bottom: 12%; right: 8%; width: 170px; height: 100px;
   background: var(--grey8); border: 2px solid var(--grey6);
   border-radius: 6px; display: flex; flex-direction: column;
   align-items: center; justify-content: center;
@@ -207,6 +217,15 @@ body { font-family: var(--font-body); font-size: 16px; color: var(--grey1); }
   color: var(--grey4);
 }
 .badge.coloured .badge-name { color: var(--grey1); }
+.badge-name-input {
+  font-family: var(--font-display); font-size: 20px;
+  color: var(--grey4); background: transparent;
+  border: none; border-bottom: 1px dashed var(--grey5);
+  text-align: center; width: 100%; outline: none;
+  padding: 2px 0;
+}
+.badge-name-input:focus { border-bottom-color: var(--cadet); color: var(--grey1); }
+.badge.coloured .badge-name-input { color: var(--grey1); border-bottom-color: var(--cadet); }
 
 /* people (hidden in grey, visible in colour) */
 .people-group {
@@ -472,26 +491,61 @@ body { font-family: var(--font-body); font-size: 16px; color: var(--grey1); }
 /* ── SCREEN 3 ── */
 #screen-3 {
   background: #1a1a1a; flex-direction: column;
+  position: relative; overflow: hidden;
 }
+.keynote-stage-bg {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 100%; pointer-events: none; z-index: 0;
+  display: flex; align-items: flex-end; justify-content: center;
+}
+.keynote-speaker-silhouette {
+  width: 220px; height: 340px; opacity: 0.08;
+  position: absolute; bottom: 0; left: 8%;
+}
+.keynote-podium {
+  width: 120px; height: 80px;
+  position: absolute; bottom: 0; left: calc(8% + 50px);
+  opacity: 0.06;
+}
+.keynote-audience-row {
+  position: absolute; bottom: 0; width: 100%;
+  display: flex; justify-content: center; gap: 6px;
+  opacity: 0.04;
+}
+.keynote-audience-row.row-1 { bottom: 0; }
+.keynote-audience-row.row-2 { bottom: 30px; opacity: 0.03; }
 .keynote-container {
   width: 100%; max-width: 900px;
   display: flex; flex-direction: column;
   align-items: center;
+  position: relative; z-index: 1;
 }
 .keynote-slide {
   width: 100%; max-width: 750px; aspect-ratio: 16/9;
-  background: #111; border-radius: 8px;
+  background: linear-gradient(145deg, #0f0f0f 0%, #1a1a1a 50%, #111 100%);
+  border-radius: 8px;
   display: flex; align-items: center; justify-content: center;
   padding: 60px; text-align: center;
-  box-shadow: 0 10px 60px rgba(0,0,0,0.5);
+  box-shadow: 0 10px 60px rgba(0,0,0,0.5), 0 0 120px rgba(95,158,160,0.05);
   opacity: 0; transform: scale(0.97);
   transition: all 0.8s ease;
+  position: relative;
+}
+.keynote-slide::before {
+  content: ''; position: absolute; top: 12px; left: 12px;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--cadet); opacity: 0.3;
 }
 .keynote-slide.visible { opacity: 1; transform: scale(1); }
 .keynote-slide-text {
-  font-family: var(--font-display); font-size: 32px;
-  color: var(--champagne); line-height: 1.5;
+  font-family: var(--font-display); font-size: 30px;
+  color: var(--champagne); line-height: 1.6;
   font-weight: 400;
+}
+.keynote-slide-cite {
+  font-family: var(--font-body); font-size: 12px;
+  color: var(--grey4); margin-top: 16px;
+  font-style: italic; letter-spacing: 0.3px;
 }
 .keynote-message {
   color: var(--grey5); font-size: 16px;
@@ -855,24 +909,103 @@ body { font-family: var(--font-body); font-size: 16px; color: var(--grey1); }
   outline: 2px solid var(--cadet); outline-offset: 2px;
 }
 
-/* ── PROGRESS INDICATOR ── */
+/* ── PROGRESS INDICATOR (AGENDA STYLE) ── */
 .progress-dots {
-  position: fixed; bottom: 20px; left: 50%;
+  position: fixed; bottom: 16px; left: 50%;
   transform: translateX(-50%); z-index: 50;
-  display: flex; gap: 8px; padding: 8px 14px;
-  background: rgba(255,255,255,0.15);
-  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-  border-radius: 20px;
+  display: flex; flex-direction: column; gap: 0;
+  padding: 12px 16px;
+  background: rgba(255,255,255,0.88);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border-radius: 10px;
+  border-left: 3px solid var(--cadet);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  min-width: 220px;
 }
+.progress-header {
+  font-family: var(--font-display); font-size: 10px;
+  text-transform: uppercase; letter-spacing: 1.5px;
+  color: var(--grey3); margin-bottom: 6px;
+  padding-bottom: 4px; border-bottom: 1px solid var(--grey7);
+}
+.progress-step {
+  display: flex; align-items: center; gap: 8px;
+  cursor: pointer; padding: 3px 4px; border-radius: 4px;
+  transition: background 0.3s ease;
+  position: relative;
+}
+.progress-step:hover { background: rgba(0,0,0,0.04); }
+.progress-step.locked { cursor: default; opacity: 0.4; }
+.progress-step.locked:hover { background: none; }
 .progress-dot {
-  width: 8px; height: 8px; border-radius: 50%;
-  background: rgba(0,0,0,0.15);
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--grey6);
   transition: all 0.4s ease;
+  flex-shrink: 0;
 }
 .progress-dot.active { background: var(--cadet); transform: scale(1.3); }
 .progress-dot.done { background: var(--redwood); }
-#screen-0 ~ .progress-dots .progress-dot,
-#screen-3 .progress-dots .progress-dot { background: rgba(255,255,255,0.2); }
+.progress-label {
+  font-family: var(--font-body); font-size: 11px; font-weight: 400;
+  color: var(--grey3); white-space: nowrap;
+  transition: all 0.3s ease;
+}
+.progress-step.active .progress-label {
+  font-weight: 600; color: var(--grey1);
+}
+.progress-step.done-step .progress-label {
+  text-decoration: line-through;
+  text-decoration-color: var(--redwood);
+  color: var(--grey4);
+}
+.progress-time {
+  font-size: 10px; color: var(--grey4);
+  min-width: 36px; font-variant-numeric: tabular-nums;
+}
+
+/* ── NARRATOR MODE ── */
+.narrator-toggle {
+  position: fixed; top: 16px; right: 16px; z-index: 60;
+  padding: 6px 14px; border-radius: 20px;
+  background: rgba(255,255,255,0.12);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: var(--grey4); font-family: var(--font-body);
+  font-size: 12px; cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex; align-items: center; gap: 6px;
+}
+.narrator-toggle:hover { background: rgba(255,255,255,0.25); }
+.narrator-toggle.active {
+  background: var(--cadet); color: #fff;
+  border-color: var(--cadet);
+}
+.narrator-toggle .narrator-icon {
+  width: 14px; height: 14px; opacity: 0.7;
+}
+.narrator-overlay {
+  position: fixed; bottom: 70px; left: 50%;
+  transform: translateX(-50%);
+  z-index: 55; max-width: 480px; width: 90%;
+  padding: 16px 20px;
+  background: rgba(26,26,26,0.92);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border-radius: 12px; border: 1px solid rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.85); font-family: var(--font-body);
+  font-size: 13px; line-height: 1.6;
+  opacity: 0; transform: translateX(-50%) translateY(8px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  pointer-events: none;
+}
+.narrator-overlay.visible {
+  opacity: 1; transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
+}
+.narrator-overlay .narrator-stage-label {
+  font-family: var(--font-display); font-size: 11px;
+  text-transform: uppercase; letter-spacing: 1.5px;
+  color: var(--cadet); margin-bottom: 6px;
+}
 
 /* ── COLD-START HINT ── */
 .cold-start-hint {
@@ -935,7 +1068,7 @@ body { font-family: var(--font-body); font-size: 16px; color: var(--grey1); }
     </div>
 
     <!-- conference banner -->
-    <div class="conf-banner" id="conf-banner">innovate forward summit 2025</div>
+    <div class="conf-banner" id="conf-banner">horizons in learning summit 2025</div>
 
     <!-- motivational poster -->
     <div class="room-object poster" id="poster" data-response="believe in the process." role="button" aria-label="motivational poster" tabindex="0">
@@ -945,11 +1078,11 @@ body { font-family: var(--font-body); font-size: 16px; color: var(--grey1); }
     <!-- speaker area -->
     <div class="room-object speaker-area" id="speaker" data-response="slide 47 of 112." role="button" aria-label="presentation slide" tabindex="0">
       <div class="slide-screen" id="slide-screen">
-        <div class="slide-title">optimising synergistic<br>innovation frameworks</div>
+        <div class="slide-title">evidence-based<br>pedagogical frameworks</div>
         <div class="slide-bullets">
-          • leverage core competencies<br>
-          • disrupt the paradigm<br>
-          • actionable takeaways
+          • assessment for learning<br>
+          • differentiated instruction<br>
+          • equity-centred design
         </div>
         <div class="slide-counter">slide 47 of 112</div>
       </div>
@@ -974,18 +1107,18 @@ body { font-family: var(--font-body); font-size: 16px; color: var(--grey1); }
     <!-- agenda -->
     <div class="room-object agenda" id="agenda">
       <div class="agenda-header">agenda</div>
-      <div class="agenda-item" data-response="innovation. synergy. disruption. lunch.">09:00 — innovation</div>
-      <div class="agenda-item" data-response="innovation. synergy. disruption. lunch.">10:30 — synergy</div>
-      <div class="agenda-item" data-response="innovation. synergy. disruption. lunch.">11:30 — keeping learning <span class="alive-word" id="alive-word" role="button" tabindex="0" aria-label="alive — click to explore">alive</span></div>
-      <div class="agenda-item" data-response="innovation. synergy. disruption. lunch.">12:00 — lunch</div>
-      <div class="agenda-item" data-response="innovation. synergy. disruption. lunch.">14:00 — disruption</div>
-      <div class="agenda-item" data-response="innovation. synergy. disruption. lunch.">16:00 — networking</div>
+      <div class="agenda-item" data-response="pedagogy. assessment. equity. lunch.">09:00 — registration &amp; scavenger hunt</div>
+      <div class="agenda-item" data-response="pedagogy. assessment. equity. lunch.">10:30 — opening keynote</div>
+      <div class="agenda-item" data-response="innovation. synergy. disruption. lunch.">11:30 — keeping learning <span class="alive-word" id="alive-word" role="button" tabindex="0" aria-label="alive — click to explore"><span style="color:var(--cadet)">a</span><span style="color:var(--sienna)">l</span><span style="color:var(--redwood)">i</span><span style="color:var(--cadet)">v</span><span style="color:var(--sienna)">e</span></span></div>
+      <div class="agenda-item" data-response="pedagogy. assessment. equity. lunch.">12:00 — lunch</div>
+      <div class="agenda-item" data-response="pedagogy. assessment. equity. lunch.">14:00 — workshop: designing for belonging</div>
+      <div class="agenda-item" data-response="pedagogy. assessment. equity. lunch.">16:00 — debrief &amp; close</div>
     </div>
 
-    <!-- name badge -->
-    <div class="room-object badge" id="badge" data-response="hello, attendee." role="button" aria-label="name badge" tabindex="0">
+    <!-- name badge (editable) -->
+    <div class="room-object badge" id="badge" aria-label="name badge" tabindex="0">
       <div class="badge-hello">hello my name is</div>
-      <div class="badge-name">attendee</div>
+      <input class="badge-name-input" id="badge-name-input" type="text" value="attendee" placeholder="your name" autocomplete="off" aria-label="enter your name" maxlength="20">
     </div>
 
     <!-- people (hidden in grey state) -->
@@ -1012,13 +1145,17 @@ body { font-family: var(--font-body); font-size: 16px; color: var(--grey1); }
   </div>
 </div>
 
-<!-- progress indicator -->
-<div class="progress-dots" id="progress-dots" role="navigation" aria-label="experience progress">
-  <div class="progress-dot active" data-screen="0"></div>
-  <div class="progress-dot" data-screen="2"></div>
-  <div class="progress-dot" data-screen="3"></div>
-  <div class="progress-dot" data-screen="4"></div>
-  <div class="progress-dot" data-screen="5"></div>
+<!-- progress indicator (generated dynamically from STAGES) -->
+<div class="progress-dots" id="progress-dots" role="navigation" aria-label="experience progress"></div>
+
+<!-- narrator mode -->
+<button class="narrator-toggle" id="narrator-toggle" aria-label="toggle narrator mode">
+  <svg class="narrator-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+  narrator
+</button>
+<div class="narrator-overlay" id="narrator-overlay">
+  <div class="narrator-stage-label" id="narrator-stage-label"></div>
+  <div id="narrator-text"></div>
 </div>
 
 <!-- ════════ SCREEN 1 — TRANSFORMATION LINGER ════════ -->
@@ -1047,16 +1184,23 @@ body { font-family: var(--font-body); font-size: 16px; color: var(--grey1); }
     <!-- group panel -->
     <div class="group-panel">
       <div class="group-title">your group</div>
+      <div class="group-subtitle" style="font-size:11px;color:var(--grey4);font-style:italic;margin:-6px 0 10px;">matched by your scenario answers</div>
       <div class="avatar-slot" id="avatar-1">
-        <div class="avatar-circle" style="background:var(--sienna);">J</div>
+        <div class="avatar-circle" style="background:var(--sienna);">
+          <svg viewBox="0 0 36 36" width="36" height="36"><circle cx="18" cy="13" r="7" fill="#fff" opacity="0.3"/><path d="M6 36 Q6 24, 18 22 Q30 24, 30 36" fill="#fff" opacity="0.3"/><text x="18" y="17" text-anchor="middle" font-size="11" fill="#fff" font-family="Fraunces,serif" font-weight="600">J</text></svg>
+        </div>
         <div class="avatar-name">jamie</div>
       </div>
       <div class="avatar-slot" id="avatar-2">
-        <div class="avatar-circle" style="background:var(--cadet);">S</div>
+        <div class="avatar-circle" style="background:var(--cadet);">
+          <svg viewBox="0 0 36 36" width="36" height="36"><circle cx="18" cy="13" r="7" fill="#fff" opacity="0.3"/><path d="M6 36 Q6 24, 18 22 Q30 24, 30 36" fill="#fff" opacity="0.3"/><text x="18" y="17" text-anchor="middle" font-size="11" fill="#fff" font-family="Fraunces,serif" font-weight="600">S</text></svg>
+        </div>
         <div class="avatar-name">sam</div>
       </div>
       <div class="avatar-slot" id="avatar-3">
-        <div class="avatar-circle" style="background:var(--redwood);">P</div>
+        <div class="avatar-circle" style="background:var(--redwood);">
+          <svg viewBox="0 0 36 36" width="36" height="36"><circle cx="18" cy="13" r="7" fill="#fff" opacity="0.3"/><path d="M6 36 Q6 24, 18 22 Q30 24, 30 36" fill="#fff" opacity="0.3"/><text x="18" y="17" text-anchor="middle" font-size="11" fill="#fff" font-family="Fraunces,serif" font-weight="600">P</text></svg>
+        </div>
         <div class="avatar-name">priya</div>
       </div>
     </div>
@@ -1065,6 +1209,29 @@ body { font-family: var(--font-body); font-size: 16px; color: var(--grey1); }
 
 <!-- ════════ SCREEN 3 — THE KEYNOTE ════════ -->
 <div id="screen-3" class="screen">
+  <!-- ambient stage background -->
+  <div class="keynote-stage-bg">
+    <svg class="keynote-speaker-silhouette" viewBox="0 0 220 340" fill="currentColor" style="color:white;">
+      <ellipse cx="110" cy="45" rx="28" ry="32"/>
+      <path d="M60 90 Q60 70, 110 70 Q160 70, 160 90 L170 220 Q170 240, 150 250 L150 340 L130 340 L125 260 L110 260 L95 260 L90 340 L70 340 L70 250 Q50 240, 50 220Z"/>
+    </svg>
+    <svg class="keynote-podium" viewBox="0 0 120 80" fill="currentColor" style="color:white;">
+      <path d="M10 0 L110 0 L120 80 L0 80Z"/>
+    </svg>
+    <div class="keynote-audience-row row-1">
+      <svg viewBox="0 0 20 20" width="20" height="20" fill="white"><ellipse cx="10" cy="8" rx="6" ry="7"/><ellipse cx="10" cy="22" rx="9" ry="8"/></svg>
+      <svg viewBox="0 0 20 20" width="18" height="18" fill="white"><ellipse cx="10" cy="8" rx="6" ry="7"/><ellipse cx="10" cy="22" rx="9" ry="8"/></svg>
+      <svg viewBox="0 0 20 20" width="22" height="22" fill="white"><ellipse cx="10" cy="8" rx="6" ry="7"/><ellipse cx="10" cy="22" rx="9" ry="8"/></svg>
+      <svg viewBox="0 0 20 20" width="19" height="19" fill="white"><ellipse cx="10" cy="8" rx="6" ry="7"/><ellipse cx="10" cy="22" rx="9" ry="8"/></svg>
+      <svg viewBox="0 0 20 20" width="21" height="21" fill="white"><ellipse cx="10" cy="8" rx="6" ry="7"/><ellipse cx="10" cy="22" rx="9" ry="8"/></svg>
+    </div>
+    <div class="keynote-audience-row row-2">
+      <svg viewBox="0 0 20 20" width="18" height="18" fill="white"><ellipse cx="10" cy="8" rx="6" ry="7"/><ellipse cx="10" cy="22" rx="9" ry="8"/></svg>
+      <svg viewBox="0 0 20 20" width="20" height="20" fill="white"><ellipse cx="10" cy="8" rx="6" ry="7"/><ellipse cx="10" cy="22" rx="9" ry="8"/></svg>
+      <svg viewBox="0 0 20 20" width="17" height="17" fill="white"><ellipse cx="10" cy="8" rx="6" ry="7"/><ellipse cx="10" cy="22" rx="9" ry="8"/></svg>
+      <svg viewBox="0 0 20 20" width="21" height="21" fill="white"><ellipse cx="10" cy="8" rx="6" ry="7"/><ellipse cx="10" cy="22" rx="9" ry="8"/></svg>
+    </div>
+  </div>
   <div class="keynote-container" id="keynote-container"></div>
 </div>
 
@@ -1079,7 +1246,7 @@ body { font-family: var(--font-body); font-size: 16px; color: var(--grey1); }
   <div class="s5-line2" id="s5-line2">this is what's possible. what are you trying to change?</div>
   <div class="s5-buttons" id="s5-buttons">
     <a href="https://windedvertigo.com/do" class="btn-secondary" tabindex="0">see what we do</a>
-    <a href="https://windedvertigo.com/do" class="btn-primary" tabindex="0">let's build it</a>
+    <a href="https://windedvertigo.com/do" class="btn-primary" tabindex="0">book a call with us</a>
   </div>
 </div>
 
@@ -1087,8 +1254,29 @@ body { font-family: var(--font-body); font-size: 16px; color: var(--grey1); }
 /* ═══════════════════════════════════════════
    STATE
    ═══════════════════════════════════════════ */
+/* ═══════════════════════════════════════════
+   CANONICAL STAGE DEFINITION
+   ═══════════════════════════════════════════ */
+const STAGES = [
+  { id: 0, key: 'grey-conference', label: 'Arrival', time: '08:30', showDot: true, init: null,
+    narration: 'This is the "before" state — a deliberately grey, lifeless conference. Every object is clickable but unrewarding, mirroring the passive attendee experience. The word "alive" is the only real affordance.' },
+  { id: 1, key: 'transformation', label: 'Transformation', time: '', showDot: false, init: null,
+    narration: 'The colour reveal is the first emotional beat — showing what the same space looks like when it\'s designed with intention. The pause lets the contrast land before asking the user to opt in.' },
+  { id: 2, key: 'hunt', label: 'Registration & Scavenger Hunt', time: '09:00', showDot: true, init: () => initHunt(),
+    narration: 'Registration reimagined as exploration. Situational judgement tests surface real facilitation dilemmas while building a cohort. Each clue leads to a physical location — the floor plan and avatar panel give spatial and social progress cues.' },
+  { id: 3, key: 'keynote', label: 'Opening Keynote', time: '10:30', showDot: true, init: () => initKeynote(),
+    narration: 'A keynote that makes the audience create, not just consume. The drawing prompt and shared wall demonstrate that participation scales — 47 people answered at once. The build activity turns inspiration into artefact.' },
+  { id: 4, key: 'workshop', label: 'Workshop & Debrief', time: '14:00', showDot: true, init: () => initWorkshop(),
+    narration: 'The debrief uses progressive disclosure (locked cards) to scaffold reflection depth. Private → shared → choice. This is a physical-digital journaling moment — participants make sense of what they learned, creating a personal record that bridges the conference and their practice. The dashboard reframes all of this as measurable learning data for the buyer.' },
+  { id: 5, key: 'final', label: 'Close & Next Steps', time: '16:00', showDot: true, init: () => initFinal(),
+    narration: 'The sell without selling. After experiencing the product, the CTA lands differently — "what are you trying to change?" instead of "buy our thing."' },
+];
+
 const state = {
   screen: 0,
+  maxStageReached: 0,
+  narratorOn: false,
+  attendeeName: 'attendee',
   sjt1: null,
   sjt2: null,
   card3: null,
@@ -1126,6 +1314,7 @@ function goToScreen(n, transition) {
   const next = document.getElementById('screen-' + n);
   if (!next || next === prev) return;
   state.screen = n;
+  if (n > state.maxStageReached) state.maxStageReached = n;
 
   if (transition === 'dissolve') {
     prev.style.transition = 'opacity 0.8s ease';
@@ -1150,31 +1339,80 @@ function goToScreen(n, transition) {
   // init screen
   setTimeout(() => initScreen(n), 200);
 
-  // update progress dots
+  // update progress dots + narrator
   updateProgress(n);
+  updateNarrator();
 }
 
 function updateProgress(n) {
-  const screenMap = [0, 0, 2, 3, 4, 5]; // screen index to dot mapping
-  const dots = document.querySelectorAll('.progress-dot');
-  const dotScreens = [0, 2, 3, 4, 5];
-  dots.forEach((dot, i) => {
+  const dotStages = STAGES.filter(s => s.showDot);
+  const steps = document.querySelectorAll('.progress-step');
+  const activeDotScreen = (n === 1) ? 0 : n;
+  steps.forEach((step, i) => {
+    const stage = dotStages[i];
+    if (!stage) return;
+    const dot = step.querySelector('.progress-dot');
     dot.classList.remove('active', 'done');
-    if (dotScreens[i] < n) dot.classList.add('done');
-    if (dotScreens[i] === n || (n === 1 && i === 0)) dot.classList.add('active');
+    step.classList.remove('active', 'locked', 'done-step');
+    if (stage.id < n) { dot.classList.add('done'); step.classList.add('done-step'); }
+    if (stage.id === activeDotScreen) { dot.classList.add('active'); step.classList.add('active'); }
+    if (stage.id > state.maxStageReached) { step.classList.add('locked'); }
   });
-  // adjust dot colours for dark screens
+  // adjust colours for dark screens
   const dotsContainer = document.getElementById('progress-dots');
   if (n === 3) { dotsContainer.style.background = 'rgba(0,0,0,0.3)'; }
   else { dotsContainer.style.background = ''; }
 }
 
 function initScreen(n) {
-  if (n === 2) initHunt();
-  if (n === 3) initKeynote();
-  if (n === 4) initWorkshop();
-  if (n === 5) initFinal();
+  const stage = STAGES.find(s => s.id === n);
+  if (stage && stage.init) stage.init();
 }
+
+/* ── BUILD PROGRESS BAR FROM STAGES ── */
+function buildProgressBar() {
+  const container = document.getElementById('progress-dots');
+  container.innerHTML = '';
+  // header
+  const header = document.createElement('div');
+  header.className = 'progress-header';
+  header.textContent = 'today\'s agenda';
+  container.appendChild(header);
+
+  const dotStages = STAGES.filter(s => s.showDot);
+  dotStages.forEach((stage) => {
+    const step = document.createElement('div');
+    step.className = 'progress-step' + (stage.id === 0 ? ' active' : ' locked');
+    step.setAttribute('data-screen', stage.id);
+    step.innerHTML = `<span class="progress-time">${stage.time}</span><div class="progress-dot${stage.id === 0 ? ' active' : ''}"></div><span class="progress-label">${stage.label}</span>`;
+    step.addEventListener('click', () => {
+      if (stage.id <= state.maxStageReached && stage.id !== state.screen) {
+        goToScreen(stage.id, 'dissolve');
+      }
+    });
+    container.appendChild(step);
+  });
+}
+buildProgressBar();
+
+/* ── NARRATOR MODE ── */
+function updateNarrator() {
+  const overlay = document.getElementById('narrator-overlay');
+  const label = document.getElementById('narrator-stage-label');
+  const text = document.getElementById('narrator-text');
+  const stage = STAGES.find(s => s.id === state.screen);
+  if (!stage) return;
+  label.textContent = stage.label;
+  text.textContent = stage.narration;
+  if (state.narratorOn) overlay.classList.add('visible');
+  else overlay.classList.remove('visible');
+}
+
+document.getElementById('narrator-toggle').addEventListener('click', () => {
+  state.narratorOn = !state.narratorOn;
+  document.getElementById('narrator-toggle').classList.toggle('active', state.narratorOn);
+  updateNarrator();
+});
 
 /* ═══════════════════════════════════════════
    SCREEN 0 — THE GREY CONFERENCE
@@ -1191,6 +1429,14 @@ function floatResponse(el, text) {
   setTimeout(() => ft.remove(), 2400);
   resetIdleTimer();
 }
+
+// editable badge name
+document.getElementById('badge-name-input').addEventListener('input', (e) => {
+  state.attendeeName = e.target.value.trim() || 'attendee';
+});
+document.getElementById('badge-name-input').addEventListener('click', (e) => {
+  e.stopPropagation();
+});
 
 // click handlers for room objects
 document.querySelectorAll('.room-object[data-response]').forEach(el => {
@@ -1365,16 +1611,27 @@ function showHuntStop(stop) {
 
 function showStop1(container) {
   container.innerHTML = `
-    <div class="hunt-narration" id="hn">you stop at the registration wall. something taped underneath catches your eye.</div>
+    <div class="hunt-backdrop" style="text-align:center;margin-bottom:16px;">
+      <svg viewBox="0 0 320 80" width="320" height="80" style="opacity:0.15;">
+        <rect x="80" y="10" width="160" height="60" rx="4" fill="none" stroke="currentColor" stroke-width="1.5"/>
+        <text x="160" y="45" text-anchor="middle" font-size="8" fill="currentColor" font-family="Inter">REGISTRATION</text>
+        <circle cx="50" cy="50" r="14" fill="none" stroke="currentColor" stroke-width="1.5"/>
+        <line x1="50" y1="36" x2="50" y2="30" stroke="currentColor" stroke-width="1.5"/>
+        <rect x="40" y="55" width="20" height="20" rx="2" fill="none" stroke="currentColor" stroke-width="1"/>
+      </svg>
+    </div>
+    <div class="hunt-narration" id="hn">you arrive at the registration table. the volunteer smiles and hands you a folded card. <em>"your first clue,"</em> they say. <em>"solve the scenario, find your badge, find your people."</em></div>
+    <div class="hunt-line" id="hn2" style="font-size:13px;color:var(--grey3);margin:-12px 0 16px;">this is a scavenger hunt — each clue leads to the next stop on the conference map, and each answer gets you closer to your personalised badge and your group for the day.</div>
     <div class="hunt-interaction" id="hi">
       <div class="qr-card" id="qr-card">
         <div class="qr-graphic"></div>
-        <div class="qr-label">tap to scan</div>
+        <div class="qr-label">tap to scan your first clue</div>
       </div>
     </div>
   `;
   setTimeout(() => document.getElementById('hn').classList.add('visible'), 100);
-  setTimeout(() => document.getElementById('hi').classList.add('visible'), 400);
+  setTimeout(() => document.getElementById('hn2').classList.add('visible'), 500);
+  setTimeout(() => document.getElementById('hi').classList.add('visible'), 700);
 
   document.getElementById('qr-card').addEventListener('click', () => {
     showSJT(container, 1,
@@ -1385,7 +1642,7 @@ function showStop1(container) {
         { key: 'c', text: 'pause the group and address the resistance openly' },
         { key: 'd', text: 'let the group continue and check in privately after' },
       ],
-      'find the person whose badge has a red dot.',
+      'clue unlocked → head to the coffee station. find the person whose badge has a red dot.',
       () => {
         fillFloorPlan('reg');
         unlockAvatar(1);
@@ -1397,9 +1654,18 @@ function showStop1(container) {
 
 function showStop2(container) {
   container.innerHTML = `
-    <div class="hunt-narration" id="hn">you head to the coffee station. there's a folded card propped against the thermos.</div>
+    <div class="hunt-backdrop" style="text-align:center;margin-bottom:16px;">
+      <svg viewBox="0 0 320 80" width="320" height="80" style="opacity:0.15;">
+        <ellipse cx="160" cy="50" rx="60" ry="20" fill="none" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M130 35 Q140 15, 160 20 Q180 15, 190 35" fill="none" stroke="currentColor" stroke-width="1.5"/>
+        <circle cx="120" cy="50" r="6" fill="none" stroke="currentColor" stroke-width="1"/>
+        <circle cx="200" cy="50" r="6" fill="none" stroke="currentColor" stroke-width="1"/>
+        <text x="160" y="54" text-anchor="middle" font-size="7" fill="currentColor" font-family="Inter">COFFEE STATION</text>
+      </svg>
+    </div>
+    <div class="hunt-narration" id="hn">clue 1 led you here — the coffee station. someone with a red-dot badge is pouring coffee. they hand you a folded card and say: <em>"second scenario. your answer shapes who you sit with later."</em></div>
     <div class="hunt-interaction" id="hi">
-      <div class="coffee-card" id="coffee-card">a folded card — tap to open</div>
+      <div class="coffee-card" id="coffee-card">a folded card — tap to open your second clue</div>
     </div>
   `;
   setTimeout(() => document.getElementById('hn').classList.add('visible'), 100);
@@ -1414,7 +1680,7 @@ function showStop2(container) {
         { key: 'c', text: 'the speaker reframes the question' },
         { key: 'd', text: 'the silence is allowed to last a little longer' },
       ],
-      'your workshop is: designing for belonging. room 4b. 14:00.',
+      'clue unlocked → head to the session board. your workshop is: designing for belonging. room 4b. 14:00.',
       () => {
         fillFloorPlan('coffee');
         unlockAvatar(2);
@@ -1426,16 +1692,28 @@ function showStop2(container) {
 
 function showStop3(container) {
   container.innerHTML = `
-    <div class="hunt-narration" id="hn">the session board is covered in options. one is different.</div>
+    <div class="hunt-backdrop" style="text-align:center;margin-bottom:16px;">
+      <svg viewBox="0 0 320 80" width="320" height="80" style="opacity:0.15;">
+        <rect x="60" y="5" width="200" height="70" rx="4" fill="none" stroke="currentColor" stroke-width="1.5"/>
+        <rect x="75" y="15" width="55" height="22" rx="2" fill="none" stroke="currentColor" stroke-width="0.8"/>
+        <rect x="135" y="15" width="55" height="22" rx="2" fill="none" stroke="currentColor" stroke-width="0.8"/>
+        <rect x="195" y="15" width="55" height="22" rx="2" fill="none" stroke="currentColor" stroke-width="0.8"/>
+        <rect x="75" y="45" width="55" height="22" rx="2" fill="none" stroke="currentColor" stroke-width="0.8"/>
+        <rect x="135" y="45" width="55" height="22" rx="2" fill="none" stroke="currentColor" stroke-width="0.8"/>
+        <rect x="195" y="45" width="55" height="22" rx="2" fill="none" stroke="currentColor" stroke-width="0.8"/>
+        <text x="160" y="82" text-anchor="middle" font-size="7" fill="currentColor" font-family="Inter">SESSION BOARD</text>
+      </svg>
+    </div>
+    <div class="hunt-narration" id="hn">final stop — the session board. your clues have brought you here. find the workshop that matches your badge assignment. (hint: look for the ★)</div>
     <div class="hunt-interaction" id="hi">
       <div class="session-grid" id="session-grid"></div>
     </div>
   `;
 
   const sessions = [
-    'innovation metrics', 'digital transformation', 'leadership agility', 'data-driven culture',
-    'designing for belonging', 'stakeholder alignment', 'future skills', 'change management',
-    'ai in education', 'scaling impact', 'design thinking 101', 'community building'
+    'assessment for equity', 'trauma-informed pedagogy', 'student voice in curriculum', 'culturally responsive teaching',
+    'designing for belonging', 'neurodiversity in the classroom', 'formative feedback loops', 'restorative practices',
+    'ai in education', 'project-based learning', 'inclusive design', 'community partnerships'
   ];
   const grid = document.getElementById('session-grid');
   sessions.forEach((s, i) => {
@@ -1477,13 +1755,14 @@ function showEasterEgg(card, text) {
 
 function showPersonalBadge(container) {
   const hi = document.getElementById('hi');
+  const name = state.attendeeName || 'attendee';
   hi.innerHTML = `
     <div class="personal-badge" id="pb">
-      <div class="pb-conf">innovate forward summit 2025</div>
-      <div class="pb-name">alex rivera</div>
+      <div class="pb-conf">horizons in learning summit 2025</div>
+      <div class="pb-name">${name}</div>
       <div class="pb-session">designing for belonging · room 4b · 14:00</div>
     </div>
-    <div class="hunt-line" id="hl">you already know these people. you just don't know it yet.</div>
+    <div class="hunt-line" id="hl">you found your badge! now here's the twist — the people in your group were matched by how you answered the scenarios. this is playful networking: you already have something in common before you even sit down.</div>
   `;
   fillFloorPlan('board');
   unlockAvatar(3);
@@ -1547,24 +1826,26 @@ function showContinue(container, onClick) {
    SCREEN 3 — THE KEYNOTE
    ═══════════════════════════════════════════ */
 const keynoteSlides = [
-  'belonging is not a feeling. it is a design decision.',
-  'what does your learning environment signal to the people in it?',
-  'the most important question you can ask is: who is this for?'
+  { text: '"belonging is not a feeling. it is a design decision."', cite: 'Walton & Cohen, 2011 — belonging uncertainty in educational environments' },
+  { text: '"what does your learning environment signal to the people in it?"', cite: 'Steele & Aronson, 1995 — identity threat and situational cues' },
+  { text: '"the most important question you can ask is: who is this for?"', cite: 'Costanza-Chock, 2020 — Design Justice' },
 ];
 
 function initKeynote() {
   const container = document.getElementById('keynote-container');
-  container.innerHTML = '<div class="keynote-slide" id="ks"><div class="keynote-slide-text" id="ks-text"></div></div>';
+  container.innerHTML = '<div class="keynote-slide" id="ks"><div class="keynote-slide-text" id="ks-text"></div><div class="keynote-slide-cite" id="ks-cite"></div></div>';
   showKeynoteSlide(0);
 }
 
 function showKeynoteSlide(i) {
   const slide = document.getElementById('ks');
   const text = document.getElementById('ks-text');
+  const cite = document.getElementById('ks-cite');
   slide.classList.remove('visible');
 
   setTimeout(() => {
-    text.textContent = keynoteSlides[i];
+    text.textContent = keynoteSlides[i].text;
+    cite.textContent = keynoteSlides[i].cite;
     slide.classList.add('visible');
   }, 300);
 
@@ -1756,14 +2037,28 @@ function showBuildActivity() {
   if (wall) wall.style.display = 'none';
   document.querySelectorAll('.wall-count').forEach(el => el.style.display = 'none');
 
+  // creation backdrop — people making things
+  const backdrop = document.createElement('div');
+  backdrop.style.cssText = 'text-align:center;margin-bottom:20px;opacity:0;transition:opacity 1s ease;';
+  backdrop.innerHTML = `<svg viewBox="0 0 400 100" width="400" height="100" style="opacity:0.12;">
+    <circle cx="60" cy="40" r="12" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="48" y="55" width="24" height="30" rx="3" fill="none" stroke="currentColor" stroke-width="1"/><rect x="35" y="70" width="50" height="25" rx="2" fill="none" stroke="currentColor" stroke-width="0.8"/>
+    <circle cx="160" cy="35" r="12" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="148" y="50" width="24" height="30" rx="3" fill="none" stroke="currentColor" stroke-width="1"/><rect x="135" y="65" width="50" height="30" rx="2" fill="none" stroke="currentColor" stroke-width="0.8"/><path d="M175 70 L185 55 L195 70" fill="none" stroke="currentColor" stroke-width="0.8"/>
+    <circle cx="260" cy="40" r="12" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="248" y="55" width="24" height="30" rx="3" fill="none" stroke="currentColor" stroke-width="1"/><circle cx="280" cy="75" r="8" fill="none" stroke="currentColor" stroke-width="0.8"/>
+    <circle cx="340" cy="38" r="12" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="328" y="53" width="24" height="30" rx="3" fill="none" stroke="currentColor" stroke-width="1"/><rect x="320" y="68" width="40" height="28" rx="2" fill="none" stroke="currentColor" stroke-width="0.8"/>
+    <text x="200" y="98" text-anchor="middle" font-size="7" fill="currentColor" font-family="Inter">people creating artefacts from what they've learned</text>
+  </svg>`;
+  container.appendChild(backdrop);
+  setTimeout(() => backdrop.style.opacity = '1', 100);
+
   const msg = document.createElement('div');
   msg.className = 'keynote-message';
   msg.textContent = 'now it\'s your turn to build something.';
   container.appendChild(msg);
-  setTimeout(() => msg.classList.add('visible'), 100);
+  setTimeout(() => msg.classList.add('visible'), 300);
 
   setTimeout(() => {
     msg.style.display = 'none';
+    backdrop.style.display = 'none';
 
     const prompt = document.createElement('div');
     prompt.className = 'keynote-message';
@@ -1924,36 +2219,39 @@ function showPartB(container) {
   state.debriefStep = 0;
 
   section.innerHTML = `
+    <div style="text-align:center;margin-bottom:16px;font-size:13px;color:var(--grey3);font-style:italic;max-width:500px;">
+      this is the journaling moment — a physical-digital bridge where participants make sense of what they learned. each card builds on the last, moving from private reflection to shared insight. in a live setting, this could be a printed journal, a digital companion app, or both.
+    </div>
     <div class="debrief-cards" id="debrief-cards">
       <div class="debrief-card" id="dc1">
         <div class="debrief-inner">
-          <div class="debrief-front">1</div>
+          <div class="debrief-front">1<span style="display:block;font-size:10px;font-family:var(--font-body);margin-top:6px;opacity:0.7;">private</span></div>
           <div class="debrief-back">
             <div class="debrief-prompt">what will you do differently on monday morning?</div>
-            <textarea class="debrief-input" id="di1" placeholder="this stays private..."></textarea>
+            <textarea class="debrief-input" id="di1" placeholder="this stays private — your journal, your words..."></textarea>
             <button class="hunt-continue" style="opacity:1;margin-top:10px;font-size:12px;padding:6px 14px;" id="di1-done">done</button>
           </div>
         </div>
       </div>
       <div class="debrief-card" id="dc2" style="pointer-events:none;opacity:0.5;">
         <div class="debrief-inner">
-          <div class="debrief-front">2<span class="debrief-lock" id="lock2">complete card 1 first</span></div>
+          <div class="debrief-front">2<span class="debrief-lock" id="lock2">complete card 1 first</span><span style="display:block;font-size:10px;font-family:var(--font-body);margin-top:6px;opacity:0.7;">shared</span></div>
           <div class="debrief-back">
             <div class="debrief-prompt">finish this sentence: the most surprising thing today was...</div>
-            <textarea class="debrief-input" id="di2" placeholder="type here..."></textarea>
+            <textarea class="debrief-input" id="di2" placeholder="this one gets shared with the room..."></textarea>
             <button class="hunt-continue" style="opacity:1;margin-top:10px;font-size:12px;padding:6px 14px;" id="di2-done">share</button>
           </div>
         </div>
       </div>
       <div class="debrief-card" id="dc3" style="pointer-events:none;opacity:0.5;">
         <div class="debrief-inner">
-          <div class="debrief-front">3<span class="debrief-lock" id="lock3">complete card 2 first</span></div>
+          <div class="debrief-front">3<span class="debrief-lock" id="lock3">complete card 2 first</span><span style="display:block;font-size:10px;font-family:var(--font-body);margin-top:6px;opacity:0.7;">next steps</span></div>
           <div class="debrief-back">
-            <div class="debrief-prompt">what do you want to keep exploring?</div>
-            <div class="debrief-mc-option" data-val="how to design for belonging">how to design for belonging</div>
-            <div class="debrief-mc-option" data-val="measurement that doesn't flatten growth">measurement that doesn't flatten growth</div>
-            <div class="debrief-mc-option" data-val="playful facilitation methods">playful facilitation methods</div>
-            <div class="debrief-mc-option" data-val="how to make the case to stakeholders">how to make the case to stakeholders</div>
+            <div class="debrief-prompt">which session track do you want to explore next?</div>
+            <div class="debrief-mc-option" data-val="Designing for Belonging (workshop series)">designing for belonging — 3-part workshop series</div>
+            <div class="debrief-mc-option" data-val="Equitable Assessment & Feedback (seminar)">equitable assessment & feedback — half-day seminar</div>
+            <div class="debrief-mc-option" data-val="Playful Pedagogy Lab (hands-on)">playful pedagogy lab — hands-on intensive</div>
+            <div class="debrief-mc-option" data-val="Making the Case: Evidence for Stakeholders (panel)">making the case: evidence for stakeholders — panel + Q&A</div>
           </div>
         </div>
       </div>
@@ -2050,7 +2348,7 @@ function showPartC(container) {
     section.id = 's4c';
     section.innerHTML = `
       <div class="dashboard" id="dashboard">
-        <div class="dash-title" id="dt">here's what attendee #47 generated today.</div>
+        <div class="dash-title" id="dt">here's what ${state.attendeeName || 'attendee'} generated today.</div>
         <div class="dash-metric" id="dm1">
           <div class="dash-metric-label">engagement score</div>
           <div class="dash-metric-value">
