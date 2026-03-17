@@ -40,10 +40,38 @@ export default async function HuntPage() {
           <span>&larr;</span> back to find
         </Link>
 
+        {/* ── hero copy (matches /matcher layout) ──────────── */}
+        <div className="relative mb-6 sm:mb-8">
+          <h1
+            className="text-3xl sm:text-4xl font-bold tracking-tight mb-3"
+            style={{ color: "var(--wv-champagne)" }}
+          >
+            what sounds fun?{" "}
+            <span className="inline-block" style={{ animation: "heroWave 2s ease-in-out infinite" }}>🗺️</span>
+          </h1>
+          <p
+            className="text-base sm:text-lg leading-relaxed max-w-xl"
+            style={{ color: "var(--wv-champagne)", opacity: 0.55 }}
+          >
+            pick a vibe and we&apos;ll find you an adventure
+          </p>
+        </div>
+
         <FindModeSelector currentMode="hunt" />
 
         <HuntShell contexts={contexts} />
       </div>
+
+      <style>{`
+        @keyframes heroWave {
+          0%, 100% { transform: rotate(0deg); }
+          25% { transform: rotate(10deg) scale(1.1); }
+          75% { transform: rotate(-5deg); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          @keyframes heroWave { from, to { transform: none; } }
+        }
+      `}</style>
     </main>
   );
 }

@@ -75,19 +75,6 @@ export default function ChallengeShell({
   if (state.phase === "config") {
     return (
       <div className="text-center">
-        <p
-          className="text-lg font-bold mb-2"
-          style={{ color: "var(--wv-champagne)" }}
-        >
-          how much can you notice?
-        </p>
-        <p
-          className="text-sm mb-6"
-          style={{ color: "var(--wv-champagne)", opacity: 0.5 }}
-        >
-          pick a time, then look around and tap what you spot!
-        </p>
-
         <div className="flex flex-col gap-3 max-w-xs mx-auto">
           {PRESETS.map((preset) => (
             <button

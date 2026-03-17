@@ -282,19 +282,6 @@ export default function HuntShell({ contexts }: HuntShellProps) {
   if (state.phase === "vibe") {
     return (
       <div>
-        <p
-          className="text-lg font-bold mb-2 text-center"
-          style={{ color: "var(--wv-champagne)" }}
-        >
-          what sounds fun?
-        </p>
-        <p
-          className="text-sm mb-6 text-center"
-          style={{ color: "var(--wv-champagne)", opacity: 0.5 }}
-        >
-          pick a vibe and we&apos;ll find you an adventure
-        </p>
-
         <div className="flex flex-col gap-3 max-w-sm mx-auto">
           {availableVibes.length === 0 && (
             <p
