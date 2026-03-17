@@ -113,25 +113,63 @@ export default function HuntShell({ contexts }: HuntShellProps) {
     setState((s) => ({ ...s, phase: "loading", vibe, error: null }));
 
     try {
-      const res = await fetch(apiUrl("/api/matcher"), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          materials: [],
-          forms: [],
-          slots: [],
-          contexts: vibe.contexts,
-          energyLevels: vibe.energyLevels.length > 0 ? vibe.energyLevels : undefined,
-        }),
-      });
+      /**
+       * Progressive fallback: try increasingly broad queries until we
+       * get results. The DB may not have the full energy/context
+       * vocabulary yet, so we gracefully degrade.
+       *
+       *   1. contexts + energyLevels (exact match)
+       *   2. contexts only (drop energy requirement)
+       *   3. energyLevels only (drop context requirement)
+       *   4. broad query with all contexts from the DB (show anything)
+       */
+      const tryFetch = async (
+        contexts: string[],
+        energyLevels: string[],
+      ): Promise<MatcherResult | null> => {
+        // must have at least one filter for the API
+        if (contexts.length === 0 && energyLevels.length === 0) return null;
+        const res = await fetch(apiUrl("/api/matcher"), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            materials: [],
+            forms: [],
+            slots: [],
+            contexts,
+            energyLevels: energyLevels.length > 0 ? energyLevels : undefined,
+          }),
+        });
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.error || `request failed (${res.status})`);
+        }
+        return res.json() as Promise<MatcherResult>;
+      };
 
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || `request failed (${res.status})`);
+      let data: MatcherResult | null = null;
+
+      // 1. exact: both contexts + energy
+      if (vibe.contexts.length > 0 || vibe.energyLevels.length > 0) {
+        data = await tryFetch(vibe.contexts, vibe.energyLevels);
       }
 
-      const data: MatcherResult = await res.json();
-      const top3 = data.ranked.slice(0, 3);
+      // 2. drop energy, keep contexts
+      if ((!data || data.ranked.length === 0) && vibe.contexts.length > 0) {
+        data = await tryFetch(vibe.contexts, []);
+      }
+
+      // 3. drop contexts, keep energy
+      if ((!data || data.ranked.length === 0) && vibe.energyLevels.length > 0) {
+        data = await tryFetch([], vibe.energyLevels);
+      }
+
+      // 4. broadest: just use "classroom" (known to exist in DB)
+      if (!data || data.ranked.length === 0) {
+        data = await tryFetch(["classroom"], []);
+      }
+
+      const top3 = data?.ranked.slice(0, 3) ?? [];
 
       if (top3.length === 0) {
         setState((s) => ({
