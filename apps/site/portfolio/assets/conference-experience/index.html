@@ -81,6 +81,7 @@ body { font-family: var(--font-body); font-size: 16px; color: var(--grey1); }
   user-select: none;
 }
 .room-object:hover { transform: scale(1.02); }
+.speaker-area:hover { transform: translateX(-50%) scale(1.00); }
 
 /* motivational poster */
 .poster {
@@ -191,6 +192,14 @@ body { font-family: var(--font-body); font-size: 16px; color: var(--grey1); }
   text-decoration-color: rgba(95,158,160,0.4);
   text-underline-offset: 3px;
 }
+@keyframes roomShake {
+  0% { transform: translateX(0); }
+  20% { transform: translateX(-3px); }
+  40% { transform: translateX(3px); }
+  60% { transform: translateX(-2px); }
+  80% { transform: translateX(1px); }
+  100% { transform: translateX(0); }
+}
 @keyframes alivePulse {
   0%, 100% { text-shadow: 0 0 0px transparent; opacity: 0.7; }
   50% { text-shadow: 0 0 18px rgba(95,158,160,0.6), 0 0 4px rgba(95,158,160,0.3); opacity: 1; }
@@ -279,31 +288,109 @@ body { font-family: var(--font-body); font-size: 16px; color: var(--grey1); }
 }
 .s1-text {
   font-family: var(--font-body); font-size: 18px;
-  color: var(--grey2); opacity: 0;
+  color: var(--grey1); opacity: 0;
   transition: opacity 1s ease;
   cursor: pointer;
   margin-top: 40px;
+  background: #fff;
+  padding: 20px 32px;
+  border-radius: 12px;
+  box-shadow: 0 6px 30px rgba(0,0,0,0.15);
+  position: relative;
+  z-index: 20;
 }
 .s1-text.visible { opacity: 1; }
 .s1-text::after {
   content: ' →'; font-size: 14px; opacity: 0.4;
 }
+.s1-text::before {
+  content: ''; position: absolute;
+  bottom: -10px; left: 50%; transform: translateX(-50%);
+  width: 0; height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 10px solid #fff;
+}
 
 /* ── SCREEN 2 ── */
 #screen-2 {
   background: var(--champagne);
-  padding: 40px 60px;
+  padding: 30px 40px;
   overflow-y: auto;
 }
 .hunt-container {
-  width: 100%; max-width: 1100px; min-height: 100%;
-  display: flex; position: relative;
+  width: 100%; max-width: 1200px; min-height: 100%;
+  display: flex; gap: 20px; position: relative;
 }
-.hunt-main {
-  flex: 1; display: flex; flex-direction: column;
-  justify-content: center; padding-right: 240px;
-  overflow-y: auto; max-height: 100vh;
-  padding-bottom: 40px;
+.conference-map {
+  flex: 1; position: relative;
+  display: flex; align-items: center; justify-content: center;
+}
+.conference-map svg#venue-map {
+  width: 100%; max-width: 740px; height: auto;
+  max-height: calc(100vh - 100px);
+}
+.hunt-sidebar {
+  width: 180px; flex-shrink: 0;
+  display: flex; flex-direction: column; gap: 16px;
+  padding-top: 10px;
+}
+/* map zones */
+.map-zone { cursor: pointer; transition: opacity 0.3s ease; }
+.map-zone:hover .zone-bg { filter: brightness(1.08); }
+.map-zone.locked { cursor: default; opacity: 0.5; }
+.map-zone.locked:hover .zone-bg { filter: none; }
+.map-zone.active .zone-bg {
+  animation: zonePulse 2s ease-in-out infinite;
+}
+.map-zone.completed { opacity: 1; }
+.zone-check { opacity: 0; transition: opacity 0.5s ease; }
+.map-zone.completed .zone-check { opacity: 1; }
+@keyframes zonePulse {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.15); }
+}
+@keyframes shakeNo {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(2px); }
+}
+#map-avatar { transition: transform 0.8s ease; }
+/* hunt modal overlay */
+.hunt-modal {
+  position: absolute; inset: 0; z-index: 20;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(247,231,206,0.88);
+  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+.hunt-modal.visible { opacity: 1; pointer-events: auto; }
+.hunt-modal-card {
+  background: #fff; border-radius: 12px; padding: 28px 32px;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.1);
+  max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto;
+}
+.clue-overlay {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%); z-index: 15;
+  background: #fff; border-radius: 10px; padding: 20px 24px;
+  box-shadow: 0 6px 30px rgba(0,0,0,0.12);
+  max-width: 360px; text-align: center;
+  opacity: 0; transition: opacity 0.4s ease; pointer-events: none;
+}
+.clue-overlay.visible { opacity: 1; pointer-events: auto; }
+.clue-overlay .clue-text {
+  font-family: var(--font-body); font-size: 14px;
+  color: var(--grey2); line-height: 1.6; font-style: italic;
+  margin-bottom: 12px;
+}
+.clue-overlay .clue-dismiss {
+  padding: 6px 16px; background: var(--cadet); color: #fff;
+  border: none; border-radius: 6px; font-family: var(--font-body);
+  font-size: 13px; cursor: pointer;
 }
 .hunt-narration {
   font-family: var(--font-body); font-size: 17px;
@@ -319,6 +406,7 @@ body { font-family: var(--font-body); font-size: 16px; color: var(--grey1); }
   transition: all 0.5s ease 0.3s;
 }
 .hunt-interaction.visible { opacity: 1; transform: translateY(0); }
+.hunt-modal .hunt-interaction { opacity: 1; transform: none; }
 
 /* QR card */
 .qr-card {
@@ -427,17 +515,9 @@ body { font-family: var(--font-body); font-size: 16px; color: var(--grey1); }
   font-size: 13px; color: var(--cadet); font-weight: 500;
 }
 
-/* floor plan */
-.floor-plan {
-  position: absolute; top: 30px; right: 30px;
-  width: 180px; z-index: 5;
-}
-.floor-plan svg { width: 100%; }
-
 /* group panel */
 .group-panel {
-  position: absolute; right: 30px; top: 240px;
-  width: 180px; z-index: 5;
+  width: 100%;
 }
 .group-title {
   font-size: 12px; text-transform: uppercase;
@@ -984,6 +1064,54 @@ body { font-family: var(--font-body); font-size: 16px; color: var(--grey1); }
 .narrator-toggle .narrator-icon {
   width: 14px; height: 14px; opacity: 0.7;
 }
+
+/* ── GREY/COLOUR TOGGLE ── */
+.grey-toggle {
+  position: fixed; top: 16px; right: 120px; z-index: 60;
+  display: flex; align-items: center; gap: 0;
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 20px; padding: 3px 4px;
+  cursor: pointer; user-select: none;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+.grey-toggle.visible { opacity: 1; pointer-events: auto; }
+.grey-toggle-label {
+  font-family: var(--font-body); font-size: 11px;
+  color: var(--grey4); padding: 4px 10px;
+  transition: color 0.3s ease, font-weight 0.3s ease;
+  white-space: nowrap;
+}
+.grey-toggle-label.active { color: var(--grey1); font-weight: 600; }
+.grey-toggle-thumb {
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--grey5);
+  transition: transform 0.3s ease, background 0.3s ease;
+  flex-shrink: 0;
+}
+.grey-toggle.on .grey-toggle-thumb {
+  transform: translateX(0);
+  background: var(--cadet);
+}
+.grey-toggle:not(.on) .grey-toggle-thumb {
+  transform: translateX(0);
+  background: var(--grey4);
+}
+.grey-toggle-tooltip {
+  position: absolute; top: calc(100% + 6px); left: 50%;
+  transform: translateX(-50%);
+  background: var(--grey1); color: #fff;
+  padding: 5px 10px; border-radius: 5px;
+  font-family: var(--font-body); font-size: 11px;
+  font-style: italic; white-space: nowrap;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+.grey-toggle:hover .grey-toggle-tooltip { opacity: 1; }
+.room-greyscale { transition: filter 0.4s ease; }
+
 .narrator-overlay {
   position: fixed; bottom: 70px; left: 50%;
   transform: translateX(-50%);
@@ -1077,7 +1205,7 @@ body { font-family: var(--font-body); font-size: 16px; color: var(--grey1); }
     </div>
 
     <!-- speaker area -->
-    <div class="room-object speaker-area" id="speaker" data-response="slide 47 of 112." role="button" aria-label="presentation slide" tabindex="0">
+    <div class="room-object speaker-area" id="speaker" data-response="you've seen this deck before. everyone has." role="button" aria-label="presentation slide" tabindex="0">
       <div class="slide-screen" id="slide-screen">
         <div class="slide-title">evidence-based<br>pedagogical frameworks</div>
         <div class="slide-bullets">
@@ -1159,6 +1287,14 @@ body { font-family: var(--font-body); font-size: 16px; color: var(--grey1); }
   <div id="narrator-text"></div>
 </div>
 
+<!-- grey/colour toggle -->
+<div class="grey-toggle" id="grey-toggle" role="switch" aria-checked="true" aria-label="toggle between grey and colour view" tabindex="0">
+  <span class="grey-toggle-label left" id="gt-left">the usual</span>
+  <span class="grey-toggle-thumb"></span>
+  <span class="grey-toggle-label right active" id="gt-right">alive</span>
+  <span class="grey-toggle-tooltip">see the difference design makes.</span>
+</div>
+
 <!-- ════════ SCREEN 1 — TRANSFORMATION LINGER ════════ -->
 <div id="screen-1" class="screen">
   <div class="s1-text" id="s1-text">want to see what just happened?</div>
@@ -1167,42 +1303,175 @@ body { font-family: var(--font-body); font-size: 16px; color: var(--grey1); }
 <!-- ════════ SCREEN 2 — THE HUNT ════════ -->
 <div id="screen-2" class="screen">
   <div class="hunt-container">
-    <div class="hunt-main" id="hunt-main"></div>
+    <!-- interactive conference map -->
+    <div class="conference-map" id="conference-map">
+      <svg id="venue-map" viewBox="0 0 740 500" xmlns="http://www.w3.org/2000/svg">
+        <!-- background -->
+        <rect width="740" height="500" rx="16" fill="#f5ead4" stroke="#c4a882" stroke-width="2"/>
+        <!-- title -->
+        <text x="370" y="28" text-anchor="middle" font-size="11" fill="#A0522D" font-family="Fraunces,serif" letter-spacing="2" text-transform="uppercase">LEARNING FORWARD SUMMIT 2025 — VENUE MAP</text>
+        <!-- corridors -->
+        <rect x="220" y="45" width="30" height="405" rx="4" fill="#ede3d0"/>
+        <rect x="20" y="230" width="700" height="30" rx="4" fill="#ede3d0"/>
+        <!-- decorative plants -->
+        <circle cx="235" cy="225" r="8" fill="#b8c9a0" opacity="0.5"/>
+        <circle cx="235" cy="275" r="8" fill="#b8c9a0" opacity="0.5"/>
+        <circle cx="500" cy="245" r="6" fill="#b8c9a0" opacity="0.4"/>
 
-    <!-- floor plan -->
-    <div class="floor-plan">
-      <svg viewBox="0 0 180 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect x="2" y="2" width="176" height="196" rx="6" stroke="#A0522D" stroke-width="1.5" fill="none"/>
-        <rect id="fp-reg" x="10" y="10" width="160" height="52" rx="4" fill="#e8e8e8" stroke="#ccc" stroke-width="1"/>
-        <text x="90" y="40" text-anchor="middle" font-size="9" fill="#999" font-family="Inter, sans-serif">registration wall</text>
-        <rect id="fp-coffee" x="10" y="72" width="160" height="52" rx="4" fill="#e8e8e8" stroke="#ccc" stroke-width="1"/>
-        <text x="90" y="102" text-anchor="middle" font-size="9" fill="#999" font-family="Inter, sans-serif">coffee station</text>
-        <rect id="fp-board" x="10" y="134" width="160" height="52" rx="4" fill="#e8e8e8" stroke="#ccc" stroke-width="1"/>
-        <text x="90" y="164" text-anchor="middle" font-size="9" fill="#999" font-family="Inter, sans-serif">session board</text>
+        <!-- ZONE: Registration & Welcome (top-left) -->
+        <g id="zone-registration" class="map-zone active" data-zone="registration">
+          <rect class="zone-bg" x="20" y="45" width="195" height="175" rx="10" fill="#F7E7CE" stroke="#A0522D" stroke-width="1.5"/>
+          <!-- table -->
+          <rect x="60" y="100" width="110" height="20" rx="3" fill="#d4c4a8" stroke="#c4a882" stroke-width="0.8"/>
+          <!-- person behind table -->
+          <circle cx="115" cy="82" r="8" fill="#E97451" opacity="0.6"/>
+          <rect x="110" y="91" width="10" height="8" rx="2" fill="#E97451" opacity="0.4"/>
+          <!-- chairs -->
+          <rect x="70" y="140" width="12" height="12" rx="2" fill="#d4c4a8" opacity="0.6"/>
+          <rect x="100" y="140" width="12" height="12" rx="2" fill="#d4c4a8" opacity="0.6"/>
+          <rect x="130" y="140" width="12" height="12" rx="2" fill="#d4c4a8" opacity="0.6"/>
+          <!-- icon: clipboard -->
+          <rect x="30" y="55" width="14" height="18" rx="2" fill="none" stroke="#A0522D" stroke-width="1.2"/>
+          <line x1="34" y1="62" x2="40" y2="62" stroke="#A0522D" stroke-width="0.8"/>
+          <line x1="34" y1="66" x2="40" y2="66" stroke="#A0522D" stroke-width="0.8"/>
+          <text x="108" y="195" text-anchor="middle" font-size="10" fill="#A0522D" font-family="Inter,sans-serif" font-weight="500">registration</text>
+          <!-- checkmark -->
+          <circle class="zone-check" cx="195" cy="60" r="10" fill="#5F9EA0"/>
+          <path class="zone-check" d="M189 60 L193 64 L201 56" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+        </g>
+
+        <!-- ZONE: Coffee Station (top-right) -->
+        <g id="zone-coffee" class="map-zone locked" data-zone="coffee">
+          <rect class="zone-bg" x="255" y="45" width="220" height="175" rx="10" fill="#fce8db" stroke="#E97451" stroke-width="1.5"/>
+          <!-- round tables -->
+          <circle cx="310" cy="110" r="16" fill="#ede3d0" stroke="#d4c4a8" stroke-width="0.8"/>
+          <circle cx="370" cy="130" r="14" fill="#ede3d0" stroke="#d4c4a8" stroke-width="0.8"/>
+          <circle cx="430" cy="105" r="16" fill="#ede3d0" stroke="#d4c4a8" stroke-width="0.8"/>
+          <!-- cups on tables -->
+          <rect x="305" y="106" width="6" height="5" rx="1" fill="#A0522D" opacity="0.4"/>
+          <rect x="425" y="101" width="6" height="5" rx="1" fill="#A0522D" opacity="0.4"/>
+          <!-- icon: coffee cup -->
+          <rect x="265" y="55" width="12" height="14" rx="2" fill="none" stroke="#E97451" stroke-width="1.2"/>
+          <path d="M277 59 Q283 59 283 65 Q283 69 277 69" fill="none" stroke="#E97451" stroke-width="0.8"/>
+          <path d="M267 53 Q271 48 275 53" fill="none" stroke="#E97451" stroke-width="0.8" opacity="0.5"/>
+          <text x="365" y="195" text-anchor="middle" font-size="10" fill="#E97451" font-family="Inter,sans-serif" font-weight="500">coffee station</text>
+          <circle class="zone-check" cx="455" cy="60" r="10" fill="#5F9EA0"/>
+          <path class="zone-check" d="M449 60 L453 64 L461 56" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+        </g>
+
+        <!-- ZONE: Networking Lounge (top-far-right) -->
+        <g id="zone-lounge" class="map-zone locked" data-zone="lounge">
+          <rect class="zone-bg" x="480" y="45" width="240" height="175" rx="10" fill="#f0e8d8" stroke="#c4a882" stroke-width="1.5"/>
+          <!-- chairs in clusters -->
+          <rect x="510" y="90" width="40" height="14" rx="6" fill="#d4c4a8" opacity="0.7"/>
+          <rect x="520" y="110" width="30" height="14" rx="6" fill="#d4c4a8" opacity="0.5" transform="rotate(30,535,117)"/>
+          <rect x="590" y="85" width="40" height="14" rx="6" fill="#d4c4a8" opacity="0.7"/>
+          <rect x="600" y="105" width="30" height="14" rx="6" fill="#d4c4a8" opacity="0.5" transform="rotate(-20,615,112)"/>
+          <!-- speech bubble icons -->
+          <ellipse cx="550" cy="150" rx="12" ry="8" fill="none" stroke="#c4a882" stroke-width="0.8"/>
+          <ellipse cx="640" cy="145" rx="10" ry="7" fill="none" stroke="#c4a882" stroke-width="0.8"/>
+          <!-- icon -->
+          <ellipse cx="495" cy="60" rx="8" ry="5" fill="none" stroke="#A0522D" stroke-width="1"/>
+          <path d="M495 65 L492 70" stroke="#A0522D" stroke-width="0.8"/>
+          <text x="600" y="195" text-anchor="middle" font-size="10" fill="#8a7a6a" font-family="Inter,sans-serif" font-weight="500">networking lounge</text>
+        </g>
+
+        <!-- ZONE: Session Board (bottom-left) -->
+        <g id="zone-board" class="map-zone locked" data-zone="board">
+          <rect class="zone-bg" x="20" y="270" width="195" height="210" rx="10" fill="#f2e6dc" stroke="#A0522D" stroke-width="1.5"/>
+          <!-- board with cards -->
+          <rect x="40" y="290" width="155" height="100" rx="4" fill="#ede3d0" stroke="#c4a882" stroke-width="0.8"/>
+          <rect x="50" y="300" width="40" height="24" rx="2" fill="#fff" stroke="#ddd" stroke-width="0.5"/>
+          <rect x="95" y="300" width="40" height="24" rx="2" fill="#fff" stroke="#ddd" stroke-width="0.5"/>
+          <rect x="140" y="300" width="40" height="24" rx="2" fill="#fff" stroke="#ddd" stroke-width="0.5"/>
+          <rect x="50" y="334" width="40" height="24" rx="2" fill="#fff" stroke="#ddd" stroke-width="0.5"/>
+          <rect x="95" y="334" width="40" height="24" rx="2" fill="#fff" stroke="#ddd" stroke-width="0.5"/>
+          <rect x="140" y="334" width="40" height="24" rx="2" fill="#fff" stroke="#ddd" stroke-width="0.5"/>
+          <!-- starred card -->
+          <text x="115" y="348" text-anchor="middle" font-size="5" fill="#A0522D">★</text>
+          <!-- icon: grid -->
+          <rect x="30" y="280" width="14" height="14" rx="1" fill="none" stroke="#A0522D" stroke-width="1"/>
+          <line x1="37" y1="280" x2="37" y2="294" stroke="#A0522D" stroke-width="0.6"/>
+          <line x1="30" y1="287" x2="44" y2="287" stroke="#A0522D" stroke-width="0.6"/>
+          <text x="108" y="460" text-anchor="middle" font-size="10" fill="#A0522D" font-family="Inter,sans-serif" font-weight="500">session board</text>
+          <circle class="zone-check" cx="195" cy="285" r="10" fill="#5F9EA0"/>
+          <path class="zone-check" d="M189 285 L193 289 L201 281" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+        </g>
+
+        <!-- ZONE: Keynote Hall (bottom-center) -->
+        <g id="zone-keynote" class="map-zone locked" data-zone="keynote">
+          <rect class="zone-bg" x="255" y="270" width="235" height="210" rx="10" fill="#e0eded" stroke="#5F9EA0" stroke-width="1.5"/>
+          <!-- double doors -->
+          <rect x="345" y="268" width="15" height="8" rx="1" fill="#5F9EA0" opacity="0.4"/>
+          <rect x="362" y="268" width="15" height="8" rx="1" fill="#5F9EA0" opacity="0.4"/>
+          <!-- podium -->
+          <rect x="350" y="320" width="40" height="18" rx="3" fill="#5F9EA0" opacity="0.25"/>
+          <!-- audience rows -->
+          <rect x="300" y="370" width="140" height="8" rx="3" fill="#c4d8d8" opacity="0.4"/>
+          <rect x="310" y="390" width="120" height="8" rx="3" fill="#c4d8d8" opacity="0.3"/>
+          <rect x="320" y="410" width="100" height="8" rx="3" fill="#c4d8d8" opacity="0.2"/>
+          <!-- screen -->
+          <rect x="330" y="290" width="60" height="22" rx="2" fill="#fff" stroke="#5F9EA0" stroke-width="0.8" opacity="0.5"/>
+          <text x="372" y="460" text-anchor="middle" font-size="10" fill="#5F9EA0" font-family="Inter,sans-serif" font-weight="500">keynote hall</text>
+        </g>
+
+        <!-- ZONE: Workshop Rooms (bottom-right) -->
+        <g id="zone-workshop" class="map-zone locked" data-zone="workshop">
+          <rect class="zone-bg" x="495" y="270" width="225" height="210" rx="10" fill="#f5eed8" stroke="#c4a882" stroke-width="1.5"/>
+          <!-- corridor with doors -->
+          <rect x="510" y="310" width="50" height="40" rx="4" fill="#ede3d0" stroke="#c4a882" stroke-width="0.8"/>
+          <text x="535" y="335" text-anchor="middle" font-size="7" fill="#8a7a6a">4a</text>
+          <rect x="570" y="310" width="50" height="40" rx="4" fill="#ede3d0" stroke="#c4a882" stroke-width="0.8"/>
+          <text x="595" y="335" text-anchor="middle" font-size="7" fill="#A0522D" font-weight="600">4b</text>
+          <rect x="630" y="310" width="50" height="40" rx="4" fill="#ede3d0" stroke="#c4a882" stroke-width="0.8"/>
+          <text x="655" y="335" text-anchor="middle" font-size="7" fill="#8a7a6a">4c</text>
+          <!-- tables inside rooms -->
+          <rect x="520" y="365" width="30" height="10" rx="2" fill="#d4c4a8" opacity="0.4"/>
+          <rect x="580" y="365" width="30" height="10" rx="2" fill="#d4c4a8" opacity="0.4"/>
+          <!-- icon: door -->
+          <rect x="505" y="280" width="10" height="14" rx="1" fill="none" stroke="#A0522D" stroke-width="1"/>
+          <circle cx="513" cy="287" r="1.5" fill="#A0522D"/>
+          <text x="607" y="460" text-anchor="middle" font-size="10" fill="#8a7a6a" font-family="Inter,sans-serif" font-weight="500">workshop rooms</text>
+        </g>
+
+        <!-- attendee avatar -->
+        <g id="map-avatar" transform="translate(108,120)">
+          <circle r="14" fill="#E97451" stroke="#fff" stroke-width="2"/>
+          <circle r="6" cy="-5" fill="#fff" opacity="0.3"/>
+          <rect x="-5" y="2" width="10" height="6" rx="2" fill="#fff" opacity="0.3"/>
+          <text text-anchor="middle" y="4" font-size="8" fill="#fff" font-family="Inter,sans-serif" font-weight="600">#47</text>
+        </g>
       </svg>
+
+      <!-- clue card overlay -->
+      <div class="clue-overlay" id="clue-overlay"></div>
+      <!-- modal overlay for SJT / interactions -->
+      <div class="hunt-modal" id="hunt-modal"></div>
     </div>
 
-    <!-- group panel -->
-    <div class="group-panel">
-      <div class="group-title">your group</div>
-      <div class="group-subtitle" style="font-size:11px;color:var(--grey4);font-style:italic;margin:-6px 0 10px;">playful networking — matched by your scenario answers</div>
-      <div class="avatar-slot" id="avatar-1">
-        <div class="avatar-circle" style="background:var(--sienna);">
-          <svg viewBox="0 0 36 36" width="36" height="36"><circle cx="18" cy="13" r="7" fill="#fff" opacity="0.3"/><path d="M6 36 Q6 24, 18 22 Q30 24, 30 36" fill="#fff" opacity="0.3"/><text x="18" y="17" text-anchor="middle" font-size="11" fill="#fff" font-family="Fraunces,serif" font-weight="600">J</text></svg>
+    <!-- sidebar -->
+    <div class="hunt-sidebar">
+      <div class="group-panel">
+        <div class="group-title">your group</div>
+        <div class="group-subtitle" style="font-size:11px;color:var(--grey4);font-style:italic;margin:-6px 0 10px;">playful networking — matched by your scenario answers</div>
+        <div class="avatar-slot" id="avatar-1">
+          <div class="avatar-circle" style="background:var(--sienna);">
+            <svg viewBox="0 0 36 36" width="36" height="36"><circle cx="18" cy="13" r="7" fill="#fff" opacity="0.3"/><path d="M6 36 Q6 24, 18 22 Q30 24, 30 36" fill="#fff" opacity="0.3"/><text x="18" y="17" text-anchor="middle" font-size="11" fill="#fff" font-family="Fraunces,serif" font-weight="600">J</text></svg>
+          </div>
+          <div class="avatar-name">jamie</div>
         </div>
-        <div class="avatar-name">jamie</div>
-      </div>
-      <div class="avatar-slot" id="avatar-2">
-        <div class="avatar-circle" style="background:var(--cadet);">
-          <svg viewBox="0 0 36 36" width="36" height="36"><circle cx="18" cy="13" r="7" fill="#fff" opacity="0.3"/><path d="M6 36 Q6 24, 18 22 Q30 24, 30 36" fill="#fff" opacity="0.3"/><text x="18" y="17" text-anchor="middle" font-size="11" fill="#fff" font-family="Fraunces,serif" font-weight="600">S</text></svg>
+        <div class="avatar-slot" id="avatar-2">
+          <div class="avatar-circle" style="background:var(--cadet);">
+            <svg viewBox="0 0 36 36" width="36" height="36"><circle cx="18" cy="13" r="7" fill="#fff" opacity="0.3"/><path d="M6 36 Q6 24, 18 22 Q30 24, 30 36" fill="#fff" opacity="0.3"/><text x="18" y="17" text-anchor="middle" font-size="11" fill="#fff" font-family="Fraunces,serif" font-weight="600">S</text></svg>
+          </div>
+          <div class="avatar-name">sam</div>
         </div>
-        <div class="avatar-name">sam</div>
-      </div>
-      <div class="avatar-slot" id="avatar-3">
-        <div class="avatar-circle" style="background:var(--redwood);">
-          <svg viewBox="0 0 36 36" width="36" height="36"><circle cx="18" cy="13" r="7" fill="#fff" opacity="0.3"/><path d="M6 36 Q6 24, 18 22 Q30 24, 30 36" fill="#fff" opacity="0.3"/><text x="18" y="17" text-anchor="middle" font-size="11" fill="#fff" font-family="Fraunces,serif" font-weight="600">P</text></svg>
+        <div class="avatar-slot" id="avatar-3">
+          <div class="avatar-circle" style="background:var(--redwood);">
+            <svg viewBox="0 0 36 36" width="36" height="36"><circle cx="18" cy="13" r="7" fill="#fff" opacity="0.3"/><path d="M6 36 Q6 24, 18 22 Q30 24, 30 36" fill="#fff" opacity="0.3"/><text x="18" y="17" text-anchor="middle" font-size="11" fill="#fff" font-family="Fraunces,serif" font-weight="600">P</text></svg>
+          </div>
+          <div class="avatar-name">priya</div>
         </div>
-        <div class="avatar-name">priya</div>
       </div>
     </div>
   </div>
@@ -1272,7 +1541,12 @@ const STAGES = [
     narration: 'This isn\'t a sit-and-listen keynote. The speaker shares research-backed provocations, then asks the whole room to draw, build, and name what they\'re making. 47 people respond at once — participation at scale.',
     designIntent: 'A keynote that makes the audience create, not just consume. The drawing prompt and shared wall demonstrate that participation scales. The build activity turns inspiration into artefact.' },
   { id: 4, key: 'workshop', label: 'Workshop & Debrief', time: '14:00', showDot: true, init: () => initWorkshop(),
-    narration: 'Now you\'re journaling — making sense of what you learned. Card 1 is private (your reflections). Card 2 is shared (the room sees your answer). Card 3 is a choice (what do you want next?). This could be a printed journal, a companion app, or both — a physical-digital bridge between the conference and your Monday morning.',
+    narration: 'You walk into room 4b and your cohort is already there — jamie, sam, and priya. You were matched by how you answered the scavenger hunt scenarios. The workshop hasn\'t started yet, but you already have something to talk about.',
+    subNarrations: {
+      workshop: 'You walk into room 4b and your cohort is already there — jamie, sam, and priya. You were matched by how you answered the scavenger hunt scenarios. The workshop hasn\'t started yet, but you already have something to talk about.',
+      documentation: 'This is the journaling moment. Each card scaffolds a different depth of reflection: card 1 is private (just for you), card 2 is shared (the room sees your answer), and card 3 is a choice about what comes next. Imagine a printed journal on the table and a companion app on your phone — a physical-digital record that travels home with you.',
+      dashboard: 'Everything the attendee just did — the scenarios, the drawing, the reflections, the choices — becomes measurable learning data. This is what the conference buyer sees: engagement scores, learning signals, connection metrics. They had fun. You have evidence.',
+    },
     designIntent: 'The debrief uses progressive disclosure to scaffold reflection depth. Private → shared → choice. The dashboard reframes all of this as measurable learning data for the buyer.' },
   { id: 5, key: 'final', label: 'Close & Next Steps', time: '16:00', showDot: true, init: () => initFinal(),
     narration: 'You\'ve just experienced what a conference can feel like when every touchpoint is intentionally designed. The question isn\'t "did you like it?" — it\'s "what are you trying to change?"',
@@ -1296,6 +1570,8 @@ const state = {
   debriefStep: 0,
   privateReflection: '',
   socialShare: '',
+  greyMode: false,
+  transformDone: false,
 };
 
 const sjtResponses = {
@@ -1349,6 +1625,11 @@ function goToScreen(n, transition) {
   // update progress dots + narrator
   updateProgress(n);
   updateNarrator();
+
+  // grey/colour toggle visibility (only screens 0-1)
+  const greyToggle = document.getElementById('grey-toggle');
+  if (n > 1) greyToggle.classList.remove('visible');
+  else if (state.transformDone) greyToggle.classList.add('visible');
 }
 
 function updateProgress(n) {
@@ -1403,14 +1684,18 @@ function buildProgressBar() {
 buildProgressBar();
 
 /* ── NARRATOR MODE ── */
-function updateNarrator() {
+function updateNarrator(subKey) {
   const overlay = document.getElementById('narrator-overlay');
   const label = document.getElementById('narrator-stage-label');
   const text = document.getElementById('narrator-text');
   const stage = STAGES.find(s => s.id === state.screen);
   if (!stage) return;
   label.textContent = stage.label;
-  text.textContent = stage.narration;
+  if (subKey && stage.subNarrations && stage.subNarrations[subKey]) {
+    text.textContent = stage.subNarrations[subKey];
+  } else {
+    text.textContent = stage.narration;
+  }
   if (state.narratorOn) overlay.classList.add('visible');
   else overlay.classList.remove('visible');
 }
@@ -1419,6 +1704,22 @@ document.getElementById('narrator-toggle').addEventListener('click', () => {
   state.narratorOn = !state.narratorOn;
   document.getElementById('narrator-toggle').classList.toggle('active', state.narratorOn);
   updateNarrator();
+});
+
+/* ── GREY/COLOUR TOGGLE ── */
+document.getElementById('grey-toggle').addEventListener('click', () => {
+  if (!state.transformDone) return;
+  state.greyMode = !state.greyMode;
+  const toggle = document.getElementById('grey-toggle');
+  const room = document.getElementById('room');
+  toggle.classList.toggle('on', !state.greyMode);
+  document.getElementById('gt-left').classList.toggle('active', state.greyMode);
+  document.getElementById('gt-right').classList.toggle('active', !state.greyMode);
+  room.classList.add('room-greyscale');
+  room.style.filter = state.greyMode ? 'grayscale(100%)' : 'none';
+});
+document.getElementById('grey-toggle').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); document.getElementById('grey-toggle').click(); }
 });
 
 /* ═══════════════════════════════════════════
@@ -1512,15 +1813,38 @@ function triggerTransformation(e) {
   const cx = wordRect.left - roomRect.left + wordRect.width / 2;
   const cy = wordRect.top - roomRect.top + wordRect.height / 2;
 
+  // slide counter text changes
+  const counter = document.querySelector('.slide-counter');
+  if (counter) { counter.textContent = 'slide 1 of ∞'; }
+  // poster text changes
+  const poster = document.getElementById('poster');
+  if (poster) { poster.innerHTML = 'learn.<br>create.<br>belong.<br><span style="font-size:12px;margin-top:6px;display:block;color:inherit;opacity:0.6;">— this conference</span>'; }
+  // clock hand jumps
+  const minuteHand = document.querySelector('.clock line:nth-of-type(2)');
+  if (minuteHand) { minuteHand.setAttribute('x2', '52'); minuteHand.setAttribute('y2', '28'); }
+
+  // brief room shake to signal something is happening
+  room.style.animation = 'roomShake 0.3s ease';
+  room.addEventListener('animationend', () => { room.style.animation = ''; }, { once: true });
+
   // hide grey layer with expanding circle mask
   const greyLayer = document.getElementById('room-grey');
   const overlay = document.getElementById('grey-overlay');
 
   let size = 0;
   const maxSize = 1800;
+  let revealDone = false;
+
+  function finishReveal() {
+    if (revealDone) return;
+    revealDone = true;
+    greyLayer.style.display = 'none';
+    overlay.style.display = 'none';
+    onTransformComplete();
+  }
 
   function animateReveal() {
-    size += 20;
+    size += 30;
     const mask = `radial-gradient(circle ${size}px at ${cx}px ${cy}px, transparent ${size - 5}px, white ${size}px)`;
     greyLayer.style.maskImage = mask;
     greyLayer.style.webkitMaskImage = mask;
@@ -1530,12 +1854,12 @@ function triggerTransformation(e) {
     if (size < maxSize) {
       requestAnimationFrame(animateReveal);
     } else {
-      greyLayer.style.display = 'none';
-      overlay.style.display = 'none';
-      onTransformComplete();
+      finishReveal();
     }
   }
   requestAnimationFrame(animateReveal);
+  // safety fallback in case rAF stalls
+  setTimeout(finishReveal, 4000);
 
   // colour the objects
   setTimeout(() => {
@@ -1551,6 +1875,9 @@ function triggerTransformation(e) {
 }
 
 function onTransformComplete() {
+  state.transformDone = true;
+  const gt = document.getElementById('grey-toggle');
+  gt.classList.add('visible', 'on');
   // linger for 3s, then show invitation
   setTimeout(() => {
     // transition to screen 1 but show the coloured room beneath
@@ -1585,19 +1912,102 @@ function onTransformComplete() {
 }
 
 /* ═══════════════════════════════════════════
-   SCREEN 2 — THE HUNT
+   SCREEN 2 — THE HUNT (MAP-BASED)
    ═══════════════════════════════════════════ */
+const zonePositions = {
+  registration: { x: 108, y: 120 },
+  coffee: { x: 365, y: 120 },
+  board: { x: 108, y: 370 },
+  keynote: { x: 372, y: 370 },
+  workshop: { x: 607, y: 370 },
+  lounge: { x: 600, y: 120 }
+};
+const huntFlow = [
+  { zone: 'registration', stop: 1, clue: 'your first clue is at the registration table. a volunteer is waiting with a folded card.' },
+  { zone: 'coffee', stop: 2, clue: 'clue unlocked! head to the coffee station — find the person whose badge has a red dot.' },
+  { zone: 'board', stop: 3, clue: 'last stop — the session board. find the workshop that matches your badge assignment.' }
+];
+
 function initHunt() {
   state.huntStop = 0;
-  showHuntStop(1);
+  state.mapZone = 'registration';
+  state.mapCompleted = [];
+  initMap();
 }
 
-function fillFloorPlan(zone) {
-  const colours = { reg: '#E97451', coffee: '#5F9EA0', board: '#A0522D' };
-  const el = document.getElementById('fp-' + zone);
-  if (el) {
-    el.style.transition = 'fill 0.6s ease';
-    el.style.fill = colours[zone];
+function initMap() {
+  updateMapState();
+  // show first clue after a short delay
+  setTimeout(() => showClueCard(huntFlow[0].clue), 600);
+
+  // set up click handlers on all zones
+  document.querySelectorAll('.map-zone').forEach(g => {
+    g.addEventListener('click', () => {
+      const zone = g.dataset.zone;
+      if (zone === state.mapZone) {
+        // correct zone — show the stop interaction
+        hideClueCard();
+        const step = huntFlow.find(h => h.zone === zone);
+        if (step) showHuntStop(step.stop);
+      } else if (!state.mapCompleted.includes(zone)) {
+        // wrong zone — shake it
+        g.style.animation = 'shakeNo 0.4s ease';
+        g.addEventListener('animationend', () => { g.style.animation = ''; }, { once: true });
+      }
+    });
+  });
+}
+
+function updateMapState() {
+  document.querySelectorAll('.map-zone').forEach(g => {
+    const zone = g.dataset.zone;
+    g.classList.remove('active', 'locked', 'completed');
+    if (state.mapCompleted.includes(zone)) g.classList.add('completed');
+    else if (zone === state.mapZone) g.classList.add('active');
+    else g.classList.add('locked');
+  });
+}
+
+function moveAvatar(zoneKey, cb) {
+  const pos = zonePositions[zoneKey];
+  if (!pos) return cb && cb();
+  const avatar = document.getElementById('map-avatar');
+  avatar.setAttribute('transform', `translate(${pos.x},${pos.y})`);
+  setTimeout(() => cb && cb(), 850);
+}
+
+function showClueCard(text) {
+  const el = document.getElementById('clue-overlay');
+  el.innerHTML = `<div class="clue-text">${text}</div><button class="clue-dismiss" id="clue-dismiss">got it</button>`;
+  el.classList.add('visible');
+  document.getElementById('clue-dismiss').addEventListener('click', hideClueCard);
+}
+function hideClueCard() {
+  document.getElementById('clue-overlay').classList.remove('visible');
+}
+
+function showMapModal(html) {
+  const modal = document.getElementById('hunt-modal');
+  modal.innerHTML = `<div class="hunt-modal-card">${html}</div>`;
+  modal.classList.add('visible');
+}
+function hideMapModal() {
+  document.getElementById('hunt-modal').classList.remove('visible');
+}
+
+function completeZone(zone) {
+  state.mapCompleted.push(zone);
+  updateMapState();
+}
+
+function advanceHunt(nextIndex) {
+  if (nextIndex < huntFlow.length) {
+    const next = huntFlow[nextIndex];
+    state.mapZone = next.zone;
+    updateMapState();
+    moveAvatar(next.zone, () => {
+      showClueCard(next.clue);
+    });
   }
 }
 
@@ -1607,159 +2017,95 @@ function unlockAvatar(n) {
 }
 
 function showHuntStop(stop) {
-  const main = document.getElementById('hunt-main');
-  main.innerHTML = '';
   state.huntStop = stop;
-
-  if (stop === 1) showStop1(main);
-  else if (stop === 2) showStop2(main);
-  else if (stop === 3) showStop3(main);
+  if (stop === 1) showStop1();
+  else if (stop === 2) showStop2();
+  else if (stop === 3) showStop3();
 }
 
-function showStop1(container) {
-  container.innerHTML = `
-    <div class="hunt-backdrop" style="text-align:center;margin-bottom:16px;">
-      <svg viewBox="0 0 400 120" width="400" height="120" style="opacity:0.18;">
-        <!-- registration table -->
-        <rect x="100" y="60" width="200" height="30" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/>
-        <text x="200" y="80" text-anchor="middle" font-size="8" fill="currentColor" font-family="Inter">REGISTRATION</text>
-        <!-- volunteer behind table -->
-        <circle cx="200" cy="35" r="12" fill="none" stroke="currentColor" stroke-width="1.5"/>
-        <rect x="190" y="48" width="20" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1"/>
-        <!-- folded card being handed over -->
-        <rect x="225" y="50" width="24" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1" transform="rotate(-15,237,58)"/>
-        <text x="237" y="61" text-anchor="middle" font-size="5" fill="currentColor" transform="rotate(-15,237,58)">QR</text>
-        <!-- attendee approaching -->
-        <circle cx="320" cy="55" r="10" fill="none" stroke="currentColor" stroke-width="1.5"/>
-        <rect x="312" y="66" width="16" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1"/>
-        <!-- arrow showing direction -->
-        <path d="M305 65 L275 60" fill="none" stroke="currentColor" stroke-width="0.8" stroke-dasharray="3 2"/>
-        <text x="200" y="108" text-anchor="middle" font-size="7" fill="currentColor" font-family="Inter">stop 1 of 3 — registration table</text>
-      </svg>
-    </div>
-    <div class="hunt-narration" id="hn">you arrive at the registration table. a volunteer smiles and slides a folded card across to you. <em>"welcome to the scavenger hunt,"</em> they say. <em>"this QR code is your first clue. answer the scenario inside, and it'll tell you where to go next."</em></div>
-    <div class="hunt-line" id="hn2" style="font-size:13px;color:var(--grey3);margin:-12px 0 16px;line-height:1.6;">
-      <strong style="color:var(--redwood);">how this works:</strong> this is a scavenger hunt with 3 stops across the venue. at each stop, you'll answer a real teaching dilemma (a situational judgement test). your answers shape who you're grouped with — and once you complete all three, you earn your personalised conference badge. follow the clues on the floor plan →
-    </div>
+function showStop1() {
+  showMapModal(`
+    <p style="font-size:13px;color:var(--grey3);font-style:italic;margin-bottom:16px;">stop 1 of 3 — registration table</p>
+    <p style="font-size:15px;color:var(--grey2);line-height:1.7;margin-bottom:20px;">the volunteer slides a folded card across the table. <em>"welcome to the scavenger hunt. answer the scenario inside, and it'll tell you where to go next."</em></p>
+    <div style="font-size:13px;color:var(--grey3);margin-bottom:16px;line-height:1.5;"><strong style="color:var(--redwood);">how this works:</strong> 3 stops, each with a real teaching dilemma. your answers shape your group — complete all three to earn your badge.</div>
     <div class="hunt-interaction" id="hi">
       <div class="qr-card" id="qr-card">
         <div class="qr-graphic"></div>
         <div class="qr-label">tap to scan your first clue</div>
       </div>
     </div>
-  `;
-  setTimeout(() => document.getElementById('hn').classList.add('visible'), 100);
-  setTimeout(() => document.getElementById('hn2').classList.add('visible'), 500);
-  setTimeout(() => document.getElementById('hi').classList.add('visible'), 700);
-
-  document.getElementById('qr-card').addEventListener('click', () => {
-    showSJT(container, 1,
-      'a student refuses to engage with a group activity. the facilitator has 30 seconds. what do they do?',
-      [
-        { key: 'a', text: 'ask them to observe and join when ready' },
-        { key: 'b', text: 'assign them a solo role within the group task' },
-        { key: 'c', text: 'pause the group and address the resistance openly' },
-        { key: 'd', text: 'let the group continue and check in privately after' },
-      ],
-      'clue unlocked → head to the coffee station. find the person whose badge has a red dot.',
-      () => {
-        fillFloorPlan('reg');
-        unlockAvatar(1);
-        showContinue(container, () => showHuntStop(2));
-      }
-    );
-  });
+  `);
+  setTimeout(() => {
+    document.getElementById('qr-card').addEventListener('click', () => {
+      showSJT(1,
+        'a student refuses to engage with a group activity. the facilitator has 30 seconds. what do they do?',
+        [
+          { key: 'a', text: 'ask them to observe and join when ready' },
+          { key: 'b', text: 'assign them a solo role within the group task' },
+          { key: 'c', text: 'pause the group and address the resistance openly' },
+          { key: 'd', text: 'let the group continue and check in privately after' },
+        ],
+        'clue unlocked → head to the coffee station.',
+        () => { completeZone('registration'); unlockAvatar(1); hideMapModal(); advanceHunt(1); }
+      );
+    });
+  }, 100);
 }
 
-function showStop2(container) {
-  container.innerHTML = `
-    <div class="hunt-backdrop" style="text-align:center;margin-bottom:16px;">
-      <svg viewBox="0 0 320 80" width="320" height="80" style="opacity:0.15;">
-        <ellipse cx="160" cy="50" rx="60" ry="20" fill="none" stroke="currentColor" stroke-width="1.5"/>
-        <path d="M130 35 Q140 15, 160 20 Q180 15, 190 35" fill="none" stroke="currentColor" stroke-width="1.5"/>
-        <circle cx="120" cy="50" r="6" fill="none" stroke="currentColor" stroke-width="1"/>
-        <circle cx="200" cy="50" r="6" fill="none" stroke="currentColor" stroke-width="1"/>
-        <text x="160" y="54" text-anchor="middle" font-size="7" fill="currentColor" font-family="Inter">COFFEE STATION</text>
-      </svg>
-    </div>
-    <div class="hunt-narration" id="hn">clue 1 led you here — the coffee station. someone with a red-dot badge is pouring coffee. they hand you a folded card and say: <em>"second scenario. your answer shapes who you sit with later."</em></div>
+function showStop2() {
+  showMapModal(`
+    <p style="font-size:13px;color:var(--grey3);font-style:italic;margin-bottom:16px;">stop 2 of 3 — coffee station</p>
+    <p style="font-size:15px;color:var(--grey2);line-height:1.7;margin-bottom:20px;">someone with a red-dot badge is pouring coffee. they hand you a folded card: <em>"second scenario. your answer shapes who you sit with later."</em></p>
     <div class="hunt-interaction" id="hi">
       <div class="coffee-card" id="coffee-card">a folded card — tap to open your second clue</div>
     </div>
-  `;
-  setTimeout(() => document.getElementById('hn').classList.add('visible'), 100);
-  setTimeout(() => document.getElementById('hi').classList.add('visible'), 400);
-
-  document.getElementById('coffee-card').addEventListener('click', () => {
-    showSJT(container, 2,
-      'a keynote speaker asks the audience a question. silence. thirty seconds pass. what should happen next?',
-      [
-        { key: 'a', text: 'the speaker answers their own question' },
-        { key: 'b', text: 'someone in the audience breaks the silence' },
-        { key: 'c', text: 'the speaker reframes the question' },
-        { key: 'd', text: 'the silence is allowed to last a little longer' },
-      ],
-      'clue unlocked → head to the session board. your workshop is: designing for belonging. room 4b. 14:00.',
-      () => {
-        fillFloorPlan('coffee');
-        unlockAvatar(2);
-        showContinue(container, () => showHuntStop(3));
-      }
-    );
-  });
+  `);
+  setTimeout(() => {
+    document.getElementById('coffee-card').addEventListener('click', () => {
+      showSJT(2,
+        'a keynote speaker asks the audience a question. silence. thirty seconds pass. what should happen next?',
+        [
+          { key: 'a', text: 'the speaker answers their own question' },
+          { key: 'b', text: 'someone in the audience breaks the silence' },
+          { key: 'c', text: 'the speaker reframes the question' },
+          { key: 'd', text: 'the silence is allowed to last a little longer' },
+        ],
+        'clue unlocked → head to the session board.',
+        () => { completeZone('coffee'); unlockAvatar(2); hideMapModal(); advanceHunt(2); }
+      );
+    });
+  }, 100);
 }
 
-function showStop3(container) {
-  container.innerHTML = `
-    <div class="hunt-backdrop" style="text-align:center;margin-bottom:16px;">
-      <svg viewBox="0 0 320 80" width="320" height="80" style="opacity:0.15;">
-        <rect x="60" y="5" width="200" height="70" rx="4" fill="none" stroke="currentColor" stroke-width="1.5"/>
-        <rect x="75" y="15" width="55" height="22" rx="2" fill="none" stroke="currentColor" stroke-width="0.8"/>
-        <rect x="135" y="15" width="55" height="22" rx="2" fill="none" stroke="currentColor" stroke-width="0.8"/>
-        <rect x="195" y="15" width="55" height="22" rx="2" fill="none" stroke="currentColor" stroke-width="0.8"/>
-        <rect x="75" y="45" width="55" height="22" rx="2" fill="none" stroke="currentColor" stroke-width="0.8"/>
-        <rect x="135" y="45" width="55" height="22" rx="2" fill="none" stroke="currentColor" stroke-width="0.8"/>
-        <rect x="195" y="45" width="55" height="22" rx="2" fill="none" stroke="currentColor" stroke-width="0.8"/>
-        <text x="160" y="82" text-anchor="middle" font-size="7" fill="currentColor" font-family="Inter">SESSION BOARD</text>
-      </svg>
-    </div>
-    <div class="hunt-narration" id="hn">final stop — the session board. your clues have brought you here. find the workshop that matches your badge assignment. (hint: look for the ★)</div>
-    <div class="hunt-interaction" id="hi">
-      <div class="session-grid" id="session-grid"></div>
-    </div>
-  `;
-
+function showStop3() {
   const sessions = [
     'assessment for equity', 'trauma-informed pedagogy', 'student voice in curriculum', 'culturally responsive teaching',
     'designing for belonging', 'neurodiversity in the classroom', 'formative feedback loops', 'restorative practices',
     'ai in education', 'project-based learning', 'inclusive design', 'community partnerships'
   ];
-  const grid = document.getElementById('session-grid');
+  let gridHTML = '<div class="session-grid" id="session-grid">';
   sessions.forEach((s, i) => {
-    const card = document.createElement('div');
-    card.className = 'session-card';
-    card.textContent = s;
-    if (i === 4) {
-      card.classList.add('starred');
-      card.addEventListener('click', () => showPersonalBadge(container));
-    }
-    if (i === 7) {
-      card.classList.add('easter-egg');
-      card.addEventListener('click', () => showEasterEgg(card, 'find someone who has never eaten at a conference buffet by choice.'));
-    }
-    if (i === 10) {
-      card.classList.add('easter-egg');
-      card.addEventListener('click', () => showEasterEgg(card, 'your afternoon co-conspirator is wearing something yellow.'));
-    }
-    grid.appendChild(card);
+    const cls = i === 4 ? ' starred' : (i === 7 || i === 10 ? ' easter-egg' : '');
+    gridHTML += `<div class="session-card${cls}" data-idx="${i}">${s}</div>`;
   });
+  gridHTML += '</div>';
 
-  setTimeout(() => document.getElementById('hn').classList.add('visible'), 100);
-  setTimeout(() => document.getElementById('hi').classList.add('visible'), 400);
+  showMapModal(`
+    <p style="font-size:13px;color:var(--grey3);font-style:italic;margin-bottom:16px;">stop 3 of 3 — session board</p>
+    <p style="font-size:15px;color:var(--grey2);line-height:1.7;margin-bottom:20px;">final stop. find the workshop that matches your badge assignment. <em>(hint: look for the ★)</em></p>
+    <div class="hunt-interaction" id="hi">${gridHTML}</div>
+  `);
+  setTimeout(() => {
+    document.querySelectorAll('.session-card').forEach(card => {
+      const idx = parseInt(card.dataset.idx);
+      if (idx === 4) card.addEventListener('click', () => showPersonalBadge());
+      if (idx === 7) card.addEventListener('click', () => showEasterEgg(card, 'find someone who has never eaten at a conference buffet by choice.'));
+      if (idx === 10) card.addEventListener('click', () => showEasterEgg(card, 'your afternoon co-conspirator is wearing something yellow.'));
+    });
+  }, 100);
 }
 
 function showEasterEgg(card, text) {
-  // remove existing tooltips
   document.querySelectorAll('.easter-tooltip').forEach(t => t.remove());
   const tip = document.createElement('div');
   tip.className = 'easter-tooltip';
@@ -1772,41 +2118,36 @@ function showEasterEgg(card, text) {
   setTimeout(() => tip.remove(), 3400);
 }
 
-function showPersonalBadge(container) {
-  const hi = document.getElementById('hi');
+function showPersonalBadge() {
   const name = state.attendeeName || 'attendee';
-  hi.innerHTML = `
-    <div class="personal-badge" id="pb">
+  showMapModal(`
+    <div class="personal-badge visible" style="opacity:1;transform:none;">
       <div class="pb-conf">horizons in learning summit 2025</div>
       <div class="pb-name">${name}</div>
       <div class="pb-session">designing for belonging · room 4b · 14:00</div>
     </div>
-    <div class="hunt-line" id="hl">you found your badge! here's the twist — jamie, sam, and priya aren't random. they were matched to you based on how you answered the scenarios. this is <strong style="color:var(--cadet);">playful networking</strong>: instead of forced small talk, you already have something in common before you even sit down. you're about to meet people who think like you do about teaching.</div>
-  `;
-  fillFloorPlan('board');
+    <p style="font-size:14px;color:var(--grey2);font-style:italic;line-height:1.7;margin-top:16px;">you found your badge! jamie, sam, and priya were matched to you based on your scenario answers. this is <strong style="color:var(--cadet);">playful networking</strong> — you already have something in common before you sit down.</p>
+    <p style="font-size:14px;color:var(--grey2);font-style:italic;margin-top:12px;">the keynote is starting.</p>
+    <button class="hunt-continue visible" id="badge-continue" style="opacity:1;margin-top:16px;">continue →</button>
+  `);
+  completeZone('board');
   unlockAvatar(3);
-  setTimeout(() => document.getElementById('pb').classList.add('visible'), 100);
-  setTimeout(() => document.getElementById('hl').classList.add('visible'), 1200);
   setTimeout(() => {
-    const trans = document.createElement('div');
-    trans.className = 'hunt-line';
-    trans.id = 'ht';
-    trans.textContent = 'the keynote is starting.';
-    container.appendChild(trans);
-    setTimeout(() => trans.classList.add('visible'), 100);
-    showContinue(container, () => goToScreen(3, 'dissolve'));
-  }, 2500);
+    document.getElementById('badge-continue').addEventListener('click', () => {
+      hideMapModal();
+      goToScreen(3, 'dissolve');
+    });
+  }, 100);
 }
 
-function showSJT(container, num, question, options, clue, onComplete) {
-  const hi = document.getElementById('hi');
-  hi.innerHTML = `
-    <div class="sjt-card">
+function showSJT(num, question, options, clue, onComplete) {
+  showMapModal(`
+    <div class="sjt-card" style="border:none;box-shadow:none;padding:0;">
       <div class="sjt-question">${question}</div>
       <ul class="sjt-options" id="sjt-opts"></ul>
       <div class="sjt-response" id="sjt-resp"></div>
     </div>
-  `;
+  `);
   const optsList = document.getElementById('sjt-opts');
   options.forEach(opt => {
     const li = document.createElement('li');
@@ -1823,22 +2164,6 @@ function showSJT(container, num, question, options, clue, onComplete) {
     });
     optsList.appendChild(li);
   });
-}
-
-function showContinue(container, onClick) {
-  const btn = document.createElement('button');
-  btn.className = 'hunt-continue';
-  btn.textContent = 'continue →';
-  btn.tabIndex = 0;
-  // append to the interaction area if it exists, otherwise container
-  const target = container.querySelector('.hunt-interaction') || container.querySelector('#hi') || container;
-  target.appendChild(btn);
-  setTimeout(() => {
-    btn.classList.add('visible');
-    btn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  }, 300);
-  btn.addEventListener('click', onClick);
-  btn.addEventListener('keydown', (e) => { if (e.key === 'Enter') onClick(); });
 }
 
 /* ═══════════════════════════════════════════
@@ -2179,6 +2504,7 @@ function initWorkshop() {
 }
 
 function showPartA(container) {
+  updateNarrator('workshop');
   const optLabels = { a: 'option a', b: 'option b', c: 'option c', d: 'option d' };
   const sjtTexts = {
     a: 'also chose to let them observe first',
@@ -2232,6 +2558,7 @@ function showPartA(container) {
 }
 
 function showPartB(container) {
+  updateNarrator('documentation');
   const section = document.createElement('div');
   section.className = 's4-section';
   section.id = 's4b';
@@ -2355,6 +2682,7 @@ function showResponseWall() {
 }
 
 function showPartC(container) {
+  updateNarrator('dashboard');
   // fold away debrief
   const debrief = document.getElementById('s4b');
   debrief.style.transition = 'all 0.8s ease';
