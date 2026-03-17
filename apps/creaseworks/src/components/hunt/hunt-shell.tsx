@@ -215,7 +215,8 @@ export default function HuntShell({ contexts }: HuntShellProps) {
     setState((s) => ({
       ...s,
       mode,
-      phase: "checklist" as const,
+      /* skip checklist if there are no items to find — go straight to unlock */
+      phase: s.items.length > 0 ? ("checklist" as const) : ("unlocked" as const),
       activePlayer: 1 as HuntPlayer,
       checked: { 1: new Set<string>(), 2: new Set<string>() },
     }));
@@ -401,8 +402,9 @@ export default function HuntShell({ contexts }: HuntShellProps) {
                 className="text-xs block mt-1"
                 style={{ color: "var(--wv-sienna)", opacity: 0.7 }}
               >
-                {pd.materials.length} thing
-                {pd.materials.length !== 1 ? "s" : ""} to find
+                {pd.materials.length > 0
+                  ? `${pd.materials.length} thing${pd.materials.length !== 1 ? "s" : ""} to find`
+                  : "free-form adventure"}
               </span>
             </button>
           ))}
