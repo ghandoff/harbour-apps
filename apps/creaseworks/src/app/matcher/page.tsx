@@ -1,42 +1,39 @@
 /**
  * /matcher — the "find" phase of find, fold, unfold, find again.
  *
- * The flat paper at rest, waiting to be noticed. This page celebrates
- * the joy of looking, noticing, and discovering what's around you.
- * Every cardboard box is a castle. Every stick is a magic wand.
+ * All four find modes live on this single page:
+ *   - classic picker  → ?mode=classic
+ *   - explore rooms   → (default, no param)
+ *   - challenge       → ?mode=challenge
+ *   - scavenger hunt  → ?mode=hunt
  *
- * Four ways to find:
- *   - explore rooms  → spatial, kid-first, emoji tiles by place
- *   - classic picker → the original tile-based material selector
- *   - challenge      → timed noticing game (separate route)
- *   - scavenger hunt → reversed matcher, go find stuff (separate route)
- *
- * Server component that fetches picker data and passes to the
- * client-side form component.
+ * Server component fetches all data once. Mode switching happens
+ * entirely client-side (no server round-trip → instant transitions).
  *
  * Background is cadet blue for contrast — UDL accessibility concern
  * with white-on-champagne readability.
  */
 
 import type { Metadata } from "next";
-import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "find",
   description:
     "look around — what do you notice? pick what you find and we'll show you something amazing to make together.",
 };
+
 import { getAllMaterials } from "@/lib/queries/materials";
 import {
   getDistinctForms,
   getDistinctSlots,
   getDistinctContexts,
 } from "@/lib/queries/matcher";
-import MatcherInputForm from "@/components/matcher/matcher-input-form";
-import RoomExplorer from "@/components/matcher/room-explorer";
-import FindModeSelector from "@/components/matcher/find-mode-selector";
+import FindPhaseShell from "@/components/matcher/find-phase-shell";
+import type { FindMode } from "@/components/matcher/find-mode-selector";
 
 export const dynamic = "force-dynamic";
+
+const VALID_MODES = new Set<FindMode>(["classic", "rooms", "challenge", "hunt"]);
 
 export default async function MatcherPage({
   searchParams,
@@ -52,91 +49,19 @@ export default async function MatcherPage({
     getDistinctContexts(),
   ]);
 
-  const mode = params.mode === "classic" ? "classic" : "rooms";
+  const raw = params.mode as FindMode | undefined;
+  const initialMode: FindMode =
+    raw && VALID_MODES.has(raw) ? raw : "rooms";
 
   return (
     <main className="px-4 pt-8 pb-24 sm:px-6 sm:pt-14 sm:pb-16">
-      {/* ── header zone — same width + height on all find modes ── */}
-      <div className="max-w-2xl mx-auto">
-        <Link
-          href="/"
-          className="text-sm hover:opacity-80 transition-opacity mb-5 sm:mb-7 inline-flex items-center gap-1.5"
-          style={{ color: "var(--wv-champagne)", opacity: 0.45 }}
-        >
-          <span>&larr;</span> creaseworks
-        </Link>
-
-        {/* ── playful hero heading — fixed min-height ────────── */}
-        <div className="relative mb-6 sm:mb-8" style={{ minHeight: 152 }}>
-          {/* decorative floating shapes — desktop only */}
-          <div
-            className="hidden sm:block absolute -left-10 top-2 w-5 h-5 rounded-lg"
-            style={{
-              backgroundColor: "var(--wv-champagne)",
-              opacity: 0.15,
-              transform: "rotate(12deg)",
-            }}
-          />
-          <div
-            className="hidden sm:block absolute -left-6 top-12 w-3 h-3 rounded-full"
-            style={{
-              backgroundColor: "var(--wv-sienna)",
-              opacity: 0.2,
-            }}
-          />
-          <div
-            className="hidden sm:block absolute -right-6 top-4 w-4 h-4 rounded-full"
-            style={{
-              backgroundColor: "var(--wv-redwood)",
-              opacity: 0.15,
-            }}
-          />
-
-          <h1
-            className="text-3xl sm:text-4xl font-bold tracking-tight mb-3"
-            style={{ color: "var(--wv-champagne)" }}
-          >
-            what do you notice?{" "}
-            <span
-              className="inline-block"
-              style={{
-                animation: "heroWave 2s ease-in-out infinite",
-              }}
-            >
-              👀
-            </span>
-          </h1>
-          <p
-            className="text-base sm:text-lg leading-relaxed max-w-xl"
-            style={{ color: "var(--wv-champagne)", opacity: 0.55 }}
-          >
-            look around — what stuff do you have? cardboard boxes, sticks, old
-            t-shirts, tape? pick what you find and we&apos;ll show you what
-            these can become.
-          </p>
-        </div>
-
-        {/* ── find mode links ──────────────────────────────── */}
-        <FindModeSelector currentMode={mode} />
-      </div>
-
-      {/* ── content zone — can be wider for rooms/classic ──── */}
-      <div className="max-w-5xl mx-auto">
-        {mode === "rooms" ? (
-          <RoomExplorer
-            materials={materials}
-            slots={slots}
-            contexts={contexts}
-          />
-        ) : (
-          <MatcherInputForm
-            materials={materials}
-            forms={forms}
-            slots={slots}
-            contexts={contexts}
-          />
-        )}
-      </div>
+      <FindPhaseShell
+        initialMode={initialMode}
+        materials={materials}
+        forms={forms}
+        slots={slots}
+        contexts={contexts}
+      />
 
       <style>{`
         @keyframes heroWave {
