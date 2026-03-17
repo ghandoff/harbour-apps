@@ -1,0 +1,2161 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>innovate forward summit 2025</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cadet: #5F9EA0;
+  --redwood: #A0522D;
+  --sienna: #E97451;
+  --champagne: #F7E7CE;
+  --grey1: #2a2a2a;
+  --grey2: #4a4a4a;
+  --grey3: #6a6a6a;
+  --grey4: #8a8a8a;
+  --grey5: #aaa;
+  --grey6: #ccc;
+  --grey7: #e0e0e0;
+  --grey8: #f0f0f0;
+  --font-display: 'Fraunces', serif;
+  --font-body: 'Inter', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: #1a1a1a; }
+body { font-family: var(--font-body); font-size: 16px; color: var(--grey1); }
+
+.screen {
+  position: fixed; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.6s ease;
+  z-index: 0;
+}
+.screen.active { opacity: 1; pointer-events: auto; z-index: 10; }
+.screen.beneath { opacity: 1; pointer-events: none; z-index: 5; }
+
+/* ── SCREEN 0 ── */
+#screen-0 { background: var(--grey7); }
+.room {
+  position: relative; width: 1100px; height: 650px;
+  background: var(--grey7);
+  border-radius: 8px; overflow: hidden;
+}
+.room-coloured {
+  position: absolute; inset: 0; z-index: 1;
+}
+.room-coloured .wall {
+  position: absolute; top: 0; left: 0; right: 0; height: 65%;
+  background: linear-gradient(180deg, var(--champagne) 0%, #f5e6c8 100%);
+}
+.room-coloured .floor-area {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 35%;
+  background: linear-gradient(180deg, #c4a882 0%, #b8996f 100%);
+}
+.room-grey {
+  position: absolute; inset: 0; z-index: 1;
+}
+.room-grey .wall {
+  position: absolute; top: 0; left: 0; right: 0; height: 65%;
+  background: linear-gradient(180deg, var(--grey7) 0%, #d8d8d8 100%);
+}
+.room-grey .floor-area {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 35%;
+  background: linear-gradient(180deg, #b0b0b0 0%, #a0a0a0 100%);
+}
+.grey-overlay {
+  position: absolute; inset: 0; z-index: 2;
+  backdrop-filter: grayscale(1) contrast(0.9);
+  -webkit-backdrop-filter: grayscale(1) contrast(0.9);
+  pointer-events: none;
+}
+
+.room-object {
+  position: absolute; z-index: 3; cursor: pointer;
+  transition: transform 0.15s ease;
+  user-select: none;
+}
+.room-object:hover { transform: scale(1.02); }
+
+/* motivational poster */
+.poster {
+  top: 8%; left: 5%; width: 180px; height: 130px;
+  background: var(--grey8); border: 6px solid var(--grey5);
+  display: flex; align-items: center; justify-content: center;
+  text-align: center; padding: 16px;
+  font-family: var(--font-display); font-size: 14px;
+  color: var(--grey4); line-height: 1.4;
+  box-shadow: 2px 3px 8px rgba(0,0,0,0.15);
+}
+.poster.coloured {
+  border-color: var(--redwood);
+  color: var(--redwood);
+  background: var(--champagne);
+}
+
+/* speaker area */
+.speaker-area {
+  top: 5%; left: 50%; transform: translateX(-50%);
+  width: 420px; height: 280px;
+}
+.slide-screen {
+  width: 100%; height: 230px;
+  background: var(--grey8); border: 3px solid var(--grey5);
+  border-radius: 4px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 24px; text-align: center;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+.slide-screen.coloured {
+  border-color: var(--cadet);
+  background: #fff;
+}
+.slide-title {
+  font-family: var(--font-display); font-size: 18px;
+  color: var(--grey4); margin-bottom: 12px; line-height: 1.3;
+}
+.slide-screen.coloured .slide-title { color: var(--grey1); }
+.slide-bullets {
+  font-size: 13px; color: var(--grey4); line-height: 1.8;
+}
+.slide-screen.coloured .slide-bullets { color: var(--grey3); }
+.slide-counter {
+  margin-top: 12px; font-size: 12px; color: var(--grey4);
+  font-family: var(--font-body); letter-spacing: 0.5px;
+}
+.speaker-figure {
+  width: 60px; height: 20px; margin: 8px auto 0;
+  background: var(--grey5); border-radius: 10px 10px 0 0;
+  position: relative;
+}
+.speaker-figure.coloured { background: var(--sienna); }
+.speaker-figure::before {
+  content: ''; position: absolute;
+  top: -18px; left: 50%; transform: translateX(-50%);
+  width: 16px; height: 16px; border-radius: 50%;
+  background: inherit;
+}
+
+/* clock */
+.clock {
+  top: 6%; right: 6%; width: 80px; height: 80px;
+}
+.clock svg { width: 100%; height: 100%; }
+
+/* agenda */
+.agenda {
+  top: 42%; left: 4%; width: 210px;
+  background: var(--grey8); padding: 16px;
+  border-left: 3px solid var(--grey5);
+  font-size: 12px; line-height: 2;
+  color: var(--grey4);
+  box-shadow: 1px 2px 6px rgba(0,0,0,0.1);
+  transform: rotate(-1deg);
+}
+.agenda.coloured {
+  background: #fff;
+  border-left-color: var(--sienna);
+  color: var(--grey2);
+}
+.agenda-header {
+  font-family: var(--font-display); font-size: 12px;
+  text-transform: uppercase; letter-spacing: 1.5px;
+  color: var(--grey3); margin-bottom: 8px;
+  padding-bottom: 6px; border-bottom: 1px solid var(--grey6);
+}
+.agenda.coloured .agenda-header { color: var(--redwood); border-bottom-color: var(--sienna); }
+.agenda-item { padding: 2px 0; }
+.alive-word {
+  color: var(--cadet); font-weight: 600;
+  cursor: pointer; position: relative; z-index: 10;
+  pointer-events: auto;
+}
+.alive-word.pulsing {
+  animation: alivePulse 2.5s ease-in-out infinite;
+  text-decoration: underline;
+  text-decoration-color: rgba(95,158,160,0.4);
+  text-underline-offset: 3px;
+}
+@keyframes alivePulse {
+  0%, 100% { text-shadow: 0 0 0px transparent; opacity: 0.7; }
+  50% { text-shadow: 0 0 18px rgba(95,158,160,0.6), 0 0 4px rgba(95,158,160,0.3); opacity: 1; }
+}
+
+/* name badge */
+.badge {
+  bottom: 12%; left: 8%; width: 170px; height: 100px;
+  background: var(--grey8); border: 2px solid var(--grey6);
+  border-radius: 6px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 10px;
+  box-shadow: 1px 2px 6px rgba(0,0,0,0.1);
+}
+.badge.coloured {
+  background: #fff; border-color: var(--cadet);
+}
+.badge-hello {
+  font-size: 12px; text-transform: uppercase;
+  letter-spacing: 2px; color: var(--grey3); margin-bottom: 4px;
+}
+.badge.coloured .badge-hello { color: var(--cadet); }
+.badge-name {
+  font-family: var(--font-display); font-size: 20px;
+  color: var(--grey4);
+}
+.badge.coloured .badge-name { color: var(--grey1); }
+
+/* people (hidden in grey, visible in colour) */
+.people-group {
+  position: absolute; z-index: 3;
+  opacity: 0; transition: opacity 0.8s ease;
+}
+.people-group.visible { opacity: 1; }
+.person-dot {
+  display: inline-block; width: 28px; height: 28px;
+  border-radius: 50%; margin: 0 4px;
+}
+
+/* conference banner */
+.conf-banner {
+  position: absolute; z-index: 3;
+  top: 2%; left: 50%; transform: translateX(-50%);
+  font-family: var(--font-display); font-size: 12px;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--grey3);
+  white-space: nowrap;
+}
+.conf-banner.coloured { color: var(--redwood); }
+
+/* floating responses */
+.float-text {
+  position: absolute; z-index: 100;
+  font-family: var(--font-body); font-size: 13px;
+  font-style: italic; color: var(--grey3);
+  pointer-events: none; white-space: nowrap;
+  animation: floatUp 2.2s ease-out forwards;
+}
+@keyframes floatUp {
+  0% { opacity: 0; transform: translateY(0); }
+  15% { opacity: 1; }
+  70% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-40px); }
+}
+
+/* ink spread mask */
+.ink-mask {
+  position: absolute; inset: 0; z-index: 4;
+  background: var(--grey7);
+  pointer-events: none;
+}
+
+/* ── SCREEN 1 ── */
+#screen-1 {
+  background: var(--champagne);
+  flex-direction: column;
+}
+.s1-text {
+  font-family: var(--font-body); font-size: 18px;
+  color: var(--grey2); opacity: 0;
+  transition: opacity 1s ease;
+  cursor: pointer;
+  margin-top: 40px;
+}
+.s1-text.visible { opacity: 1; }
+.s1-text::after {
+  content: ' →'; font-size: 14px; opacity: 0.4;
+}
+
+/* ── SCREEN 2 ── */
+#screen-2 {
+  background: var(--champagne);
+  padding: 40px 60px;
+  overflow-y: auto;
+}
+.hunt-container {
+  width: 100%; max-width: 1100px; min-height: 100%;
+  display: flex; position: relative;
+}
+.hunt-main {
+  flex: 1; display: flex; flex-direction: column;
+  justify-content: center; padding-right: 240px;
+  overflow-y: auto; max-height: 100vh;
+  padding-bottom: 40px;
+}
+.hunt-narration {
+  font-family: var(--font-body); font-size: 17px;
+  font-style: italic; color: var(--grey2);
+  line-height: 1.7; margin-bottom: 28px;
+  opacity: 0; transform: translateY(12px);
+  transition: all 0.6s ease;
+}
+.hunt-narration.visible { opacity: 1; transform: translateY(0); }
+
+.hunt-interaction {
+  opacity: 0; transform: translateY(16px);
+  transition: all 0.5s ease 0.3s;
+}
+.hunt-interaction.visible { opacity: 1; transform: translateY(0); }
+
+/* QR card */
+.qr-card {
+  width: 280px; padding: 24px; background: #fff;
+  border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  cursor: pointer; transition: transform 0.2s;
+  text-align: center;
+}
+.qr-card:hover { transform: translateY(-2px); }
+.qr-graphic {
+  width: 100px; height: 100px; margin: 0 auto 12px;
+  background: repeating-conic-gradient(var(--grey1) 0% 25%, #fff 0% 50%) 0 0 / 10px 10px;
+  border-radius: 4px;
+}
+.qr-label { font-size: 12px; color: var(--grey4); }
+
+/* SJT */
+.sjt-card {
+  width: 100%; max-width: 480px; padding: 24px; background: #fff;
+  border-radius: 10px; box-shadow: 0 6px 30px rgba(0,0,0,0.08);
+  border-left: 4px solid var(--cadet);
+}
+.sjt-question {
+  font-family: var(--font-display); font-size: 16px;
+  color: var(--grey1); line-height: 1.6; margin-bottom: 20px;
+  font-style: italic;
+}
+.sjt-options { list-style: none; }
+.sjt-options li {
+  padding: 12px 16px; margin: 6px 0;
+  background: var(--grey8); border-radius: 6px;
+  cursor: pointer; font-size: 14px; color: var(--grey2);
+  transition: all 0.2s ease; border: 2px solid transparent;
+}
+.sjt-options li:hover {
+  background: #e8f4f4; border-color: var(--cadet);
+}
+.sjt-options li.selected {
+  background: var(--cadet); color: #fff;
+  border-color: var(--cadet);
+}
+.sjt-response {
+  margin-top: 16px; padding: 14px;
+  background: #f0f8f8; border-radius: 6px;
+  font-size: 14px; color: var(--grey2);
+  line-height: 1.6; opacity: 0;
+  transition: opacity 0.5s ease;
+}
+.sjt-response.visible { opacity: 1; }
+.sjt-clue {
+  margin-top: 12px; font-style: italic;
+  color: var(--sienna); font-weight: 500;
+}
+
+/* coffee card */
+.coffee-card {
+  width: 260px; height: 80px; background: #fff;
+  border-radius: 8px; box-shadow: 0 3px 15px rgba(0,0,0,0.08);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 14px; color: var(--grey3);
+  font-style: italic; transition: transform 0.4s ease;
+  perspective: 600px;
+}
+.coffee-card:hover { transform: rotateY(-5deg); }
+
+/* session board */
+.session-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 10px; width: 420px;
+}
+.session-card {
+  padding: 14px; background: #fff; border-radius: 6px;
+  border: 1px solid var(--grey6); font-size: 12px;
+  color: var(--grey3); cursor: pointer; text-align: center;
+  transition: all 0.2s; position: relative; line-height: 1.4;
+}
+.session-card:hover { border-color: var(--cadet); transform: translateY(-2px); }
+.session-card.starred::after {
+  content: '★'; position: absolute; top: 4px; right: 6px;
+  font-size: 10px; color: var(--sienna);
+}
+.session-card.easter-egg { position: relative; }
+.session-card.easter-egg::before {
+  content: '◆'; position: absolute; bottom: 3px; left: 6px;
+  font-size: 7px; color: var(--grey5); opacity: 0.5;
+}
+
+/* personal badge */
+.personal-badge {
+  width: 340px; padding: 28px; background: #fff;
+  border-radius: 10px; border-top: 5px solid var(--cadet);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+  text-align: center; opacity: 0; transform: translateY(20px) scale(0.95);
+  transition: all 0.6s ease;
+}
+.personal-badge.visible { opacity: 1; transform: translateY(0) scale(1); }
+.pb-conf {
+  font-size: 12px; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--grey3); margin-bottom: 12px;
+}
+.pb-name {
+  font-family: var(--font-display); font-size: 26px;
+  color: var(--grey1); margin-bottom: 8px;
+}
+.pb-session {
+  font-size: 13px; color: var(--cadet); font-weight: 500;
+}
+
+/* floor plan */
+.floor-plan {
+  position: absolute; top: 30px; right: 30px;
+  width: 180px; z-index: 5;
+}
+.floor-plan svg { width: 100%; }
+
+/* group panel */
+.group-panel {
+  position: absolute; right: 30px; top: 240px;
+  width: 180px; z-index: 5;
+}
+.group-title {
+  font-size: 12px; text-transform: uppercase;
+  letter-spacing: 1.5px; color: var(--grey3);
+  margin-bottom: 12px;
+}
+.avatar-slot {
+  display: flex; align-items: center; gap: 10px;
+  margin: 10px 0; opacity: 0.2;
+  transition: opacity 0.5s ease;
+}
+.avatar-slot.found { opacity: 1; }
+.avatar-circle {
+  width: 36px; height: 36px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-size: 14px; color: #fff;
+  font-weight: 600;
+}
+.avatar-name { font-size: 13px; color: var(--grey2); }
+
+.hunt-line {
+  font-family: var(--font-body); font-size: 15px;
+  font-style: italic; color: var(--grey2);
+  margin-top: 20px; opacity: 0;
+  transition: opacity 0.8s ease;
+}
+.hunt-line.visible { opacity: 1; }
+
+.hunt-continue {
+  display: inline-block; margin-top: 20px; padding: 10px 24px;
+  background: var(--cadet); color: #fff; border: none;
+  border-radius: 6px; font-family: var(--font-body);
+  font-size: 14px; cursor: pointer; opacity: 0;
+  transition: opacity 0.5s ease, transform 0.2s;
+}
+.hunt-continue.visible { opacity: 1; }
+.hunt-continue:hover { transform: translateY(-1px); }
+
+/* easter egg tooltip */
+.easter-tooltip {
+  position: absolute; z-index: 20;
+  background: var(--champagne); border: 1px solid var(--sienna);
+  border-radius: 6px; padding: 10px 14px;
+  font-size: 12px; font-style: italic;
+  color: var(--redwood); max-width: 220px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  opacity: 0; transform: translateY(4px);
+  transition: all 0.3s ease; pointer-events: none;
+}
+.easter-tooltip.visible { opacity: 1; transform: translateY(0); }
+
+/* ── SCREEN 3 ── */
+#screen-3 {
+  background: #1a1a1a; flex-direction: column;
+}
+.keynote-container {
+  width: 100%; max-width: 900px;
+  display: flex; flex-direction: column;
+  align-items: center;
+}
+.keynote-slide {
+  width: 100%; max-width: 750px; aspect-ratio: 16/9;
+  background: #111; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  padding: 60px; text-align: center;
+  box-shadow: 0 10px 60px rgba(0,0,0,0.5);
+  opacity: 0; transform: scale(0.97);
+  transition: all 0.8s ease;
+}
+.keynote-slide.visible { opacity: 1; transform: scale(1); }
+.keynote-slide-text {
+  font-family: var(--font-display); font-size: 32px;
+  color: var(--champagne); line-height: 1.5;
+  font-weight: 400;
+}
+.keynote-message {
+  color: var(--grey5); font-size: 16px;
+  margin-top: 30px; font-style: italic;
+  opacity: 0; transition: opacity 0.8s ease;
+  text-align: center;
+}
+.keynote-message.visible { opacity: 1; }
+
+/* drawing canvas */
+.canvas-area {
+  width: 100%; max-width: 900px;
+  display: flex; flex-direction: column; align-items: center;
+  opacity: 0; transition: opacity 0.6s ease;
+}
+.canvas-area.visible { opacity: 1; }
+.canvas-prompt {
+  font-family: var(--font-display); font-size: 18px;
+  color: var(--champagne); margin-bottom: 16px;
+  text-align: center; font-style: italic;
+}
+.canvas-wrapper {
+  position: relative; background: #fff;
+  border-radius: 8px; overflow: hidden;
+  box-shadow: 0 6px 30px rgba(0,0,0,0.3);
+}
+#draw-canvas { display: block; cursor: crosshair; }
+.canvas-tools {
+  display: flex; gap: 8px; margin-top: 12px;
+  align-items: center; flex-wrap: wrap;
+  justify-content: center;
+}
+.colour-swatch {
+  width: 28px; height: 28px; border-radius: 50%;
+  border: 2px solid transparent; cursor: pointer;
+  transition: transform 0.15s;
+}
+.colour-swatch:hover { transform: scale(1.15); }
+.colour-swatch.active { border-color: #fff; box-shadow: 0 0 0 2px var(--cadet); }
+.canvas-btn {
+  padding: 6px 16px; background: rgba(255,255,255,0.1);
+  color: #fff; border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 4px; font-family: var(--font-body);
+  font-size: 13px; cursor: pointer; transition: all 0.2s;
+}
+.canvas-btn:hover { background: rgba(255,255,255,0.2); }
+.canvas-btn.primary { background: var(--cadet); border-color: var(--cadet); }
+
+/* shared wall */
+.shared-wall {
+  width: 100%; max-width: 1000px;
+  display: flex; flex-wrap: wrap; gap: 16px;
+  justify-content: center; padding: 20px;
+  opacity: 0; transition: opacity 0.8s ease;
+}
+.shared-wall.visible { opacity: 1; }
+.wall-drawing {
+  width: 140px; height: 110px; background: #fff;
+  border-radius: 6px; padding: 8px;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.06);
+  display: flex; align-items: center; justify-content: center;
+  transform: rotate(var(--rot, 0deg));
+}
+.wall-drawing svg { width: 100%; height: 100%; }
+.wall-drawing.user-drawing { border: 2px solid var(--cadet); }
+.wall-drawing.user-drawing canvas { width: 100%; height: 100%; border-radius: 4px; }
+.wall-count {
+  color: var(--grey5); font-size: 14px;
+  margin-top: 16px; font-style: italic;
+  opacity: 0; transition: opacity 0.8s ease;
+  text-align: center;
+}
+.wall-count.visible { opacity: 1; }
+
+/* polaroid + wordcloud */
+.activity-area {
+  width: 100%; max-width: 1000px;
+  display: flex; gap: 40px; align-items: flex-start;
+  justify-content: center; padding: 20px;
+  opacity: 0; transition: opacity 0.6s ease;
+}
+.activity-area.visible { opacity: 1; }
+.polaroid-grid {
+  display: flex; flex-wrap: wrap; gap: 12px;
+  width: 480px;
+}
+.polaroid {
+  width: 110px; background: #fff; padding: 8px 8px 24px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+  transform: rotate(var(--rot, 0deg));
+}
+.polaroid-img {
+  width: 100%; height: 70px; border-radius: 2px;
+  display: flex; align-items: center; justify-content: center;
+}
+.polaroid-img svg { width: 60%; height: 60%; }
+.polaroid-caption {
+  font-size: 12px; color: var(--grey3);
+  margin-top: 6px; text-align: center;
+  font-style: italic;
+}
+.wordcloud {
+  width: 380px; min-height: 280px;
+  position: relative; display: flex;
+  flex-wrap: wrap; align-items: center;
+  justify-content: center; gap: 6px 10px;
+  padding: 20px;
+}
+.wc-word {
+  font-family: var(--font-display);
+  color: var(--cadet); transition: all 0.4s ease;
+  opacity: 0; transform: scale(0.8);
+}
+.wc-word.visible { opacity: 1; transform: scale(1); }
+.wc-word.user-word { color: var(--sienna); }
+.caption-input-area {
+  width: 100%; max-width: 400px;
+  margin-top: 16px;
+}
+.caption-input-area label {
+  font-size: 13px; color: var(--grey5);
+  font-style: italic; display: block; margin-bottom: 6px;
+}
+.caption-input {
+  width: 100%; padding: 10px 14px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 6px; color: #fff;
+  font-family: var(--font-body); font-size: 14px;
+  outline: none;
+}
+.caption-input:focus { border-color: var(--cadet); }
+
+/* ── SCREEN 4 ── */
+#screen-4 {
+  background: var(--champagne);
+  flex-direction: column;
+  overflow-y: auto;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 40px;
+}
+.s4-container {
+  width: 100%; max-width: 800px;
+  padding: 30px 40px;
+  display: flex; flex-direction: column;
+  align-items: center;
+}
+.s4-section {
+  width: 100%; opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.7s ease;
+  margin-bottom: 40px;
+}
+.s4-section.visible { opacity: 1; transform: translateY(0); }
+
+/* workshop payoff */
+.cohort-reveal {
+  display: flex; flex-direction: column; gap: 16px;
+  align-items: center;
+}
+.cohort-card {
+  display: flex; align-items: center; gap: 14px;
+  background: #fff; padding: 16px 20px;
+  border-radius: 8px; width: 100%; max-width: 500px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  opacity: 0; transform: translateX(-10px);
+  transition: all 0.5s ease;
+}
+.cohort-card.visible { opacity: 1; transform: translateX(0); }
+.cohort-detail {
+  font-size: 14px; color: var(--grey2); font-style: italic;
+}
+
+/* debrief cards */
+.debrief-cards {
+  display: flex; gap: 20px; justify-content: center;
+  width: 100%; flex-wrap: wrap;
+}
+.debrief-card {
+  width: 240px; min-height: 200px;
+  perspective: 800px; cursor: pointer;
+}
+.debrief-inner {
+  position: relative; width: 100%; min-height: 200px;
+  transition: transform 0.6s ease;
+  transform-style: preserve-3d;
+}
+.debrief-card.flipped .debrief-inner { transform: rotateY(180deg); }
+.debrief-front, .debrief-back {
+  position: absolute; inset: 0;
+  backface-visibility: hidden;
+  border-radius: 10px; padding: 24px;
+  display: flex; align-items: center; justify-content: center;
+  text-align: center;
+}
+.debrief-front {
+  background: var(--cadet); color: #fff;
+  font-family: var(--font-display); font-size: 40px;
+}
+.debrief-back {
+  background: #fff; transform: rotateY(180deg);
+  flex-direction: column; box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  position: relative; min-height: 200px;
+}
+.debrief-prompt {
+  font-family: var(--font-display); font-size: 15px;
+  color: var(--grey1); line-height: 1.5; margin-bottom: 14px;
+  font-style: italic;
+}
+.debrief-input {
+  width: 100%; padding: 10px;
+  border: 1px solid var(--grey6); border-radius: 6px;
+  font-family: var(--font-body); font-size: 13px;
+  outline: none; resize: none; min-height: 50px;
+}
+.debrief-input:focus { border-color: var(--cadet); }
+.debrief-mc-option {
+  width: 100%; padding: 10px; margin: 4px 0;
+  background: var(--grey8); border: 1px solid transparent;
+  border-radius: 6px; font-size: 12px;
+  cursor: pointer; text-align: left;
+  transition: all 0.2s;
+}
+.debrief-mc-option:hover { border-color: var(--cadet); }
+.debrief-mc-option.selected { background: var(--cadet); color: #fff; }
+
+/* shared response wall */
+.response-wall {
+  display: flex; flex-wrap: wrap; gap: 10px;
+  justify-content: center; margin-top: 16px;
+  max-width: 600px;
+}
+.response-bubble {
+  padding: 8px 14px; background: #fff;
+  border-radius: 20px; font-size: 12px;
+  color: var(--grey2); font-style: italic;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+  opacity: 0; transform: scale(0.9);
+  transition: all 0.4s ease;
+}
+.response-bubble.visible { opacity: 1; transform: scale(1); }
+.response-bubble.user-response {
+  background: var(--cadet); color: #fff;
+}
+
+/* dashboard */
+.dashboard {
+  width: 100%; max-width: 700px;
+  background: #fff; border-radius: 12px;
+  padding: 36px; box-shadow: 0 8px 40px rgba(0,0,0,0.08);
+}
+.dash-title {
+  font-family: var(--font-display); font-size: 22px;
+  color: var(--grey1); margin-bottom: 30px;
+  text-align: center; font-style: italic;
+  opacity: 0; transition: opacity 0.8s ease;
+}
+.dash-title.visible { opacity: 1; }
+.dash-metric {
+  display: flex; align-items: flex-start; gap: 16px;
+  padding: 18px 0; border-bottom: 1px solid var(--grey7);
+  opacity: 0; transform: translateY(10px);
+  transition: all 0.5s ease;
+}
+.dash-metric.visible { opacity: 1; transform: translateY(0); }
+.dash-metric:last-child { border-bottom: none; }
+.dash-metric-label {
+  font-size: 12px; text-transform: uppercase;
+  letter-spacing: 1.5px; color: var(--grey3);
+  width: 140px; flex-shrink: 0;
+  font-weight: 500;
+}
+.dash-metric-value {
+  flex: 1;
+}
+.dash-big-number {
+  font-family: var(--font-display); font-size: 36px;
+  color: var(--cadet); font-weight: 700;
+}
+.dash-desc {
+  font-size: 13px; color: var(--grey3); margin-top: 4px;
+}
+.dash-bar-chart {
+  display: flex; gap: 6px; align-items: flex-end;
+  height: 60px; margin-top: 6px;
+  max-width: 100%; flex-wrap: nowrap;
+}
+.dash-bar-chart .dash-bar { width: 36px; min-width: 28px; }
+.dash-bar {
+  width: 50px; background: var(--cadet);
+  border-radius: 3px 3px 0 0;
+  transition: height 0.8s ease;
+  position: relative;
+}
+.dash-bar-label {
+  position: absolute; bottom: -18px; left: 50%;
+  transform: translateX(-50%); font-size: 12px;
+  color: var(--grey3); white-space: nowrap;
+}
+.dash-check {
+  font-size: 13px; color: var(--grey2); line-height: 1.8;
+}
+.dash-check span { color: var(--cadet); font-weight: 600; }
+.dash-tagline {
+  text-align: center; margin-top: 24px;
+  font-family: var(--font-display); font-style: italic;
+  color: var(--grey1); font-size: 20px;
+  opacity: 0; transition: opacity 0.8s ease;
+}
+.dash-tagline.visible { opacity: 1; }
+.dash-tagline.big {
+  font-size: 28px; color: var(--grey1);
+  margin-top: 16px; font-style: normal;
+  opacity: 0; transform: scale(0.95);
+  transition: all 0.8s ease;
+}
+.dash-tagline.big.visible { opacity: 1; transform: scale(1); }
+
+/* ── SCREEN 5 ── */
+#screen-5 {
+  background: #fff; flex-direction: column;
+  gap: 20px;
+}
+.s5-line1 {
+  font-family: var(--font-display); font-size: 28px;
+  color: var(--grey1); max-width: 650px;
+  text-align: center; line-height: 1.5;
+  opacity: 0; transform: translateY(12px);
+  transition: all 0.8s ease;
+}
+.s5-line1.visible { opacity: 1; transform: translateY(0); }
+.s5-line2 {
+  font-size: 18px; color: var(--grey2);
+  text-align: center; margin-top: 8px;
+  opacity: 0; transition: opacity 0.8s ease 0.4s;
+}
+.s5-line2.visible { opacity: 1; }
+.s5-buttons {
+  display: flex; gap: 16px; margin-top: 32px;
+  opacity: 0; transition: opacity 0.6s ease 0.8s;
+}
+.s5-buttons.visible { opacity: 1; }
+.btn-secondary {
+  padding: 12px 28px; border: 2px solid var(--grey2);
+  background: transparent; color: var(--grey2);
+  border-radius: 6px; font-family: var(--font-body);
+  font-size: 15px; cursor: pointer;
+  transition: all 0.2s; text-decoration: none;
+}
+.btn-secondary:hover { background: var(--grey8); }
+.btn-primary {
+  padding: 12px 28px; border: 2px solid var(--cadet);
+  background: var(--cadet); color: #fff;
+  border-radius: 6px; font-family: var(--font-body);
+  font-size: 15px; cursor: pointer;
+  transition: all 0.2s; text-decoration: none;
+}
+.btn-primary:hover { background: #4e8a8c; }
+.btn-primary:focus, .btn-secondary:focus {
+  outline: 2px solid var(--cadet); outline-offset: 2px;
+}
+
+/* ── PROGRESS INDICATOR ── */
+.progress-dots {
+  position: fixed; bottom: 20px; left: 50%;
+  transform: translateX(-50%); z-index: 50;
+  display: flex; gap: 8px; padding: 8px 14px;
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  border-radius: 20px;
+}
+.progress-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: rgba(0,0,0,0.15);
+  transition: all 0.4s ease;
+}
+.progress-dot.active { background: var(--cadet); transform: scale(1.3); }
+.progress-dot.done { background: var(--redwood); }
+#screen-0 ~ .progress-dots .progress-dot,
+#screen-3 .progress-dots .progress-dot { background: rgba(255,255,255,0.2); }
+
+/* ── COLD-START HINT ── */
+.cold-start-hint {
+  position: absolute; z-index: 50;
+  bottom: 5%; left: 50%; transform: translateX(-50%);
+  font-family: var(--font-body); font-size: 13px;
+  color: var(--grey4); font-style: italic;
+  opacity: 0; transition: opacity 1s ease;
+  pointer-events: none;
+}
+.cold-start-hint.visible { opacity: 1; }
+
+/* ── DEBRIEF LOCK LABEL ── */
+.debrief-lock {
+  position: absolute; bottom: 8px; left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px; color: rgba(255,255,255,0.7);
+  white-space: nowrap; pointer-events: none;
+}
+
+/* ── FOCUS STATES ── */
+.sjt-options li:focus-visible,
+.session-card:focus-visible,
+.debrief-card:focus-visible,
+.debrief-mc-option:focus-visible,
+.canvas-btn:focus-visible,
+.colour-swatch:focus-visible,
+.hunt-continue:focus-visible,
+.qr-card:focus-visible,
+.coffee-card:focus-visible {
+  outline: 2px solid var(--cadet); outline-offset: 2px;
+}
+
+/* ── REDUCED MOTION ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.2s !important;
+  }
+  .float-text { animation: none; opacity: 1; }
+  .alive-word.pulsing { animation: none; text-decoration: underline; text-decoration-color: var(--cadet); }
+}
+</style>
+</head>
+<body>
+
+<!-- ════════ SCREEN 0 — THE GREY CONFERENCE ════════ -->
+<div id="screen-0" class="screen active">
+  <div class="room" id="room">
+    <!-- coloured layer (beneath) -->
+    <div class="room-coloured">
+      <div class="wall"></div>
+      <div class="floor-area"></div>
+    </div>
+    <!-- grey layer -->
+    <div class="room-grey" id="room-grey">
+      <div class="wall"></div>
+      <div class="floor-area"></div>
+    </div>
+
+    <!-- conference banner -->
+    <div class="conf-banner" id="conf-banner">innovate forward summit 2025</div>
+
+    <!-- motivational poster -->
+    <div class="room-object poster" id="poster" data-response="believe in the process." role="button" aria-label="motivational poster" tabindex="0">
+      dream.<br>believe.<br>achieve.<br><span style="font-size:12px;margin-top:6px;display:block;color:inherit;opacity:0.6;">— every conference ever</span>
+    </div>
+
+    <!-- speaker area -->
+    <div class="room-object speaker-area" id="speaker" data-response="slide 47 of 112." role="button" aria-label="presentation slide" tabindex="0">
+      <div class="slide-screen" id="slide-screen">
+        <div class="slide-title">optimising synergistic<br>innovation frameworks</div>
+        <div class="slide-bullets">
+          • leverage core competencies<br>
+          • disrupt the paradigm<br>
+          • actionable takeaways
+        </div>
+        <div class="slide-counter">slide 47 of 112</div>
+      </div>
+      <div class="speaker-figure" id="speaker-figure"></div>
+    </div>
+
+    <!-- clock -->
+    <div class="room-object clock" id="clock" data-response="8:47. still." role="button" aria-label="wall clock" tabindex="0">
+      <svg viewBox="0 0 80 80">
+        <circle cx="40" cy="40" r="36" fill="none" stroke="#999" stroke-width="2.5"/>
+        <line x1="40" y1="40" x2="40" y2="16" stroke="#666" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="40" y1="40" x2="58" y2="46" stroke="#666" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="40" cy="40" r="2.5" fill="#666"/>
+        <!-- hour markers -->
+        <circle cx="40" cy="8" r="1.5" fill="#999"/>
+        <circle cx="72" cy="40" r="1.5" fill="#999"/>
+        <circle cx="40" cy="72" r="1.5" fill="#999"/>
+        <circle cx="8" cy="40" r="1.5" fill="#999"/>
+      </svg>
+    </div>
+
+    <!-- agenda -->
+    <div class="room-object agenda" id="agenda">
+      <div class="agenda-header">agenda</div>
+      <div class="agenda-item" data-response="innovation. synergy. disruption. lunch.">09:00 — innovation</div>
+      <div class="agenda-item" data-response="innovation. synergy. disruption. lunch.">10:30 — synergy</div>
+      <div class="agenda-item" data-response="innovation. synergy. disruption. lunch.">11:30 — keeping learning <span class="alive-word" id="alive-word" role="button" tabindex="0" aria-label="alive — click to explore">alive</span></div>
+      <div class="agenda-item" data-response="innovation. synergy. disruption. lunch.">12:00 — lunch</div>
+      <div class="agenda-item" data-response="innovation. synergy. disruption. lunch.">14:00 — disruption</div>
+      <div class="agenda-item" data-response="innovation. synergy. disruption. lunch.">16:00 — networking</div>
+    </div>
+
+    <!-- name badge -->
+    <div class="room-object badge" id="badge" data-response="hello, attendee." role="button" aria-label="name badge" tabindex="0">
+      <div class="badge-hello">hello my name is</div>
+      <div class="badge-name">attendee</div>
+    </div>
+
+    <!-- people (hidden in grey state) -->
+    <div class="people-group" id="people" style="bottom:38%;right:10%;display:flex;gap:4px;">
+      <div class="person-dot" style="background:var(--cadet);"></div>
+      <div class="person-dot" style="background:var(--sienna);"></div>
+      <div class="person-dot" style="background:var(--redwood);width:24px;height:24px;"></div>
+      <div class="person-dot" style="background:var(--cadet);width:22px;height:22px;"></div>
+    </div>
+    <div class="people-group" id="people2" style="bottom:42%;left:28%;display:flex;gap:5px;">
+      <div class="person-dot" style="background:var(--redwood);width:26px;height:26px;"></div>
+      <div class="person-dot" style="background:var(--sienna);width:24px;height:24px;"></div>
+      <div class="person-dot" style="background:var(--cadet);"></div>
+    </div>
+
+    <!-- grey overlay for desaturation -->
+    <div class="grey-overlay" id="grey-overlay"></div>
+
+    <!-- ink mask for reveal animation -->
+    <div class="ink-mask" id="ink-mask" style="display:none;"></div>
+
+    <!-- cold-start hint -->
+    <div class="cold-start-hint" id="cold-start-hint">this is a typical conference. click around.</div>
+  </div>
+</div>
+
+<!-- progress indicator -->
+<div class="progress-dots" id="progress-dots" role="navigation" aria-label="experience progress">
+  <div class="progress-dot active" data-screen="0"></div>
+  <div class="progress-dot" data-screen="2"></div>
+  <div class="progress-dot" data-screen="3"></div>
+  <div class="progress-dot" data-screen="4"></div>
+  <div class="progress-dot" data-screen="5"></div>
+</div>
+
+<!-- ════════ SCREEN 1 — TRANSFORMATION LINGER ════════ -->
+<div id="screen-1" class="screen">
+  <div class="s1-text" id="s1-text">want to see what just happened?</div>
+</div>
+
+<!-- ════════ SCREEN 2 — THE HUNT ════════ -->
+<div id="screen-2" class="screen">
+  <div class="hunt-container">
+    <div class="hunt-main" id="hunt-main"></div>
+
+    <!-- floor plan -->
+    <div class="floor-plan">
+      <svg viewBox="0 0 180 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="2" y="2" width="176" height="196" rx="6" stroke="#A0522D" stroke-width="1.5" fill="none"/>
+        <rect id="fp-reg" x="10" y="10" width="160" height="52" rx="4" fill="#e8e8e8" stroke="#ccc" stroke-width="1"/>
+        <text x="90" y="40" text-anchor="middle" font-size="9" fill="#999" font-family="Inter, sans-serif">registration wall</text>
+        <rect id="fp-coffee" x="10" y="72" width="160" height="52" rx="4" fill="#e8e8e8" stroke="#ccc" stroke-width="1"/>
+        <text x="90" y="102" text-anchor="middle" font-size="9" fill="#999" font-family="Inter, sans-serif">coffee station</text>
+        <rect id="fp-board" x="10" y="134" width="160" height="52" rx="4" fill="#e8e8e8" stroke="#ccc" stroke-width="1"/>
+        <text x="90" y="164" text-anchor="middle" font-size="9" fill="#999" font-family="Inter, sans-serif">session board</text>
+      </svg>
+    </div>
+
+    <!-- group panel -->
+    <div class="group-panel">
+      <div class="group-title">your group</div>
+      <div class="avatar-slot" id="avatar-1">
+        <div class="avatar-circle" style="background:var(--sienna);">J</div>
+        <div class="avatar-name">jamie</div>
+      </div>
+      <div class="avatar-slot" id="avatar-2">
+        <div class="avatar-circle" style="background:var(--cadet);">S</div>
+        <div class="avatar-name">sam</div>
+      </div>
+      <div class="avatar-slot" id="avatar-3">
+        <div class="avatar-circle" style="background:var(--redwood);">P</div>
+        <div class="avatar-name">priya</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ SCREEN 3 — THE KEYNOTE ════════ -->
+<div id="screen-3" class="screen">
+  <div class="keynote-container" id="keynote-container"></div>
+</div>
+
+<!-- ════════ SCREEN 4 — WORKSHOP + DEBRIEF + DASHBOARD ════════ -->
+<div id="screen-4" class="screen">
+  <div class="s4-container" id="s4-container"></div>
+</div>
+
+<!-- ════════ SCREEN 5 — FINAL ════════ -->
+<div id="screen-5" class="screen">
+  <div class="s5-line1" id="s5-line1">winded.vertigo designs playful learning experiences that make human growth visible.</div>
+  <div class="s5-line2" id="s5-line2">this is what's possible. what are you trying to change?</div>
+  <div class="s5-buttons" id="s5-buttons">
+    <a href="https://windedvertigo.com/do" class="btn-secondary" tabindex="0">see what we do</a>
+    <a href="https://windedvertigo.com/do" class="btn-primary" tabindex="0">let's build it</a>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════
+   STATE
+   ═══════════════════════════════════════════ */
+const state = {
+  screen: 0,
+  sjt1: null,
+  sjt2: null,
+  card3: null,
+  easterEggs: 0,
+  idleTimer: null,
+  hintTimer: null,
+  huntStop: 0,
+  drawingData: null,
+  userCaption: '',
+  debriefStep: 0,
+  privateReflection: '',
+  socialShare: '',
+};
+
+const sjtResponses = {
+  1: {
+    a: "sometimes the invitation to observe is the most generous thing you can offer.",
+    b: "a role that honours their boundaries. smart.",
+    c: "transparent, direct. it takes courage to pause the whole group.",
+    d: "sometimes the best intervention is patience."
+  },
+  2: {
+    a: "the path of least resistance. understandable.",
+    b: "someone always goes first. the question is: what does it cost them?",
+    c: "reframing is generous. it gives people a second door.",
+    d: "silence has its own intelligence. not everyone agrees."
+  }
+};
+
+/* ═══════════════════════════════════════════
+   SCREEN MANAGEMENT
+   ═══════════════════════════════════════════ */
+function goToScreen(n, transition) {
+  const prev = document.querySelector('.screen.active');
+  const next = document.getElementById('screen-' + n);
+  if (!next || next === prev) return;
+  state.screen = n;
+
+  if (transition === 'dissolve') {
+    prev.style.transition = 'opacity 0.8s ease';
+    prev.classList.remove('active');
+    setTimeout(() => { next.classList.add('active'); }, 100);
+  } else if (transition === 'slide-left') {
+    next.style.transform = 'translateX(100%)';
+    next.style.transition = 'transform 0.7s ease, opacity 0.5s ease';
+    next.classList.add('active');
+    requestAnimationFrame(() => { next.style.transform = 'translateX(0)'; });
+    setTimeout(() => { prev.classList.remove('active'); prev.style.transform = ''; }, 700);
+  } else if (transition === 'build') {
+    prev.classList.remove('active');
+    next.style.opacity = '0';
+    next.classList.add('active');
+    requestAnimationFrame(() => { next.style.transition = 'opacity 0.6s ease'; next.style.opacity = '1'; });
+  } else {
+    prev.classList.remove('active');
+    next.classList.add('active');
+  }
+
+  // init screen
+  setTimeout(() => initScreen(n), 200);
+
+  // update progress dots
+  updateProgress(n);
+}
+
+function updateProgress(n) {
+  const screenMap = [0, 0, 2, 3, 4, 5]; // screen index to dot mapping
+  const dots = document.querySelectorAll('.progress-dot');
+  const dotScreens = [0, 2, 3, 4, 5];
+  dots.forEach((dot, i) => {
+    dot.classList.remove('active', 'done');
+    if (dotScreens[i] < n) dot.classList.add('done');
+    if (dotScreens[i] === n || (n === 1 && i === 0)) dot.classList.add('active');
+  });
+  // adjust dot colours for dark screens
+  const dotsContainer = document.getElementById('progress-dots');
+  if (n === 3) { dotsContainer.style.background = 'rgba(0,0,0,0.3)'; }
+  else { dotsContainer.style.background = ''; }
+}
+
+function initScreen(n) {
+  if (n === 2) initHunt();
+  if (n === 3) initKeynote();
+  if (n === 4) initWorkshop();
+  if (n === 5) initFinal();
+}
+
+/* ═══════════════════════════════════════════
+   SCREEN 0 — THE GREY CONFERENCE
+   ═══════════════════════════════════════════ */
+function floatResponse(el, text) {
+  const rect = el.getBoundingClientRect();
+  const room = document.getElementById('room').getBoundingClientRect();
+  const ft = document.createElement('div');
+  ft.className = 'float-text';
+  ft.textContent = text;
+  ft.style.left = (rect.left - room.left + rect.width / 2 - 60) + 'px';
+  ft.style.top = (rect.top - room.top - 10) + 'px';
+  document.getElementById('room').appendChild(ft);
+  setTimeout(() => ft.remove(), 2400);
+  resetIdleTimer();
+}
+
+// click handlers for room objects
+document.querySelectorAll('.room-object[data-response]').forEach(el => {
+  el.addEventListener('click', (e) => {
+    if (state.screen !== 0) return;
+    e.stopPropagation();
+    floatResponse(el, el.dataset.response);
+  });
+});
+
+// agenda items
+document.querySelectorAll('.agenda-item').forEach(el => {
+  el.addEventListener('click', (e) => {
+    if (state.screen !== 0) return;
+    if (e.target.id === 'alive-word') return;
+    e.stopPropagation();
+    floatResponse(el, el.dataset.response || 'innovation. synergy. disruption. lunch.');
+  });
+});
+
+// the word "alive"
+document.getElementById('alive-word').addEventListener('click', (e) => {
+  e.stopPropagation();
+  if (state.screen !== 0) return;
+  clearTimeout(state.idleTimer);
+  clearTimeout(state.hintTimer);
+  document.getElementById('cold-start-hint').classList.remove('visible');
+  triggerTransformation(e);
+});
+
+// idle pulse — reduced to 5s for sales context
+function resetIdleTimer() {
+  clearTimeout(state.idleTimer);
+  clearTimeout(state.hintTimer);
+  document.getElementById('alive-word').classList.remove('pulsing');
+  document.getElementById('cold-start-hint').classList.remove('visible');
+  // show cold-start hint after 3s
+  state.hintTimer = setTimeout(() => {
+    if (state.screen === 0) document.getElementById('cold-start-hint').classList.add('visible');
+  }, 3000);
+  // pulse alive after 5s
+  state.idleTimer = setTimeout(() => {
+    if (state.screen === 0) document.getElementById('alive-word').classList.add('pulsing');
+  }, 5000);
+}
+resetIdleTimer();
+
+// keyboard support for room objects
+document.querySelectorAll('.room-object[tabindex]').forEach(el => {
+  el.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el.click(); }
+  });
+});
+document.getElementById('alive-word').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); document.getElementById('alive-word').click(); }
+});
+
+/* ═══════════════════════════════════════════
+   SCREEN 0→1 — TRANSFORMATION
+   ═══════════════════════════════════════════ */
+function triggerTransformation(e) {
+  const word = document.getElementById('alive-word');
+  const room = document.getElementById('room');
+  const roomRect = room.getBoundingClientRect();
+  const wordRect = word.getBoundingClientRect();
+  const cx = wordRect.left - roomRect.left + wordRect.width / 2;
+  const cy = wordRect.top - roomRect.top + wordRect.height / 2;
+
+  // hide grey layer with expanding circle mask
+  const greyLayer = document.getElementById('room-grey');
+  const overlay = document.getElementById('grey-overlay');
+
+  let size = 0;
+  const maxSize = 1800;
+
+  function animateReveal() {
+    size += 20;
+    const mask = `radial-gradient(circle ${size}px at ${cx}px ${cy}px, transparent ${size - 5}px, white ${size}px)`;
+    greyLayer.style.maskImage = mask;
+    greyLayer.style.webkitMaskImage = mask;
+    overlay.style.maskImage = mask;
+    overlay.style.webkitMaskImage = mask;
+
+    if (size < maxSize) {
+      requestAnimationFrame(animateReveal);
+    } else {
+      greyLayer.style.display = 'none';
+      overlay.style.display = 'none';
+      onTransformComplete();
+    }
+  }
+  requestAnimationFrame(animateReveal);
+
+  // colour the objects
+  setTimeout(() => {
+    document.getElementById('poster').classList.add('coloured');
+    document.getElementById('slide-screen').classList.add('coloured');
+    document.getElementById('speaker-figure').classList.add('coloured');
+    document.getElementById('badge').classList.add('coloured');
+    document.getElementById('agenda').classList.add('coloured');
+    document.getElementById('conf-banner').classList.add('coloured');
+    document.getElementById('people').classList.add('visible');
+    document.getElementById('people2').classList.add('visible');
+  }, 600);
+}
+
+function onTransformComplete() {
+  // linger for 3s, then show invitation
+  setTimeout(() => {
+    // transition to screen 1 but show the coloured room beneath
+    const s0 = document.getElementById('screen-0');
+    const s1 = document.getElementById('screen-1');
+    s1.style.background = 'transparent';
+    s0.classList.add('beneath');
+    s0.classList.remove('active');
+    s1.classList.add('active');
+    setTimeout(() => {
+      document.getElementById('s1-text').classList.add('visible');
+    }, 600);
+  }, 3000);
+
+  // click anywhere on screen 1 to continue
+  document.getElementById('screen-1').addEventListener('click', () => {
+    if (state.screen === 0) {
+      state.screen = 1;
+    }
+    if (state.screen <= 1) {
+      document.getElementById('screen-0').classList.remove('beneath');
+      goToScreen(2, 'slide-left');
+    }
+  });
+  document.addEventListener('keydown', function s1Key(e) {
+    if ((e.key === 'ArrowRight' || e.key === 'Enter') && state.screen <= 1) {
+      document.getElementById('screen-0').classList.remove('beneath');
+      goToScreen(2, 'slide-left');
+      document.removeEventListener('keydown', s1Key);
+    }
+  });
+}
+
+/* ═══════════════════════════════════════════
+   SCREEN 2 — THE HUNT
+   ═══════════════════════════════════════════ */
+function initHunt() {
+  state.huntStop = 0;
+  showHuntStop(1);
+}
+
+function fillFloorPlan(zone) {
+  const colours = { reg: '#E97451', coffee: '#5F9EA0', board: '#A0522D' };
+  const el = document.getElementById('fp-' + zone);
+  if (el) {
+    el.style.transition = 'fill 0.6s ease';
+    el.style.fill = colours[zone];
+  }
+}
+
+function unlockAvatar(n) {
+  const slot = document.getElementById('avatar-' + n);
+  if (slot) slot.classList.add('found');
+}
+
+function showHuntStop(stop) {
+  const main = document.getElementById('hunt-main');
+  main.innerHTML = '';
+  state.huntStop = stop;
+
+  if (stop === 1) showStop1(main);
+  else if (stop === 2) showStop2(main);
+  else if (stop === 3) showStop3(main);
+}
+
+function showStop1(container) {
+  container.innerHTML = `
+    <div class="hunt-narration" id="hn">you stop at the registration wall. something taped underneath catches your eye.</div>
+    <div class="hunt-interaction" id="hi">
+      <div class="qr-card" id="qr-card">
+        <div class="qr-graphic"></div>
+        <div class="qr-label">tap to scan</div>
+      </div>
+    </div>
+  `;
+  setTimeout(() => document.getElementById('hn').classList.add('visible'), 100);
+  setTimeout(() => document.getElementById('hi').classList.add('visible'), 400);
+
+  document.getElementById('qr-card').addEventListener('click', () => {
+    showSJT(container, 1,
+      'a student refuses to engage with a group activity. the facilitator has 30 seconds. what do they do?',
+      [
+        { key: 'a', text: 'ask them to observe and join when ready' },
+        { key: 'b', text: 'assign them a solo role within the group task' },
+        { key: 'c', text: 'pause the group and address the resistance openly' },
+        { key: 'd', text: 'let the group continue and check in privately after' },
+      ],
+      'find the person whose badge has a red dot.',
+      () => {
+        fillFloorPlan('reg');
+        unlockAvatar(1);
+        showContinue(container, () => showHuntStop(2));
+      }
+    );
+  });
+}
+
+function showStop2(container) {
+  container.innerHTML = `
+    <div class="hunt-narration" id="hn">you head to the coffee station. there's a folded card propped against the thermos.</div>
+    <div class="hunt-interaction" id="hi">
+      <div class="coffee-card" id="coffee-card">a folded card — tap to open</div>
+    </div>
+  `;
+  setTimeout(() => document.getElementById('hn').classList.add('visible'), 100);
+  setTimeout(() => document.getElementById('hi').classList.add('visible'), 400);
+
+  document.getElementById('coffee-card').addEventListener('click', () => {
+    showSJT(container, 2,
+      'a keynote speaker asks the audience a question. silence. thirty seconds pass. what should happen next?',
+      [
+        { key: 'a', text: 'the speaker answers their own question' },
+        { key: 'b', text: 'someone in the audience breaks the silence' },
+        { key: 'c', text: 'the speaker reframes the question' },
+        { key: 'd', text: 'the silence is allowed to last a little longer' },
+      ],
+      'your workshop is: designing for belonging. room 4b. 14:00.',
+      () => {
+        fillFloorPlan('coffee');
+        unlockAvatar(2);
+        showContinue(container, () => showHuntStop(3));
+      }
+    );
+  });
+}
+
+function showStop3(container) {
+  container.innerHTML = `
+    <div class="hunt-narration" id="hn">the session board is covered in options. one is different.</div>
+    <div class="hunt-interaction" id="hi">
+      <div class="session-grid" id="session-grid"></div>
+    </div>
+  `;
+
+  const sessions = [
+    'innovation metrics', 'digital transformation', 'leadership agility', 'data-driven culture',
+    'designing for belonging', 'stakeholder alignment', 'future skills', 'change management',
+    'ai in education', 'scaling impact', 'design thinking 101', 'community building'
+  ];
+  const grid = document.getElementById('session-grid');
+  sessions.forEach((s, i) => {
+    const card = document.createElement('div');
+    card.className = 'session-card';
+    card.textContent = s;
+    if (i === 4) {
+      card.classList.add('starred');
+      card.addEventListener('click', () => showPersonalBadge(container));
+    }
+    if (i === 7) {
+      card.classList.add('easter-egg');
+      card.addEventListener('click', () => showEasterEgg(card, 'find someone who has never eaten at a conference buffet by choice.'));
+    }
+    if (i === 10) {
+      card.classList.add('easter-egg');
+      card.addEventListener('click', () => showEasterEgg(card, 'your afternoon co-conspirator is wearing something yellow.'));
+    }
+    grid.appendChild(card);
+  });
+
+  setTimeout(() => document.getElementById('hn').classList.add('visible'), 100);
+  setTimeout(() => document.getElementById('hi').classList.add('visible'), 400);
+}
+
+function showEasterEgg(card, text) {
+  // remove existing tooltips
+  document.querySelectorAll('.easter-tooltip').forEach(t => t.remove());
+  const tip = document.createElement('div');
+  tip.className = 'easter-tooltip';
+  tip.textContent = text;
+  card.style.position = 'relative';
+  card.appendChild(tip);
+  state.easterEggs = Math.min(state.easterEggs + 1, 2);
+  requestAnimationFrame(() => tip.classList.add('visible'));
+  setTimeout(() => tip.classList.remove('visible'), 3000);
+  setTimeout(() => tip.remove(), 3400);
+}
+
+function showPersonalBadge(container) {
+  const hi = document.getElementById('hi');
+  hi.innerHTML = `
+    <div class="personal-badge" id="pb">
+      <div class="pb-conf">innovate forward summit 2025</div>
+      <div class="pb-name">alex rivera</div>
+      <div class="pb-session">designing for belonging · room 4b · 14:00</div>
+    </div>
+    <div class="hunt-line" id="hl">you already know these people. you just don't know it yet.</div>
+  `;
+  fillFloorPlan('board');
+  unlockAvatar(3);
+  setTimeout(() => document.getElementById('pb').classList.add('visible'), 100);
+  setTimeout(() => document.getElementById('hl').classList.add('visible'), 1200);
+  setTimeout(() => {
+    const trans = document.createElement('div');
+    trans.className = 'hunt-line';
+    trans.id = 'ht';
+    trans.textContent = 'the keynote is starting.';
+    container.appendChild(trans);
+    setTimeout(() => trans.classList.add('visible'), 100);
+    showContinue(container, () => goToScreen(3, 'dissolve'));
+  }, 2500);
+}
+
+function showSJT(container, num, question, options, clue, onComplete) {
+  const hi = document.getElementById('hi');
+  hi.innerHTML = `
+    <div class="sjt-card">
+      <div class="sjt-question">${question}</div>
+      <ul class="sjt-options" id="sjt-opts"></ul>
+      <div class="sjt-response" id="sjt-resp"></div>
+    </div>
+  `;
+  const optsList = document.getElementById('sjt-opts');
+  options.forEach(opt => {
+    const li = document.createElement('li');
+    li.textContent = `${opt.key}) ${opt.text}`;
+    li.addEventListener('click', () => {
+      if (document.querySelector('.sjt-options li.selected')) return;
+      li.classList.add('selected');
+      if (num === 1) state.sjt1 = opt.key;
+      else state.sjt2 = opt.key;
+      const resp = document.getElementById('sjt-resp');
+      resp.innerHTML = `${sjtResponses[num][opt.key]}<div class="sjt-clue">"${clue}"</div>`;
+      resp.classList.add('visible');
+      setTimeout(onComplete, 1800);
+    });
+    optsList.appendChild(li);
+  });
+}
+
+function showContinue(container, onClick) {
+  const btn = document.createElement('button');
+  btn.className = 'hunt-continue';
+  btn.textContent = 'continue →';
+  btn.tabIndex = 0;
+  // append to the interaction area if it exists, otherwise container
+  const target = container.querySelector('.hunt-interaction') || container.querySelector('#hi') || container;
+  target.appendChild(btn);
+  setTimeout(() => {
+    btn.classList.add('visible');
+    btn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, 300);
+  btn.addEventListener('click', onClick);
+  btn.addEventListener('keydown', (e) => { if (e.key === 'Enter') onClick(); });
+}
+
+/* ═══════════════════════════════════════════
+   SCREEN 3 — THE KEYNOTE
+   ═══════════════════════════════════════════ */
+const keynoteSlides = [
+  'belonging is not a feeling. it is a design decision.',
+  'what does your learning environment signal to the people in it?',
+  'the most important question you can ask is: who is this for?'
+];
+
+function initKeynote() {
+  const container = document.getElementById('keynote-container');
+  container.innerHTML = '<div class="keynote-slide" id="ks"><div class="keynote-slide-text" id="ks-text"></div></div>';
+  showKeynoteSlide(0);
+}
+
+function showKeynoteSlide(i) {
+  const slide = document.getElementById('ks');
+  const text = document.getElementById('ks-text');
+  slide.classList.remove('visible');
+
+  setTimeout(() => {
+    text.textContent = keynoteSlides[i];
+    slide.classList.add('visible');
+  }, 300);
+
+  if (i < keynoteSlides.length - 1) {
+    setTimeout(() => showKeynoteSlide(i + 1), 4000);
+  } else {
+    setTimeout(showDrawingPrompt, 4000);
+  }
+}
+
+function showDrawingPrompt() {
+  const container = document.getElementById('keynote-container');
+  const slide = document.getElementById('ks');
+  slide.classList.remove('visible');
+
+  setTimeout(() => {
+    const msg = document.createElement('div');
+    msg.className = 'keynote-message';
+    msg.id = 'km';
+    msg.textContent = 'the speaker just asked everyone to draw something. open your sketchpad.';
+    container.appendChild(msg);
+    setTimeout(() => msg.classList.add('visible'), 100);
+    setTimeout(showCanvas, 2000);
+  }, 500);
+}
+
+function showCanvas() {
+  const container = document.getElementById('keynote-container');
+  const msg = document.getElementById('km');
+  if (msg) msg.style.display = 'none';
+  document.getElementById('ks').style.display = 'none';
+
+  const area = document.createElement('div');
+  area.className = 'canvas-area';
+  area.id = 'canvas-area';
+  area.innerHTML = `
+    <div class="canvas-prompt">draw what learning feels like in your context. anything goes.</div>
+    <div class="canvas-wrapper">
+      <canvas id="draw-canvas" width="600" height="340"></canvas>
+    </div>
+    <div class="canvas-tools" id="canvas-tools"></div>
+  `;
+  container.appendChild(area);
+  setTimeout(() => area.classList.add('visible'), 100);
+  initCanvas();
+}
+
+function initCanvas() {
+  const canvas = document.getElementById('draw-canvas');
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, 600, 340);
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.lineWidth = 3;
+  let drawing = false;
+  let colour = '#5F9EA0';
+  let erasing = false;
+
+  function getPos(e) {
+    if (e.touches) {
+      const rect = canvas.getBoundingClientRect();
+      return { x: e.touches[0].clientX - rect.left, y: e.touches[0].clientY - rect.top };
+    }
+    return { x: e.offsetX, y: e.offsetY };
+  }
+  function startDraw(e) { e.preventDefault(); drawing = true; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); }
+  function moveDraw(e) {
+    if (!drawing) return; e.preventDefault();
+    ctx.strokeStyle = erasing ? '#fff' : colour;
+    ctx.lineWidth = erasing ? 20 : 3;
+    const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke();
+  }
+  function endDraw() { drawing = false; }
+  canvas.addEventListener('mousedown', startDraw);
+  canvas.addEventListener('mousemove', moveDraw);
+  canvas.addEventListener('mouseup', endDraw);
+  canvas.addEventListener('mouseleave', endDraw);
+  canvas.addEventListener('touchstart', startDraw, { passive: false });
+  canvas.addEventListener('touchmove', moveDraw, { passive: false });
+  canvas.addEventListener('touchend', endDraw);
+
+  const tools = document.getElementById('canvas-tools');
+  const colours = ['#5F9EA0', '#A0522D', '#E97451', '#F7E7CE', '#222', '#fff'];
+  colours.forEach(c => {
+    const sw = document.createElement('div');
+    sw.className = 'colour-swatch' + (c === colour ? ' active' : '');
+    sw.style.background = c;
+    if (c === '#fff') sw.style.border = '2px solid #ccc';
+    sw.addEventListener('click', () => {
+      erasing = false;
+      colour = c;
+      document.querySelectorAll('.colour-swatch').forEach(s => s.classList.remove('active'));
+      sw.classList.add('active');
+    });
+    tools.appendChild(sw);
+  });
+
+  const eraserBtn = document.createElement('button');
+  eraserBtn.className = 'canvas-btn';
+  eraserBtn.textContent = 'eraser';
+  eraserBtn.addEventListener('click', () => { erasing = !erasing; eraserBtn.classList.toggle('active'); });
+  tools.appendChild(eraserBtn);
+
+  const doneBtn = document.createElement('button');
+  doneBtn.className = 'canvas-btn primary';
+  doneBtn.textContent = 'done';
+  doneBtn.addEventListener('click', () => {
+    state.drawingData = canvas.toDataURL();
+    showSharedWall();
+  });
+  tools.appendChild(doneBtn);
+
+  // auto-advance after 45s
+  setTimeout(() => {
+    if (!state.drawingData) {
+      state.drawingData = canvas.toDataURL();
+      showSharedWall();
+    }
+  }, 45000);
+}
+
+const wallSVGs = [
+  `<svg viewBox="0 0 100 80"><path d="M50 10 C30 15, 15 40, 50 70 C85 40, 70 15, 50 10Z" fill="none" stroke="#5F9EA0" stroke-width="2"/></svg>`,
+  `<svg viewBox="0 0 100 80"><circle cx="30" cy="40" r="15" fill="none" stroke="#E97451" stroke-width="2"/><circle cx="55" cy="30" r="12" fill="none" stroke="#A0522D" stroke-width="2"/><circle cx="65" cy="55" r="10" fill="none" stroke="#5F9EA0" stroke-width="2"/></svg>`,
+  `<svg viewBox="0 0 100 80"><path d="M50 75 L50 30 M50 30 L30 15 M50 30 L70 15 M50 45 L35 35 M50 45 L65 35" stroke="#A0522D" stroke-width="2" fill="none" stroke-linecap="round"/></svg>`,
+  `<svg viewBox="0 0 100 80"><path d="M10 60 Q25 20, 40 50 Q55 10, 70 45 Q85 15, 95 55" fill="none" stroke="#E97451" stroke-width="2.5" stroke-linecap="round"/></svg>`,
+  `<svg viewBox="0 0 100 80"><circle cx="50" cy="40" r="20" fill="none" stroke="#F7E7CE" stroke-width="6"/><line x1="50" y1="15" x2="50" y2="5" stroke="#E97451" stroke-width="2"/><line x1="70" y1="25" x2="78" y2="18" stroke="#E97451" stroke-width="2"/><line x1="75" y1="40" x2="85" y2="40" stroke="#E97451" stroke-width="2"/><line x1="25" y1="40" x2="15" y2="40" stroke="#E97451" stroke-width="2"/><line x1="30" y1="25" x2="22" y2="18" stroke="#E97451" stroke-width="2"/></svg>`,
+  `<svg viewBox="0 0 100 80"><circle cx="20" cy="20" r="3" fill="#5F9EA0"/><circle cx="45" cy="15" r="2" fill="#A0522D"/><circle cx="70" cy="25" r="4" fill="#E97451"/><circle cx="30" cy="45" r="3" fill="#A0522D"/><circle cx="60" cy="50" r="2" fill="#5F9EA0"/><circle cx="80" cy="55" r="3" fill="#E97451"/><circle cx="40" cy="65" r="4" fill="#5F9EA0"/><circle cx="75" cy="40" r="2" fill="#A0522D"/></svg>`,
+  `<svg viewBox="0 0 100 80"><path d="M15 60 Q30 20, 50 40 Q70 20, 85 60" fill="none" stroke="#A0522D" stroke-width="2.5" stroke-linecap="round"/></svg>`,
+  `<svg viewBox="0 0 100 80"><path d="M50 15 L55 30 L70 30 L58 40 L63 55 L50 46 L37 55 L42 40 L30 30 L45 30Z" fill="none" stroke="#5F9EA0" stroke-width="1.5"/></svg>`,
+];
+
+function showSharedWall() {
+  const container = document.getElementById('keynote-container');
+  const canvasArea = document.getElementById('canvas-area');
+  if (canvasArea) canvasArea.style.display = 'none';
+
+  const wall = document.createElement('div');
+  wall.className = 'shared-wall';
+  wall.id = 'shared-wall';
+
+  // add pre-illustrated drawings
+  const rotations = [-3, 2, -1, 3, -2, 1, -3, 2];
+  wallSVGs.forEach((svg, i) => {
+    const d = document.createElement('div');
+    d.className = 'wall-drawing';
+    d.style.setProperty('--rot', rotations[i] + 'deg');
+    d.innerHTML = svg;
+    wall.appendChild(d);
+  });
+
+  // add user's drawing
+  if (state.drawingData) {
+    const ud = document.createElement('div');
+    ud.className = 'wall-drawing user-drawing';
+    ud.style.setProperty('--rot', '1deg');
+    const img = document.createElement('img');
+    img.src = state.drawingData;
+    img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:4px;';
+    ud.appendChild(img);
+    wall.appendChild(ud);
+  }
+
+  container.appendChild(wall);
+  setTimeout(() => wall.classList.add('visible'), 100);
+
+  const count = document.createElement('div');
+  count.className = 'wall-count';
+  count.textContent = '47 people just answered that question at the same time.';
+  container.appendChild(count);
+  setTimeout(() => count.classList.add('visible'), 1200);
+
+  setTimeout(showBuildActivity, 3500);
+}
+
+const polaroidSVGs = [
+  { svg: `<svg viewBox="0 0 60 50"><rect x="5" y="5" width="50" height="40" rx="4" fill="none" stroke="#5F9EA0" stroke-width="1.5"/><circle cx="30" cy="25" r="10" fill="#F7E7CE"/></svg>`, caption: 'a safe circle' },
+  { svg: `<svg viewBox="0 0 60 50"><path d="M10 40 L20 15 L30 30 L40 10 L50 40Z" fill="none" stroke="#E97451" stroke-width="1.5"/></svg>`, caption: 'mountains of curiosity' },
+  { svg: `<svg viewBox="0 0 60 50"><path d="M30 5 Q50 25, 30 45 Q10 25, 30 5Z" fill="none" stroke="#A0522D" stroke-width="1.5"/></svg>`, caption: 'the messy middle' },
+  { svg: `<svg viewBox="0 0 60 50"><line x1="10" y1="40" x2="50" y2="40" stroke="#5F9EA0" stroke-width="1.5"/><circle cx="20" cy="30" r="6" fill="none" stroke="#E97451" stroke-width="1.5"/><circle cx="40" cy="30" r="6" fill="none" stroke="#A0522D" stroke-width="1.5"/><line x1="26" y1="30" x2="34" y2="30" stroke="#ccc" stroke-width="1"/></svg>`, caption: 'connected' },
+  { svg: `<svg viewBox="0 0 60 50"><path d="M30 10 C10 10, 10 40, 30 40 C50 40, 50 10, 30 10" fill="none" stroke="#5F9EA0" stroke-width="1.5" stroke-dasharray="3 3"/></svg>`, caption: 'room to breathe' },
+  { svg: `<svg viewBox="0 0 60 50"><path d="M15 40 Q15 15, 30 15 Q45 15, 45 40" fill="none" stroke="#A0522D" stroke-width="2"/><circle cx="30" cy="12" r="3" fill="#E97451"/></svg>`, caption: 'a doorway' },
+];
+
+function showBuildActivity() {
+  const container = document.getElementById('keynote-container');
+  const wall = document.getElementById('shared-wall');
+  if (wall) wall.style.display = 'none';
+  document.querySelectorAll('.wall-count').forEach(el => el.style.display = 'none');
+
+  const msg = document.createElement('div');
+  msg.className = 'keynote-message';
+  msg.textContent = 'now it\'s your turn to build something.';
+  container.appendChild(msg);
+  setTimeout(() => msg.classList.add('visible'), 100);
+
+  setTimeout(() => {
+    msg.style.display = 'none';
+
+    const prompt = document.createElement('div');
+    prompt.className = 'keynote-message';
+    prompt.style.marginBottom = '20px';
+    prompt.textContent = 'you have 5 minutes and whatever\'s on your table. make something that represents your ideal learning environment.';
+    container.appendChild(prompt);
+    setTimeout(() => prompt.classList.add('visible'), 100);
+
+    const area = document.createElement('div');
+    area.className = 'activity-area';
+    area.id = 'activity-area';
+
+    // polaroids
+    let pgHTML = '<div class="polaroid-grid">';
+    const pRots = [-2, 3, -1, 2, -3, 1];
+    polaroidSVGs.forEach((p, i) => {
+      pgHTML += `<div class="polaroid" style="--rot:${pRots[i]}deg"><div class="polaroid-img">${p.svg}</div><div class="polaroid-caption">${p.caption}</div></div>`;
+    });
+    pgHTML += '</div>';
+
+    // wordcloud + input
+    const seedWords = ['belonging', 'curiosity', 'risk', 'connection', 'safety', 'joy', 'mess', 'trust', 'space'];
+    let wcHTML = '<div style="display:flex;flex-direction:column;align-items:center;">';
+    wcHTML += '<div class="wordcloud" id="wordcloud">';
+    const sizes = [28, 22, 18, 26, 20, 24, 16, 22, 20];
+    seedWords.forEach((w, i) => {
+      wcHTML += `<span class="wc-word" style="font-size:${sizes[i]}px;" id="wc-${i}">${w}</span>`;
+    });
+    wcHTML += '</div>';
+    wcHTML += `<div class="caption-input-area">
+      <label>name your artefact:</label>
+      <input type="text" class="caption-input" id="caption-input" placeholder="type here..." autocomplete="off">
+    </div>`;
+    wcHTML += `<button class="hunt-continue" id="build-done" style="opacity:1;margin-top:16px;">continue →</button>`;
+    wcHTML += '</div>';
+
+    area.innerHTML = pgHTML + wcHTML;
+    container.appendChild(area);
+    setTimeout(() => area.classList.add('visible'), 200);
+
+    // animate seed words appearing
+    seedWords.forEach((_, i) => {
+      setTimeout(() => {
+        const el = document.getElementById('wc-' + i);
+        if (el) el.classList.add('visible');
+      }, 300 + i * 150);
+    });
+
+    // handle caption input
+    const input = document.getElementById('caption-input');
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && input.value.trim()) {
+        addUserWords(input.value.trim());
+        input.value = '';
+      }
+    });
+
+    document.getElementById('build-done').addEventListener('click', () => {
+      if (input.value.trim()) addUserWords(input.value.trim());
+      showKeynoteTransition();
+    });
+
+  }, 2500);
+}
+
+function addUserWords(text) {
+  const cloud = document.getElementById('wordcloud');
+  const words = text.split(/\s+/);
+  words.forEach(w => {
+    if (w.length < 2) return;
+    const span = document.createElement('span');
+    span.className = 'wc-word user-word';
+    span.style.fontSize = (16 + Math.random() * 14) + 'px';
+    span.textContent = w.toLowerCase();
+    cloud.appendChild(span);
+    state.userCaption += ' ' + w;
+    requestAnimationFrame(() => span.classList.add('visible'));
+  });
+}
+
+function showKeynoteTransition() {
+  const container = document.getElementById('keynote-container');
+  container.innerHTML = '';
+  const msg = document.createElement('div');
+  msg.className = 'keynote-message';
+  msg.textContent = 'room 4b. 14:00. your group is already there.';
+  container.appendChild(msg);
+  setTimeout(() => msg.classList.add('visible'), 100);
+  setTimeout(() => goToScreen(4, 'dissolve'), 2500);
+}
+
+/* ═══════════════════════════════════════════
+   SCREEN 4 — WORKSHOP + DEBRIEF + DASHBOARD
+   ═══════════════════════════════════════════ */
+function initWorkshop() {
+  const container = document.getElementById('s4-container');
+  container.innerHTML = '';
+  showPartA(container);
+}
+
+function showPartA(container) {
+  const optLabels = { a: 'option a', b: 'option b', c: 'option c', d: 'option d' };
+  const sjtTexts = {
+    a: 'also chose to let them observe first',
+    b: 'also chose to give them a solo role',
+    c: 'also chose to pause and address it',
+    d: 'also chose to check in privately'
+  };
+  const sjtTexts2 = {
+    a: 'answered: the speaker answers their own question.',
+    b: 'answered: someone in the audience breaks the silence.',
+    c: 'answered: the speaker reframes the question.',
+    d: 'answered: the silence is allowed to last a little longer.'
+  };
+
+  const section = document.createElement('div');
+  section.className = 's4-section';
+  section.id = 's4a';
+  section.innerHTML = `
+    <div class="cohort-reveal">
+      <div class="cohort-card" id="cc1">
+        <div class="avatar-circle" style="background:var(--sienna);width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:50%;color:#fff;font-family:var(--font-display);font-weight:600;">J</div>
+        <div class="cohort-detail">jamie ${sjtTexts[state.sjt1] || 'also chose option b'}.</div>
+      </div>
+      <div class="cohort-card" id="cc2">
+        <div class="avatar-circle" style="background:var(--cadet);width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:50%;color:#fff;font-family:var(--font-display);font-weight:600;">S</div>
+        <div class="cohort-detail">sam ${sjtTexts2[state.sjt2] || 'answered: the silence is allowed to last a little longer.'}</div>
+      </div>
+      <div class="cohort-card" id="cc3">
+        <div class="avatar-circle" style="background:var(--redwood);width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:50%;color:#fff;font-family:var(--font-display);font-weight:600;">P</div>
+        <div class="cohort-detail">priya is also going to designing for belonging.</div>
+      </div>
+      <div class="hunt-line" id="s4a-line">you already have something in common. the workshop hasn't even started.</div>
+    </div>
+  `;
+  container.appendChild(section);
+  setTimeout(() => section.classList.add('visible'), 200);
+  setTimeout(() => document.getElementById('cc1').classList.add('visible'), 600);
+  setTimeout(() => document.getElementById('cc2').classList.add('visible'), 1100);
+  setTimeout(() => document.getElementById('cc3').classList.add('visible'), 1600);
+  setTimeout(() => document.getElementById('s4a-line').classList.add('visible'), 2200);
+  setTimeout(() => {
+    // fade out Part A before showing Part B
+    const s4a = document.getElementById('s4a');
+    s4a.style.transition = 'opacity 0.8s ease';
+    s4a.style.opacity = '0';
+    setTimeout(() => {
+      s4a.style.display = 'none';
+      showPartB(container);
+    }, 800);
+  }, 5500);
+}
+
+function showPartB(container) {
+  const section = document.createElement('div');
+  section.className = 's4-section';
+  section.id = 's4b';
+  state.debriefStep = 0;
+
+  section.innerHTML = `
+    <div class="debrief-cards" id="debrief-cards">
+      <div class="debrief-card" id="dc1">
+        <div class="debrief-inner">
+          <div class="debrief-front">1</div>
+          <div class="debrief-back">
+            <div class="debrief-prompt">what will you do differently on monday morning?</div>
+            <textarea class="debrief-input" id="di1" placeholder="this stays private..."></textarea>
+            <button class="hunt-continue" style="opacity:1;margin-top:10px;font-size:12px;padding:6px 14px;" id="di1-done">done</button>
+          </div>
+        </div>
+      </div>
+      <div class="debrief-card" id="dc2" style="pointer-events:none;opacity:0.5;">
+        <div class="debrief-inner">
+          <div class="debrief-front">2<span class="debrief-lock" id="lock2">complete card 1 first</span></div>
+          <div class="debrief-back">
+            <div class="debrief-prompt">finish this sentence: the most surprising thing today was...</div>
+            <textarea class="debrief-input" id="di2" placeholder="type here..."></textarea>
+            <button class="hunt-continue" style="opacity:1;margin-top:10px;font-size:12px;padding:6px 14px;" id="di2-done">share</button>
+          </div>
+        </div>
+      </div>
+      <div class="debrief-card" id="dc3" style="pointer-events:none;opacity:0.5;">
+        <div class="debrief-inner">
+          <div class="debrief-front">3<span class="debrief-lock" id="lock3">complete card 2 first</span></div>
+          <div class="debrief-back">
+            <div class="debrief-prompt">what do you want to keep exploring?</div>
+            <div class="debrief-mc-option" data-val="how to design for belonging">how to design for belonging</div>
+            <div class="debrief-mc-option" data-val="measurement that doesn't flatten growth">measurement that doesn't flatten growth</div>
+            <div class="debrief-mc-option" data-val="playful facilitation methods">playful facilitation methods</div>
+            <div class="debrief-mc-option" data-val="how to make the case to stakeholders">how to make the case to stakeholders</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="response-wall" id="response-wall" style="display:none;"></div>
+  `;
+
+  container.appendChild(section);
+  setTimeout(() => section.classList.add('visible'), 200);
+
+  // card 1 flip
+  document.getElementById('dc1').addEventListener('click', function handler() {
+    this.classList.add('flipped');
+    this.removeEventListener('click', handler);
+  });
+  document.getElementById('di1-done').addEventListener('click', (e) => {
+    e.stopPropagation();
+    state.privateReflection = document.getElementById('di1').value;
+    document.getElementById('dc2').style.pointerEvents = 'auto';
+    document.getElementById('dc2').style.opacity = '1';
+    const lock2 = document.getElementById('lock2');
+    if (lock2) lock2.remove();
+  });
+
+  // card 2 flip
+  document.getElementById('dc2').addEventListener('click', function handler() {
+    this.classList.add('flipped');
+    this.removeEventListener('click', handler);
+  });
+  document.getElementById('di2-done').addEventListener('click', (e) => {
+    e.stopPropagation();
+    state.socialShare = document.getElementById('di2').value;
+    showResponseWall();
+    document.getElementById('dc3').style.pointerEvents = 'auto';
+    document.getElementById('dc3').style.opacity = '1';
+    const lock3 = document.getElementById('lock3');
+    if (lock3) lock3.remove();
+  });
+
+  // card 3 flip
+  document.getElementById('dc3').addEventListener('click', function handler() {
+    this.classList.add('flipped');
+    this.removeEventListener('click', handler);
+  });
+
+  // MC options for card 3
+  setTimeout(() => {
+    document.querySelectorAll('.debrief-mc-option').forEach(opt => {
+      opt.addEventListener('click', (e) => {
+        e.stopPropagation();
+        document.querySelectorAll('.debrief-mc-option').forEach(o => o.classList.remove('selected'));
+        opt.classList.add('selected');
+        state.card3 = opt.dataset.val;
+        setTimeout(() => showPartC(container), 1200);
+      });
+    });
+  }, 100);
+}
+
+function showResponseWall() {
+  const wall = document.getElementById('response-wall');
+  wall.style.display = 'flex';
+  const seeded = [
+    '...how much i wanted to keep going.',
+    '...that silence can be a design choice.',
+    '...finding three people who think the same way i do.',
+    '...that belonging is designed, not felt.',
+    '...how playful it felt without being childish.',
+    '...that i forgot i was at a conference.',
+    '...the drawing activity. genuinely.',
+    '...how much a single question can shift a room.'
+  ];
+  if (state.socialShare) seeded.push('...' + state.socialShare);
+  seeded.forEach((r, i) => {
+    const bubble = document.createElement('div');
+    bubble.className = 'response-bubble' + (i === seeded.length - 1 && state.socialShare ? ' user-response' : '');
+    bubble.textContent = r;
+    wall.appendChild(bubble);
+    setTimeout(() => bubble.classList.add('visible'), 200 + i * 150);
+  });
+}
+
+function showPartC(container) {
+  // fold away debrief
+  const debrief = document.getElementById('s4b');
+  debrief.style.transition = 'all 0.8s ease';
+  debrief.style.opacity = '0';
+  debrief.style.transform = 'scale(0.95) translateY(-20px)';
+
+  setTimeout(() => {
+    debrief.style.display = 'none';
+    const section = document.createElement('div');
+    section.className = 's4-section';
+    section.id = 's4c';
+    section.innerHTML = `
+      <div class="dashboard" id="dashboard">
+        <div class="dash-title" id="dt">here's what attendee #47 generated today.</div>
+        <div class="dash-metric" id="dm1">
+          <div class="dash-metric-label">engagement score</div>
+          <div class="dash-metric-value">
+            <div class="dash-big-number">94%</div>
+            <div class="dash-desc">interactions completed across all touchpoints</div>
+          </div>
+        </div>
+        <div class="dash-metric" id="dm2">
+          <div class="dash-metric-label">learning signal</div>
+          <div class="dash-metric-value">
+            <div class="dash-desc">sjt response distribution by scenario</div>
+            <div class="dash-bar-chart" id="bar-chart"></div>
+          </div>
+        </div>
+        <div class="dash-metric" id="dm3">
+          <div class="dash-metric-label">connection index</div>
+          <div class="dash-metric-value">
+            <div class="dash-check">
+              <span>✓</span> cohort found<br>
+              <span>✓</span> workshop attended<br>
+              <span>✓</span> ${state.easterEggs} networking clue${state.easterEggs !== 1 ? 's' : ''} discovered
+            </div>
+          </div>
+        </div>
+        <div class="dash-metric" id="dm4">
+          <div class="dash-metric-label">transfer intent</div>
+          <div class="dash-metric-value">
+            <div class="dash-desc">what they want to explore next:</div>
+            <div style="font-family:var(--font-display);font-size:16px;color:var(--cadet);margin-top:4px;">${state.card3 || 'playful facilitation methods'}</div>
+          </div>
+        </div>
+        <div class="dash-tagline" id="dt1">they had fun. you have evidence.</div>
+        <div class="dash-tagline big" id="dt2">now imagine 200 attendees.</div>
+      </div>
+      <button class="hunt-continue" id="dash-continue" style="opacity:0;margin-top:24px;">continue →</button>
+    `;
+    container.appendChild(section);
+    setTimeout(() => section.classList.add('visible'), 200);
+
+    // animate dashboard pieces
+    setTimeout(() => document.getElementById('dt').classList.add('visible'), 400);
+    setTimeout(() => document.getElementById('dm1').classList.add('visible'), 1200);
+    setTimeout(() => {
+      document.getElementById('dm2').classList.add('visible');
+      buildBarChart();
+    }, 2000);
+    setTimeout(() => document.getElementById('dm3').classList.add('visible'), 2800);
+    setTimeout(() => document.getElementById('dm4').classList.add('visible'), 3600);
+    setTimeout(() => document.getElementById('dt1').classList.add('visible'), 4600);
+    setTimeout(() => document.getElementById('dt2').classList.add('visible'), 6000);
+    setTimeout(() => {
+      const btn = document.getElementById('dash-continue');
+      btn.style.opacity = '1';
+      btn.addEventListener('click', () => goToScreen(5, 'dissolve'));
+    }, 7000);
+  }, 800);
+}
+
+function buildBarChart() {
+  const chart = document.getElementById('bar-chart');
+  if (!chart) return;
+  const labels = ['a', 'b', 'c', 'd'];
+  const userChoice1 = state.sjt1 || 'b';
+  const userChoice2 = state.sjt2 || 'd';
+  // simulated group distribution
+  const data1 = { a: 28, b: 35, c: 18, d: 19 };
+  const data2 = { a: 15, b: 22, c: 30, d: 33 };
+  // highlight user's choice
+  data1[userChoice1] = Math.max(data1[userChoice1], 40);
+  data2[userChoice2] = Math.max(data2[userChoice2], 40);
+
+  labels.forEach(l => {
+    const bar = document.createElement('div');
+    bar.className = 'dash-bar';
+    bar.style.height = '0px';
+    bar.style.background = l === userChoice1 ? 'var(--sienna)' : 'var(--cadet)';
+    bar.innerHTML = `<div class="dash-bar-label">${l}</div>`;
+    chart.appendChild(bar);
+    setTimeout(() => { bar.style.height = data1[l] + 'px'; }, 300);
+  });
+
+  // small gap
+  const gap = document.createElement('div');
+  gap.style.width = '16px';
+  chart.appendChild(gap);
+
+  labels.forEach(l => {
+    const bar = document.createElement('div');
+    bar.className = 'dash-bar';
+    bar.style.height = '0px';
+    bar.style.background = l === userChoice2 ? 'var(--sienna)' : 'var(--cadet)';
+    bar.innerHTML = `<div class="dash-bar-label">${l}</div>`;
+    chart.appendChild(bar);
+    setTimeout(() => { bar.style.height = data2[l] + 'px'; }, 500);
+  });
+}
+
+/* ═══════════════════════════════════════════
+   SCREEN 5 — FINAL
+   ═══════════════════════════════════════════ */
+function initFinal() {
+  setTimeout(() => document.getElementById('s5-line1').classList.add('visible'), 300);
+  setTimeout(() => document.getElementById('s5-line2').classList.add('visible'), 600);
+  setTimeout(() => document.getElementById('s5-buttons').classList.add('visible'), 800);
+}
+</script>
+</body>
+</html>
