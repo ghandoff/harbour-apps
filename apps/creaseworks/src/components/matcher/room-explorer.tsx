@@ -16,7 +16,7 @@
  * relevant without the kid ever thinking about "filters."
  */
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useRef } from "react";
 import { Material, MatcherResult } from "./types";
 import { ROOMS, RoomConfig } from "./room-config";
 import { RoomGrid } from "./room-grid";
@@ -49,7 +49,7 @@ export default function RoomExplorer({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<MatcherResult | null>(null);
-  const resultsRef = useMemo(() => ({ current: null as HTMLDivElement | null }), []);
+  const resultsRef = useRef<HTMLDivElement>(null);
 
   /* ── derived data ───────────────────────────────────────────── */
 

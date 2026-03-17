@@ -37,7 +37,6 @@ import RoomExplorer from "@/components/matcher/room-explorer";
 import FindModeSelector from "@/components/matcher/find-mode-selector";
 
 export const dynamic = "force-dynamic";
-export const revalidate = 3600;
 
 export default async function MatcherPage({
   searchParams,

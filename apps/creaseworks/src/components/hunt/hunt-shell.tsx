@@ -16,6 +16,7 @@
  */
 
 import { useState, useCallback, useMemo, useEffect } from "react";
+import Link from "next/link";
 import { EmojiTile } from "../matcher/emoji-tile";
 import { ProgressRing } from "../matcher/progress-ring";
 import { getMaterialEmoji } from "../matcher/material-emoji";
@@ -295,6 +296,14 @@ export default function HuntShell({ contexts }: HuntShellProps) {
         </p>
 
         <div className="flex flex-col gap-3 max-w-sm mx-auto">
+          {availableVibes.length === 0 && (
+            <p
+              className="text-sm text-center py-6"
+              style={{ color: "var(--wv-champagne)", opacity: 0.5 }}
+            >
+              no vibes available right now — check back soon!
+            </p>
+          )}
           {availableVibes.map((vibe) => (
             <button
               key={vibe.key}
@@ -537,11 +546,11 @@ export default function HuntShell({ contexts }: HuntShellProps) {
                 className="flex items-center gap-3 rounded-xl px-4 py-3 text-left active:scale-[0.98]"
                 style={{
                   backgroundColor: checked
-                    ? "rgba(177, 80, 67, 0.08)"
-                    : "rgba(255, 255, 255, 0.7)",
+                    ? "rgba(177, 80, 67, 0.12)"
+                    : "rgba(255, 255, 255, 0.06)",
                   border: checked
                     ? "2px solid var(--wv-redwood)"
-                    : "2px solid rgba(255, 255, 255, 0.08)",
+                    : "2px solid rgba(255, 255, 255, 0.1)",
                   transition: `all 220ms ${SPRING}`,
                   opacity: checked ? 0.7 : 1,
                 }}
@@ -761,8 +770,8 @@ export default function HuntShell({ contexts }: HuntShellProps) {
 
       {/* link to playdate if entitled */}
       {state.playdate?.isEntitled && (
-        <a
-          href={`/play/${state.playdate.slug}`}
+        <Link
+          href={`/packs/${state.playdate.packSlugs[0]}/playdates/${state.playdate.slug}`}
           className="inline-block rounded-2xl px-8 py-4 text-base font-bold"
           style={{
             backgroundColor: "var(--wv-redwood)",
@@ -771,12 +780,12 @@ export default function HuntShell({ contexts }: HuntShellProps) {
           }}
         >
           let&apos;s make this! ✨
-        </a>
+        </Link>
       )}
 
       {!state.playdate?.isEntitled && state.playdate?.packSlugs.length ? (
-        <a
-          href={`/play/${state.playdate.packSlugs[0]}`}
+        <Link
+          href={`/packs/${state.playdate.packSlugs[0]}`}
           className="inline-block rounded-2xl px-8 py-4 text-base font-bold"
           style={{
             backgroundColor: "var(--wv-sienna)",
@@ -785,7 +794,7 @@ export default function HuntShell({ contexts }: HuntShellProps) {
           }}
         >
           see the pack →
-        </a>
+        </Link>
       ) : null}
 
       <div className="mt-6">

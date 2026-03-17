@@ -139,7 +139,7 @@ export default function ChallengeShell({
                   color:
                     state.timer.timeLeft <= 10
                       ? "var(--wv-redwood)"
-                      : "var(--wv-cadet)",
+                      : "var(--wv-champagne)",
                   transition: "color 300ms ease",
                 }}
               >

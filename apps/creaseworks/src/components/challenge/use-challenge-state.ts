@@ -10,7 +10,7 @@
  * spotted, not how fast you were.
  */
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { Material, MatcherResult } from "../matcher/types";
 import { useTimer } from "./use-timer";
 import { apiUrl } from "@/lib/api-url";
@@ -45,6 +45,10 @@ export function useChallengeState(materials: Material[], slots: string[]) {
     handleExpire,
   );
 
+  /** ref to the latest timer — avoids stale closures in callbacks */
+  const timerRef = useRef(timer);
+  useEffect(() => { timerRef.current = timer; }, [timer]);
+
   /* ── actions ────────────────────────────────────────────────── */
 
   const startChallenge = useCallback(
@@ -56,14 +60,12 @@ export function useChallengeState(materials: Material[], slots: string[]) {
       setPhase("active");
 
       if (cfg.durationSeconds !== null) {
-        // timer will start on next render via the hook
-        // we need to re-create timer with new duration
-        timer.reset();
-        // small delay to ensure state is flushed
-        setTimeout(() => timer.start(), 50);
+        timerRef.current.reset();
+        // delay ensures state flush so timer reads the new duration
+        setTimeout(() => timerRef.current.start(), 50);
       }
     },
-    [timer],
+    [],
   );
 
   const tapItem = useCallback((id: string) => {
