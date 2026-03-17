@@ -31,7 +31,8 @@ export default async function HuntPage() {
 
   return (
     <main className="px-4 pt-8 pb-24 sm:px-6 sm:pt-14 sm:pb-16">
-      <div className="max-w-lg mx-auto">
+      {/* ── header zone — same width + height on all find modes ── */}
+      <div className="max-w-2xl mx-auto">
         <Link
           href="/matcher"
           className="text-sm hover:opacity-80 transition-opacity mb-5 sm:mb-7 inline-flex items-center gap-1.5"
@@ -40,8 +41,8 @@ export default async function HuntPage() {
           <span>&larr;</span> back to find
         </Link>
 
-        {/* ── hero copy (matches /matcher layout) ──────────── */}
-        <div className="relative mb-6 sm:mb-8">
+        {/* ── hero copy — fixed min-height ───────────────────── */}
+        <div className="relative mb-6 sm:mb-8" style={{ minHeight: 152 }}>
           <h1
             className="text-3xl sm:text-4xl font-bold tracking-tight mb-3"
             style={{ color: "var(--wv-champagne)" }}
@@ -58,7 +59,10 @@ export default async function HuntPage() {
         </div>
 
         <FindModeSelector currentMode="hunt" />
+      </div>
 
+      {/* ── content zone ─────────────────────────────────────── */}
+      <div className="max-w-lg mx-auto">
         <HuntShell contexts={contexts} />
       </div>
 

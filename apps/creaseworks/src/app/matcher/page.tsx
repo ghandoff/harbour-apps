@@ -56,7 +56,8 @@ export default async function MatcherPage({
 
   return (
     <main className="px-4 pt-8 pb-24 sm:px-6 sm:pt-14 sm:pb-16">
-      <div className="max-w-5xl mx-auto">
+      {/* ── header zone — same width + height on all find modes ── */}
+      <div className="max-w-2xl mx-auto">
         <Link
           href="/"
           className="text-sm hover:opacity-80 transition-opacity mb-5 sm:mb-7 inline-flex items-center gap-1.5"
@@ -65,8 +66,8 @@ export default async function MatcherPage({
           <span>&larr;</span> creaseworks
         </Link>
 
-        {/* ── playful hero heading ──────────────────────────── */}
-        <div className="relative mb-6 sm:mb-8">
+        {/* ── playful hero heading — fixed min-height ────────── */}
+        <div className="relative mb-6 sm:mb-8" style={{ minHeight: 152 }}>
           {/* decorative floating shapes — desktop only */}
           <div
             className="hidden sm:block absolute -left-10 top-2 w-5 h-5 rounded-lg"
@@ -117,8 +118,10 @@ export default async function MatcherPage({
 
         {/* ── find mode links ──────────────────────────────── */}
         <FindModeSelector currentMode={mode} />
+      </div>
 
-        {/* ── main content ─────────────────────────────────── */}
+      {/* ── content zone — can be wider for rooms/classic ──── */}
+      <div className="max-w-5xl mx-auto">
         {mode === "rooms" ? (
           <RoomExplorer
             materials={materials}
