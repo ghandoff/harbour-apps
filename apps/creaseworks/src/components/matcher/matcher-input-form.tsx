@@ -16,7 +16,7 @@ import { FilterSection } from "./filter-section";
 import { Pill } from "./pill";
 import { useMatcherState } from "./use-matcher-state";
 import { MatcherResults } from "./matcher-results";
-import { getMaterialEmoji } from "./material-emoji";
+import { getMaterialEmoji, getMaterialIcon } from "./material-emoji";
 
 /* ── emoji maps for material forms ────────────────────────────────── */
 
@@ -137,25 +137,35 @@ export default function MatcherInputForm({
             </span>
           </div>
           <div className="flex flex-wrap gap-2">
-            {Array.from(selectedMaterials).map((id) => (
-              <button
-                key={id}
-                type="button"
-                aria-label={`remove ${materialTitleMap.get(id) ?? id}`}
-                onClick={() =>
-                  toggleSet(selectedMaterials, setSelectedMaterials, id)
-                }
-                className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all active:scale-90"
-                style={{
-                  backgroundColor: "rgba(177, 80, 67, 0.12)",
-                  color: "var(--wv-redwood)",
-                }}
-              >
-                <span>{getMaterialEmoji(materialTitleMap.get(id) ?? id, materialFormMap.get(id), materialEmojiMap.get(id))}</span>
-                {materialTitleMap.get(id) ?? id}
-                <span style={{ fontSize: "0.9em", opacity: 0.6 }}>✕</span>
-              </button>
-            ))}
+            {Array.from(selectedMaterials).map((id) => {
+              const title = materialTitleMap.get(id) ?? id;
+              const form = materialFormMap.get(id);
+              const dbEmoji = materialEmojiMap.get(id);
+              const iconPath = getMaterialIcon(title, form, dbEmoji);
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  aria-label={`remove ${title}`}
+                  onClick={() =>
+                    toggleSet(selectedMaterials, setSelectedMaterials, id)
+                  }
+                  className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all active:scale-90"
+                  style={{
+                    backgroundColor: "rgba(177, 80, 67, 0.12)",
+                    color: "var(--wv-redwood)",
+                  }}
+                >
+                  {iconPath ? (
+                    <img src={iconPath} alt="" width={16} height={16} className="inline-block" />
+                  ) : (
+                    <span>{getMaterialEmoji(title, form, dbEmoji)}</span>
+                  )}
+                  {title}
+                  <span style={{ fontSize: "0.9em", opacity: 0.6 }}>✕</span>
+                </button>
+              );
+            })}
             {Array.from(selectedForms).map((f) => (
               <button
                 key={`form-${f}`}
@@ -323,6 +333,7 @@ export default function MatcherInputForm({
                           key={mat.id}
                           label={mat.title}
                           emoji={getMaterialEmoji(mat.title, mat.form_primary, mat.emoji)}
+                          icon={getMaterialIcon(mat.title, mat.form_primary, mat.emoji)}
                           selected={selectedMaterials.has(mat.id)}
                           onClick={() =>
                             toggleSet(

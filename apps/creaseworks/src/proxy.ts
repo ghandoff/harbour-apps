@@ -78,7 +78,8 @@ const publicPatterns = [
   /^\/checkout\/success$/,     // Stripe redirects here after payment
   /^\/_next(\/.*)?$/,
   /^\/favicon\.ico$/,
-  /^\/images(\/.*)?$/,       // static images (logo, icons)
+  /^\/images(\/.*)?$/,       // static images (logo, brand)
+  /^\/icons(\/.*)?$/,        // custom material icons (PNGs)
   /^\/manifest\.json$/,      // PWA manifest
 ];
 

@@ -265,6 +265,114 @@ const FORM_FALLBACK_EMOJI: Record<string, string> = {
   other: "✨",
 };
 
+/* ── custom icon overrides ─────────────────────────────────────── */
+/* Maps material title keywords → PNG filenames in /public/icons/materials/ */
+
+const MATERIAL_ICON: Record<string, string> = {
+  /* cardboard */
+  "cardboard tube": "cardboard-tube.png",
+  "paper towel roll": "cardboard-tube.png",
+  tube: "cardboard-tube.png",
+
+  /* fabric & fiber */
+  felt: "felt.png",
+  "pipe cleaners": "pipe-cleaners.png",
+  "pipe cleaner": "pipe-cleaners.png",
+  "rubber band": "rubber-bands.png",
+  "rubber bands": "rubber-bands.png",
+  elastic: "rubber-bands.png",
+  button: "buttons.png",
+  buttons: "buttons.png",
+  bead: "beads.png",
+  beads: "beads.png",
+
+  /* wood & natural */
+  "popsicle stick": "popsicle-stick.png",
+  "popsicle sticks": "popsicle-stick.png",
+  "craft stick": "popsicle-stick.png",
+  "craft sticks": "popsicle-stick.png",
+  "ice cream stick": "popsicle-stick.png",
+  cork: "cork.png",
+  pinecone: "pinecone.png",
+  pinecones: "pinecone.png",
+  dirt: "dirt-mud.png",
+  mud: "dirt-mud.png",
+  soil: "dirt-mud.png",
+
+  /* plastic & containers */
+  "plastic bottle": "plastic-bottle.png",
+  "bottle cap": "bottle-cap.png",
+  "bottle caps": "bottle-cap.png",
+  "bubble wrap": "bubble-wrap.png",
+
+  /* metal */
+  foil: "aluminum-foil.png",
+  "aluminum foil": "aluminum-foil.png",
+  "tin foil": "aluminum-foil.png",
+  nail: "nail2.png",
+  nails: "nail2.png",
+
+  /* art supplies */
+  chalk: "chalk.png",
+  stamp: "rubber-stamp.png",
+  stamps: "rubber-stamp.png",
+
+  /* adhesives & fasteners */
+  tape: "tape-roll.png",
+  "masking tape": "tape-roll.png",
+  "duct tape": "tape-roll.png",
+  "washi tape": "washi-tape.png",
+  "hot glue": "hot-glue-gun.png",
+  stapler: "stapler.png",
+  velcro: "velcro.png",
+
+  /* tools */
+  "hole punch": "hole-punch.png",
+  wire: "wire.png",
+
+  /* food & kitchen */
+  marshmallow: "marshmallows.png",
+  marshmallows: "marshmallows.png",
+  toothpick: "toothpicks.png",
+  toothpicks: "toothpicks.png",
+
+  /* containers */
+  tray: "tray.png",
+  sponge: "sponge.png",
+  sponges: "sponge.png",
+
+  /* misc */
+  clothespin: "clothespins.png",
+  clothespins: "clothespins.png",
+};
+
+const ICON_BASE = "/harbour/creaseworks/icons/materials/";
+
+/**
+ * Get a custom icon path for a material, if one exists.
+ *
+ * Returns a path like "/icons/materials/beads.png" when a custom icon
+ * replaces the emoji, or null to fall back to emoji rendering.
+ */
+export function getMaterialIcon(
+  title: string,
+  _formPrimary?: string,
+  _dbEmoji?: string | null,
+): string | null {
+  const lower = title.toLowerCase().trim();
+
+  // exact match
+  if (MATERIAL_ICON[lower]) return `${ICON_BASE}${MATERIAL_ICON[lower]}`;
+
+  // partial match
+  for (const [key, file] of Object.entries(MATERIAL_ICON)) {
+    if (lower.includes(key) || key.includes(lower))
+      return `${ICON_BASE}${file}`;
+  }
+
+  return null;
+}
+
 /**
  * Get a visual emoji for a material.
  *

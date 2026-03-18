@@ -1,25 +1,37 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 /**
  * Pill button — large, tactile, child-friendly selection toggle.
  *
  * 48px min touch target with emoji support. Bouncy spring animation
  * on select, wobble on hover, satisfying "pop" when toggling.
  * Designed so a kid can tap these confidently.
+ *
+ * When `icon` is provided (a path to a PNG), it renders an <img>
+ * instead of the emoji text span. Falls back to emoji on load error.
  */
 export function Pill({
   label,
   emoji,
+  icon,
   selected,
   accentColor = "var(--wv-redwood)",
   onClick,
 }: {
   label: string;
   emoji?: string;
+  icon?: string | null;
   selected: boolean;
   accentColor?: string;
   onClick: () => void;
 }) {
+  const [iconError, setIconError] = useState(false);
+  // reset error state when icon path changes (e.g., basePath fix during dev)
+  useEffect(() => setIconError(false), [icon]);
+  const showIcon = icon && !iconError;
+
   return (
     <button
       type="button"
@@ -57,7 +69,20 @@ export function Pill({
         }
       }}
     >
-      {emoji && (
+      {showIcon ? (
+        <img
+          src={icon}
+          alt=""
+          width={20}
+          height={20}
+          className="mr-1.5 inline-block align-middle"
+          style={{
+            transition: "transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1)",
+            transform: selected ? "scale(1.15)" : "scale(1)",
+          }}
+          onError={() => setIconError(true)}
+        />
+      ) : emoji ? (
         <span
           className="mr-1.5"
           style={{
@@ -69,7 +94,7 @@ export function Pill({
         >
           {emoji}
         </span>
-      )}
+      ) : null}
       {label}
       {selected && (
         <span
