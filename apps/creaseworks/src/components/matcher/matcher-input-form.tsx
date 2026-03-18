@@ -375,7 +375,7 @@ export default function MatcherInputForm({
                         <EmojiTile
                           key={mat.id}
                           emoji={getMaterialEmoji(mat.title, mat.form_primary, mat.emoji)}
-                          icon={getMaterialIcon(mat.title, mat.form_primary, mat.emoji)}
+                          emojiSrc={getMaterialIcon(mat.title, mat.form_primary, mat.emoji) ?? undefined}
                           label={mat.title}
                           selected={selectedMaterials.has(mat.id)}
                           onClick={() =>
