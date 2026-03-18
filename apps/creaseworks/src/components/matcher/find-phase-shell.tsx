@@ -93,7 +93,7 @@ export default function FindPhaseShell({
       return next;
     });
     /* update URL without server round-trip — preserves basePath */
-    const path = next === "rooms" ? "/matcher" : `/matcher?mode=${next}`;
+    const path = next === "rooms" ? "/find" : `/find?mode=${next}`;
     const basePath = "/harbour/creaseworks";
     window.history.replaceState(null, "", `${basePath}${path}`);
   }, []);

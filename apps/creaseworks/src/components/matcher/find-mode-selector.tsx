@@ -24,10 +24,10 @@ interface FindModeSelectorProps {
 const SPRING = "cubic-bezier(0.34, 1.56, 0.64, 1)";
 
 const MODES: { key: FindMode; href: string; emoji: string; label: string; description: string }[] = [
-  { key: "classic", href: "/matcher?mode=classic", emoji: "📋", label: "classic picker", description: "tap what you have" },
-  { key: "rooms", href: "/matcher", emoji: "🏠", label: "explore rooms", description: "look around a place" },
-  { key: "challenge", href: "/matcher/challenge", emoji: "⏱️", label: "challenge", description: "how much can you notice?" },
-  { key: "hunt", href: "/matcher/hunt", emoji: "🗺️", label: "scavenger hunt", description: "go find your stuff!" },
+  { key: "classic", href: "/find?mode=classic", emoji: "📋", label: "classic picker", description: "tap what you have" },
+  { key: "rooms", href: "/find", emoji: "🏠", label: "explore rooms", description: "look around a place" },
+  { key: "challenge", href: "/find?mode=challenge", emoji: "⏱️", label: "challenge", description: "how much can you notice?" },
+  { key: "hunt", href: "/find?mode=hunt", emoji: "🗺️", label: "scavenger hunt", description: "go find your stuff!" },
 ];
 
 export default function FindModeSelector({

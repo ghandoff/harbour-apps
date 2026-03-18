@@ -78,7 +78,7 @@ function buildNudgeHtml({
     sections.push(`
       <div style="margin-bottom: 24px; background-color: #faf1e8; border-radius: 8px; padding: 12px 16px;">
         <p style="color: #273248; font-size: 13px; margin: 0;">
-          <a href="${baseUrl}/matcher" style="color: #b15043; text-decoration: none; font-weight: 500;">find a playdate</a>
+          <a href="${baseUrl}/find" style="color: #b15043; text-decoration: none; font-weight: 500;">find a playdate</a>
           that fits your playstyle right now.
         </p>
       </div>

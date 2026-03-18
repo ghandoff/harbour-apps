@@ -1,5 +1,5 @@
 /**
- * Shared layout for all /matcher/* routes.
+ * Shared layout for all /find/* routes.
  *
  * Provides the cadet-blue background that persists across route
  * transitions (rooms ↔ classic ↔ challenge ↔ hunt), eliminating

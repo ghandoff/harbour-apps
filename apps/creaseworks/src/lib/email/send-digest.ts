@@ -121,7 +121,7 @@ function buildDigestHtml({
       <div style="margin-bottom: 20px; background-color: #faf1e8; border-radius: 8px; padding: 12px 16px;">
         <p style="color: #273248; font-size: 13px; margin: 0;">
           it's been a quiet week — that's okay! whenever you're ready,
-          <a href="${baseUrl}/matcher" style="color: #b15043; text-decoration: none; font-weight: 500;">find a playdate</a>
+          <a href="${baseUrl}/find" style="color: #b15043; text-decoration: none; font-weight: 500;">find a playdate</a>
           that fits what you have on hand.
         </p>
       </div>

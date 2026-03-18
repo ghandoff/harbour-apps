@@ -117,7 +117,8 @@ function IconAdmin({ className }: { className?: string }) {
  * by colour association. Colours progress warm → deep → light → cool.
  */
 const SECTION_COLORS: Record<string, string> = {
-  "/matcher":         "var(--wv-sienna)",    /* find — warm discovery   */
+  "/find":            "var(--wv-sienna)",    /* find — warm discovery   */
+  "/matcher":         "var(--wv-sienna)",    /* find (legacy redirect)  */
   "/play":            "var(--wv-redwood)",   /* fold — deep engagement  */
   "/sampler":         "var(--wv-redwood)",   /* fold (legacy alias)     */
   "/playbook":        "var(--wv-redwood)",   /* fold (legacy alias)     */
@@ -141,7 +142,7 @@ const SECTION_COLORS: Record<string, string> = {
  * auth gating internally (gallery is public, reflections require auth).
  *
  * Routes (merged pages):
- *   find       → /matcher     (material matcher + fit scoring)
+ *   find       → /find        (material matcher + fit scoring)
  *   fold       → /play        (playbook collections top, playdates bottom)
  *   unfold     → /log         (reflection form + gallery for inspiration)
  *   find again → /community   (leaderboard + community activity)
@@ -164,7 +165,7 @@ export default function NavBar() {
    */
   const navLinks = (
     <>
-      <NavLink href="/matcher" pathname={pathname} icon={<IconFind />} onClick={close}>
+      <NavLink href="/find" pathname={pathname} icon={<IconFind />} onClick={close}>
         find
       </NavLink>
       <NavLink href="/play" pathname={pathname} icon={<IconFold />} onClick={close}>
