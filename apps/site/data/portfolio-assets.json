@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-03-17T07:14:50.276Z",
+  "lastUpdated": "2026-03-18T07:12:16.407Z",
   "note": "Auto-generated from Notion BD Assets. Do not edit directly.",
   "assets": [
     {
@@ -295,31 +295,6 @@
       "passwordHash": "",
       "client": "",
       "order": null,
-      "icon": ""
-    },
-    {
-      "id": "conf-exp-2025-innovate-forward",
-      "name": "innovate forward summit 2025",
-      "slug": "innovate-forward-summit-2025",
-      "assetType": "web-app",
-      "quadrants": [
-        "people-design"
-      ],
-      "quadrantKey": "people-design",
-      "url": "https://windedvertigo.com/portfolio/assets/conference-experience/",
-      "thumbnailUrl": "",
-      "description": "an immersive conference simulation that guides participants through gamified activities, collaborative drawing, and reflective exercises to demonstrate learning design principles",
-      "tags": [
-        "prototype",
-        "case-study"
-      ],
-      "featured": false,
-      "showInPackageBuilder": false,
-      "showInPortfolio": true,
-      "passwordProtected": false,
-      "passwordHash": "",
-      "client": "",
-      "order": 10,
       "icon": ""
     }
   ]
