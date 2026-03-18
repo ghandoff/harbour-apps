@@ -7,7 +7,7 @@
  * longer applies. We still use getToken from next-auth/jwt for
  * lightweight JWT verification.
  *
- * Public routes: /, /matcher/*, /play/*, /log/*, /community/*, /gallery/*,
+ * Public routes: /, /find/*, /matcher/* (redirect), /play/*, /log/*, /community/*, /gallery/*,
  *   /sampler/*, /packs (catalogue only), /login, /onboarding,
  *   /api/auth/*, /api/cron/*, /api/matcher/*, /images/*, /manifest.json
  * Protected routes: /packs/[slug]/*, /runs/*, /admin/*, /api/admin/*, /profile/*
@@ -61,7 +61,8 @@ function getRateLimitKey(req: NextRequest, isAuthed: boolean): string {
 const publicPatterns = [
   /^\/$/,
   /^\/sampler(\/.*)?$/,
-  /^\/matcher(\/.*)?$/,     // find — matcher is public (entitled fields gated server-side)
+  /^\/find(\/.*)?$/,        // find — public (entitled fields gated server-side)
+  /^\/matcher(\/.*)?$/,     // find (legacy redirect)
   /^\/play(\/.*)?$/,        // fold — merged playbook/sampler; sampler section is public
   /^\/log(\/.*)?$/,         // unfold — merged reflections/gallery; gallery section is public
   /^\/community(\/.*)?$/,   // find again — leaderboard is public (opt-in data only)

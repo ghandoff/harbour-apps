@@ -268,7 +268,7 @@ export default function MatcherResultCard({
                         key={m.id}
                         style={{ color: "var(--wv-cadet)", opacity: 0.7 }}
                       >
-                        <span style={{ color: "var(--color-success-vivid)" }}>
+                        <span style={{ color: "#22c55e" }}>
                           ✓
                         </span>{" "}
                         {m.title}
@@ -302,7 +302,7 @@ export default function MatcherResultCard({
                         key={f}
                         style={{ color: "var(--wv-cadet)", opacity: 0.7 }}
                       >
-                        <span style={{ color: "var(--color-success-vivid)" }}>
+                        <span style={{ color: "#22c55e" }}>
                           ✓
                         </span>{" "}
                         {f}
