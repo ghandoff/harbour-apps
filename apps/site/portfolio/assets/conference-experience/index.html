@@ -1770,21 +1770,21 @@ const state = {
 
 const sjtResponses = {
   1: {
-    a: "public performance can empower — or terrify. it depends on the child. you value visibility.",
-    b: "a paired activity lowers the stakes. you design for safety before scale.",
-    c: "private encouragement builds trust. you lead with relationship.",
-    d: "changing the environment instead of changing the student. you think like a designer."
+    a: "you value what's usable. that's not small — it's honest about how busy the job is.",
+    b: "connection first. you know that learning is relational before it's intellectual.",
+    c: "you came here to be unsettled. not everyone does. that takes a certain kind of courage.",
+    d: "that's more common than people admit. and it says something about what most PD asks of you."
   },
   2: {
-    a: "starting with the content is logical. you lead with evidence.",
-    b: "observation before judgement. you want to see what's actually happening in the room.",
-    c: "going straight to the students — bold. you centre the learner's voice.",
-    d: "investing in teachers first. you believe the implementation is where change lives."
+    a: "time and practise. it's the most intuitive answer — and the one most worth examining.",
+    b: "measurement as truth. that belief runs deep in education. it's worth sitting with.",
+    c: "engagement as evidence. it feels obvious — until you think about the quiet learners.",
+    d: "that's a heavy belief to carry. and a generous one. but is it fair — to you?"
   }
 };
 const sjtPostResponse = {
-  1: "there's no single right answer — it depends on the child, the context, and what you know about the room. that's exactly what we'll be exploring today.",
-  2: "most people pick a different answer — and most people are right for their context. this afternoon's workshop will dig into exactly this."
+  1: "every one of those answers is in this room right now. that's who you're spending the day with.",
+  2: "the fact that you paused before answering — that's the point. today is about that pause."
 };
 
 /* ═══════════════════════════════════════════
@@ -2140,14 +2140,14 @@ const ZONES = {
     boringScene: `<svg viewBox="0 0 400 140"><rect width="400" height="140" fill="#e8e8e8"/><rect x="100" y="60" width="200" height="24" rx="3" fill="#ccc"/><circle cx="200" cy="40" r="12" fill="#aaa"/><rect x="195" y="53" width="10" height="6" rx="1" fill="#aaa"/><text x="200" y="130" text-anchor="middle" font-size="9" fill="#999" font-family="Inter">WELCOME — PLEASE TAKE A NUMBER.</text><rect x="60" y="80" width="30" height="8" rx="1" fill="#bbb" opacity="0.5"/><rect x="62" y="72" width="26" height="6" rx="1" fill="#bbb" opacity="0.4"/><rect x="310" y="70" width="30" height="20" rx="2" fill="#ddd"/><text x="325" y="84" text-anchor="middle" font-size="6" fill="#aaa">attendant</text></svg>`,
     aliveText: 'that took 45 seconds. you already have a connection and a direction.',
     aliveScene: `<svg viewBox="0 0 400 140"><rect width="400" height="140" fill="#F7E7CE"/><rect x="100" y="60" width="200" height="24" rx="3" fill="#d4c4a8" stroke="#c4a882" stroke-width="0.5"/><circle cx="200" cy="38" r="12" fill="#E97451" opacity="0.7"/><rect x="195" y="51" width="10" height="6" rx="1" fill="#E97451" opacity="0.5"/><circle cx="310" cy="65" r="5" fill="#b8c9a0" opacity="0.6"/><rect x="307" y="71" width="6" height="12" rx="1" fill="#8aaa6a" opacity="0.4"/><rect x="50" y="55" width="30" height="40" rx="3" fill="#fff" stroke="#5F9EA0" stroke-width="0.8"/><text x="65" y="80" text-anchor="middle" font-size="6" fill="#5F9EA0">QR</text></svg>`,
-    sjtNarrator: 'the person at the registration table smiles and slides a card towards you. "we do things a little differently here," they say. "before you get your badge, we\'d love to know how you think." it\'s not a test. there are no wrong answers. it\'s just a way to find your people.',
+    sjtNarrator: 'the person at the table slides a card towards you. "we start the day with a question," they say. "not to test you — to know how you\'re arriving."',
     sjt: { num: 1,
-      question: 'a teacher notices that one student always has the right answer but never shares it with the group. what should the teacher do first?',
+      question: 'before today, how would you have described a "successful" professional development session?',
       options: [
-        { key: 'a', text: 'ask the student to present their answer to the class' },
-        { key: 'b', text: 'create a paired activity so the student shares with just one person first' },
-        { key: 'c', text: 'praise the student privately and encourage them to speak up' },
-        { key: 'd', text: 'redesign the group activity so participation feels lower stakes for everyone' },
+        { key: 'a', text: 'one where i left with practical tools i could use immediately' },
+        { key: 'b', text: 'one where i connected with other educators who get it' },
+        { key: 'c', text: 'one where i was challenged to rethink something i took for granted' },
+        { key: 'd', text: 'honestly? one that ended on time' },
       ],
       clue: 'your next clue is somewhere warm. follow the smell of coffee. ☕'
     },
@@ -2159,14 +2159,14 @@ const ZONES = {
     boringScene: `<svg viewBox="0 0 400 140"><rect width="400" height="140" fill="#e8e8e8"/><circle cx="120" cy="70" r="20" fill="#ddd" stroke="#ccc" stroke-width="0.5"/><circle cx="200" cy="60" r="18" fill="#ddd" stroke="#ccc" stroke-width="0.5"/><circle cx="280" cy="75" r="20" fill="#ddd" stroke="#ccc" stroke-width="0.5"/><circle cx="130" cy="50" r="6" fill="#bbb"/><rect x="128" y="57" width="4" height="3" rx="1" fill="#bbb"/><circle cx="210" cy="40" r="6" fill="#bbb"/><rect x="208" y="47" width="4" height="3" rx="1" fill="#bbb"/><circle cx="270" cy="48" r="6" fill="#bbb"/><rect x="268" y="55" width="4" height="3" rx="1" fill="#bbb"/><rect x="150" y="110" width="80" height="12" rx="2" fill="#ddd"/><text x="190" y="120" text-anchor="middle" font-size="6" fill="#aaa">sad fruit platter</text></svg>`,
     aliveText: 'the conversation started before the session did.',
     aliveScene: `<svg viewBox="0 0 400 140"><rect width="400" height="140" fill="#fce8db"/><circle cx="120" cy="70" r="20" fill="#ede3d0" stroke="#E97451" stroke-width="0.5"/><circle cx="200" cy="60" r="18" fill="#ede3d0" stroke="#E97451" stroke-width="0.5"/><circle cx="280" cy="75" r="20" fill="#ede3d0" stroke="#E97451" stroke-width="0.5"/><rect x="112" y="64" width="16" height="10" rx="1" fill="#fff" opacity="0.6"/><rect x="192" y="54" width="16" height="10" rx="1" fill="#fff" opacity="0.6"/><rect x="272" y="69" width="16" height="10" rx="1" fill="#fff" opacity="0.6"/><circle cx="130" cy="45" r="6" fill="#E97451" opacity="0.6"/><circle cx="210" cy="38" r="6" fill="#5F9EA0" opacity="0.6"/><circle cx="268" cy="50" r="6" fill="#A0522D" opacity="0.6"/><rect x="100" y="110" width="200" height="16" rx="2" fill="#1a1a1a" opacity="0.06"/><text x="200" y="122" text-anchor="middle" font-size="7" fill="#A0522D" font-style="italic">today's question: what brought you here that isn't on your CV?</text></svg>`,
-    sjtNarrator: 'tucked under a coffee cup, there\'s a folded card with your name on it. it says: "one more question before the keynote."',
+    sjtNarrator: 'there\'s a card propped against the coffee urn. summit logo. one question. apparently this is that kind of conference.',
     sjt: { num: 2,
-      question: 'a school introduces a new curriculum. three months in, teachers report that students are disengaged. what is the most important first step?',
+      question: 'what\'s the belief about learning you\'ve held the longest — and questioned the least?',
       options: [
-        { key: 'a', text: 'review the curriculum content for relevance and difficulty' },
-        { key: 'b', text: 'observe classrooms to understand how the curriculum is being implemented' },
-        { key: 'c', text: 'survey students directly about their experience' },
-        { key: 'd', text: 'give teachers more planning time and professional development' },
+        { key: 'a', text: 'that students who struggle just need more time and practise' },
+        { key: 'b', text: 'that rigorous assessment is the most honest measure of growth' },
+        { key: 'c', text: 'that engagement is a sign of learning' },
+        { key: 'd', text: 'that good teaching can compensate for a broken system' },
       ],
       clue: 'something on the session board has your name on it. look carefully. 📌'
     },
@@ -2717,7 +2717,7 @@ function showCanvas() {
   area.className = 'canvas-area';
   area.id = 'canvas-area';
   area.innerHTML = `
-    <div class="canvas-prompt">draw what learning feels like in your context. anything goes.</div>
+    <div class="canvas-prompt">draw what belonging feels like in your learning context. anything goes — literal, abstract, symbolic.</div>
     <div class="canvas-wrapper">
       <canvas id="draw-canvas" width="600" height="340"></canvas>
     </div>
@@ -2850,7 +2850,7 @@ function showSharedWall() {
 
   const count = document.createElement('div');
   count.className = 'wall-count';
-  count.textContent = '47 people just answered that question at the same time.';
+  count.textContent = '47 educators just answered that question at the same time. none of the drawings are the same.';
   container.appendChild(count);
   setTimeout(() => count.classList.add('visible'), 1200);
 
@@ -2915,7 +2915,7 @@ function showBuildActivity() {
     pgHTML += '</div>';
 
     // wordcloud + input
-    const seedWords = ['belonging', 'curiosity', 'risk', 'connection', 'safety', 'joy', 'mess', 'trust', 'space'];
+    const seedWords = ['trust', 'risk', 'belonging', 'curiosity', 'voice', 'agency', 'equity', 'safety', 'play', 'rigour', 'mess', 'growth', 'inclusion', 'wonder', 'design'];
     let wcHTML = '<div style="display:flex;flex-direction:column;align-items:center;">';
     wcHTML += '<div class="wordcloud" id="wordcloud">';
     const sizes = [28, 22, 18, 26, 20, 24, 16, 22, 20];
@@ -2924,8 +2924,8 @@ function showBuildActivity() {
     });
     wcHTML += '</div>';
     wcHTML += `<div class="caption-input-area">
-      <label>name your artefact:</label>
-      <input type="text" class="caption-input" id="caption-input" placeholder="type here..." autocomplete="off">
+      <label>what did you make — and what does it stand for?</label>
+      <input type="text" class="caption-input" id="caption-input" placeholder="name your artefact..." autocomplete="off">
     </div>`;
     wcHTML += `<button class="hunt-continue" id="build-done" style="opacity:1;margin-top:16px;">continue →</button>`;
     wcHTML += '</div>';
@@ -3065,8 +3065,8 @@ function showPartB(container) {
         <div class="debrief-inner">
           <div class="debrief-front">1<span style="display:block;font-size:10px;font-family:var(--font-body);margin-top:6px;opacity:0.7;">private</span></div>
           <div class="debrief-back">
-            <div class="debrief-prompt">what will you do differently on monday morning?</div>
-            <textarea class="debrief-input" id="di1" placeholder="this stays private — your journal, your words..."></textarea>
+            <div class="debrief-prompt">what did you come here hoping to change — about your practise, your context, or yourself?</div>
+            <textarea class="debrief-input" id="di1" placeholder="this stays with you. no one else sees it."></textarea>
             <button class="hunt-continue" style="opacity:1;margin-top:10px;font-size:12px;padding:6px 14px;" id="di1-done">done</button>
           </div>
         </div>
@@ -3075,8 +3075,8 @@ function showPartB(container) {
         <div class="debrief-inner">
           <div class="debrief-front">2<span class="debrief-lock" id="lock2">complete card 1 first</span><span style="display:block;font-size:10px;font-family:var(--font-body);margin-top:6px;opacity:0.7;">shared</span></div>
           <div class="debrief-back">
-            <div class="debrief-prompt">finish this sentence: the most surprising thing today was...</div>
-            <textarea class="debrief-input" id="di2" placeholder="this one gets shared with the room..."></textarea>
+            <div class="debrief-prompt">finish this sentence: i used to think ______, but today ______.</div>
+            <textarea class="debrief-input" id="di2" placeholder="this joins the room's collective memory."></textarea>
             <button class="hunt-continue" style="opacity:1;margin-top:10px;font-size:12px;padding:6px 14px;" id="di2-done">share</button>
           </div>
         </div>
@@ -3085,11 +3085,12 @@ function showPartB(container) {
         <div class="debrief-inner">
           <div class="debrief-front">3<span class="debrief-lock" id="lock3">complete card 2 first</span><span style="display:block;font-size:10px;font-family:var(--font-body);margin-top:6px;opacity:0.7;">next steps</span></div>
           <div class="debrief-back">
-            <div class="debrief-prompt">what do you want to keep exploring? pick your next session.</div>
-            <div class="debrief-mc-option" data-val="Designing for Belonging (workshop series)"><strong>designing for belonging</strong> — 3-part workshop series · rm 4b · 14:30</div>
-            <div class="debrief-mc-option" data-val="Equitable Assessment & Feedback (seminar)"><strong>equitable assessment & feedback</strong> — half-day seminar · rm 2a · 14:30</div>
-            <div class="debrief-mc-option" data-val="Playful Pedagogy Lab (hands-on)"><strong>playful pedagogy lab</strong> — hands-on intensive · rm 6 · 14:30</div>
-            <div class="debrief-mc-option" data-val="Making the Case: Evidence for Stakeholders (panel)"><strong>making the case</strong> — evidence for stakeholders · main hall · 14:30</div>
+            <div class="debrief-prompt">what do you want to keep exploring after today?</div>
+            <div class="debrief-mc-option" data-val="Learning Design & Pedagogy">🔵 <strong>learning design & pedagogy</strong> — how we design experiences that actually transfer beyond the room</div>
+            <div class="debrief-mc-option" data-val="Belonging & Inclusion">🟠 <strong>belonging & inclusion</strong> — building environments where every learner can take risks</div>
+            <div class="debrief-mc-option" data-val="Play & Facilitation">🟡 <strong>play & facilitation</strong> — methods that make learning feel alive without losing rigour</div>
+            <div class="debrief-mc-option" data-val="Measurement & Evidence">🟢 <strong>measurement & evidence</strong> — tracking growth without flattening what matters</div>
+            <div class="debrief-mc-option" data-val="Systems & Scale">🔴 <strong>systems & scale</strong> — taking good ideas from the classroom to the institution</div>
           </div>
         </div>
       </div>
@@ -3153,16 +3154,14 @@ function showResponseWall() {
   const wall = document.getElementById('response-wall');
   wall.style.display = 'flex';
   const seeded = [
-    '...how much i wanted to keep going.',
-    '...that silence can be a design choice.',
-    '...finding three people who think the same way i do.',
-    '...that belonging is designed, not felt.',
-    '...how playful it felt without being childish.',
-    '...that i forgot i was at a conference.',
-    '...the drawing activity. genuinely.',
-    '...how much a single question can shift a room.'
+    'i used to think belonging was about warmth. but today i realised it\'s about design.',
+    'i used to think assessment had to be separate from learning. but today i\'m not so sure.',
+    'i used to think i needed to fix engagement. but today i think i need to fix the conditions.',
+    'i used to think professional development was something done to me. but today i built something.',
+    'i used to think play was for children. but today i forgot that for about forty minutes.',
+    'i used to think i knew what my students needed. but today i questioned that.',
   ];
-  if (state.socialShare) seeded.push('...' + state.socialShare);
+  if (state.socialShare) seeded.push(state.socialShare);
   seeded.forEach((r, i) => {
     const bubble = document.createElement('div');
     bubble.className = 'response-bubble' + (i === seeded.length - 1 && state.socialShare ? ' user-response' : '');
