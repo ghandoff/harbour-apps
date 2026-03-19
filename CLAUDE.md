@@ -11,14 +11,12 @@ npm workspaces + Turborepo. all dev commands run from monorepo root.
 
 ```
 apps/creaseworks/      → Next.js 16, TS, Auth.js, Neon, Stripe (main product)
-apps/pocket.prompts/   → Node.js serverless, Anthropic SDK, Notion, Slack (see apps/pocket.prompts/CLAUDE.md)
 apps/site/             → static HTML/CSS/JS (windedvertigo.com) — no build step
 apps/harbour/          → Next.js 16, TS (portfolio hub — disconnected from Vercel Git)
 apps/depth-chart/      → Next.js 16, TS, Anthropic SDK (assessment generator)
 apps/vertigo-vault/    → Next.js 16, TS, Notion API
 apps/deep-deck/        → Next.js 16, TS (disconnected from Vercel Git)
 apps/conference-experience/ → static HTML (CLI-deployed, never git-connected)
-apps/pocket.prompts-app/   → React Native (Expo), Anthropic SDK (mobile companion — not deployed to Vercel)
 packages/tokens/       → CSS custom properties + TS exports (single source of truth for design)
 ```
 

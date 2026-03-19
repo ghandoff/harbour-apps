@@ -1,9 +1,0 @@
-{
-  "platforms": ["ios", "android"],
-  "ios": {
-    "modules": ["RemoteCommandModule"]
-  },
-  "android": {
-    "modules": ["expo.modules.remotecommand.RemoteCommandModule"]
-  }
-}
