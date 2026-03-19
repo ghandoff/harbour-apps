@@ -1,4 +1,4 @@
-# windedvertigo monorepo — claude code conventions
+# harbour-apps — claude code conventions
 
 > auto-loaded by Claude Code when working in this directory.
 > full services audit: `docs/infrastructure-and-costs.md`
@@ -8,6 +8,7 @@
 ## monorepo structure
 
 npm workspaces + Turborepo. all dev commands run from monorepo root.
+this repo holds the apps hosted at `windedvertigo.com/harbour/*`.
 
 ```
 apps/creaseworks/      → Next.js 16, TS, Auth.js, Neon, Stripe (main product)
@@ -18,8 +19,8 @@ apps/conference-experience/ → static HTML (CLI-deployed, never git-connected)
 packages/tokens/       → CSS custom properties + TS exports (single source of truth for design)
 ```
 
-extracted repos (no longer in this monorepo):
-- `ghandoff/windedvertigo-site` — static site + harbour (windedvertigo.com)
+sibling repos (same GitHub org, same local directory):
+- `ghandoff/windedvertigo` — static site + harbour Next.js app (windedvertigo.com)
 - `ghandoff/pocket-prompts` — voice pipeline backend + mobile app
 - `ghandoff/nordic-sqr-rct` — Nordic SQR-RCT review platform
 
