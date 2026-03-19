@@ -72,6 +72,7 @@ function getRichTextAsMarkdown(prop) {
       let text = t.plain_text;
       if (t.annotations?.bold) text = '**' + text + '**';
       if (t.annotations?.italic) text = '*' + text + '*';
+      if (t.text?.link?.url) text = '[' + text + '](' + t.text.link.url + ')';
       return text;
     }).join('');
   }
