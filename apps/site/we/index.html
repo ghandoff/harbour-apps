@@ -247,6 +247,46 @@
         });
       }
 
+      // Render markdown string into a container as safe DOM nodes (no innerHTML).
+      // Supports: paragraph breaks (\n\n), *italic*, [text](url)
+      function renderMarkdownBio(md, container) {
+        while (container.firstChild) container.removeChild(container.firstChild);
+        var paragraphs = md.split(/\n\n+/);
+        for (var i = 0; i < paragraphs.length; i++) {
+          var raw = paragraphs[i].trim();
+          if (!raw) continue;
+          var p = document.createElement('p');
+          // Tokenize inline markdown: *italic* and [text](url)
+          var re = /(\*([^*]+)\*)|(\[([^\]]+)\]\(([^)]+)\))/g;
+          var lastIdx = 0;
+          var match;
+          while ((match = re.exec(raw)) !== null) {
+            // Append preceding plain text
+            if (match.index > lastIdx) {
+              p.appendChild(document.createTextNode(raw.slice(lastIdx, match.index)));
+            }
+            if (match[2]) {
+              // *italic*
+              var em = document.createElement('em');
+              em.textContent = match[2];
+              p.appendChild(em);
+            } else if (match[4] && match[5]) {
+              // [text](url)
+              var a = document.createElement('a');
+              a.textContent = match[4];
+              a.setAttribute('href', match[5]);
+              p.appendChild(a);
+            }
+            lastIdx = re.lastIndex;
+          }
+          // Trailing plain text
+          if (lastIdx < raw.length) {
+            p.appendChild(document.createTextNode(raw.slice(lastIdx)));
+          }
+          container.appendChild(p);
+        }
+      }
+
       // Load /we page data from Site Content CMS
       fetch('../data/site-content-we.json')
         .then(function(resp) { return resp.ok ? resp.json() : null; })
@@ -331,6 +371,12 @@
                   tagsDiv.appendChild(span);
                 }
               }
+            }
+
+            // Update bio content from CMS markdown
+            if (member.content) {
+              var bioEl = article.querySelector('.bio');
+              if (bioEl) renderMarkdownBio(member.content, bioEl);
             }
 
             // Update external link
