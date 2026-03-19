@@ -11,8 +11,6 @@ npm workspaces + Turborepo. all dev commands run from monorepo root.
 
 ```
 apps/creaseworks/      → Next.js 16, TS, Auth.js, Neon, Stripe (main product)
-apps/site/             → static HTML/CSS/JS (windedvertigo.com) — no build step
-apps/harbour/          → Next.js 16, TS (portfolio hub — disconnected from Vercel Git)
 apps/depth-chart/      → Next.js 16, TS, Anthropic SDK (assessment generator)
 apps/vertigo-vault/    → Next.js 16, TS, Notion API
 apps/deep-deck/        → Next.js 16, TS (disconnected from Vercel Git)
@@ -20,7 +18,12 @@ apps/conference-experience/ → static HTML (CLI-deployed, never git-connected)
 packages/tokens/       → CSS custom properties + TS exports (single source of truth for design)
 ```
 
-convenience commands from root: `npm run dev:creaseworks`, `npm run dev:vault`, `npm run dev:harbour`, `npm run dev:deep-deck`, `npm run sync` (fetch Notion content), `npm run sync:footer` (inject shared footer into static site pages), `npm run test` (vitest), `npm run test:a11y` (axe-core accessibility audit), `npm run lint` (eslint).
+extracted repos (no longer in this monorepo):
+- `ghandoff/windedvertigo-site` — static site + harbour (windedvertigo.com)
+- `ghandoff/pocket-prompts` — voice pipeline backend + mobile app
+- `ghandoff/nordic-sqr-rct` — Nordic SQR-RCT review platform
+
+convenience commands from root: `npm run dev:creaseworks`, `npm run dev:vault`, `npm run dev:deep-deck`, `npm run dev:depth-chart`, `npm run test` (vitest), `npm run test:a11y` (axe-core accessibility audit), `npm run lint` (eslint).
 
 ---
 
