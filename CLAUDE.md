@@ -17,7 +17,6 @@ apps/harbour/          → Next.js 16, TS (portfolio hub — disconnected from V
 apps/depth-chart/      → Next.js 16, TS, Anthropic SDK (assessment generator)
 apps/vertigo-vault/    → Next.js 16, TS, Notion API
 apps/deep-deck/        → Next.js 16, TS (disconnected from Vercel Git)
-apps/nordic-sqr-rct/   → Next.js 16, JS (disconnected — not branded wv, uses Nordic branding)
 apps/conference-experience/ → static HTML (CLI-deployed, never git-connected)
 apps/pocket.prompts-app/   → React Native (Expo), Anthropic SDK (mobile companion — not deployed to Vercel)
 packages/tokens/       → CSS custom properties + TS exports (single source of truth for design)
