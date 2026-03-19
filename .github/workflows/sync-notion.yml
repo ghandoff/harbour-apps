@@ -63,7 +63,7 @@ jobs:
             exit 0
           fi
 
-          git commit -m "chore: sync Notion content and vault covers"
+          git commit -m "chore: sync Notion content and vault covers [skip ci]"
 
           # Discard incidental unstaged changes (e.g. package-lock.json
           # drifts from npm install) so rebase can proceed cleanly.
