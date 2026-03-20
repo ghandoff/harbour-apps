@@ -385,9 +385,9 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
 .material:hover { box-shadow: 0 8px 32px rgba(0,0,0,0.12); transform: scale(1.03) !important; }
 .material.dragging { cursor: grabbing; z-index: 50; box-shadow: 0 16px 48px rgba(0,0,0,0.2); }
 .mat-card {
-  width: 170px; padding: 16px;
+  width: 220px; padding: 20px;
   background: #fffcf5; border-radius: 2px;
-  font: 300 italic 14px/1.45 'Inter', sans-serif; color: var(--redwood);
+  font: 300 italic 15px/1.5 'Inter', sans-serif; color: var(--redwood);
   box-shadow: 0 2px 10px rgba(0,0,0,0.08);
   transform: rotate(var(--r, 0deg));
 }
@@ -455,8 +455,10 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
 }
 #S5 .scene-label {
   position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%);
-  font: 400 13px 'Inter', sans-serif; color: var(--grey);
+  font: 400 13px/1.6 'Inter', sans-serif; color: var(--dark);
   text-align: center; max-width: 480px;
+  background: rgba(255,235,210,0.9); padding: 12px 24px; border-radius: 4px;
+  backdrop-filter: blur(8px);
 }
 
 /* ════════════════════════════════
@@ -467,6 +469,8 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
 #S6 .draper-center {
   position: absolute; top: 50%; left: 38%; transform: translate(-50%, -50%);
   text-align: left; z-index: 5;
+  background: rgba(255,235,210,0.92); padding: 36px 40px; border-radius: 8px;
+  backdrop-filter: blur(12px); box-shadow: 0 4px 24px rgba(0,0,0,0.08);
 }
 .floating-voice {
   position: absolute;
@@ -570,11 +574,11 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
 }
 @keyframes emergeReveal { 0% { opacity: 0; } 100% { opacity: 1; } }
 .speaker-emerge .moment-speaker { color: var(--champagne); }
-.speaker-emerge .moment-note { color: rgba(255,255,255,0.4); max-width: 480px; }
+.speaker-emerge .moment-note { color: rgba(255,255,255,0.7); max-width: 480px; }
 .speaker-emerge .moment-time { color: var(--sienna); }
 
 .post-activity {
-  font: 400 14px/1.65 'Inter', sans-serif; color: rgba(255,255,255,0.35);
+  font: 400 14px/1.65 'Inter', sans-serif; color: rgba(255,255,255,0.6);
   max-width: 480px; margin-top: 28px; text-align: center;
   opacity: 0; animation: fadeUp 0.8s 8s ease forwards;
 }
@@ -590,9 +594,9 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
 .track p { font: 400 15px/1.65 'Inter', sans-serif; color: var(--grey); }
 .track-aside { font: 300 italic 14px/1.6 'Inter', sans-serif; color: var(--cadet); margin-top: 16px; }
 .track-quiet { background: rgba(17,17,17,0.92); }
-.track-quiet h3, .track-quiet .track-label { color: rgba(255,255,255,0.5); }
-.track-quiet p { color: rgba(255,255,255,0.3); }
-.track-quiet .track-aside { color: rgba(255,255,255,0.2); }
+.track-quiet h3, .track-quiet .track-label { color: rgba(255,255,255,0.8); }
+.track-quiet p { color: rgba(255,255,255,0.65); }
+.track-quiet .track-aside { color: rgba(255,255,255,0.5); }
 
 /* ════════════════════════════════
    SCREEN 11 — MAPPING (3:15 p.m.)
@@ -689,10 +693,14 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
    ════════════════════════════════ */
 #S14 { background: var(--champagne); }
 #S14 .garden-scene { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
-#S14 .garden-center { text-align: center; max-width: 500px; padding: 40px; z-index: 5; }
+#S14 .garden-center {
+  text-align: center; max-width: 500px; padding: 40px; z-index: 5;
+  background: rgba(255,235,210,0.92); border-radius: 8px;
+  backdrop-filter: blur(12px); box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+}
 #S14 .garden-label { font: 600 10px 'Inter', sans-serif; letter-spacing: 0.16em; color: var(--sienna); margin-bottom: 16px; }
 #S14 .garden-title { font: 700 clamp(28px,4vw,42px)/1.15 'Inter', sans-serif; color: var(--dark); margin-bottom: 24px; }
-#S14 .garden-note { font: 400 15px/1.65 'Inter', sans-serif; color: var(--grey); }
+#S14 .garden-note { font: 400 15px/1.65 'Inter', sans-serif; color: var(--dark); }
 #S14 .garden-aside { font: 300 italic 14px/1.6 'Inter', sans-serif; color: var(--cadet); margin-top: 20px; }
 
 /* ════════════════════════════════
@@ -1517,7 +1525,7 @@ function initBench() {
     el.style.top = (60 + Math.random() * 80) + 'px';
     b.appendChild(el); items.push(el);
   });
-  var blockSizes = [{w:80,h:50},{w:100,h:40},{w:60,h:60},{w:120,h:35},{w:70,h:70},{w:90,h:45},{w:55,h:55},{w:110,h:30},{w:65,h:80},{w:85,h:50}];
+  var blockSizes = [{w:110,h:70},{w:130,h:55},{w:85,h:85},{w:150,h:50},{w:95,h:95},{w:120,h:60},{w:80,h:80},{w:140,h:45},{w:90,h:100},{w:115,h:70}];
   for (var i = 0; i < 10; i++) {
     var el = document.createElement('div');
     el.className = 'material mat-block';
@@ -1619,10 +1627,15 @@ function initCollage() {
     {t:'watch this', color:'var(--redwood)', bg:'rgba(177,80,67,0.04)', italic:true},
     {t:'mess is methodology', color:'var(--cadet)', bg:'rgba(39,50,72,0.05)'},
   ];
+  var positions = [
+    {l:3, t:8}, {l:55, t:5}, {l:30, t:30}, {l:70, t:35},
+    {l:5, t:55}, {l:50, t:60}, {l:75, t:65}
+  ];
   fragments.forEach(function(f, i) {
     var el = document.createElement('div');
     el.className = 'c-fragment c-text';
-    el.style.left = (5 + Math.random() * 70) + '%'; el.style.top = (5 + Math.random() * 65) + '%';
+    var pos = positions[i];
+    el.style.left = pos.l + '%'; el.style.top = pos.t + '%';
     el.style.color = f.color; el.style.background = f.bg;
     el.style.fontSize = (13 + Math.random() * 5) + 'px';
     el.style.setProperty('--fr', (Math.random()*6-3) + 'deg');
