@@ -29,51 +29,45 @@ export function useTimer(
   const [isRunning, setIsRunning] = useState(false);
 
   const startedAtRef = useRef<number | null>(null);
-  const rafRef = useRef<number | null>(null);
   const onExpireRef = useRef(onExpire);
-  onExpireRef.current = onExpire;
 
-  const tick = useCallback(() => {
-    if (startedAtRef.current === null) return;
+  /* keep onExpire ref fresh — must be in an effect, not during render */
+  useEffect(() => {
+    onExpireRef.current = onExpire;
+  });
 
-    const elapsed = (Date.now() - startedAtRef.current) / 1000;
-    const remaining = Math.max(0, durationSeconds - Math.floor(elapsed));
+  /* drive the countdown with a polling interval while running */
+  useEffect(() => {
+    if (!isRunning || startedAtRef.current === null) return;
 
-    setTimeLeft(remaining);
+    const id = setInterval(() => {
+      const elapsed = (Date.now() - (startedAtRef.current ?? Date.now())) / 1000;
+      const remaining = Math.max(0, durationSeconds - Math.floor(elapsed));
 
-    if (remaining <= 0) {
-      setIsRunning(false);
-      startedAtRef.current = null;
-      onExpireRef.current();
-      return;
-    }
+      setTimeLeft(remaining);
 
-    rafRef.current = requestAnimationFrame(() => {
-      /* throttle to ~4 checks/sec instead of every frame */
-      setTimeout(() => tick(), 250);
-    });
-  }, [durationSeconds]);
+      if (remaining <= 0) {
+        clearInterval(id);
+        setIsRunning(false);
+        startedAtRef.current = null;
+        onExpireRef.current();
+      }
+    }, 250);
+
+    return () => clearInterval(id);
+  }, [isRunning, durationSeconds]);
 
   const start = useCallback(() => {
     startedAtRef.current = Date.now();
-    setIsRunning(true);
     setTimeLeft(durationSeconds);
-    tick();
-  }, [durationSeconds, tick]);
+    setIsRunning(true);
+  }, [durationSeconds]);
 
   const reset = useCallback(() => {
-    if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
     startedAtRef.current = null;
     setIsRunning(false);
     setTimeLeft(durationSeconds);
   }, [durationSeconds]);
-
-  /* cleanup on unmount */
-  useEffect(() => {
-    return () => {
-      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
-    };
-  }, []);
 
   return { timeLeft, isRunning, start, reset };
 }

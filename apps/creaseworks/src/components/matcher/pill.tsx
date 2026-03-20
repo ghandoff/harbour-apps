@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 /**
  * Pill button — large, tactile, child-friendly selection toggle.
@@ -29,7 +29,11 @@ export function Pill({
 }) {
   const [iconError, setIconError] = useState(false);
   // reset error state when icon path changes (e.g., basePath fix during dev)
-  useEffect(() => setIconError(false), [icon]);
+  const [prevIcon, setPrevIcon] = useState(icon);
+  if (prevIcon !== icon) {
+    setPrevIcon(icon);
+    setIconError(false);
+  }
   const showIcon = icon && !iconError;
 
   return (
