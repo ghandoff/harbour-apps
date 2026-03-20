@@ -119,6 +119,7 @@ export default function MatcherInputForm({
     materialTitleMap,
     materialFormMap,
     materialEmojiMap,
+    materialIconMap,
   } = useMatcherState(materials);
 
   return (
@@ -153,7 +154,8 @@ export default function MatcherInputForm({
               const title = materialTitleMap.get(id) ?? id;
               const form = materialFormMap.get(id);
               const dbEmoji = materialEmojiMap.get(id);
-              const iconPath = getMaterialIcon(title, form, dbEmoji);
+              const dbIcon = materialIconMap.get(id);
+              const iconPath = getMaterialIcon(title, form, dbEmoji, dbIcon);
               return (
                 <button
                   key={id}
@@ -375,7 +377,7 @@ export default function MatcherInputForm({
                         <EmojiTile
                           key={mat.id}
                           emoji={getMaterialEmoji(mat.title, mat.form_primary, mat.emoji)}
-                          emojiSrc={getMaterialIcon(mat.title, mat.form_primary, mat.emoji) ?? undefined}
+                          emojiSrc={getMaterialIcon(mat.title, mat.form_primary, mat.emoji, mat.icon) ?? undefined}
                           label={mat.title}
                           selected={selectedMaterials.has(mat.id)}
                           onClick={() =>

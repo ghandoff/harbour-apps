@@ -13,7 +13,7 @@
  * "find" into "fold."
  */
 
-import { getMaterialEmoji } from "./material-emoji";
+import { getMaterialEmoji, getMaterialIcon } from "./material-emoji";
 
 interface FloatingBasketProps {
   selectedMaterials: Set<string>;
@@ -21,6 +21,7 @@ interface FloatingBasketProps {
   materialTitleMap: Map<string, string>;
   materialFormMap: Map<string, string>;
   materialEmojiMap: Map<string, string | null>;
+  materialIconMap?: Map<string, string | null>;
   loading: boolean;
   onSubmit: () => void;
   onClear: () => void;
@@ -43,6 +44,7 @@ export function FloatingBasket({
   materialTitleMap,
   materialFormMap,
   materialEmojiMap,
+  materialIconMap,
   loading,
   onSubmit,
   onClear,
@@ -53,13 +55,15 @@ export function FloatingBasket({
   /* show up to 8 emoji chips, then a "+N more" indicator */
   const materialIds = Array.from(selectedMaterials);
   const slotNames = Array.from(selectedSlots);
-  const allEmoji: { key: string; emoji: string }[] = [];
+  const allEmoji: { key: string; emoji: string; iconSrc?: string }[] = [];
 
   for (const id of materialIds) {
     const title = materialTitleMap.get(id) ?? "";
     const form = materialFormMap.get(id) ?? "";
     const dbEmoji = materialEmojiMap.get(id) ?? null;
-    allEmoji.push({ key: id, emoji: getMaterialEmoji(title, form, dbEmoji) });
+    const dbIcon = materialIconMap?.get(id) ?? null;
+    const iconSrc = getMaterialIcon(title, form, dbEmoji, dbIcon) ?? undefined;
+    allEmoji.push({ key: id, emoji: getMaterialEmoji(title, form, dbEmoji), iconSrc });
   }
   for (const slot of slotNames) {
     allEmoji.push({ key: `slot-${slot}`, emoji: SLOT_EMOJI[slot] ?? "🔧" });
@@ -93,10 +97,14 @@ export function FloatingBasket({
           {visible.map((item) => (
             <span
               key={item.key}
-              className="text-sm"
-              style={{ lineHeight: 1 }}
+              className="text-sm inline-flex items-center justify-center"
+              style={{ lineHeight: 1, width: 20, height: 20 }}
             >
-              {item.emoji}
+              {item.iconSrc ? (
+                <img src={item.iconSrc} alt="" width={18} height={18} className="object-contain" />
+              ) : (
+                item.emoji
+              )}
             </span>
           ))}
           {overflow > 0 && (

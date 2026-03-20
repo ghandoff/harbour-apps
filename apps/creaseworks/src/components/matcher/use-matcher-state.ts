@@ -158,6 +158,13 @@ export function useMatcherState(materials: Material[]) {
     return map;
   }, [materials]);
 
+  // resolve CMS-managed icon filename (from Notion) for PNG icon lookup
+  const materialIconMap = useMemo(() => {
+    const map = new Map<string, string | null>();
+    for (const mat of materials) map.set(mat.id, mat.icon ?? null);
+    return map;
+  }, [materials]);
+
   return {
     selectedMaterials,
     setSelectedMaterials,
@@ -189,6 +196,7 @@ export function useMatcherState(materials: Material[]) {
     materialTitleMap,
     materialFormMap,
     materialEmojiMap,
+    materialIconMap,
   };
 }
 

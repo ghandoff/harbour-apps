@@ -3,6 +3,7 @@ export interface Material {
   title: string;
   form_primary: string;
   emoji?: string | null;
+  icon?: string | null;
 }
 
 export interface MatcherInputFormProps {

@@ -351,20 +351,27 @@ const ICON_BASE = "/harbour/creaseworks/icons/materials/";
 /**
  * Get a custom icon path for a material, if one exists.
  *
- * Returns a path like "/icons/materials/beads.png" when a custom icon
- * replaces the emoji, or null to fall back to emoji rendering.
+ * Priority:
+ *  0. CMS-managed `icon` field from Notion (e.g. "chalk" → /icons/materials/chalk.png)
+ *  1. Hardcoded MATERIAL_ICON map (exact title match)
+ *  2. Hardcoded MATERIAL_ICON map (partial title match)
+ *  3. null → fall back to emoji rendering
  */
 export function getMaterialIcon(
   title: string,
   _formPrimary?: string,
   _dbEmoji?: string | null,
+  dbIcon?: string | null,
 ): string | null {
+  // 0. CMS-managed icon from Notion takes priority
+  if (dbIcon) return `${ICON_BASE}${dbIcon}.png`;
+
   const lower = title.toLowerCase().trim();
 
-  // exact match
+  // 1. exact match
   if (MATERIAL_ICON[lower]) return `${ICON_BASE}${MATERIAL_ICON[lower]}`;
 
-  // partial match
+  // 2. partial match
   for (const [key, file] of Object.entries(MATERIAL_ICON)) {
     if (lower.includes(key) || key.includes(lower))
       return `${ICON_BASE}${file}`;

@@ -89,6 +89,12 @@ export default function RoomExplorer({
     return map;
   }, [materials]);
 
+  const materialIconMap = useMemo(() => {
+    const map = new Map<string, string | null>();
+    for (const mat of materials) map.set(mat.id, mat.icon ?? null);
+    return map;
+  }, [materials]);
+
   /** count of selected materials per room (for badge display) */
   const selectedCountByRoom = useMemo(() => {
     const counts = new Map<string, number>();
@@ -246,6 +252,7 @@ export default function RoomExplorer({
         materialTitleMap={materialTitleMap}
         materialFormMap={materialFormMap}
         materialEmojiMap={materialEmojiMap}
+        materialIconMap={materialIconMap}
         loading={loading}
         onSubmit={handleSubmit}
         onClear={handleClear}
