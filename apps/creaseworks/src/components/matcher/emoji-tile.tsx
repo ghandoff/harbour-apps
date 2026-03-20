@@ -36,13 +36,14 @@ export interface EmojiTileProps {
 const SIZE_CONFIG: Record<EmojiTileSize, {
   tile: number;
   emoji: string;
+  imgPx: number;
   label: string;
   gap: number;
   radius: number;
 }> = {
-  sm: { tile: 72, emoji: "1.5rem", label: "0.6rem", gap: 2, radius: 14 },
-  md: { tile: 88, emoji: "2rem", label: "0.65rem", gap: 3, radius: 16 },
-  lg: { tile: 108, emoji: "2.5rem", label: "0.7rem", gap: 4, radius: 20 },
+  sm: { tile: 80, emoji: "2.5rem", imgPx: 40, label: "0.5rem", gap: 2, radius: 14 },
+  md: { tile: 96, emoji: "3rem", imgPx: 48, label: "0.55rem", gap: 2, radius: 16 },
+  lg: { tile: 116, emoji: "3.5rem", imgPx: 56, label: "0.6rem", gap: 3, radius: 20 },
 };
 
 const SPRING = "cubic-bezier(0.34, 1.56, 0.64, 1)";
@@ -125,10 +126,10 @@ export function EmojiTile({
           alt={label}
           className="object-contain"
           style={{
-            width: cfg.emoji,
-            height: cfg.emoji,
+            width: cfg.imgPx,
+            height: cfg.imgPx,
             transition: `transform 220ms ${SPRING}`,
-            transform: selected ? "scale(1.15)" : "scale(1)",
+            transform: selected ? "scale(1.12)" : "scale(1)",
             filter: disabled ? "grayscale(0.8)" : "none",
           }}
           aria-hidden="true"
@@ -140,7 +141,7 @@ export function EmojiTile({
           style={{
             fontSize: cfg.emoji,
             transition: `transform 220ms ${SPRING}`,
-            transform: selected ? "scale(1.15)" : "scale(1)",
+            transform: selected ? "scale(1.12)" : "scale(1)",
             filter: disabled ? "grayscale(0.8)" : "none",
           }}
           aria-hidden="true"
@@ -149,15 +150,20 @@ export function EmojiTile({
         </span>
       )}
 
-      {/* label — secondary, optional */}
+      {/* label — whisper caption for parents, secondary to emoji */}
       {showLabel && (
         <span
-          className="text-center leading-tight font-medium truncate w-full px-1"
+          className="text-center leading-tight font-medium w-full px-1"
           style={{
             fontSize: cfg.label,
             color: selected ? accentColor : "var(--wv-champagne)",
-            opacity: selected ? 1 : 0.55,
+            opacity: selected ? 0.85 : 0.4,
             transition: `color 180ms ease, opacity 180ms ease`,
+            display: "-webkit-box",
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: "vertical" as const,
+            overflow: "hidden",
+            lineHeight: 1.2,
           }}
         >
           {label}
