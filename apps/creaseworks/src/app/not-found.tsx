@@ -7,7 +7,7 @@ export default function NotFound() {
   return (
     <main
       className="flex min-h-[60vh] flex-col items-center justify-center px-6 text-center"
-      style={{ color: "var(--wv-champagne)" }}
+      style={{ backgroundColor: "var(--wv-cadet)", color: "var(--wv-champagne)" }}
     >
       <h1
         className="text-6xl font-bold tracking-tight mb-2"
@@ -19,7 +19,7 @@ export default function NotFound() {
       <p className="text-lg font-medium mb-1">page not found</p>
 
       <p className="text-sm opacity-60 mb-8 max-w-sm">
-        the page you’re looking for doesn’t exist or has been moved.
+        the page you&apos;re looking for doesn&apos;t exist or has been moved.
       </p>
 
       <a

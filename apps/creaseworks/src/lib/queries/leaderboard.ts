@@ -68,9 +68,9 @@ export async function getLeaderboard(
          SELECT
            oiu.id,
            oiu.display_name,
-           COALESCE((SELECT SUM(amount) FROM reflection_credits WHERE user_id = oiu.id), 0)
+           COALESCE((SELECT SUM(amount) FROM reflection_credits WHERE user_id = oiu.id::text), 0)
            -
-           COALESCE((SELECT SUM(credits_spent) FROM credit_redemptions WHERE user_id = oiu.id), 0)
+           COALESCE((SELECT SUM(credits_spent) FROM credit_redemptions WHERE user_id = oiu.id::text), 0)
            AS total_credits
          FROM opted_in_users oiu
        ),
@@ -152,7 +152,7 @@ export async function getLeaderboard(
          s.longest_streak,
          us.total_runs,
          us.gallery_shares,
-         (us.id = $2::uuid)::boolean as is_current_user
+         CASE WHEN $2::text IS NULL THEN false ELSE us.id::text = $2::text END as is_current_user
        FROM user_stats us
        LEFT JOIN streaks s ON s.id = us.id
        ORDER BY us.total_credits DESC
