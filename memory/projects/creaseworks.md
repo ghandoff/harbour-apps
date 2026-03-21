@@ -18,7 +18,7 @@
 | **TypeScript** | compiles clean (zero errors) |
 | **Tests** | 9 suites, 123 tests, all passing |
 | **Smoke test** | 28/29 pass (root `/` returns 308 redirect — expected for authed redirect) |
-| **Last session** | 50 (Mar 5, 2026) |
+| **Last session** | 51 (Mar 21, 2026) |
 
 ## Notion Database IDs
 
@@ -226,6 +226,25 @@ All core features A–Y are implemented. See `docs/creaseworks-backlog-2026-02-2
 - ⬜ **MANUAL SETUP REQUIRED**: Create GitHub fine-grained PAT with `actions:write` → add as `GITHUB_TOKEN` env var on creaseworks Vercel project
 - ⬜ Branch needs rebasing onto main (worktree is behind main's harbour rename)
 
+### Blank Playdate Rendering Fix (sessions 51 — PR #72 + follow-up)
+- ✅ PR #72: added `sampler/[slug]/loading.tsx` Suspense boundary, fixed invisible 404, fixed leaderboard type mismatch
+- ✅ Added `packs/[slug]/playdates/[playdateSlug]/loading.tsx` — same RSC streaming fix for pack playdate detail pages (admin redirect target)
+- ✅ Removed conflicting `revalidate = 3600` from `sampler/page.tsx` — was contradicting `force-dynamic` and could cause ISR caching on Vercel
+- ✅ Removed redundant `revalidate = 0` from `sampler/[slug]/page.tsx`
+- ✅ Added `sampler/error.tsx` — route-level error boundary so auth failures surface visibly instead of blank page
+- ✅ Added `packs/[slug]/playdates/[playdateSlug]/error.tsx` — route-level error boundary for pack playdate pages
+- ✅ TypeScript compiles clean
+- ⬜ Changes uncommitted — ready for commit + deploy
+
+**Root cause:** Admin users (isInternal) clicking sampler playdates belonging to a pack get redirected to `/packs/{packSlug}/playdates/{slug}`. That route had no loading.tsx Suspense boundary, causing RSC streaming to hang and render blank. Additionally, conflicting `revalidate` + `force-dynamic` on the sampler grid page risked ISR-caching auth-dependent content.
+
+### Cover Images on Individual Playdate Pages (session 51 — IN PROGRESS)
+- ✅ Cover images sync from Notion to R2 via `sync/playdates.ts` → `cover_url` column
+- ✅ Cover images display on sampler grid cards (`PlaydateCard`) and collection cards (`CollectionCard`)
+- ✅ Added cover image hero (240px mobile / 320px desktop) to `sampler/[slug]/page.tsx` (both internal + teaser views)
+- ✅ Added cover image hero to `packs/[slug]/playdates/[playdateSlug]/page.tsx`
+- ⬜ Changes uncommitted — ready for commit + deploy
+
 ### Harbour Rename (sessions 49–50 — COMPLETE on main)
 - ✅ PR #42: reservoir → harbor — merged to main
 - ✅ PR #43: harbor → harbour (British English spelling correction) — merged to main
@@ -284,7 +303,7 @@ All core features A–Y are implemented. See `docs/creaseworks-backlog-2026-02-2
 
 **Routes with metadata** (19): /, /login, /onboarding, /matcher, /sampler, /scavenger, /admin/campaigns, /admin/invites, /campaign/[slug], /packs, /playbook, /community, /gallery, /profile, /checkout/success, /playbook/portfolio, /playbook/reflections, /reflections/new, /admin
 
-**Error boundaries** (8 route groups): global (app root), packs, playbook, profile, admin, checkout, gallery, community
+**Error boundaries** (10 route groups): global (app root), packs, packs/[slug]/playdates/[playdateSlug], playbook, profile, admin, checkout, gallery, community, sampler
 
 ## Content Status
 - 30 playdates (5 sampler, 3 campaign, 22 internal-only)

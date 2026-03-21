@@ -8,12 +8,12 @@ import {
 import { getFirstVisiblePackForPlaydate } from "@/lib/queries/packs";
 import { checkEntitlement } from "@/lib/queries/entitlements";
 import { getSession } from "@/lib/auth-helpers";
+import Image from "next/image";
 import EntitledPlaydateView from "@/components/ui/entitled-playdate-view";
 import QuickLogButton from "@/components/ui/quick-log-button";
 import { MaterialIllustration } from "@/components/material-illustration";
 
 export const dynamic = "force-dynamic";
-export const revalidate = 0;
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -54,6 +54,18 @@ export default async function PlaydateTeaserPage({ params }: Props) {
         >
           &larr; back to playdates
         </Link>
+
+        {fullPlaydate.cover_url && (
+          <div className="relative w-full h-[240px] sm:h-[320px] rounded-xl overflow-hidden bg-cadet/5 mb-6">
+            <Image
+              src={fullPlaydate.cover_url}
+              alt=""
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 768px"
+            />
+          </div>
+        )}
 
         <h1 className="text-3xl font-semibold tracking-tight mb-4">
           {fullPlaydate.title}
@@ -96,6 +108,18 @@ export default async function PlaydateTeaserPage({ params }: Props) {
       >
         &larr; back to playdates
       </Link>
+
+      {playdate.cover_url && (
+        <div className="relative w-full h-[240px] sm:h-[320px] rounded-xl overflow-hidden bg-cadet/5 mb-6">
+          <Image
+            src={playdate.cover_url}
+            alt=""
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 100vw, 768px"
+          />
+        </div>
+      )}
 
       <h1 className="text-3xl font-semibold tracking-tight mb-2">
         {playdate.title}

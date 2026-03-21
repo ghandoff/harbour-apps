@@ -14,10 +14,9 @@ export const metadata: Metadata = {
     "browse free playdate previews — hands-on activities for kids using everyday materials like cardboard, sticks, and tape. no sign-up needed.",
 };
 
-// Force dynamic rendering — the DB connection isn't available at build time.
-// On Vercel with ISR this will cache for 1 hour after first request.
+// Force dynamic rendering — session-dependent content (onboarding nudge,
+// StartHereCard) means this page can't be ISR-cached.
 export const dynamic = "force-dynamic";
-export const revalidate = 3600;
 
 interface TeaserPlaydate {
   id: string;

@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { headers } from "next/headers";
 import Link from "next/link";
+import Image from "next/image";
 import { requireAuth } from "@/lib/auth-helpers";
 import { getPackBySlug, getPackBySlugCollective, isPlaydateInPack } from "@/lib/queries/packs";
 import { checkEntitlement } from "@/lib/queries/entitlements";
@@ -85,6 +86,18 @@ export default async function EntitledPlaydatePage({ params, searchParams }: Pro
       >
         &larr; {from === "sampler" ? "back to playdates" : `back to ${pack.title}`}
       </Link>
+
+      {playdate.cover_url && (
+        <div className="relative w-full h-[240px] sm:h-[320px] rounded-xl overflow-hidden bg-cadet/5 mb-6">
+          <Image
+            src={playdate.cover_url}
+            alt=""
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 100vw, 768px"
+          />
+        </div>
+      )}
 
       <h1 className="text-3xl font-semibold tracking-tight mb-4">
         {playdate.title}
