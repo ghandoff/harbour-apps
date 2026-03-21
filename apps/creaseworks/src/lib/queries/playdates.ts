@@ -58,6 +58,31 @@ export async function getAllReadyPlaydates() {
 }
 
 /**
+ * Fetch all published playdates (sampler + pack-only) at teaser tier.
+ * Used on /browse for non-internal users who should see the full public portfolio.
+ */
+export async function getPublishedPlaydates() {
+  const safe = await safeCols(PLAYDATE_TEASER_COLUMNS);
+  const cols = safe.map((c) => `p.${c}`).join(", ");
+  const result = await sql.query(
+    `SELECT ${cols},
+       (p.find_again_mode IS NOT NULL) AS has_find_again,
+       COALESCE(rc.run_count, 0)::int AS run_count
+     FROM playdates_cache p
+     LEFT JOIN (
+       SELECT playdate_notion_id, COUNT(*)::int AS run_count
+       FROM runs_cache
+       GROUP BY playdate_notion_id
+     ) rc ON rc.playdate_notion_id = p.notion_id
+     WHERE p.status = 'ready'
+       AND p.release_channel IN ('sampler', 'pack-only')
+     ORDER BY p.title ASC`,
+  );
+  assertNoLeakedFields(result.rows, "teaser");
+  return result.rows;
+}
+
+/**
  * Fetch a single playdate by slug at teaser tier.
  */
 export async function getTeaserPlaydateBySlug(slug: string) {

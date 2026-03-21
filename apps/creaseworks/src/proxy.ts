@@ -8,7 +8,7 @@
  * lightweight JWT verification.
  *
  * Public routes: /, /find/*, /matcher/* (redirect), /play/*, /log/*, /community/*, /gallery/*,
- *   /sampler/*, /packs (catalogue only), /login, /onboarding,
+ *   /sampler/*, /browse, /packs (catalogue only), /login, /onboarding,
  *   /api/auth/*, /api/cron/*, /api/matcher/*, /images/*, /manifest.json
  * Protected routes: /packs/[slug]/*, /runs/*, /admin/*, /api/admin/*, /profile/*
  *
@@ -61,6 +61,7 @@ function getRateLimitKey(req: NextRequest, isAuthed: boolean): string {
 const publicPatterns = [
   /^\/$/,
   /^\/sampler(\/.*)?$/,
+  /^\/browse\/?$/,            // full playdate catalogue — public (teaser-tier only)
   /^\/find(\/.*)?$/,        // find — public (entitled fields gated server-side)
   /^\/matcher(\/.*)?$/,     // find (legacy redirect)
   /^\/play(\/.*)?$/,        // fold — merged playbook/sampler; sampler section is public

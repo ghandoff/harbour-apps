@@ -75,6 +75,12 @@ export default async function SamplerPage() {
           simple playdates you can try right now — no account needed.
           grab a pack to unlock the full guide, materials list, and find-again prompts.
         </p>
+        <Link
+          href="/browse"
+          className="inline-block mt-3 text-sm text-redwood hover:text-sienna transition-colors"
+        >
+          browse all playdates &rarr;
+        </Link>
       </header>
 
       {/* onboarding nudge for signed-in users who haven't completed the wizard */}
