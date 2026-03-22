@@ -5,7 +5,6 @@ import { useSession, signOut } from "next-auth/react";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 import NotificationBell from "@/components/ui/notification-bell";
-import { useMode } from "@/components/ui/mode-provider";
 import { haptic } from "@/lib/haptics";
 
 /* ── origami-cycle SVG icons ──────────────────────────────────
@@ -19,73 +18,48 @@ import { haptic } from "@/lib/haptics";
  * legible at small sizes and colour-coded per cycle phase.
  */
 
-/** Flat diamond — paper at rest, waiting to be noticed */
-function IconFind({ className }: { className?: string }) {
+/* ── mask-image nav icons ───────────────────────────────────────
+ * Uses CSS mask-image with the brand SVG files so they inherit
+ * `currentColor` for dynamic phase-colour theming. The SVGs live
+ * in public/icons/nav/ and are optimised with SVGO.
+ */
+function NavIcon({ src, label }: { src: string; label: string }) {
   return (
-    <svg viewBox="0 0 20 20" width={20} height={20} className={className} aria-hidden="true">
-      <path
-        d="M10 3L17 10L10 17L3 10Z"
-        fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"
-      />
-      <path
-        d="M10 3L10 17"
-        stroke="currentColor" strokeWidth="0.7" opacity="0.35" strokeDasharray="2 1.5"
-      />
-    </svg>
+    <span
+      className="cw-nav-icon inline-block"
+      role="img"
+      aria-label={label}
+      style={{
+        width: 24,
+        height: 24,
+        backgroundColor: "currentColor",
+        maskImage: `url(${src})`,
+        maskSize: "contain",
+        maskRepeat: "no-repeat",
+        maskPosition: "center",
+        WebkitMaskImage: `url(${src})`,
+        WebkitMaskSize: "contain",
+        WebkitMaskRepeat: "no-repeat",
+        WebkitMaskPosition: "center",
+      }}
+    />
   );
 }
 
-/** Paper airplane — insight being shaped into experiment */
-function IconFold({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 20 20" width={20} height={20} className={className} aria-hidden="true">
-      <path
-        d="M3 10L17 3V17Z"
-        fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"
-      />
-      <path
-        d="M3 10L17 10"
-        stroke="currentColor" strokeWidth="0.7" opacity="0.4"
-      />
-    </svg>
-  );
+function IconFind() {
+  return <NavIcon src="/harbour/creaseworks/icons/nav/find.svg" label="find" />;
 }
 
-/** Butterfly / opening wings — reflecting and surfacing what changed */
-function IconUnfold({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 20 20" width={20} height={20} className={className} aria-hidden="true">
-      <path
-        d="M10 5L3 11L8 13"
-        fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"
-      />
-      <path
-        d="M10 5L17 11L12 13"
-        fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"
-      />
-      <path
-        d="M10 13V18"
-        stroke="currentColor" strokeWidth="1" strokeLinecap="round" opacity="0.5"
-      />
-    </svg>
-  );
+function IconFold() {
+  return <NavIcon src="/harbour/creaseworks/icons/nav/fold.svg" label="fold" />;
 }
 
-/** Paper crane in flight — learning carried forward so it travels */
-function IconFindAgain({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 20 20" width={20} height={20} className={className} aria-hidden="true">
-      <path
-        d="M2 14L10 5L18 14"
-        fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"
-      />
-      <path
-        d="M6 14L10 10L14 14"
-        fill="none" stroke="currentColor" strokeWidth="0.9" strokeLinejoin="round" opacity="0.4"
-      />
-      <path d="M10 5L10 2" stroke="currentColor" strokeWidth="1" strokeLinecap="round" />
-    </svg>
-  );
+function IconUnfold() {
+  return <NavIcon src="/harbour/creaseworks/icons/nav/unfold.svg" label="unfold" />;
+}
+
+function IconFindAgain() {
+  return <NavIcon src="/harbour/creaseworks/icons/nav/fold-again.svg" label="find again" />;
 }
 
 /** Person silhouette — profile / me */
@@ -150,11 +124,11 @@ const SECTION_COLORS: Record<string, string> = {
  *   find again → /community   (leaderboard + community activity)
  *   me         → /profile
  */
-/* ── kid mode label map ───────────────────────────────────────────
- * In kid mode, cycle phase labels become action verbs that children
- * understand without needing the origami metaphor.
+/* ── playful labels ───────────────────────────────────────────────
+ * Action verbs that children (and everyone) understand without
+ * needing the origami metaphor.
  */
-const KID_LABELS: Record<string, string> = {
+const LABELS: Record<string, string> = {
   find: "look!",
   fold: "make!",
   unfold: "show!",
@@ -167,12 +141,10 @@ export default function NavBar() {
   const { data: session, status } = useSession();
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
-  const { isKidMode } = useMode();
-
   const close = () => setMobileOpen(false);
 
-  /** Map label to kid-friendly version when kid mode is active */
-  const label = (text: string) => isKidMode ? (KID_LABELS[text] ?? text) : text;
+  /** Map label to playful version */
+  const label = (text: string) => LABELS[text] ?? text;
 
   const isAuthed = !!session?.user;
 

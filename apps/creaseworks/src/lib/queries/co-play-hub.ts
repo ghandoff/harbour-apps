@@ -28,13 +28,13 @@ export async function getRecentCoPlayRuns(
          WHEN rc.created_by = $1 THEN partner.name
          ELSE creator.name
        END AS partner_name,
-       rc.created_at
+       rc.synced_at
      FROM runs_cache rc
      LEFT JOIN users creator ON creator.id = rc.created_by
      LEFT JOIN users partner ON partner.id = rc.co_play_parent_id
      WHERE rc.co_play_invite_code IS NOT NULL
        AND (rc.created_by = $1 OR rc.co_play_parent_id = $1)
-     ORDER BY rc.created_at DESC
+     ORDER BY rc.synced_at DESC
      LIMIT 10`,
     [userId],
   );
@@ -44,6 +44,6 @@ export async function getRecentCoPlayRuns(
     title: row.title as string,
     inviteCode: row.invite_code as string,
     partnerName: row.partner_name as string | null,
-    createdAt: row.created_at as string,
+    createdAt: row.synced_at as string,
   }));
 }

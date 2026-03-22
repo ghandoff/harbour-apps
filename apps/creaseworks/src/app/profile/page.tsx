@@ -44,7 +44,6 @@ import NotificationPrefs from "./notification-prefs";
 import AccessibilityPrefs from "./accessibility-prefs";
 import TierSwitcher from "./tier-switcher";
 import PlayContextSwitcher from "./play-context-switcher";
-import KidModeToggle from "./kid-mode-toggle";
 import SyncTrigger from "@/app/admin/sync/sync-trigger";
 import { getConfigGroup, parseMetadata } from "@/lib/queries/app-config";
 
@@ -308,24 +307,7 @@ export default async function ProfilePage({
         </section>
       )}
 
-      {/* ---- kid / grown-up mode (always visible) -------------------- */}
-      <section className="mb-10">
-        <h2 className="text-lg font-semibold tracking-tight mb-1">
-          interface mode
-        </h2>
-        <p className="text-sm text-cadet/40 mb-4">
-          switch between a simplified kid-friendly view and the full
-          grown-up interface.
-        </p>
-        <div
-          className="rounded-xl border p-4"
-          style={{ borderColor: "var(--cw-border)", backgroundColor: "var(--cw-card-bg)" }}
-        >
-          <KidModeToggle />
-        </div>
-      </section>
-
-      {/* ---- manage toggle (grownup stuff) ------------------------- */}
+      {/* ---- manage toggle -------------------------------------------- */}
       {canManage && (
         <>
           <Suspense fallback={null}>

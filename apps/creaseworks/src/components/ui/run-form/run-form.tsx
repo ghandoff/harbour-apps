@@ -23,7 +23,6 @@ import EvidenceCaptureSection, {
 } from "../evidence-capture-section";
 import { uploadPhotoToR2 } from "../evidence-photo-upload";
 import type { PhotoItem } from "../evidence-photo-upload";
-import { useMode } from "../mode-provider";
 import type { Playdate, Material } from "./types";
 import { useRunFormState } from "./use-run-form-state";
 import { RunFormEssentials } from "./run-form-essentials";
@@ -57,7 +56,6 @@ export default function RunForm({
   packInfo?: ReflectionPackInfo | null;
 }) {
   const router = useRouter();
-  const { isKidMode } = useMode();
   const state = useRunFormState(initialPlaydateId);
   const quickPhotoInputRef = useRef<HTMLInputElement>(null);
 
@@ -110,10 +108,10 @@ export default function RunForm({
     });
   }
 
-  // Default to quick share mode when kid mode is active
+  // Default to quick share mode — playful, low-friction for everyone
   useEffect(() => {
-    if (isKidMode) state.setQuickMode(true);
-  }, [isKidMode]); // eslint-disable-line react-hooks/exhaustive-deps
+    state.setQuickMode(true);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   /**
    * Save evidence items for a newly created reflection.

@@ -82,8 +82,6 @@ export default async function RootLayout({
   const dyslexiaFont = cookieStore.get("cw-dyslexia-font")?.value === "true";
   const calmTheme = cookieStore.get("cw-calm-theme")?.value === "true";
   const uiTier = cookieStore.get("cw-ui-tier")?.value || "casual";
-  const uiMode = cookieStore.get("cw-ui-mode")?.value || "grownup";
-
   const htmlClasses = [
     inter.variable,
     atkinson.variable,
@@ -91,7 +89,6 @@ export default async function RootLayout({
     reduceMotion && "reduce-motion",
     dyslexiaFont && "dyslexia-font",
     calmTheme && "calm-theme",
-    uiMode === "kid" && "kid-mode",
     `tier-${uiTier}`,
   ]
     .filter(Boolean)
@@ -100,7 +97,7 @@ export default async function RootLayout({
   return (
     <html lang="en" className={htmlClasses}>
       <body className="antialiased pt-12">
-        <Providers initialUiMode={uiMode === "kid" ? "kid" : "grownup"}>
+        <Providers>
           <a
             href="#main-content"
             className="skip-link"
