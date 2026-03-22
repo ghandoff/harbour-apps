@@ -950,14 +950,29 @@ a[aria-label="play together"]:active {
   animation: none;
 }
 
-/* ── find page background ───────────────────────────────────── */
+/* ── phase page backgrounds — coloured "rooms" ─────────────────
+   each cycle phase gets a distinct tinted background so users
+   know where they are by colour alone. tints are mixed with white
+   (not champagne) for legibility and visual contrast.             */
 
 .cw-find-bg {
-  background-color: var(--background);
-  background: linear-gradient(175deg,
-    color-mix(in srgb, var(--cw-coral) 8%, var(--background)) 0%,
-    var(--background) 40%,
-    color-mix(in srgb, var(--cw-sky) 5%, var(--background)) 100%);
+  background-color: #eef5ff;
+  background: linear-gradient(175deg, #e4effe 0%, #eef5ff 50%, #f4f8ff 100%);
+}
+
+.cw-fold-bg {
+  background-color: #fff0ed;
+  background: linear-gradient(175deg, #ffe8e4 0%, #fff0ed 50%, #fff6f4 100%);
+}
+
+.cw-unfold-bg {
+  background-color: #fff8e6;
+  background: linear-gradient(175deg, #fff3d6 0%, #fff8e6 50%, #fffbf0 100%);
+}
+
+.cw-find-again-bg {
+  background-color: #edfaf4;
+  background: linear-gradient(175deg, #e2f7ed 0%, #edfaf4 50%, #f4fcf8 100%);
 }
 
 /* ── animated origami nav icons ──────────────────────────────────
