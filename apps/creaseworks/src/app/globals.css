@@ -555,85 +555,180 @@ html.calm-theme .text-cadet\/40 {
    text-foreground will automatically use calm values.                */
 
 /* ═══════════════════════════════════════════════════════════════════
-   kid mode — playful, inviting presentation for children
+   kid mode — the craft table
    ═══════════════════════════════════════════════════════════════════
 
-   Makes creaseworks feel like a creative toy, not a productivity app.
-   Everything is warmer, rounder, bigger, and more colourful. Think
-   LEGO box, not spreadsheet.
+   Not a theme tweak — a full personality shift. When kid mode is on,
+   the entire app should feel like looking down at a colourful art
+   table covered in paper, paint pots, and stickers. Bright but not
+   garish, textured but not cluttered.
 
    Design principles:
-   1. COLOUR — saturated, warm, joyful. champagne dominates.
-   2. SHAPE — rounder corners, softer shadows, thicker borders
-   3. SIZE — larger text, bigger touch targets, more whitespace
-   4. TYPOGRAPHY — Nunito everywhere (rounded, geometric, friendly)
-   5. MOTION — bouncier, more playful transitions
-   6. DENSITY — fewer items visible, more breathing room
+   1. COLOUR — vivid, saturated, joyful. warm peach background with
+      punchy phase colours. white cards pop against coloured bg.
+   2. TEXTURE — subtle dot grid background, coloured card borders,
+      layered shadows that feel physical/3D.
+   3. SHAPE — pill-round everything, wobbly hover states, thick
+      borders that feel drawn with a marker.
+   4. SIZE — 18px base, 52px+ touch targets, generous padding.
+   5. TYPOGRAPHY — Nunito 800 everywhere, playful letter-spacing.
+   6. MOTION — springy overshoots, squish on press, bounce on enter.
+   7. DELIGHT — active states feel like pressing a real button,
+      hover wobble, colourful focus rings, rainbow tag pills.
 
    Architecture mirrors calm-theme: CSS class on <html>, cascading
    variable overrides, !important only for inline-style battles.      */
 
+/* ── kid mode: custom keyframes ────────────────────────────────── */
+
+@keyframes cw-kid-bounce {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.15); }
+  70%  { transform: scale(0.95); }
+  100% { transform: scale(1); }
+}
+
+@keyframes cw-kid-wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25%  { transform: rotate(-2deg); }
+  75%  { transform: rotate(2deg); }
+}
+
+@keyframes cw-kid-pop-in {
+  0%   { opacity: 0; transform: scale(0.8) translateY(16px); }
+  60%  { opacity: 1; transform: scale(1.05) translateY(-4px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes cw-kid-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-3px); }
+}
+
 /* ── kid mode: colour & token overrides ───────────────────────── */
 
 html.kid-mode {
-  /* warm, creamy background — noticeably different from default */
-  --background: color-mix(in srgb, var(--wv-champagne) 35%, var(--wv-white));
-  --shadow-soft: 0 2px 8px rgba(203, 120, 88, 0.12);
-  --shadow-warm: 0 4px 16px rgba(203, 120, 88, 0.15);
+  /* warm peach background — immediately, obviously different */
+  --background: #fff4e8;
+  --shadow-soft: 0 2px 8px rgba(203, 120, 88, 0.15);
+  --shadow-warm: 0 6px 20px rgba(203, 120, 88, 0.18);
 
-  /* component tokens — warmer, softer */
-  --cw-text: var(--wv-cadet);
-  --cw-text-muted: rgba(39, 50, 72, 0.55);
-  --cw-border: rgba(203, 120, 88, 0.18);
-  --cw-toggle-off: rgba(203, 120, 88, 0.2);
-  --cw-card-bg: color-mix(in srgb, var(--wv-champagne) 15%, var(--wv-white));
-  --cw-skeleton-bg: rgba(203, 120, 88, 0.08);
+  /* kid-specific accent palette — vivid, high saturation */
+  --kid-coral:     #ff7b6b;   /* warm action red-orange  */
+  --kid-sunshine:  #ffcc33;   /* bright yellow           */
+  --kid-sky:       #5ba8ff;   /* friendly blue           */
+  --kid-mint:      #4cd9a0;   /* fresh green             */
+  --kid-lavender:  #b07cff;   /* playful purple          */
+  --kid-peach:     #ffad85;   /* soft orange accent      */
 
-  /* saturated phase colours — bold, easy to distinguish */
-  --cw-phase-find:       #4a64d4;   /* vivid cornflower  */
-  --cw-phase-fold:       #e07830;   /* vivid orange      */
-  --cw-phase-unfold:     #f0c040;   /* vivid gold        */
-  --cw-phase-find-again: #30c4a0;   /* vivid teal        */
+  /* component tokens */
+  --cw-text: #2a3450;
+  --cw-text-muted: rgba(42, 52, 80, 0.6);
+  --cw-border: rgba(255, 123, 107, 0.2);
+  --cw-toggle-off: rgba(203, 120, 88, 0.25);
+  --cw-card-bg: #ffffff;
+  --cw-skeleton-bg: rgba(255, 173, 133, 0.15);
+
+  /* saturated phase colours — rainbow-bright */
+  --cw-phase-find:       #5ba8ff;   /* sky blue       */
+  --cw-phase-fold:       #ff7b6b;   /* coral          */
+  --cw-phase-unfold:     #ffcc33;   /* sunshine       */
+  --cw-phase-find-again: #4cd9a0;   /* mint green     */
 }
 
-/* ── kid mode: typography — Nunito everywhere, larger sizes ────── */
+/* ── kid mode: page background texture ─────────────────────────
+   subtle dot grid — like graph paper on the craft table.
+   uses radial-gradient so it's pure CSS, no image needed.         */
 
 html.kid-mode body {
   font-family: var(--font-nunito), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  font-size: 17px;
+  font-size: 18px;
+  font-weight: 500;
   line-height: 1.65;
+  letter-spacing: 0.01em;
+  background-color: var(--background);
+  background-image:
+    radial-gradient(circle, rgba(203, 120, 88, 0.07) 1px, transparent 1px);
+  background-size: 24px 24px;
 }
+
+/* ── kid mode: typography — Nunito everywhere, bolder, bouncier ── */
 
 html.kid-mode input,
 html.kid-mode textarea,
 html.kid-mode select,
 html.kid-mode button {
   font-family: var(--font-nunito), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 600;
 }
 
-html.kid-mode h1 { font-size: 2rem; font-weight: 800; letter-spacing: -0.01em; }
-html.kid-mode h2 { font-size: 1.5rem; font-weight: 700; }
-html.kid-mode h3 { font-size: 1.2rem; font-weight: 700; }
+html.kid-mode h1 {
+  font-size: 2.25rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: var(--kid-coral);
+}
 
-/* ── kid mode: rounder everything ─────────────────────────────── */
+html.kid-mode h2 {
+  font-size: 1.625rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
 
-html.kid-mode .rounded-xl { border-radius: 1.25rem; }
-html.kid-mode .rounded-lg { border-radius: 1rem; }
-html.kid-mode .rounded-md { border-radius: 0.75rem; }
+html.kid-mode h3 {
+  font-size: 1.25rem;
+  font-weight: 800;
+}
 
-/* cards get warmer borders and subtle champagne glow */
+/* ── kid mode: rounder EVERYTHING ──────────────────────────────── */
+
+html.kid-mode .rounded-xl { border-radius: 1.5rem; }
+html.kid-mode .rounded-lg { border-radius: 1.25rem; }
+html.kid-mode .rounded-md { border-radius: 0.875rem; }
+html.kid-mode .rounded-full { border-radius: 9999px; }
+
+/* ── kid mode: cards — physical, tactile, layered ──────────────── */
+
 html.kid-mode .rounded-xl.border,
-html.kid-mode .rounded-lg.border {
-  border-color: rgba(203, 120, 88, 0.15);
-  box-shadow: 0 2px 12px rgba(255, 235, 210, 0.3);
+html.kid-mode .rounded-lg.border,
+html.kid-mode [role="group"] {
+  border-color: rgba(255, 123, 107, 0.2);
+  border-width: 2.5px;
+  background-color: var(--cw-card-bg);
+  box-shadow:
+    0 2px 0 rgba(255, 123, 107, 0.08),
+    0 4px 12px rgba(203, 120, 88, 0.1);
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.25s ease;
 }
+
+html.kid-mode .rounded-xl.border:hover,
+html.kid-mode .rounded-lg.border:hover,
+html.kid-mode [role="group"]:hover {
+  transform: translateY(-4px) rotate(-0.5deg) !important;
+  box-shadow:
+    0 4px 0 rgba(255, 123, 107, 0.1),
+    0 8px 24px rgba(203, 120, 88, 0.15) !important;
+}
+
+/* more spacing inside cards */
+html.kid-mode .p-4 { padding: 1.375rem; }
+html.kid-mode .p-5 { padding: 1.5rem; }
+html.kid-mode .p-6 { padding: 1.875rem; }
+html.kid-mode .px-4 { padding-left: 1.375rem; padding-right: 1.375rem; }
+html.kid-mode .py-2 { padding-top: 0.875rem; padding-bottom: 0.875rem; }
+html.kid-mode .gap-3 { gap: 1rem; }
+html.kid-mode .gap-4 { gap: 1.375rem; }
+html.kid-mode .space-y-4 > * + * { margin-top: 1.375rem; }
+html.kid-mode .space-y-6 > * + * { margin-top: 1.875rem; }
+html.kid-mode .grid { gap: 1.375rem; }
 
 /* ── kid mode: bigger touch targets & inputs ──────────────────── */
 
 html.kid-mode button,
 html.kid-mode a.inline-flex,
 html.kid-mode [role="switch"] {
-  min-height: 48px;
+  min-height: 52px;
 }
 
 html.kid-mode input[type="text"],
@@ -641,144 +736,243 @@ html.kid-mode input[type="email"],
 html.kid-mode input[type="search"],
 html.kid-mode textarea,
 html.kid-mode select {
-  font-size: 16px;
-  padding: 0.75rem 1rem;
-  border-radius: 0.75rem;
-  border-width: 2px;
-  border-color: rgba(203, 120, 88, 0.2);
+  font-size: 17px;
+  padding: 0.875rem 1.125rem;
+  border-radius: 1rem;
+  border-width: 2.5px;
+  border-color: rgba(255, 123, 107, 0.2);
+  background: white;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
 }
 
 html.kid-mode input:focus,
 html.kid-mode textarea:focus,
 html.kid-mode select:focus {
-  border-color: var(--wv-sienna);
-  box-shadow: 0 0 0 3px rgba(203, 120, 88, 0.15);
+  border-color: var(--kid-sky);
+  box-shadow:
+    0 0 0 4px rgba(91, 168, 255, 0.15),
+    0 2px 8px rgba(91, 168, 255, 0.1);
+  transform: scale(1.01);
 }
 
-/* ── kid mode: playful header ─────────────────────────────────── */
+/* ── kid mode: buttons — chunky, 3D, satisfying to press ─────── */
+
+html.kid-mode button[type="submit"],
+html.kid-mode .bg-redwood {
+  border-radius: 1rem;
+  font-weight: 800;
+  font-size: 1.0625rem;
+  padding: 0.875rem 1.75rem;
+  border: none;
+  box-shadow:
+    0 4px 0 rgba(0, 0, 0, 0.15),
+    0 6px 12px rgba(177, 80, 67, 0.2);
+  transition: transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.12s ease;
+  position: relative;
+}
+
+html.kid-mode button[type="submit"]:hover,
+html.kid-mode .bg-redwood:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 5px 0 rgba(0, 0, 0, 0.15),
+    0 8px 16px rgba(177, 80, 67, 0.25);
+}
+
+html.kid-mode button[type="submit"]:active,
+html.kid-mode .bg-redwood:active {
+  transform: translateY(3px);
+  box-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.15),
+    0 2px 4px rgba(177, 80, 67, 0.15);
+}
+
+/* secondary buttons also get chunky treatment */
+html.kid-mode button:not([type="submit"]):not(.wv-header-signout) {
+  border-radius: 0.875rem;
+  font-weight: 700;
+  transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+html.kid-mode button:not([type="submit"]):not(.wv-header-signout):active {
+  transform: scale(0.95);
+}
+
+/* ── kid mode: tag pills — rainbow-coloured by position ─────── */
+
+html.kid-mode .rounded-full[style*="background"] {
+  font-weight: 700;
+  border-width: 2px;
+  border-color: transparent;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* ── kid mode: links — brighter, bolder ──────────────────────── */
+
+html.kid-mode a:not(.wv-header-nav-link):not(.wv-header-brand):not(nav a) {
+  font-weight: 600;
+}
+
+/* ── kid mode: playful header — gradient bg, bigger brand ────── */
 
 html.kid-mode .wv-header {
   --wv-champagne: #ffe8c8;
+  background: linear-gradient(135deg, #2a3450 0%, #3a4a6a 100%) !important;
+  padding-top: 14px;
+  padding-bottom: 14px;
 }
 
 html.kid-mode .wv-header-brand {
-  font-size: 1.1rem;
-  font-weight: 800;
+  font-size: 1.2rem;
+  font-weight: 900;
   font-family: var(--font-nunito), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.03em;
+  animation: cw-kid-float 3s ease-in-out infinite;
 }
 
-/* ── kid mode: bottom tab bar — big, bold, colourful ──────────── */
+html.kid-mode .wv-header-nav-link {
+  font-size: 0.9375rem;
+  font-weight: 700;
+}
+
+/* ── kid mode: bottom tab bar — THE hero element ─────────────── */
 
 html.kid-mode nav[aria-label="quick navigation"] {
-  padding-top: 0.625rem;
-  padding-bottom: max(0.625rem, env(safe-area-inset-bottom));
-  background-color: color-mix(in srgb, var(--wv-champagne) 25%, var(--wv-white)) !important;
-  border-color: rgba(203, 120, 88, 0.12) !important;
+  padding-top: 0.75rem;
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+  background: linear-gradient(to top, #fff8f0, #ffffff) !important;
+  border-color: rgba(255, 123, 107, 0.15) !important;
+  border-top-width: 2px !important;
+  box-shadow: 0 -4px 20px rgba(203, 120, 88, 0.08);
 }
 
 html.kid-mode nav[aria-label="quick navigation"] a {
-  min-width: 56px;
-  min-height: 52px;
-  border-radius: 12px;
+  min-width: 60px;
+  min-height: 56px;
+  border-radius: 14px;
   gap: 0.25rem;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+              background-color 0.2s ease;
+}
+
+html.kid-mode nav[aria-label="quick navigation"] a:active {
+  transform: scale(0.9);
 }
 
 html.kid-mode nav[aria-label="quick navigation"] svg {
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 html.kid-mode nav[aria-label="quick navigation"] span {
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
-/* active tab gets a coloured background pill */
+/* active tab — vivid coloured pill with bounce */
 html.kid-mode nav[aria-label="quick navigation"] a[style*="background"] {
-  background-color: rgba(203, 120, 88, 0.12) !important;
-  transform: scale(1.04);
-}
-
-/* ── kid mode: bouncier animations ────────────────────────────── */
-
-html.kid-mode .wv-stagger > * {
-  animation-duration: 0.5s;
-  animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-@keyframes cw-kid-bounce {
-  0%   { transform: scale(1); }
-  40%  { transform: scale(1.12); }
-  70%  { transform: scale(0.97); }
-  100% { transform: scale(1); }
+  transform: scale(1.08);
+  border-radius: 14px;
 }
 
 html.kid-mode nav[aria-label="quick navigation"] a[style*="background"] svg {
-  animation: cw-kid-bounce 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: cw-kid-bounce 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* ── kid mode: cards & containers ─────────────────────────────── */
+/* ── kid mode: stagger animation — pop in with overshoot ─────── */
 
-/* more spacing inside cards */
-html.kid-mode .p-4 { padding: 1.25rem; }
-html.kid-mode .p-6 { padding: 1.75rem; }
-html.kid-mode .px-4 { padding-left: 1.25rem; padding-right: 1.25rem; }
-html.kid-mode .py-2 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
-html.kid-mode .gap-4 { gap: 1.25rem; }
-html.kid-mode .space-y-4 > * + * { margin-top: 1.25rem; }
-html.kid-mode .space-y-6 > * + * { margin-top: 1.75rem; }
-
-/* grid items get more breathing room */
-html.kid-mode .grid { gap: 1.25rem; }
-
-/* ── kid mode: buttons — chunky, tactile ──────────────────────── */
-
-html.kid-mode button[type="submit"],
-html.kid-mode .bg-redwood,
-html.kid-mode a[style*="backgroundColor: \"var(--wv-sienna)\""] {
-  border-radius: 0.875rem;
-  font-weight: 700;
-  font-size: 1rem;
-  padding: 0.75rem 1.5rem;
-  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.1);
-  transition: transform 0.1s ease, box-shadow 0.1s ease;
-}
-
-html.kid-mode button[type="submit"]:active {
-  transform: translateY(2px);
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.1);
+html.kid-mode .wv-stagger > * {
+  animation-name: cw-kid-pop-in;
+  animation-duration: 0.55s;
+  animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 /* ── kid mode: emoji & icon scaling ───────────────────────────── */
 
-html.kid-mode .text-2xl { font-size: 1.75rem; }
-html.kid-mode .text-3xl { font-size: 2.25rem; }
-html.kid-mode .text-5xl { font-size: 3.5rem; }
+html.kid-mode .text-2xl { font-size: 1.875rem; }
+html.kid-mode .text-3xl { font-size: 2.5rem; }
+html.kid-mode .text-5xl { font-size: 4rem; }
 
 /* ── kid mode: profile page cards ─────────────────────────────── */
 
 html.kid-mode .cw-a11y-card {
   background-color: var(--cw-card-bg);
-  border-color: rgba(203, 120, 88, 0.15);
-  border-width: 2px;
-  border-radius: 1rem;
+  border-color: rgba(255, 123, 107, 0.18);
+  border-width: 2.5px;
+  border-radius: 1.25rem;
+  box-shadow: 0 3px 0 rgba(255, 123, 107, 0.06);
 }
 
-/* ── kid mode: dashed borders (photo upload, empty states) ────── */
+/* ── kid mode: dashed borders — crayon-style ──────────────────── */
 
 html.kid-mode .border-dashed {
   border-width: 3px;
-  border-color: rgba(203, 120, 88, 0.25);
-  border-radius: 1rem;
+  border-color: var(--kid-coral);
+  border-radius: 1.25rem;
+  opacity: 0.6;
+}
+
+/* ── kid mode: focus rings — colourful, thick, obvious ────────── */
+
+html.kid-mode :focus-visible {
+  outline: 3px solid var(--kid-sky);
+  outline-offset: 3px;
+  border-radius: inherit;
+}
+
+/* ── kid mode: selection colour ───────────────────────────────── */
+
+html.kid-mode ::selection {
+  background: rgba(255, 204, 51, 0.35);
+  color: inherit;
+}
+
+/* ── kid mode: scrollbar — colourful on webkit ────────────────── */
+
+html.kid-mode ::-webkit-scrollbar {
+  width: 10px;
+}
+
+html.kid-mode ::-webkit-scrollbar-track {
+  background: rgba(255, 173, 133, 0.08);
+  border-radius: 10px;
+}
+
+html.kid-mode ::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--kid-peach), var(--kid-coral));
+  border-radius: 10px;
+  border: 2px solid var(--background);
 }
 
 /* ── kid mode: skip link ──────────────────────────────────────── */
 
 html.kid-mode .skip-link {
-  font-size: 1rem;
-  padding: 0.75rem 1.25rem;
-  border-radius: 0 0 0.75rem 0.75rem;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  padding: 0.875rem 1.375rem;
+  border-radius: 0 0 1rem 1rem;
+  background: var(--kid-sunshine);
+  color: var(--cw-text);
+}
+
+/* ── kid mode: co-play FAB — extra bouncy ─────────────────────── */
+
+html.kid-mode a[aria-label="play together"] {
+  width: 56px !important;
+  height: 56px !important;
+  box-shadow:
+    0 3px 0 rgba(0, 0, 0, 0.15),
+    0 6px 16px rgba(203, 120, 88, 0.25) !important;
+  animation: cw-kid-float 2.5s ease-in-out infinite;
+}
+
+html.kid-mode a[aria-label="play together"]:active {
+  transform: scale(0.9) !important;
+  animation: none;
 }
 
 /* ── animated origami nav icons ──────────────────────────────────
