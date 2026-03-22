@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { CoPlayDetails } from "@/lib/queries/co-play";
 import { apiUrl } from "@/lib/api-url";
 import { QrInvite } from "@/components/co-play/qr-invite";
+import { haptic } from "@/lib/haptics";
 
 interface CoPlayInviteProps {
   runId: string;
@@ -84,7 +85,7 @@ export function CoPlayInvite({ runId }: CoPlayInviteProps) {
   if (!coPlayDetails?.inviteCode) {
     return (
       <button
-        onClick={handleEnableCoPlay}
+        onClick={() => { haptic("medium"); handleEnableCoPlay(); }}
         disabled={isLoading}
         className="px-4 py-2 bg-redwood text-white rounded hover:bg-redwood/90 disabled:opacity-50"
       >

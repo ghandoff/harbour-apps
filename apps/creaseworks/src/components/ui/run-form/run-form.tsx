@@ -17,6 +17,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 import Link from "next/link";
+import { haptic } from "@/lib/haptics";
 import EvidenceCaptureSection, {
   hasEvidenceContent,
 } from "../evidence-capture-section";
@@ -201,6 +202,7 @@ export default function RunForm({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    haptic("medium");
 
     // Quick mode only requires title + date; full mode requires runType too
     if (state.quickMode) {

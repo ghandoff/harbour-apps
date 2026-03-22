@@ -11,7 +11,7 @@ export interface MatcherInput {
 }
 
 interface CoverageDetail {
-  materialsCovered: { id: string; title: string }[];
+  materialsCovered: { id: string; title: string; formPrimary: string }[];
   materialsMissing: { id: string; title: string; formPrimary: string }[];
   formsCovered: string[];
   formsMissing: string[];

@@ -9,6 +9,7 @@
  */
 
 import { useMode } from "@/components/ui/mode-provider";
+import { haptic } from "@/lib/haptics";
 
 export default function KidModeToggle() {
   const { isKidMode, setMode } = useMode();
@@ -18,7 +19,7 @@ export default function KidModeToggle() {
       {/* kid mode card */}
       <button
         type="button"
-        onClick={() => setMode("kid")}
+        onClick={() => { haptic("light"); setMode("kid"); }}
         className="relative rounded-xl border-2 p-4 text-center transition-all"
         style={{
           borderColor: isKidMode
@@ -53,7 +54,7 @@ export default function KidModeToggle() {
       {/* grown-up mode card */}
       <button
         type="button"
-        onClick={() => setMode("grownup")}
+        onClick={() => { haptic("light"); setMode("grownup"); }}
         className="relative rounded-xl border-2 p-4 text-center transition-all"
         style={{
           borderColor: !isKidMode

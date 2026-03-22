@@ -10,6 +10,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { MaterialIllustration } from "@/components/material-illustration";
 
 /* ── types ─────────────────────────────────────────────────────────── */
 
@@ -19,7 +20,7 @@ interface SubstitutionSuggestion {
 }
 
 interface Coverage {
-  materialsCovered: { id: string; title: string }[];
+  materialsCovered: { id: string; title: string; formPrimary: string }[];
   materialsMissing: { id: string; title: string; formPrimary: string }[];
   formsCovered: string[];
   formsMissing: string[];
@@ -266,20 +267,22 @@ export default function MatcherResultCard({
                     {coverage.materialsCovered.map((m) => (
                       <div
                         key={m.id}
+                        className="flex items-center gap-1.5"
                         style={{ color: "var(--wv-cadet)", opacity: 0.7 }}
                       >
-                        <span style={{ color: "#22c55e" }}>
-                          ✓
-                        </span>{" "}
+                        <MaterialIllustration formPrimary={m.formPrimary} size={16} />
+                        <span style={{ color: "#22c55e" }}>✓</span>
                         {m.title}
                       </div>
                     ))}
                     {coverage.materialsMissing.map((m) => (
                       <div
                         key={m.id}
+                        className="flex items-center gap-1.5"
                         style={{ color: "var(--wv-cadet)", opacity: 0.45 }}
                       >
-                        <span style={{ color: "var(--wv-redwood)" }}>✗</span>{" "}
+                        <MaterialIllustration formPrimary={m.formPrimary} size={16} />
+                        <span style={{ color: "var(--wv-redwood)" }}>✗</span>
                         {m.title}
                       </div>
                     ))}

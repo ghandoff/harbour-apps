@@ -6,6 +6,7 @@ import { useState } from "react";
 import { usePathname } from "next/navigation";
 import NotificationBell from "@/components/ui/notification-bell";
 import { useMode } from "@/components/ui/mode-provider";
+import { haptic } from "@/lib/haptics";
 
 /* ── origami-cycle SVG icons ──────────────────────────────────
  * 20×20 icons following the winded.vertigo creative cycle:
@@ -373,6 +374,7 @@ export default function NavBar() {
             <Link
               key={tab.key}
               href={tab.href}
+              onClick={() => haptic("light")}
               className="flex flex-col items-center gap-0.5 px-1.5 py-1 rounded-lg transition-colors"
               style={{
                 color: isActive ? accentColor : "rgba(39,50,72,0.4)",

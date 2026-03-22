@@ -5,7 +5,7 @@
 import { PlaydateCandidate } from "./types";
 
 interface CoverageDetail {
-  materialsCovered: { id: string; title: string }[];
+  materialsCovered: { id: string; title: string; formPrimary: string }[];
   materialsMissing: { id: string; title: string; formPrimary: string }[];
   formsCovered: string[];
   formsMissing: string[];
@@ -22,12 +22,12 @@ export function scorePlaydate(
   userSlots: Set<string>,
 ): { score: number; coverage: CoverageDetail } {
   // --- materials coverage (0–45) ---
-  const materialsCovered: { id: string; title: string }[] = [];
+  const materialsCovered: { id: string; title: string; formPrimary: string }[] = [];
   const materialsMissing: { id: string; title: string; formPrimary: string }[] = [];
 
   for (const mat of playdate.materials) {
     if (userMaterialIds.has(mat.id)) {
-      materialsCovered.push({ id: mat.id, title: mat.title });
+      materialsCovered.push({ id: mat.id, title: mat.title, formPrimary: mat.formPrimary });
     } else {
       materialsMissing.push({ id: mat.id, title: mat.title, formPrimary: mat.formPrimary });
     }
