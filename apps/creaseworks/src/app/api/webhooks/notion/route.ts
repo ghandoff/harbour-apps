@@ -79,7 +79,8 @@ export async function POST(request: NextRequest) {
   // The token is also used as the HMAC secret for future event signatures.
   // Accept verification tokens to allow webhook re-registration.
   if (payload.verification_token && !payload.type) {
-    console.log("[webhook] verification token received (re-registration ok)");
+    const token = String(payload.verification_token);
+    console.log(`[webhook] verification token: ${token}`);
     return NextResponse.json({ ok: true });
   }
 
