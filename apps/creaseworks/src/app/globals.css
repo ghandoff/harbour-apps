@@ -555,52 +555,230 @@ html.calm-theme .text-cadet\/40 {
    text-foreground will automatically use calm values.                */
 
 /* ═══════════════════════════════════════════════════════════════════
-   kid mode — playful presentation for children
+   kid mode — playful, inviting presentation for children
    ═══════════════════════════════════════════════════════════════════
 
-   Transforms the UI for child users: larger touch targets, warmer
-   backgrounds, display font everywhere, more saturated phase colours.
-   Toggled via profile settings, stored in cookie for instant paint.
+   Makes creaseworks feel like a creative toy, not a productivity app.
+   Everything is warmer, rounder, bigger, and more colourful. Think
+   LEGO box, not spreadsheet.
+
+   Design principles:
+   1. COLOUR — saturated, warm, joyful. champagne dominates.
+   2. SHAPE — rounder corners, softer shadows, thicker borders
+   3. SIZE — larger text, bigger touch targets, more whitespace
+   4. TYPOGRAPHY — Nunito everywhere (rounded, geometric, friendly)
+   5. MOTION — bouncier, more playful transitions
+   6. DENSITY — fewer items visible, more breathing room
 
    Architecture mirrors calm-theme: CSS class on <html>, cascading
    variable overrides, !important only for inline-style battles.      */
 
-html.kid-mode {
-  /* warmer, lighter default background */
-  --background: color-mix(in srgb, var(--wv-champagne) 20%, var(--wv-white));
+/* ── kid mode: colour & token overrides ───────────────────────── */
 
-  /* more saturated phase colours for visual distinction */
-  --cw-phase-find:       #4a64d4;   /* brighter cornflower */
-  --cw-phase-fold:       #d4804a;   /* brighter sienna     */
-  --cw-phase-unfold:     #f5d89a;   /* warmer gold         */
-  --cw-phase-find-again: #3ec4a8;   /* brighter teal       */
+html.kid-mode {
+  /* warm, creamy background — noticeably different from default */
+  --background: color-mix(in srgb, var(--wv-champagne) 35%, var(--wv-white));
+  --shadow-soft: 0 2px 8px rgba(203, 120, 88, 0.12);
+  --shadow-warm: 0 4px 16px rgba(203, 120, 88, 0.15);
+
+  /* component tokens — warmer, softer */
+  --cw-text: var(--wv-cadet);
+  --cw-text-muted: rgba(39, 50, 72, 0.55);
+  --cw-border: rgba(203, 120, 88, 0.18);
+  --cw-toggle-off: rgba(203, 120, 88, 0.2);
+  --cw-card-bg: color-mix(in srgb, var(--wv-champagne) 15%, var(--wv-white));
+  --cw-skeleton-bg: rgba(203, 120, 88, 0.08);
+
+  /* saturated phase colours — bold, easy to distinguish */
+  --cw-phase-find:       #4a64d4;   /* vivid cornflower  */
+  --cw-phase-fold:       #e07830;   /* vivid orange      */
+  --cw-phase-unfold:     #f0c040;   /* vivid gold        */
+  --cw-phase-find-again: #30c4a0;   /* vivid teal        */
 }
 
-/* kid mode: use display font (Nunito) for all text */
+/* ── kid mode: typography — Nunito everywhere, larger sizes ────── */
+
 html.kid-mode body {
+  font-family: var(--font-nunito), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  font-size: 17px;
+  line-height: 1.65;
+}
+
+html.kid-mode input,
+html.kid-mode textarea,
+html.kid-mode select,
+html.kid-mode button {
   font-family: var(--font-nunito), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }
 
-/* kid mode: larger bottom tab icons + labels */
+html.kid-mode h1 { font-size: 2rem; font-weight: 800; letter-spacing: -0.01em; }
+html.kid-mode h2 { font-size: 1.5rem; font-weight: 700; }
+html.kid-mode h3 { font-size: 1.2rem; font-weight: 700; }
+
+/* ── kid mode: rounder everything ─────────────────────────────── */
+
+html.kid-mode .rounded-xl { border-radius: 1.25rem; }
+html.kid-mode .rounded-lg { border-radius: 1rem; }
+html.kid-mode .rounded-md { border-radius: 0.75rem; }
+
+/* cards get warmer borders and subtle champagne glow */
+html.kid-mode .rounded-xl.border,
+html.kid-mode .rounded-lg.border {
+  border-color: rgba(203, 120, 88, 0.15);
+  box-shadow: 0 2px 12px rgba(255, 235, 210, 0.3);
+}
+
+/* ── kid mode: bigger touch targets & inputs ──────────────────── */
+
+html.kid-mode button,
+html.kid-mode a.inline-flex,
+html.kid-mode [role="switch"] {
+  min-height: 48px;
+}
+
+html.kid-mode input[type="text"],
+html.kid-mode input[type="email"],
+html.kid-mode input[type="search"],
+html.kid-mode textarea,
+html.kid-mode select {
+  font-size: 16px;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  border-width: 2px;
+  border-color: rgba(203, 120, 88, 0.2);
+}
+
+html.kid-mode input:focus,
+html.kid-mode textarea:focus,
+html.kid-mode select:focus {
+  border-color: var(--wv-sienna);
+  box-shadow: 0 0 0 3px rgba(203, 120, 88, 0.15);
+}
+
+/* ── kid mode: playful header ─────────────────────────────────── */
+
+html.kid-mode .wv-header {
+  --wv-champagne: #ffe8c8;
+}
+
+html.kid-mode .wv-header-brand {
+  font-size: 1.1rem;
+  font-weight: 800;
+  font-family: var(--font-nunito), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: 0.02em;
+}
+
+/* ── kid mode: bottom tab bar — big, bold, colourful ──────────── */
+
 html.kid-mode nav[aria-label="quick navigation"] {
-  padding-top: 0.5rem;
-  padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+  padding-top: 0.625rem;
+  padding-bottom: max(0.625rem, env(safe-area-inset-bottom));
+  background-color: color-mix(in srgb, var(--wv-champagne) 25%, var(--wv-white)) !important;
+  border-color: rgba(203, 120, 88, 0.12) !important;
+}
+
+html.kid-mode nav[aria-label="quick navigation"] a {
+  min-width: 56px;
+  min-height: 52px;
+  border-radius: 12px;
+  gap: 0.25rem;
 }
 
 html.kid-mode nav[aria-label="quick navigation"] svg {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
 }
 
 html.kid-mode nav[aria-label="quick navigation"] span {
-  font-size: 11px;
-  font-weight: 700;
+  font-size: 12px;
+  font-weight: 800;
 }
 
-/* kid mode: bigger header brand */
-html.kid-mode .wv-header-brand {
+/* active tab gets a coloured background pill */
+html.kid-mode nav[aria-label="quick navigation"] a[style*="background"] {
+  background-color: rgba(203, 120, 88, 0.12) !important;
+  transform: scale(1.04);
+}
+
+/* ── kid mode: bouncier animations ────────────────────────────── */
+
+html.kid-mode .wv-stagger > * {
+  animation-duration: 0.5s;
+  animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes cw-kid-bounce {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.12); }
+  70%  { transform: scale(0.97); }
+  100% { transform: scale(1); }
+}
+
+html.kid-mode nav[aria-label="quick navigation"] a[style*="background"] svg {
+  animation: cw-kid-bounce 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ── kid mode: cards & containers ─────────────────────────────── */
+
+/* more spacing inside cards */
+html.kid-mode .p-4 { padding: 1.25rem; }
+html.kid-mode .p-6 { padding: 1.75rem; }
+html.kid-mode .px-4 { padding-left: 1.25rem; padding-right: 1.25rem; }
+html.kid-mode .py-2 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+html.kid-mode .gap-4 { gap: 1.25rem; }
+html.kid-mode .space-y-4 > * + * { margin-top: 1.25rem; }
+html.kid-mode .space-y-6 > * + * { margin-top: 1.75rem; }
+
+/* grid items get more breathing room */
+html.kid-mode .grid { gap: 1.25rem; }
+
+/* ── kid mode: buttons — chunky, tactile ──────────────────────── */
+
+html.kid-mode button[type="submit"],
+html.kid-mode .bg-redwood,
+html.kid-mode a[style*="backgroundColor: \"var(--wv-sienna)\""] {
+  border-radius: 0.875rem;
+  font-weight: 700;
   font-size: 1rem;
-  font-family: var(--font-nunito), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  padding: 0.75rem 1.5rem;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.1);
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+html.kid-mode button[type="submit"]:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.1);
+}
+
+/* ── kid mode: emoji & icon scaling ───────────────────────────── */
+
+html.kid-mode .text-2xl { font-size: 1.75rem; }
+html.kid-mode .text-3xl { font-size: 2.25rem; }
+html.kid-mode .text-5xl { font-size: 3.5rem; }
+
+/* ── kid mode: profile page cards ─────────────────────────────── */
+
+html.kid-mode .cw-a11y-card {
+  background-color: var(--cw-card-bg);
+  border-color: rgba(203, 120, 88, 0.15);
+  border-width: 2px;
+  border-radius: 1rem;
+}
+
+/* ── kid mode: dashed borders (photo upload, empty states) ────── */
+
+html.kid-mode .border-dashed {
+  border-width: 3px;
+  border-color: rgba(203, 120, 88, 0.25);
+  border-radius: 1rem;
+}
+
+/* ── kid mode: skip link ──────────────────────────────────────── */
+
+html.kid-mode .skip-link {
+  font-size: 1rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0 0 0.75rem 0.75rem;
 }
 
 /* ── animated origami nav icons ──────────────────────────────────

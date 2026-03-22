@@ -3,65 +3,87 @@
 /**
  * Kid / grown-up mode toggle — profile page section.
  *
- * Consumes ModeProvider context (useMode) so the actual persistence
- * logic (cookie + API + html class) is centralised in mode-provider.tsx.
- * Visual pattern matches the accessibility-prefs ToggleSwitch cards.
+ * Two tappable cards rather than a clinical toggle switch.
+ * The active card gets a warm border and subtle glow.
+ * Designed so a child can understand and tap it themselves.
  */
 
 import { useMode } from "@/components/ui/mode-provider";
 
 export default function KidModeToggle() {
-  const { isKidMode, toggleMode } = useMode();
+  const { isKidMode, setMode } = useMode();
 
   return (
-    <div
-      className="cw-a11y-card rounded-lg border p-4"
-      style={{ borderColor: "var(--cw-border)" }}
-    >
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <p
-            className="text-sm font-medium"
-            style={{ color: "var(--cw-text)" }}
-          >
-            kid mode
-          </p>
-          <p
-            className="text-xs mt-0.5"
-            style={{ color: "var(--cw-text-muted)" }}
-          >
-            simplify the interface with larger buttons, playful icons, and
-            fewer words. perfect for younger learners exploring on their own.
-          </p>
-        </div>
-
-        <button
-          type="button"
-          role="switch"
-          aria-checked={isKidMode}
-          aria-label="toggle kid mode"
-          onClick={toggleMode}
-          className="flex-shrink-0 relative rounded-full transition-colors duration-200"
-          style={{
-            width: 44,
-            height: 24,
-            backgroundColor: isKidMode
-              ? "var(--wv-redwood)"
-              : "var(--cw-toggle-off)",
-          }}
+    <div className="grid grid-cols-2 gap-3">
+      {/* kid mode card */}
+      <button
+        type="button"
+        onClick={() => setMode("kid")}
+        className="relative rounded-xl border-2 p-4 text-center transition-all"
+        style={{
+          borderColor: isKidMode
+            ? "var(--wv-sienna)"
+            : "rgba(39, 50, 72, 0.08)",
+          backgroundColor: isKidMode
+            ? "rgba(255, 235, 210, 0.4)"
+            : "var(--cw-card-bg)",
+          boxShadow: isKidMode
+            ? "0 2px 12px rgba(203, 120, 88, 0.15)"
+            : "none",
+        }}
+        aria-pressed={isKidMode}
+      >
+        <span className="block text-3xl mb-2" aria-hidden>
+          🧒
+        </span>
+        <span
+          className="block text-sm font-bold"
+          style={{ color: isKidMode ? "var(--wv-sienna)" : "var(--cw-text)" }}
         >
-          <span
-            className="block rounded-full bg-white shadow-sm transition-transform duration-200"
-            style={{
-              width: 20,
-              height: 20,
-              marginTop: 2,
-              marginLeft: 2,
-              transform: isKidMode ? "translateX(20px)" : "translateX(0)",
-            }}
-          />
-        </button>
-      </div>
+          kid mode
+        </span>
+        <span
+          className="block text-xs mt-1"
+          style={{ color: "var(--cw-text-muted)" }}
+        >
+          big buttons, bright colours, playful
+        </span>
+      </button>
+
+      {/* grown-up mode card */}
+      <button
+        type="button"
+        onClick={() => setMode("grownup")}
+        className="relative rounded-xl border-2 p-4 text-center transition-all"
+        style={{
+          borderColor: !isKidMode
+            ? "var(--wv-cadet)"
+            : "rgba(39, 50, 72, 0.08)",
+          backgroundColor: !isKidMode
+            ? "rgba(39, 50, 72, 0.04)"
+            : "var(--cw-card-bg)",
+          boxShadow: !isKidMode
+            ? "0 2px 12px rgba(39, 50, 72, 0.08)"
+            : "none",
+        }}
+        aria-pressed={!isKidMode}
+      >
+        <span className="block text-3xl mb-2" aria-hidden>
+          👤
+        </span>
+        <span
+          className="block text-sm font-bold"
+          style={{ color: !isKidMode ? "var(--wv-cadet)" : "var(--cw-text)" }}
+        >
+          grown-up mode
+        </span>
+        <span
+          className="block text-xs mt-1"
+          style={{ color: "var(--cw-text-muted)" }}
+        >
+          full detail, compact layout
+        </span>
+      </button>
     </div>
   );
 }
