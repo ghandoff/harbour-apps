@@ -28,6 +28,8 @@ import { useRunFormState } from "./use-run-form-state";
 import { RunFormEssentials } from "./run-form-essentials";
 import { RunFormOptional } from "./run-form-optional";
 import { RunFormActions } from "./run-form-actions";
+import { CoPlayInvite } from "@/components/co-play-invite";
+import FunctionDiscoveryToast from "../function-discovery-toast";
 import { apiUrl } from "@/lib/api-url";
 
 /** Optional pack upsell info passed from the server page. */
@@ -240,6 +242,14 @@ export default function RunForm({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "failed to create run");
 
+      // Store run ID for co-play invite in success panel
+      state.setCreatedRunId(data.id);
+
+      // Store function discoveries for celebration toast
+      if (data.newDiscoveries?.length > 0) {
+        state.setNewDiscoveries(data.newDiscoveries);
+      }
+
       // 2. Save evidence items if any exist (practitioner tier)
       if ((isPractitioner || state.quickMode) && hasEvidenceContent(state.evidenceState) && data.id) {
         state.setSavingEvidence(true);
@@ -262,53 +272,82 @@ export default function RunForm({
   }
 
   // Auto-redirect to playbook after success panel is shown
+  // Pause the timer if user is interacting with co-play invite
+  const coPlayInteracted = useRef(false);
   useEffect(() => {
     if (!state.success) return;
-    const timer = setTimeout(() => router.push("/playbook"), 3500);
+    const timer = setTimeout(() => {
+      if (!coPlayInteracted.current) router.push("/playbook");
+    }, 5000);
     return () => clearTimeout(timer);
   }, [state.success, router]);
 
-  // ── success state with optional pack upsell ──
+  // ── success state with optional pack upsell + co-play invite ──
   if (state.success) {
     return (
-      <div className="rounded-xl border border-champagne/40 bg-champagne/10 p-6 text-center space-y-4">
-        <p className="text-lg font-semibold text-cadet">
-          ✓ reflection saved!
-        </p>
+      <>
+        {/* function discovery celebration toasts */}
+        {state.newDiscoveries.map((d, i) => (
+          <FunctionDiscoveryToast
+            key={`${d.materialTitle}-${d.functionUsed}-${i}`}
+            materialTitle={d.materialTitle}
+            functionUsed={d.functionUsed}
+          />
+        ))}
 
-        {packInfo && (
-          <div className="bg-white rounded-lg border border-sienna/15 p-4">
-            <p className="text-sm text-cadet/70 mb-2">
-              love exploring? <span className="font-semibold text-cadet">{packInfo.packTitle}</span> has{" "}
-              {packInfo.playdateCount} more playdate{packInfo.playdateCount !== 1 ? "s" : ""} like this one.
-            </p>
-            <Link
-              href={`/packs/${packInfo.packSlug}`}
-              className="inline-block rounded-lg bg-redwood px-5 py-2 text-sm text-white font-medium hover:bg-sienna transition-colors"
-            >
-              unlock the full pack &rarr;
-            </Link>
-          </div>
-        )}
-
-        {/* credit nudge when no pack upsell */}
-        {!packInfo && (
-          <p className="text-xs text-cadet/50">
-            +1 credit earned!{" "}
-            {state.isFindAgain && "+2 bonus for find again! "}
-            <Link
-              href="/playbook"
-              className="text-sienna hover:text-redwood transition-colors"
-            >
-              see your progress &rarr;
-            </Link>
+        <div className="rounded-xl border border-champagne/40 bg-champagne/10 p-6 text-center space-y-4">
+          <p className="text-lg font-semibold text-cadet">
+            ✓ reflection saved!
           </p>
-        )}
 
-        <p className="text-xs text-cadet/40">
-          heading to your playbook&hellip;
-        </p>
-      </div>
+          {packInfo && (
+            <div className="bg-white rounded-lg border border-sienna/15 p-4">
+              <p className="text-sm text-cadet/70 mb-2">
+                love exploring? <span className="font-semibold text-cadet">{packInfo.packTitle}</span> has{" "}
+                {packInfo.playdateCount} more playdate{packInfo.playdateCount !== 1 ? "s" : ""} like this one.
+              </p>
+              <Link
+                href={`/packs/${packInfo.packSlug}`}
+                className="inline-block rounded-lg bg-redwood px-5 py-2 text-sm text-white font-medium hover:bg-sienna transition-colors"
+              >
+                unlock the full pack &rarr;
+              </Link>
+            </div>
+          )}
+
+          {/* co-play invite — let users invite someone to this run */}
+          {state.createdRunId && (
+            <div
+              className="text-left"
+              onMouseDown={() => { coPlayInteracted.current = true; }}
+              onTouchStart={() => { coPlayInteracted.current = true; }}
+            >
+              <p className="text-xs font-semibold text-cadet/60 mb-2 text-center">
+                play together?
+              </p>
+              <CoPlayInvite runId={state.createdRunId} />
+            </div>
+          )}
+
+          {/* credit nudge when no pack upsell */}
+          {!packInfo && (
+            <p className="text-xs text-cadet/50">
+              +1 credit earned!{" "}
+              {state.isFindAgain && "+2 bonus for find again! "}
+              <Link
+                href="/playbook"
+                className="text-sienna hover:text-redwood transition-colors"
+              >
+                see your progress &rarr;
+              </Link>
+            </p>
+          )}
+
+          <p className="text-xs text-cadet/40">
+            heading to your playbook&hellip;
+          </p>
+        </div>
+      </>
     );
   }
 

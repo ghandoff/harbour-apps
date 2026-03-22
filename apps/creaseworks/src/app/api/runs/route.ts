@@ -12,6 +12,7 @@ import { requireAuth } from "@/lib/auth-helpers";
 import { getRunsForUser, createRun, batchGetRunMaterials } from "@/lib/queries/runs";
 import { logAccess } from "@/lib/queries/audit";
 import { awardCredit, CREDIT_VALUES, checkAndAwardStreakBonus } from "@/lib/queries/credits";
+import { getNewFunctionDiscoveriesBatch } from "@/lib/queries/material-mastery";
 import { MAX_LENGTHS, checkLength, sanitiseStringArray } from "@/lib/validation";
 import { parseJsonBody } from "@/lib/api-helpers";
 
@@ -83,6 +84,15 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    // Check for new function discoveries BEFORE creating the run.
+    // Once the run is written, its own data would make the combination
+    // "not new", so we must capture novelty first.
+    const materialsUsedAsSafe = Array.isArray(materialsUsedAs) ? materialsUsedAs.slice(0, 50) : [];
+    const newDiscoveries = await getNewFunctionDiscoveriesBatch(
+      session.userId,
+      materialsUsedAsSafe,
+    ).catch(() => []);
+
     const runId = await createRun(
       {
         title: title.trim(),
@@ -94,7 +104,7 @@ export async function POST(req: NextRequest) {
         whatChanged: whatChanged || null,
         nextIteration: nextIteration || null,
         materialIds: sanitiseStringArray(materialIds, MAX_LENGTHS.arrayMax, MAX_LENGTHS.uuid),
-        materialsUsedAs: Array.isArray(materialsUsedAs) ? materialsUsedAs.slice(0, 50) : [],
+        materialsUsedAs: materialsUsedAsSafe,
         isFindAgain: isFindAgain === true,
       },
       session,
@@ -119,7 +129,15 @@ export async function POST(req: NextRequest) {
     }
     checkAndAwardStreakBonus(session.userId, session.orgId).catch(() => {});
 
-    return NextResponse.json({ id: runId, message: "run created" }, { status: 201 });
+    // Award discovery credits (fire-and-forget)
+    for (let i = 0; i < newDiscoveries.length; i++) {
+      awardCredit(session.userId, session.orgId, 1, "function_discovery", runId).catch(() => {});
+    }
+
+    return NextResponse.json(
+      { id: runId, message: "run created", newDiscoveries },
+      { status: 201 },
+    );
   } catch (err: any) {
     console.error("create run error:", err);
     return NextResponse.json(

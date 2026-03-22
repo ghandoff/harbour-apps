@@ -70,7 +70,7 @@ export async function getUserMaterialMastery(
 
 /**
  * Check if a user is using a material in a new function for the first time.
- * Returns the new functions (if any) that haven't been used before.
+ * Returns true if this is a new discovery (no previous record).
  */
 export async function getNewFunctionDiscoveries(
   userId: string,
@@ -89,4 +89,39 @@ export async function getNewFunctionDiscoveries(
     [userId, materialId, functionUsed],
   );
   return result.rows.length === 0;
+}
+
+/**
+ * Batch check: for a set of material+function pairs, return which ones
+ * are new discoveries for this user.
+ *
+ * IMPORTANT: call this BEFORE createRun — once the run is written,
+ * its own data makes the combination "not new".
+ */
+export async function getNewFunctionDiscoveriesBatch(
+  userId: string,
+  pairs: Array<{ material_id: string; function_used: string }>,
+): Promise<Array<{ materialId: string; functionUsed: string; materialTitle: string }>> {
+  if (pairs.length === 0) return [];
+
+  const discoveries: Array<{ materialId: string; functionUsed: string; materialTitle: string }> = [];
+
+  for (const pair of pairs) {
+    if (!pair.function_used) continue;
+    const isNew = await getNewFunctionDiscoveries(userId, pair.material_id, pair.function_used);
+    if (isNew) {
+      // Fetch material title for the toast
+      const titleResult = await sql.query(
+        `SELECT title FROM materials_cache WHERE id = $1 LIMIT 1`,
+        [pair.material_id],
+      );
+      discoveries.push({
+        materialId: pair.material_id,
+        functionUsed: pair.function_used,
+        materialTitle: (titleResult.rows[0]?.title as string) ?? "this material",
+      });
+    }
+  }
+
+  return discoveries;
 }

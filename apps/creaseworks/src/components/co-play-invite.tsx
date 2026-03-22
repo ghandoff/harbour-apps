@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { CoPlayDetails } from "@/lib/queries/co-play";
 import { apiUrl } from "@/lib/api-url";
 import { QrInvite } from "@/components/co-play/qr-invite";
@@ -68,9 +68,9 @@ export function CoPlayInvite({ runId }: CoPlayInviteProps) {
   }, [runId]);
 
   // Load details on mount
-  useState(() => {
+  useEffect(() => {
     loadCoPlayDetails();
-  });
+  }, [loadCoPlayDetails]);
 
   if (error) {
     return (
