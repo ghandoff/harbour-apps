@@ -5,6 +5,10 @@
  * or deleted. Performs incremental sync of the affected page rather than
  * a full database refresh.
  *
+ * Because Notion allows only one webhook per integration, this handler
+ * also acts as a fan-out proxy — forwarding the raw payload to the
+ * harbour revalidation endpoint so ISR pages update near-instantly.
+ *
  * The daily cron sync remains as a fallback to catch anything missed.
  *
  * Verification:
@@ -61,6 +65,38 @@ function verifySignature(body: string, signature: string | null): boolean {
 }
 
 /* ------------------------------------------------------------------ */
+/*  harbour revalidation fan-out                                       */
+/* ------------------------------------------------------------------ */
+
+/** Base URL for the harbour site — shared domain, different basePath. */
+const HARBOUR_REVALIDATE_URL =
+  "https://windedvertigo.com/harbour/api/revalidate";
+
+/**
+ * Forward the raw webhook payload to the harbour revalidation endpoint.
+ * Fire-and-forget — we don't await the result or let failures affect
+ * this handler's response. The harbour endpoint independently verifies
+ * the signature and decides which paths to revalidate.
+ */
+function forwardToHarbour(rawBody: string, signature: string | null): void {
+  const headers: Record<string, string> = {
+    "content-type": "application/json",
+  };
+  if (signature) {
+    headers["x-notion-signature"] = signature;
+  }
+
+  fetch(HARBOUR_REVALIDATE_URL, {
+    method: "POST",
+    headers,
+    body: rawBody,
+  }).catch((err) => {
+    // Log but don't throw — forwarding failure must never block sync
+    console.warn("[webhook] harbour forward failed:", err.message ?? err);
+  });
+}
+
+/* ------------------------------------------------------------------ */
 /*  POST handler                                                       */
 /* ------------------------------------------------------------------ */
 
@@ -79,8 +115,7 @@ export async function POST(request: NextRequest) {
   // The token is also used as the HMAC secret for future event signatures.
   // Accept verification tokens to allow webhook re-registration.
   if (payload.verification_token && !payload.type) {
-    const token = String(payload.verification_token);
-    console.log(`[webhook] verification token: ${token}`);
+    console.log("[webhook] verification token received");
     return NextResponse.json({ ok: true });
   }
 
@@ -90,6 +125,11 @@ export async function POST(request: NextRequest) {
     console.warn("[webhook] invalid signature");
     return NextResponse.json({ error: "invalid signature" }, { status: 401 });
   }
+
+  // Fan out to harbour revalidation (fire-and-forget).
+  // Every event gets forwarded — harbour's DB_PATH_MAP decides
+  // which paths to revalidate (or falls back to revalidating all).
+  forwardToHarbour(rawBody, signature);
 
   // Process page events
   const eventType = payload.type;

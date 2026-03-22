@@ -6,7 +6,7 @@ the winded.vertigo collective currently authors content across **16 notion datab
 
 ## creaseworks app
 
-synced daily at 06:00 UTC via vercel cron + real-time notion webhooks for incremental updates.
+synced daily at 06:00 UTC via vercel cron + real-time notion webhooks for incremental updates. the webhook handler also fans out events to the harbour revalidation endpoint (see [webhook architecture](#webhook-architecture) below).
 
 | database | id | what the collective can author | where it appears on site |
 |---|---|---|---|
@@ -178,4 +178,54 @@ to enable full visual authoring through notion, the following would need to be b
 
 ---
 
-*last updated: 4 march 2026*
+## webhook architecture
+
+notion allows **one webhook per integration**. the `windedvertigo.com` integration's single webhook points to the creaseworks handler, which acts as a fan-out proxy:
+
+```
+notion event
+  ↓
+creaseworks webhook handler
+  POST /harbour/creaseworks/api/webhooks/notion
+  ├── verify HMAC-SHA256 signature
+  ├── forward raw payload to harbour revalidation (fire-and-forget)
+  │     POST /harbour/api/revalidate
+  │     └── revalidatePath() for matched database IDs
+  └── process page sync (incremental postgres upsert)
+```
+
+### endpoints
+
+| endpoint | project | purpose | url |
+|----------|---------|---------|-----|
+| `/harbour/creaseworks/api/webhooks/notion` | creaseworks | incremental postgres sync + fan-out | `windedvertigo.com/harbour/creaseworks/api/webhooks/notion` |
+| `/harbour/api/revalidate` | harbour | ISR revalidation via `revalidatePath()` | `windedvertigo.com/harbour/api/revalidate` |
+
+### harbour revalidation database → path mapping
+
+| database | id | revalidates |
+|----------|-----|-------------|
+| harbour games list | `8e3f3364-b265-4640-a91e-d0f38b091a07` | `/harbour` |
+| site content CMS | `09a046a5-56c1-455e-8007-3546b8f83297` | `/harbour` |
+| depth.chart skills | `38873e53-f36f-4b28-8555-2fdf6cdc98cb` | `/harbour/skills` |
+
+unknown database IDs trigger a fallback that revalidates all paths (`/harbour` + `/harbour/skills`).
+
+### verification flow
+
+1. register webhook in notion UI → notion sends `{ verification_token: "secret_..." }` to the endpoint
+2. endpoint responds 200 → user enters the token in notion UI to confirm
+3. the `verification_token` value becomes the HMAC signing secret for all future events
+4. store it as `NOTION_WEBHOOK_SECRET` in vercel env vars for both projects
+
+### ISR + webhooks (belt and suspenders)
+
+ISR timer (`revalidate = 3600`) still runs as a safety net. webhooks call `revalidatePath()` for near-instant updates. if a webhook is missed, the hourly ISR cycle catches it. the daily creaseworks cron sync (`06:00 UTC`) provides a final backstop for postgres data.
+
+### environment variables for webhooks
+
+both creaseworks and harbour need `NOTION_WEBHOOK_SECRET` set to the same value (the verification token from the webhook registration handshake).
+
+---
+
+*last updated: 22 march 2026*

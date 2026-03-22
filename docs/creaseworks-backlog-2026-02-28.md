@@ -129,6 +129,10 @@ most foundations are in place (tokens, reduced-motion, focus-visible, contrast).
 | 34 | ✅ **org member cap safety valve** | autoJoinOrg checks member_cap before INSERT |
 | 34 | ✅ **invite link on admin profile** | manage section shows link to /admin/invites |
 | 34 | ✅ **profile pack fetch for org-less users** | getOrgPacksWithProgress now accepts null orgId |
+| — | ✅ **champagne text legibility fix** | CSS variable override on phase backgrounds (`.cw-find-bg` etc.) redefines `--wv-champagne` to dark brown `#3a3024` — fixes 30+ components without per-file edits |
+| — | ✅ **notion webhook registration** | single webhook → creaseworks handler → incremental postgres sync + fan-out to harbour ISR revalidation |
+| — | ✅ **webhook fan-out to harbour** | creaseworks handler forwards raw payload to `/harbour/api/revalidate` (fire-and-forget) for near-instant ISR |
+| — | ✅ **NOTION_WEBHOOK_SECRET env vars** | set on both creaseworks and harbour vercel projects (all environments) |
 
 ---
 
