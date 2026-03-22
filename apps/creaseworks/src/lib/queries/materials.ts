@@ -6,6 +6,10 @@
 
 import { sql } from "@/lib/db";
 
+// Import + re-export the pure slug helper so existing server-side imports keep working.
+import { materialSlug } from "@/lib/material-slug";
+export { materialSlug };
+
 /**
  * Fetch all materials excluding do-not-use, ordered by form then title.
  * Used to populate the matcher material picker.
@@ -18,14 +22,6 @@ export async function getAllMaterials() {
      ORDER BY form_primary ASC, title ASC`,
   );
   return result.rows;
-}
-
-/** Slugify a material title for URL use. */
-export function materialSlug(title: string): string {
-  return title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
 }
 
 /**

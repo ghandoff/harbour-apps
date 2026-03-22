@@ -11,7 +11,7 @@
 
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { materialSlug } from "@/lib/queries/materials";
+import { materialSlug } from "@/lib/material-slug";
 
 interface HeroMaterial {
   id: string;
