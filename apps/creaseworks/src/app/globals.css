@@ -975,6 +975,17 @@ a[aria-label="play together"]:active {
   background: linear-gradient(175deg, #e2f7ed 0%, #edfaf4 50%, #f4fcf8 100%);
 }
 
+/* inside phase rooms, champagne text becomes dark for legibility.
+   many components use inline color: var(--wv-champagne) — originally
+   designed for contrast on dark cadet-blue. redefining the variable
+   on the container propagates automatically to all children.          */
+.cw-find-bg,
+.cw-fold-bg,
+.cw-unfold-bg,
+.cw-find-again-bg {
+  --wv-champagne: #3a3024;
+}
+
 /* ── animated origami nav icons ──────────────────────────────────
    subtle CSS-only animations on the four cycle phase icons.
    triggered on active state (current section). each icon has a
