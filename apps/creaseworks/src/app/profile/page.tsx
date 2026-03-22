@@ -32,6 +32,8 @@ import ProfileJourney from "@/components/profile-journey";
 import { getOrgPacksWithProgress } from "@/lib/queries/entitlements";
 import { getRecommendedPacks } from "@/lib/queries/packs";
 import { getUserCredits } from "@/lib/queries/credits";
+import { getUserBadges } from "@/lib/queries/badges";
+import BadgeDisplay from "@/components/ui/badge-display";
 
 export const metadata: Metadata = {
   title: "profile",
@@ -131,12 +133,13 @@ export default async function ProfilePage({
   // Always fetch packs — user-level entitlements (from invites) work
   // even without an org. getOrgPacksWithProgress handles null orgId.
   // Credits are only shown for collaborator tier, so skip the query for others.
-  const [ownedPacks, recommendedPacks, creditBalance] = await Promise.all([
+  const [ownedPacks, recommendedPacks, creditBalance, badges] = await Promise.all([
     getOrgPacksWithProgress(session.orgId ?? null, session.userId).catch(() => []),
     getRecommendedPacks(session.orgId, session.userId).catch(() => []),
     tier === "collaborator"
       ? getUserCredits(session.userId).catch(() => 0)
       : Promise.resolve(0),
+    getUserBadges(session.userId).catch(() => []),
   ]);
 
   /* show manage toggle for everyone (notification prefs are universal) */
@@ -292,6 +295,16 @@ export default async function ProfilePage({
           ownedPacks={ownedPacks}
           creditBalance={creditBalance}
         />
+      )}
+
+      {/* ---- badges — material mastery achievements ------------------- */}
+      {hasActivity && badges.length > 0 && (
+        <section className="mb-10">
+          <h2 className="text-lg font-semibold tracking-tight mb-4">
+            your badges
+          </h2>
+          <BadgeDisplay badges={badges} />
+        </section>
       )}
 
       {/* ---- manage toggle (grownup stuff) ------------------------- */}

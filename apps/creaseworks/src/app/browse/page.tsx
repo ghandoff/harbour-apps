@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getAllReadyPlaydates, getPublishedPlaydates } from "@/lib/queries/playdates";
+import { getAllReadyPlaydates, getPublishedPlaydates, batchGetMaterialsForPlaydates } from "@/lib/queries/playdates";
 import { getSession } from "@/lib/auth-helpers";
 import { batchGetPackInfoForPlaydates } from "@/lib/queries/packs";
 import PlaydateGrid from "@/components/playdate-grid";
@@ -45,13 +45,17 @@ export default async function BrowsePage() {
     ? await getAllReadyPlaydates()
     : await getPublishedPlaydates();
 
-  const packInfoMap = await batchGetPackInfoForPlaydates(
-    playdates.map((p) => p.id),
-  );
+  const playdateIds = playdates.map((p) => p.id);
 
-  // Serialize the Map for the client component
+  const [packInfoMap, materialsMap] = await Promise.all([
+    batchGetPackInfoForPlaydates(playdateIds),
+    batchGetMaterialsForPlaydates(playdateIds),
+  ]);
+
+  // Serialize Maps for the client component
   const packInfoEntries: [string, { packSlug: string; packTitle: string }][] =
     Array.from(packInfoMap.entries());
+  const materialsEntries = Array.from(materialsMap.entries());
 
   return (
     <main className="min-h-screen px-6 pt-16 pb-24 sm:pb-16 max-w-5xl mx-auto">
@@ -81,6 +85,7 @@ export default async function BrowsePage() {
       <PlaydateGrid
         playdates={playdates}
         packInfoEntries={packInfoEntries}
+        materialsEntries={materialsEntries}
         showChannelBadge={isInternal}
       />
     </main>

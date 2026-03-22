@@ -316,3 +316,48 @@ export async function getTeaserMaterialsForPlaydate(playdateId: string) {
   );
   return result.rows;
 }
+
+export interface PlaydateMaterialTeaser {
+  id: string;
+  title: string;
+  form_primary: string | null;
+  functions: string[] | null;
+  emoji: string | null;
+  icon: string | null;
+}
+
+/**
+ * Batch-fetch teaser materials for multiple playdates in a single query.
+ * Returns a Map keyed by playdate UUID.
+ */
+export async function batchGetMaterialsForPlaydates(
+  playdateIds: string[],
+): Promise<Map<string, PlaydateMaterialTeaser[]>> {
+  if (playdateIds.length === 0) return new Map();
+
+  const result = await sql.query(
+    `SELECT pm.playdate_id, m.id, m.title, m.form_primary, m.functions,
+            m.emoji, m.icon
+     FROM materials_cache m
+     JOIN playdate_materials pm ON pm.material_id = m.id
+     WHERE pm.playdate_id = ANY($1)
+       AND m.do_not_use = false
+     ORDER BY m.title ASC`,
+    [playdateIds],
+  );
+
+  const map = new Map<string, PlaydateMaterialTeaser[]>();
+  for (const row of result.rows) {
+    const list = map.get(row.playdate_id) ?? [];
+    list.push({
+      id: row.id,
+      title: row.title,
+      form_primary: row.form_primary,
+      functions: row.functions,
+      emoji: row.emoji,
+      icon: row.icon,
+    });
+    map.set(row.playdate_id, list);
+  }
+  return map;
+}

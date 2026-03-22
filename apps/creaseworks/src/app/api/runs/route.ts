@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- runtime-validated below
   const body = parsed as Record<string, any>;
 
-  const { title, playdateId, runType, runDate, contextTags, traceEvidence, whatChanged, nextIteration, materialIds, isFindAgain } = body;
+  const { title, playdateId, runType, runDate, contextTags, traceEvidence, whatChanged, nextIteration, materialIds, materialsUsedAs, isFindAgain } = body;
 
   // Validate required fields
   if (!title || typeof title !== "string" || !title.trim()) {
@@ -94,6 +94,7 @@ export async function POST(req: NextRequest) {
         whatChanged: whatChanged || null,
         nextIteration: nextIteration || null,
         materialIds: sanitiseStringArray(materialIds, MAX_LENGTHS.arrayMax, MAX_LENGTHS.uuid),
+        materialsUsedAs: Array.isArray(materialsUsedAs) ? materialsUsedAs.slice(0, 50) : [],
         isFindAgain: isFindAgain === true,
       },
       session,

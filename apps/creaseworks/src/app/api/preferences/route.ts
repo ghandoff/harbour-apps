@@ -12,6 +12,8 @@ import {
   updateAccessibilityPrefs,
   getUserTier,
   updateUserTier,
+  getUserMode,
+  updateUserMode,
 } from "@/lib/queries/accessibility";
 
 export async function GET() {
@@ -22,7 +24,8 @@ export async function GET() {
 
   const prefs = await getAccessibilityPrefs(session.userId);
   const uiTier = await getUserTier(session.userId);
-  return NextResponse.json({ ...prefs, uiTier });
+  const uiMode = await getUserMode(session.userId);
+  return NextResponse.json({ ...prefs, uiTier, uiMode });
 }
 
 export async function PATCH(req: NextRequest) {
@@ -53,7 +56,11 @@ export async function PATCH(req: NextRequest) {
     const validTiers = ["casual", "curious", "collaborator"];
     const hasTierUpdate = typeof body.uiTier === "string" && validTiers.includes(body.uiTier);
 
-    if (Object.keys(a11yUpdates).length === 0 && !hasTierUpdate) {
+    // Kid / grown-up mode
+    const validModes = ["kid", "grownup"];
+    const hasModeUpdate = typeof body.uiMode === "string" && validModes.includes(body.uiMode);
+
+    if (Object.keys(a11yUpdates).length === 0 && !hasTierUpdate && !hasModeUpdate) {
       return NextResponse.json(
         { error: "no valid fields to update" },
         { status: 400 },
@@ -70,9 +77,14 @@ export async function PATCH(req: NextRequest) {
       ? await updateUserTier(session.userId, body.uiTier)
       : await getUserTier(session.userId);
 
+    // Update mode if provided
+    const uiMode = hasModeUpdate
+      ? await updateUserMode(session.userId, body.uiMode)
+      : await getUserMode(session.userId);
+
     // Set cookies so root layout can apply CSS classes before JS hydrates.
     // HttpOnly=false so client JS can also read them for optimistic UI.
-    const res = NextResponse.json({ ...prefs, uiTier });
+    const res = NextResponse.json({ ...prefs, uiTier, uiMode });
     const cookieOpts = {
       path: "/harbour/creaseworks",
       maxAge: 60 * 60 * 24 * 365, // 1 year
@@ -84,6 +96,7 @@ export async function PATCH(req: NextRequest) {
     res.cookies.set("cw-dyslexia-font", String(prefs.dyslexiaFont), cookieOpts);
     res.cookies.set("cw-calm-theme", String(prefs.calmTheme), cookieOpts);
     res.cookies.set("cw-ui-tier", String(uiTier), cookieOpts);
+    res.cookies.set("cw-ui-mode", String(uiMode), cookieOpts);
 
     return res;
   } catch (err: unknown) {

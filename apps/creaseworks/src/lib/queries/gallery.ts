@@ -92,6 +92,54 @@ export async function countGalleryEvidence(): Promise<number> {
 }
 
 /* ------------------------------------------------------------------ */
+/*  public gallery — filtered by material                             */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Fetch approved gallery evidence for a specific material.
+ * Joins through run_materials to find runs that used the given material.
+ * Also extracts `function_used` from the `materials_used_as` JSONB on runs_cache.
+ * Returns newest items first.
+ */
+export async function getGalleryEvidenceByMaterial(
+  materialId: string,
+  limit: number = 20,
+  offset: number = 0,
+): Promise<(GalleryItem & { function_used: string | null })[]> {
+  const result = await sql.query(
+    `SELECT
+       re.id, re.evidence_type,
+       re.storage_key, re.thumbnail_key,
+       re.quote_text, re.quote_attribution,
+       re.body,
+       re.created_at,
+       r.id AS run_id,
+       p.title AS playdate_title,
+       COALESCE(
+         NULLIF(u.name, ''),
+         SPLIT_PART(u.email, '@', 1)
+       ) AS user_first_name,
+       (
+         SELECT mua.value ->> 'function_used'
+         FROM jsonb_array_elements(r.materials_used_as) AS mua(value)
+         WHERE (mua.value ->> 'material_id') = $1::text
+         LIMIT 1
+       ) AS function_used
+     FROM run_evidence re
+     JOIN runs_cache r ON r.id = re.run_id
+     JOIN run_materials rm ON rm.run_id = r.id AND rm.material_id = $1
+     LEFT JOIN playdates_cache p ON p.notion_id = r.playdate_notion_id
+     JOIN users u ON u.id = r.created_by
+     WHERE re.shared_to_gallery = TRUE
+       AND re.gallery_approved = TRUE
+     ORDER BY re.created_at DESC
+     LIMIT $2 OFFSET $3`,
+    [materialId, limit, offset],
+  );
+  return result.rows as (GalleryItem & { function_used: string | null })[];
+}
+
+/* ------------------------------------------------------------------ */
 /*  user gallery sharing controls                                     */
 /* ------------------------------------------------------------------ */
 

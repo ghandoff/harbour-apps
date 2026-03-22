@@ -20,6 +20,8 @@ export function useRunFormState(initialPlaydateId: string = "") {
   const [contextTags, setContextTags] = useState<string[]>([]);
   const [traceEvidence, setTraceEvidence] = useState<string[]>([]);
   const [selectedMaterials, setSelectedMaterials] = useState<string[]>([]);
+  // materialsUsedAs: map from materialId → function_used string
+  const [materialsUsedAs, setMaterialsUsedAs] = useState<Record<string, string>>({});
   const [whatChanged, setWhatChanged] = useState("");
   const [nextIteration, setNextIteration] = useState("");
   const [isFindAgain, setIsFindAgain] = useState(false);
@@ -30,6 +32,9 @@ export function useRunFormState(initialPlaydateId: string = "") {
   const [evidenceState, setEvidenceState] = useState<EvidenceCaptureState>(
     createEmptyEvidenceState,
   );
+
+  // Quick share mode
+  const [quickMode, setQuickMode] = useState(false);
 
   // UI state
   const [loading, setLoading] = useState(false);
@@ -58,6 +63,8 @@ export function useRunFormState(initialPlaydateId: string = "") {
     setTraceEvidence,
     selectedMaterials,
     setSelectedMaterials,
+    materialsUsedAs,
+    setMaterialsUsedAs,
     whatChanged,
     setWhatChanged,
     nextIteration,
@@ -71,6 +78,9 @@ export function useRunFormState(initialPlaydateId: string = "") {
     // Evidence state
     evidenceState,
     setEvidenceState,
+    // Quick share mode
+    quickMode,
+    setQuickMode,
     // UI state
     loading,
     setLoading,

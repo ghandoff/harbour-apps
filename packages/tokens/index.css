@@ -15,6 +15,28 @@
   --wv-white:     #ffffff;
 }
 
+/* ── complementary colours (internal brand guidelines, page 21) ──
+   supporting accents — use sparingly to enhance, not replace, the
+   primary palette. reserved for phase accents, kid mode highlights,
+   and contextual visual cues.
+
+   two families: cool (blue/purple) and warm (green/teal).
+   each family has four values: dark → mid → light → pale.          */
+
+:root {
+  /* cool family — discovery, calm, gentle */
+  --wv-navy:       #436db1;   /* dark blue   — find phase deep    */
+  --wv-cornflower: #5872cb;   /* mid blue    — find phase accent  */
+  --wv-periwinkle: #d5d2ff;   /* light lilac — gentle highlights  */
+
+  /* warm family — growth, mastery, nature */
+  --wv-moss:       #434824;   /* dark green  — nature contexts    */
+  --wv-forest:     #482d27;   /* deep brown  — grounding          */
+  --wv-teal:       #43b187;   /* mid green   — growth/mastery     */
+  --wv-seafoam:    #58cbb2;   /* light teal  — find again phase   */
+  --wv-mint:       #d2fdff;   /* pale mint   — kid mode surfaces  */
+}
+
 /* ── semantic colours ─────────────────────────────────────────────
    map brand colours to function. all text/background combos are
    tested to WCAG AAA (7:1) unless noted otherwise.                */

@@ -83,6 +83,35 @@ export async function updateAccessibilityPrefs(
   };
 }
 
+/* ── kid / grown-up mode ─────────────────────────────────────── */
+
+export type UiMode = "kid" | "grownup";
+
+const VALID_MODES: UiMode[] = ["kid", "grownup"];
+
+export async function getUserMode(userId: string): Promise<UiMode> {
+  const r = await sql.query(
+    "SELECT ui_mode FROM users WHERE id = $1 LIMIT 1",
+    [userId],
+  );
+  const mode = r.rows[0]?.ui_mode;
+  return VALID_MODES.includes(mode) ? mode : "grownup";
+}
+
+export async function updateUserMode(
+  userId: string,
+  mode: string,
+): Promise<UiMode> {
+  if (!VALID_MODES.includes(mode as UiMode)) {
+    throw new Error(`invalid ui mode: ${mode}`);
+  }
+  await sql.query(
+    "UPDATE users SET ui_mode = $1, updated_at = NOW() WHERE id = $2",
+    [mode, userId],
+  );
+  return mode as UiMode;
+}
+
 /* ── progressive disclosure tier ─────────────────────────────── */
 
 export type UiTier = "casual" | "curious" | "collaborator";

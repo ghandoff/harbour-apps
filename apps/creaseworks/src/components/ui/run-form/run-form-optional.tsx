@@ -166,6 +166,52 @@ export function RunFormOptional({ state, materials }: RunFormOptionalProps) {
             )}
           </div>
 
+          {/* how did you use each material? (form × function tracking) */}
+          {state.selectedMaterials.length > 0 && (
+            <div>
+              <label className="block text-xs text-cadet/60 mb-2">
+                how did you use each material?
+              </label>
+              <p className="text-2xs text-cadet/40 mb-2">
+                what function did each material serve? (optional — helps track creative growth)
+              </p>
+              <div className="space-y-2">
+                {state.selectedMaterials.map((id) => {
+                  const mat = materials.find((m: Material) => m.id === id);
+                  if (!mat) return null;
+                  const fns = mat.functions ?? [];
+                  return (
+                    <div
+                      key={id}
+                      className="flex items-center gap-2 rounded-lg border border-cadet/10 bg-white px-3 py-2"
+                    >
+                      <span className="text-xs font-medium text-cadet/70 min-w-[80px]">
+                        {mat.title}
+                      </span>
+                      <select
+                        value={state.materialsUsedAs[id] ?? ""}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          state.setMaterialsUsedAs((prev: Record<string, string>) => ({
+                            ...prev,
+                            [id]: val,
+                          }));
+                        }}
+                        className="flex-1 rounded-md border border-cadet/15 px-2 py-1 text-xs text-cadet/70 bg-white"
+                      >
+                        <option value="">select function...</option>
+                        {fns.map((fn: string) => (
+                          <option key={fn} value={fn}>{fn}</option>
+                        ))}
+                        <option value="other">other</option>
+                      </select>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* what changed */}
           <div>
             <label className="block text-xs text-cadet/60 mb-1">

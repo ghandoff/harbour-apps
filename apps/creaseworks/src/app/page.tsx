@@ -1,19 +1,31 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { Metadata } from "next";
 import { getPublicStats } from "@/lib/queries/stats";
 import { getCopyForPage } from "@/lib/queries/site-copy";
+import { getSession } from "@/lib/auth-helpers";
+import { getUserCredits, REDEMPTION_THRESHOLDS } from "@/lib/queries/credits";
+import { getRunsForUser } from "@/lib/queries/runs/list-queries";
+import { getGalleryEvidence } from "@/lib/queries/gallery";
+import { getUserMaterialIds } from "@/lib/queries/user-materials";
+import { getAllMaterials } from "@/lib/queries/materials";
+import MaterialPickerHero from "@/components/landing/material-picker-hero";
 
 /**
  * Landing page for creaseworks.
  *
+ * Bifurcated experience:
+ *   - Authenticated users see a play dashboard (recent activity,
+ *     credits, community, and a big matcher CTA pre-filled from
+ *     their workshop inventory).
+ *   - Logged-out visitors see the marketing page with an interactive
+ *     material picker hero — "tap what you have on hand."
+ *
  * Dark theme matching windedvertigo.com design language:
  *   - cadet (#273248) background, white text, #1e2738 card surfaces
  *   - redwood accent, champagne hover, lowercase everything
- *   - layout and integration style matches vertigo-vault
  *
  * Copy is sourced from the Notion "site copy" database via getCopyForPage().
- * Each text element uses a fallback so the page renders identically even
- * before the first sync runs.
  */
 
 export const revalidate = 3600;
@@ -53,65 +65,71 @@ const jsonLd = {
   ],
 };
 
+/* JSON-LD is a hardcoded schema.org object — not user content, safe to inline */
+const jsonLdScript = JSON.stringify(jsonLd);
+
 export default async function Home() {
-  const [stats, c] = await Promise.all([
+  const session = await getSession();
+
+  if (session) {
+    return (
+      <main className="min-h-screen" style={{ backgroundColor: "var(--wv-cadet)" }}>
+        <script type="application/ld+json">{jsonLdScript}</script>
+        <PlayDashboard userId={session.userId} orgId={session.orgId} isAdmin={session.isAdmin} />
+      </main>
+    );
+  }
+
+  // logged-out: marketing page with interactive material hero
+  const [stats, c, allMaterials] = await Promise.all([
     getPublicStats(),
     getCopyForPage("landing"),
+    getAllMaterials(),
   ]);
 
-  // JSON-LD is a static schema.org object — safe for serialisation
-  const jsonLdHtml = JSON.stringify(jsonLd);
+  // pick 12 diverse materials (one per form, then fill to 12)
+  const heroMaterials = pickHeroMaterials(allMaterials, 12);
 
   return (
     <main className="min-h-screen" style={{ backgroundColor: "var(--wv-cadet)" }}>
-      {/* structured data — static schema.org, not user content */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: jsonLdHtml }}
-      />
+      <script type="application/ld+json">{jsonLdScript}</script>
 
-      {/* -- hero ------------------------------------------------- */}
-      <section className="px-6 py-28 sm:py-36 text-center" style={{ maxWidth: 1100, margin: "0 auto" }}>
-        <p
-          className="text-xs font-semibold tracking-widest mb-6"
-          style={{ color: "var(--wv-redwood)", letterSpacing: "0.1em" }}
-        >
-          {c["landing.hero.kicker"]?.copy ?? "a winded.vertigo project"}
-        </p>
-
-        <h1
-          className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-6 leading-tight"
-          style={{ color: "var(--wv-white)", maxWidth: 800, margin: "0 auto 24px" }}
-        >
-          {c["landing.hero.headline"]?.copy ?? "playdates that use what you already have"}
-        </h1>
-
-        <p
-          className="text-lg sm:text-xl mb-12 leading-relaxed"
-          style={{ color: "var(--color-text-on-dark-muted)", maxWidth: 600, margin: "0 auto 48px" }}
-        >
-          {c["landing.hero.subheading"]?.copy ?? "simple, tested playdates for parents, teachers, and kids. notice the world around you, see possibility everywhere, and make things with whatever\u2019s on hand."}
-        </p>
-
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link
-            href="/sampler"
-            className="inline-block rounded-lg px-8 py-3.5 font-medium transition-colors"
-            style={{ backgroundColor: "var(--wv-redwood)", color: "var(--wv-white)" }}
+      {/* -- hero with material picker ------------------------------ */}
+      <section className="px-6 pt-28 pb-16 sm:pt-36 sm:pb-20" style={{ maxWidth: 1100, margin: "0 auto" }}>
+        <div className="flex flex-col items-center text-center">
+          <p
+            className="text-xs font-semibold tracking-widest mb-6"
+            style={{ color: "var(--wv-redwood)", letterSpacing: "0.1em" }}
           >
-            {c["landing.hero.cta-primary"]?.copy ?? "see free playdates"}
-          </Link>
-          <Link
-            href="/packs"
-            className="inline-block rounded-lg px-8 py-3.5 font-medium transition-colors"
-            style={{
-              border: "1.5px solid rgba(255,255,255,0.25)",
-              color: "var(--color-text-on-dark)",
-              backgroundColor: "transparent",
-            }}
+            {c["landing.hero.kicker"]?.copy ?? "a winded.vertigo project"}
+          </p>
+
+          <h1
+            className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-4 leading-tight"
+            style={{ color: "var(--wv-white)", maxWidth: 800 }}
           >
-            {c["landing.hero.cta-secondary"]?.copy ?? "get a pack"}
-          </Link>
+            tap what you have on hand
+          </h1>
+
+          <p
+            className="text-base sm:text-lg mb-10 leading-relaxed"
+            style={{ color: "var(--color-text-on-dark-muted)", maxWidth: 520 }}
+          >
+            pick a material below and we&apos;ll instantly find playdates you can do with it. no sign-up needed.
+          </p>
+
+          <MaterialPickerHero materials={heroMaterials} />
+
+          <p
+            className="text-xs mt-6"
+            style={{ color: "rgba(255,235,210,0.35)" }}
+          >
+            or{" "}
+            <Link href="/find" className="underline" style={{ color: "var(--wv-sienna)" }}>
+              try the full matcher
+            </Link>
+            {" "}with everything you have
+          </p>
         </div>
       </section>
 
@@ -185,7 +203,7 @@ export default async function Home() {
             {c["landing.matcher.description"]?.copy ?? "tell us what\u2019s around \u2014 cardboard, sticks, fabric, whatever \u2014 and we\u2019ll instantly match you with playdates that work."}
           </p>
           <Link
-            href="/matcher"
+            href="/find"
             className="inline-block rounded-lg px-8 py-3.5 font-medium transition-colors"
             style={{ backgroundColor: "var(--wv-sienna)", color: "var(--wv-white)" }}
           >
@@ -331,6 +349,267 @@ export default async function Home() {
 
     </main>
   );
+}
+
+/* ── play dashboard (authenticated) ────────────────────────────── */
+
+async function PlayDashboard({
+  userId,
+  orgId,
+  isAdmin,
+}: {
+  userId: string;
+  orgId: string | null;
+  isAdmin: boolean;
+}) {
+  const [credits, recentRuns, galleryItems, inventoryIds] = await Promise.all([
+    getUserCredits(userId),
+    getRunsForUser({ userId, orgId, isAdmin }, 3, 0),
+    getGalleryEvidence(3, 0),
+    getUserMaterialIds(userId),
+  ]);
+
+  // next credit milestone
+  const thresholds = [
+    { label: "a free sampler PDF", target: REDEMPTION_THRESHOLDS.sampler_pdf },
+    { label: "a free playdate", target: REDEMPTION_THRESHOLDS.single_playdate },
+    { label: "a free pack", target: REDEMPTION_THRESHOLDS.full_pack },
+  ];
+  const nextGoal = thresholds.find((t) => credits < t.target) ?? thresholds[thresholds.length - 1];
+  const creditsToGo = Math.max(nextGoal.target - credits, 0);
+
+  // pre-fill matcher URL with workshop inventory
+  const matcherHref = inventoryIds.length > 0
+    ? `/find?from=workshop`
+    : `/find`;
+
+  return (
+    <div className="px-5 pt-24 pb-32 sm:pt-28" style={{ maxWidth: 720, margin: "0 auto" }}>
+
+      {/* -- main CTA ------------------------------------------- */}
+      <section className="text-center mb-10">
+        <h1
+          className="text-3xl sm:text-4xl font-bold tracking-tight mb-3"
+          style={{ color: "var(--wv-white)", fontFamily: "var(--font-display)" }}
+        >
+          what should we do today?
+        </h1>
+        <p
+          className="text-sm mb-6"
+          style={{ color: "var(--color-text-on-dark-muted)" }}
+        >
+          {inventoryIds.length > 0
+            ? `your workshop has ${inventoryIds.length} material${inventoryIds.length === 1 ? "" : "s"} \u2014 let\u2019s find something to make.`
+            : "tell us what you have on hand and we\u2019ll find a playdate."}
+        </p>
+        <Link
+          href={matcherHref}
+          className="inline-block rounded-xl px-10 py-4 text-base font-bold transition-all hover:scale-105 active:scale-95"
+          style={{
+            backgroundColor: "var(--wv-redwood)",
+            color: "var(--wv-white)",
+            boxShadow: "0 4px 20px rgba(177, 80, 67, 0.3)",
+          }}
+        >
+          find a playdate
+        </Link>
+      </section>
+
+      {/* -- credit counter ------------------------------------- */}
+      {credits > 0 && (
+        <section
+          className="rounded-xl px-5 py-4 mb-6"
+          style={{
+            backgroundColor: "rgba(255,235,210,0.06)",
+            border: "1px solid rgba(255,235,210,0.08)",
+          }}
+        >
+          <div className="flex items-center gap-3">
+            <span
+              className="inline-flex items-center justify-center rounded-full font-bold tabular-nums flex-shrink-0"
+              style={{
+                width: 36,
+                height: 36,
+                fontSize: credits >= 100 ? "0.65rem" : "0.8rem",
+                backgroundColor: "var(--wv-sienna)",
+                color: "var(--wv-white)",
+              }}
+            >
+              {credits}
+            </span>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium" style={{ color: "var(--wv-champagne)" }}>
+                crease credits
+              </p>
+              <p className="text-xs" style={{ color: "var(--color-text-on-dark-muted)" }}>
+                {creditsToGo > 0
+                  ? `${creditsToGo} more for ${nextGoal.label}`
+                  : `you\u2019ve earned enough for ${nextGoal.label}!`}
+              </p>
+            </div>
+            <Link
+              href="/profile"
+              className="text-xs font-medium"
+              style={{ color: "var(--wv-sienna)" }}
+            >
+              view
+            </Link>
+          </div>
+        </section>
+      )}
+
+      {/* -- recent activity ------------------------------------ */}
+      {recentRuns.length > 0 && (
+        <section className="mb-8">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-bold" style={{ color: "var(--wv-white)" }}>
+              recent activity
+            </h2>
+            <Link
+              href="/log"
+              className="text-xs font-medium"
+              style={{ color: "var(--wv-sienna)" }}
+            >
+              see all
+            </Link>
+          </div>
+          <div className="space-y-2">
+            {recentRuns.map((run) => (
+              <Link
+                key={run.id}
+                href={run.playdate_slug ? `/play/${run.playdate_slug}` : "/log"}
+                className="flex items-center gap-3 rounded-lg px-4 py-3 transition-colors hover:bg-white/5"
+                style={{ backgroundColor: "var(--color-surface-raised)" }}
+              >
+                <span
+                  className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold"
+                  style={{
+                    backgroundColor: run.run_type === "find_again"
+                      ? "rgba(88, 203, 178, 0.15)"
+                      : "rgba(203, 120, 88, 0.15)",
+                    color: run.run_type === "find_again"
+                      ? "var(--wv-seafoam)"
+                      : "var(--wv-sienna)",
+                  }}
+                >
+                  {run.run_type === "find_again" ? "FA" : "R"}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <p
+                    className="text-sm font-medium truncate"
+                    style={{ color: "var(--wv-white)" }}
+                  >
+                    {run.playdate_title ?? run.title}
+                  </p>
+                  {run.run_date && (
+                    <p className="text-2xs" style={{ color: "var(--color-text-on-dark-muted)" }}>
+                      {formatRunDate(run.run_date)}
+                    </p>
+                  )}
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* -- new in the community ------------------------------- */}
+      {galleryItems.length > 0 && (
+        <section>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-bold" style={{ color: "var(--wv-white)" }}>
+              new in the community
+            </h2>
+            <Link
+              href="/community"
+              className="text-xs font-medium"
+              style={{ color: "var(--wv-sienna)" }}
+            >
+              explore
+            </Link>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            {galleryItems.map((item) => (
+              <Link
+                key={item.id}
+                href="/community"
+                className="rounded-lg overflow-hidden aspect-square relative group"
+                style={{ backgroundColor: "var(--color-surface-raised)" }}
+              >
+                {item.thumbnail_key || item.storage_key ? (
+                  <Image
+                    src={`/harbour/creaseworks/api/evidence/${item.id}/thumb`}
+                    alt={item.playdate_title ? `from ${item.playdate_title}` : "community share"}
+                    fill
+                    className="object-cover transition-transform group-hover:scale-105"
+                    sizes="(max-width: 640px) 33vw, 200px"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center p-3">
+                    <p
+                      className="text-xs text-center line-clamp-4 leading-relaxed"
+                      style={{ color: "var(--color-text-on-dark-muted)" }}
+                    >
+                      {item.quote_text ?? item.body ?? "shared by " + item.user_first_name}
+                    </p>
+                  </div>
+                )}
+                {item.playdate_title && (
+                  <div
+                    className="absolute bottom-0 left-0 right-0 px-2 py-1.5"
+                    style={{ background: "linear-gradient(transparent, rgba(0,0,0,0.6))" }}
+                  >
+                    <p className="text-2xs text-white truncate">{item.playdate_title}</p>
+                  </div>
+                )}
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+    </div>
+  );
+}
+
+/* ── helpers ─────────────────────────────────────────────────────── */
+
+/** Pick N hero materials with form diversity. */
+function pickHeroMaterials(
+  allMaterials: { id: string; title: string; emoji: string | null; icon: string | null; form_primary: string | null }[],
+  count: number,
+) {
+  const picked: typeof allMaterials = [];
+  const seenForms = new Set<string>();
+
+  // first pass: one per form
+  for (const m of allMaterials) {
+    if (picked.length >= count) break;
+    const form = m.form_primary ?? "other";
+    if (!seenForms.has(form)) {
+      seenForms.add(form);
+      picked.push(m);
+    }
+  }
+
+  // second pass: fill remaining slots
+  for (const m of allMaterials) {
+    if (picked.length >= count) break;
+    if (!picked.includes(m)) {
+      picked.push(m);
+    }
+  }
+
+  return picked;
+}
+
+/** Format a run date for display. */
+function formatRunDate(dateStr: string): string {
+  try {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+  } catch {
+    return dateStr;
+  }
 }
 
 /* -- sub-components (co-located) ----------------------------------- */

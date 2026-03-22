@@ -4,6 +4,35 @@ import type { ReactNode } from "react";
 import CardActionSlot from "./card-action-slot";
 import { PlaydateIllustration } from "../playdate-illustration";
 
+/* ── function → colour mapping for form × function pills ── */
+const FUNCTION_COLOURS: Record<string, { bg: string; text: string }> = {
+  connector:      { bg: "rgba(67, 177, 135, 0.12)", text: "var(--wv-seafoam)" },
+  base:           { bg: "rgba(39, 50, 72, 0.10)",   text: "var(--wv-cadet)" },
+  container:      { bg: "rgba(88, 114, 203, 0.12)", text: "var(--wv-cornflower)" },
+  "mark making":  { bg: "rgba(203, 120, 88, 0.12)", text: "var(--wv-sienna)" },
+  shaping:        { bg: "rgba(177, 80, 67, 0.12)",  text: "var(--wv-redwood)" },
+  dividing:       { bg: "rgba(67, 72, 36, 0.12)",   text: "var(--wv-moss)" },
+  joining:        { bg: "rgba(67, 177, 135, 0.12)", text: "var(--wv-seafoam)" },
+  stacking:       { bg: "rgba(67, 109, 177, 0.12)", text: "var(--wv-navy)" },
+};
+
+function getFunctionStyle(fn: string): { bg: string; text: string } {
+  const lower = fn.toLowerCase();
+  for (const [key, style] of Object.entries(FUNCTION_COLOURS)) {
+    if (lower.includes(key)) return style;
+  }
+  return { bg: "rgba(39, 50, 72, 0.06)", text: "var(--wv-cadet)" };
+}
+
+export interface PlaydateMaterial {
+  id: string;
+  title: string;
+  form_primary: string | null;
+  functions: string[] | null;
+  emoji: string | null;
+  icon: string | null;
+}
+
 export type ProgressTier =
   | "tried_it"
   | "found_something"
@@ -101,6 +130,8 @@ interface PlaydateCardProps {
   /** Optional: Notion-controlled list of fields to show on card.
    *  When null/empty, all fields render (backward compatible). */
   visibleFields?: string[] | null;
+  /** Optional: materials linked to this playdate (for icon row + function pills) */
+  materials?: PlaydateMaterial[] | null;
 }
 
 export function PlaydateCard({
@@ -125,6 +156,7 @@ export function PlaydateCard({
   family_count,
   coverUrl,
   visibleFields,
+  materials,
 }: PlaydateCardProps) {
   const badge = progressTier ? TIER_BADGE[progressTier] : null;
   const isBeginner = frictionDial !== null && frictionDial <= 2 && startIn120s;
@@ -180,6 +212,67 @@ export function PlaydateCard({
         {show("headline") && headline && (
           <p className="text-sm text-cadet/60 mb-3">{headline}</p>
         )}
+
+        {/* material icons row — small visual "what do I need?" */}
+        {show("materials") && materials && materials.length > 0 && (
+          <div className="flex items-center gap-1 mb-2.5 flex-wrap">
+            {materials.slice(0, 5).map((mat) => {
+              const iconPath = mat.icon
+                ? `/harbour/creaseworks/icons/materials/${mat.icon}.png`
+                : null;
+              return (
+                <span
+                  key={mat.id}
+                  className="inline-flex items-center justify-center rounded-md"
+                  style={{
+                    width: 28,
+                    height: 28,
+                    backgroundColor: "rgba(39, 50, 72, 0.04)",
+                  }}
+                  title={mat.title}
+                >
+                  {iconPath ? (
+                    <Image src={iconPath} alt={mat.title} width={20} height={20} className="object-contain" />
+                  ) : (
+                    <span className="text-sm leading-none">{mat.emoji ?? "✨"}</span>
+                  )}
+                </span>
+              );
+            })}
+            {materials.length > 5 && (
+              <span className="text-2xs text-cadet/40 ml-1">
+                +{materials.length - 5}
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* function pills — colour-coded form × function tags */}
+        {show("materials") && materials && materials.length > 0 && (() => {
+          const allFunctions = new Set<string>();
+          for (const mat of materials) {
+            if (mat.functions) {
+              for (const fn of mat.functions) allFunctions.add(fn);
+            }
+          }
+          if (allFunctions.size === 0) return null;
+          return (
+            <div className="flex flex-wrap gap-1 mb-2.5">
+              {Array.from(allFunctions).slice(0, 4).map((fn) => {
+                const style = getFunctionStyle(fn);
+                return (
+                  <span
+                    key={fn}
+                    className="inline-block rounded-full px-2 py-0.5 text-2xs font-medium"
+                    style={{ backgroundColor: style.bg, color: style.text }}
+                  >
+                    {fn}
+                  </span>
+                );
+              })}
+            </div>
+          );
+        })()}
 
         <div className="flex flex-wrap gap-1.5 mb-3">
           {show("primaryFunction") && primaryFunction && (

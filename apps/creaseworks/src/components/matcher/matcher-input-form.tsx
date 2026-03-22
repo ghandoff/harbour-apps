@@ -374,21 +374,39 @@ export default function MatcherInputForm({
                       }`}
                     >
                       {mats.map((mat: Material) => (
-                        <EmojiTile
-                          key={mat.id}
-                          emoji={getMaterialEmoji(mat.title, mat.form_primary, mat.emoji)}
-                          emojiSrc={getMaterialIcon(mat.title, mat.form_primary, mat.emoji, mat.icon) ?? undefined}
-                          label={mat.title}
-                          selected={selectedMaterials.has(mat.id)}
-                          onClick={() =>
-                            toggleSet(
-                              selectedMaterials,
-                              setSelectedMaterials,
-                              mat.id,
-                            )
-                          }
-                          size="sm"
-                        />
+                        <div key={mat.id} className="flex flex-col items-center gap-0.5">
+                          <EmojiTile
+                            emoji={getMaterialEmoji(mat.title, mat.form_primary, mat.emoji)}
+                            emojiSrc={getMaterialIcon(mat.title, mat.form_primary, mat.emoji, mat.icon) ?? undefined}
+                            label={mat.title}
+                            selected={selectedMaterials.has(mat.id)}
+                            onClick={() =>
+                              toggleSet(
+                                selectedMaterials,
+                                setSelectedMaterials,
+                                mat.id,
+                              )
+                            }
+                            size="sm"
+                          />
+                          {mat.functions && mat.functions.length > 0 && (
+                            <div className="flex flex-wrap gap-0.5 justify-center max-w-[80px]">
+                              {mat.functions.slice(0, 2).map((fn: string) => (
+                                <span
+                                  key={fn}
+                                  className="text-center leading-tight"
+                                  style={{
+                                    fontSize: "0.45rem",
+                                    color: "var(--wv-seafoam)",
+                                    opacity: 0.7,
+                                  }}
+                                >
+                                  {fn}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       ))}
                     </div>
                   </div>

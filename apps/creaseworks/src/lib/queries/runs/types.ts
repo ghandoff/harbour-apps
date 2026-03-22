@@ -19,6 +19,12 @@ export interface RunRow {
   created_at: string | null;
 }
 
+export interface MaterialUsedAs {
+  material_id: string;
+  function_used: string;
+  notes?: string;
+}
+
 export interface CreateRunInput {
   title: string;
   playdateId: string | null;
@@ -29,6 +35,8 @@ export interface CreateRunInput {
   whatChanged: string | null;
   nextIteration: string | null;
   materialIds: string[];
+  /** How each material was used (form × function tracking) */
+  materialsUsedAs?: MaterialUsedAs[];
   /** Flag this run as a "find again" moment — playbook badge tier */
   isFindAgain?: boolean;
 }

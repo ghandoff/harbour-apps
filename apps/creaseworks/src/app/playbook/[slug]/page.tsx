@@ -12,7 +12,8 @@ import {
   recomputeUserProgress,
   type CollectionPlaydate,
 } from "@/lib/queries/collections";
-import { PlaydateCard, type ProgressTier } from "@/components/ui/playdate-card";
+import { PlaydateCard, type ProgressTier, type PlaydateMaterial } from "@/components/ui/playdate-card";
+import { batchGetMaterialsForPlaydates } from "@/lib/queries/playdates";
 import EmptyState from "@/components/empty-state";
 import QuickLogButton from "@/components/ui/quick-log-button";
 import CollectionExportButton from "@/components/collection-export-button";
@@ -38,6 +39,10 @@ export default async function CollectionDetailPage({ params }: Props) {
     getCollectionPlaydates(collection.id, session.userId),
     getCollectionEvidenceSummary(collection.id, session.userId),
   ]);
+
+  const materialsMap = await batchGetMaterialsForPlaydates(
+    playdates.map((p: CollectionPlaydate) => p.id),
+  );
 
   const triedCount = playdates.filter((p: CollectionPlaydate) => p.progress_tier).length;
   const foundCount = playdates.filter(
@@ -202,6 +207,7 @@ export default async function CollectionDetailPage({ params }: Props) {
               coverUrl={p.cover_url}
               visibleFields={p.gallery_visible_fields}
               href={`/sampler/${p.slug}`}
+              materials={materialsMap.get(p.id) ?? null}
               action={
                 <QuickLogButton
                   playdateId={p.id}

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getTeaserPlaydates } from "@/lib/queries/playdates";
+import { getTeaserPlaydates, batchGetMaterialsForPlaydates } from "@/lib/queries/playdates";
 import { getSession } from "@/lib/auth-helpers";
 import { getUserOnboardingStatus } from "@/lib/queries/users";
 import { getRunsForUser } from "@/lib/queries/runs";
@@ -44,10 +44,13 @@ export default async function SamplerPage() {
   // Admins who need the full catalog should use /admin/playdates.
   const playdates = await getTeaserPlaydates();
 
-  // Batch-fetch pack info for FOMO badges on sampler cards
-  const packInfoMap = await batchGetPackInfoForPlaydates(
-    playdates.map((p: TeaserPlaydate) => p.id),
-  );
+  const playdateIds = playdates.map((p: TeaserPlaydate) => p.id);
+
+  // Batch-fetch pack info and materials in parallel
+  const [packInfoMap, materialsMap] = await Promise.all([
+    batchGetPackInfoForPlaydates(playdateIds),
+    batchGetMaterialsForPlaydates(playdateIds),
+  ]);
 
   // Check if signed-in user needs onboarding
   const onboarding = session
@@ -198,6 +201,7 @@ export default async function SamplerPage() {
                 tinkeringTier={p.tinkering_tier}
                 coverUrl={p.cover_url}
                 visibleFields={p.gallery_visible_fields}
+                materials={materialsMap.get(p.id) ?? null}
               />
             );
           })}

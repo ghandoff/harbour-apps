@@ -4,6 +4,7 @@ export interface Material {
   form_primary: string;
   emoji?: string | null;
   icon?: string | null;
+  functions?: string[] | null;
 }
 
 export interface MatcherInputFormProps {

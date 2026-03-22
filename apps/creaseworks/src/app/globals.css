@@ -30,11 +30,33 @@
   --color-redwood: var(--wv-redwood);
   --color-sienna: var(--wv-sienna);
   --color-champagne: var(--wv-champagne);
+  /* complementary palette — phase accents + kid mode */
+  --color-navy: var(--wv-navy);
+  --color-cornflower: var(--wv-cornflower);
+  --color-periwinkle: var(--wv-periwinkle);
+  --color-moss: var(--wv-moss);
+  --color-forest: var(--wv-forest);
+  --color-teal: var(--wv-teal);
+  --color-seafoam: var(--wv-seafoam);
+  --color-mint: var(--wv-mint);
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
   --font-size-2xs: 0.625rem;           /* 10px — micro labels, badges, timestamps */
   --font-size-2xs--line-height: 1rem;   /* 16px line-height for readability */
   --shadow-soft: 0 1px 3px rgba(39, 50, 72, 0.06);
   --shadow-warm: 0 2px 8px rgba(203, 120, 88, 0.08);
+}
+
+/* ── phase colour tokens ─────────────────────────────────────────
+   each creative cycle phase gets a distinct accent colour.
+   find → discovery blue, fold → warm making, unfold → reflection,
+   find again → expansive teal. used in nav, badges, and borders. */
+
+:root {
+  --cw-phase-find:       var(--wv-cornflower);
+  --cw-phase-fold:       var(--wv-sienna);
+  --cw-phase-unfold:     var(--wv-champagne);
+  --cw-phase-find-again: var(--wv-seafoam);
 }
 
 /* ── base styles ──────────────────────────────────────────────── */
@@ -45,6 +67,14 @@ body {
   font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   line-height: var(--line-height-body);
   letter-spacing: var(--letter-spacing-body);
+}
+
+/* ── display font for headings ────────────────────────────────────
+   Nunito: rounded geometric sans — warm, playful, highly legible.
+   aligns with brand verbal identity: "creative but not frivolous". */
+
+h1, h2, h3 {
+  font-family: var(--font-nunito), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }
 
 /* all UI copy is lowercase per brand guidelines — except user-generated content */
@@ -523,6 +553,93 @@ html.calm-theme .text-cadet\/40 {
    Tailwind 4's @theme reads from custom properties. Since we've
    overridden the semantic vars, classes like bg-background and
    text-foreground will automatically use calm values.                */
+
+/* ═══════════════════════════════════════════════════════════════════
+   kid mode — playful presentation for children
+   ═══════════════════════════════════════════════════════════════════
+
+   Transforms the UI for child users: larger touch targets, warmer
+   backgrounds, display font everywhere, more saturated phase colours.
+   Toggled via profile settings, stored in cookie for instant paint.
+
+   Architecture mirrors calm-theme: CSS class on <html>, cascading
+   variable overrides, !important only for inline-style battles.      */
+
+html.kid-mode {
+  /* warmer, lighter default background */
+  --background: color-mix(in srgb, var(--wv-champagne) 20%, var(--wv-white));
+
+  /* more saturated phase colours for visual distinction */
+  --cw-phase-find:       #4a64d4;   /* brighter cornflower */
+  --cw-phase-fold:       #d4804a;   /* brighter sienna     */
+  --cw-phase-unfold:     #f5d89a;   /* warmer gold         */
+  --cw-phase-find-again: #3ec4a8;   /* brighter teal       */
+}
+
+/* kid mode: use display font (Nunito) for all text */
+html.kid-mode body {
+  font-family: var(--font-nunito), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* kid mode: larger bottom tab icons + labels */
+html.kid-mode nav[aria-label="quick navigation"] {
+  padding-top: 0.5rem;
+  padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+}
+
+html.kid-mode nav[aria-label="quick navigation"] svg {
+  width: 28px;
+  height: 28px;
+}
+
+html.kid-mode nav[aria-label="quick navigation"] span {
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* kid mode: bigger header brand */
+html.kid-mode .wv-header-brand {
+  font-size: 1rem;
+  font-family: var(--font-nunito), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* ── animated origami nav icons ──────────────────────────────────
+   subtle CSS-only animations on the four cycle phase icons.
+   triggered on active state (current section). each icon has a
+   distinct motion matching its origami metaphor.
+   respects reduced-motion + app-level reduce-motion toggle.       */
+
+/* bottom tab: active scale bounce */
+@keyframes cw-tab-bounce {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+nav[aria-label="quick navigation"] a[style*="background"] svg {
+  animation: cw-tab-bounce 0.3s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  nav[aria-label="quick navigation"] a svg { animation: none; }
+}
+html.reduce-motion nav[aria-label="quick navigation"] a svg { animation: none; }
+
+/* bottom tab: larger default touch targets for accessibility */
+nav[aria-label="quick navigation"] a {
+  min-width: 48px;
+  min-height: 48px;
+}
+
+nav[aria-label="quick navigation"] svg {
+  width: 22px;
+  height: 22px;
+  transition: transform 0.15s ease;
+}
+
+nav[aria-label="quick navigation"] span {
+  font-size: 10px;
+}
 
 /* ── PWA install banner ─────────────────────────────────────────── */
 

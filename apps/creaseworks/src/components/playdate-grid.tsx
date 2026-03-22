@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { PlaydateCard } from "./ui/playdate-card";
+import type { PlaydateMaterial } from "./ui/playdate-card";
 
 interface PlaydateItem {
   id: string;
@@ -50,15 +51,19 @@ interface PlaydateGridProps {
   playdates: PlaydateItem[];
   /** Serializable entries — Maps can't cross the RSC → client boundary */
   packInfoEntries: [string, { packSlug: string; packTitle: string }][];
+  /** Serializable material entries per playdate */
+  materialsEntries?: [string, PlaydateMaterial[]][];
   showChannelBadge?: boolean;
 }
 
 export default function PlaydateGrid({
   playdates,
   packInfoEntries,
+  materialsEntries,
   showChannelBadge = false,
 }: PlaydateGridProps) {
   const packInfoMap = useMemo(() => new Map(packInfoEntries), [packInfoEntries]);
+  const materialsMap = useMemo(() => new Map(materialsEntries ?? []), [materialsEntries]);
   const [search, setSearch] = useState("");
   const [functionFilter, setFunctionFilter] = useState("");
   const [arcFilter, setArcFilter] = useState("");
@@ -262,6 +267,7 @@ export default function PlaydateGrid({
                   tinkeringTier={p.tinkering_tier}
                   coverUrl={p.cover_url}
                   visibleFields={p.gallery_visible_fields}
+                  materials={materialsMap.get(p.id) ?? null}
                 />
               </div>
             );

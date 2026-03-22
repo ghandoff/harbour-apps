@@ -3,6 +3,7 @@
 import { useCallback, useState } from "react";
 import { CoPlayDetails } from "@/lib/queries/co-play";
 import { apiUrl } from "@/lib/api-url";
+import { QrInvite } from "@/components/co-play/qr-invite";
 
 interface CoPlayInviteProps {
   runId: string;
@@ -14,7 +15,6 @@ export function CoPlayInvite({ runId }: CoPlayInviteProps) {
     null,
   );
   const [error, setError] = useState<string | null>(null);
-  const [copiedCode, setCopiedCode] = useState(false);
 
   // Load existing co-play details
   const loadCoPlayDetails = useCallback(async () => {
@@ -34,7 +34,7 @@ export function CoPlayInvite({ runId }: CoPlayInviteProps) {
       setCoPlayDetails(data.coPlay);
     } catch (err) {
       console.error("Failed to load co-play details:", err);
-      setError("Failed to load co-play details");
+      setError("failed to load co-play details");
     } finally {
       setIsLoading(false);
     }
@@ -61,24 +61,11 @@ export function CoPlayInvite({ runId }: CoPlayInviteProps) {
       });
     } catch (err) {
       console.error("Failed to enable co-play:", err);
-      setError("Failed to enable co-play mode");
+      setError("failed to enable co-play mode");
     } finally {
       setIsLoading(false);
     }
   }, [runId]);
-
-  // Copy invite code to clipboard
-  const handleCopyCode = useCallback(async () => {
-    if (!coPlayDetails?.inviteCode) return;
-    try {
-      await navigator.clipboard.writeText(coPlayDetails.inviteCode);
-      setCopiedCode(true);
-      setTimeout(() => setCopiedCode(false), 2000);
-    } catch (err) {
-      console.error("Failed to copy code:", err);
-      setError("Failed to copy code");
-    }
-  }, [coPlayDetails?.inviteCode]);
 
   // Load details on mount
   useState(() => {
@@ -101,84 +88,68 @@ export function CoPlayInvite({ runId }: CoPlayInviteProps) {
         disabled={isLoading}
         className="px-4 py-2 bg-redwood text-white rounded hover:bg-redwood/90 disabled:opacity-50"
       >
-        {isLoading ? "Enabling..." : "Invite a co-player"}
+        {isLoading ? "enabling..." : "invite a co-player"}
       </button>
     );
   }
 
   return (
     <div className="border border-cadet/10 rounded-lg p-6 bg-background">
-      <h3 className="font-semibold text-lg mb-4">Co-play Invite</h3>
+      {/* QR invite card with code, copy, and share */}
+      <QrInvite inviteCode={coPlayDetails.inviteCode} />
 
-      {/* Invite code display */}
-      <div className="mb-6">
-        <p className="text-sm text-cadet/60 mb-2">Share this code:</p>
-        <div className="flex items-center gap-3">
-          <div className="text-4xl font-mono font-bold tracking-widest text-redwood">
-            {coPlayDetails.inviteCode}
-          </div>
-          <button
-            onClick={handleCopyCode}
-            className="px-3 py-2 bg-white border border-cadet/10 rounded hover:bg-champagne/20 text-sm font-medium"
-          >
-            {copiedCode ? "Copied!" : "Copy"}
-          </button>
-        </div>
-        <p className="text-xs text-cadet/50 mt-2">
-          Share this code with your co-player
-        </p>
-      </div>
+      {/* co-play partner status */}
+      <div className="mt-6">
+        {coPlayDetails.coPlayParentId ? (
+          <div className="bg-white border border-green-200 rounded p-4">
+            <p className="text-sm font-medium text-green-700 mb-3">
+              {coPlayDetails.coPlayParentName} has joined!
+            </p>
 
-      {/* Co-play partner status */}
-      {coPlayDetails.coPlayParentId ? (
-        <div className="bg-white border border-green-200 rounded p-4">
-          <p className="text-sm font-medium text-green-700 mb-3">
-            ✓ {coPlayDetails.coPlayParentName} has joined!
-          </p>
-
-          {coPlayDetails.coPlayReflections && (
-            <div className="mt-4 border-t border-cadet/10 pt-4">
-              <p className="text-sm font-semibold mb-2">
-                Their Reflections:
-              </p>
-              <div className="space-y-2 text-sm">
-                <p>
-                  <span className="text-cadet/60">Rating:</span>{" "}
-                  <span className="font-semibold">
-                    {coPlayDetails.coPlayReflections.rating} / 5
-                  </span>
+            {coPlayDetails.coPlayReflections && (
+              <div className="mt-4 border-t border-cadet/10 pt-4">
+                <p className="text-sm font-semibold mb-2">
+                  their reflections:
                 </p>
-                <p>
-                  <span className="text-cadet/60">Notes:</span>{" "}
-                  <span className="block mt-1">
-                    {coPlayDetails.coPlayReflections.notes}
-                  </span>
-                </p>
-                {coPlayDetails.coPlayReflections.highlights?.length > 0 && (
+                <div className="space-y-2 text-sm">
                   <p>
-                    <span className="text-cadet/60">Highlights:</span>
-                    <ul className="list-disc list-inside mt-1">
-                      {coPlayDetails.coPlayReflections.highlights.map(
-                        (h, i) => (
-                          <li key={i} className="text-cadet/80">
-                            {h}
-                          </li>
-                        ),
-                      )}
-                    </ul>
+                    <span className="text-cadet/60">rating:</span>{" "}
+                    <span className="font-semibold">
+                      {coPlayDetails.coPlayReflections.rating} / 5
+                    </span>
                   </p>
-                )}
+                  <p>
+                    <span className="text-cadet/60">notes:</span>{" "}
+                    <span className="block mt-1">
+                      {coPlayDetails.coPlayReflections.notes}
+                    </span>
+                  </p>
+                  {coPlayDetails.coPlayReflections.highlights?.length > 0 && (
+                    <p>
+                      <span className="text-cadet/60">highlights:</span>
+                      <ul className="list-disc list-inside mt-1">
+                        {coPlayDetails.coPlayReflections.highlights.map(
+                          (h, i) => (
+                            <li key={i} className="text-cadet/80">
+                              {h}
+                            </li>
+                          ),
+                        )}
+                      </ul>
+                    </p>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
-        </div>
-      ) : (
-        <div className="bg-white border border-cadet/10 rounded p-4 text-center">
-          <p className="text-sm text-cadet/60">
-            Waiting for co-player to join...
-          </p>
-        </div>
-      )}
+            )}
+          </div>
+        ) : (
+          <div className="bg-white border border-cadet/10 rounded p-4 text-center">
+            <p className="text-sm text-cadet/60">
+              waiting for co-player to join...
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

@@ -29,15 +29,29 @@ export default function CreditProgressBar({ balance }: CreditProgressBarProps) {
   return (
     <div className="mb-6 rounded-xl border border-sienna/15 bg-sienna/3 px-5 py-4">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-xs font-medium text-cadet/70">
-          {hasReached ? (
-            <>you&apos;ve earned enough for {nextGoal.label}!</>
-          ) : (
-            <>
-              {balance} / {nextGoal.target} credits toward {nextGoal.label}
-            </>
-          )}
-        </span>
+        <div className="flex items-center gap-2">
+          <span
+            className="inline-flex items-center justify-center rounded-full font-bold tabular-nums"
+            style={{
+              width: 32,
+              height: 32,
+              fontSize: balance >= 100 ? "0.65rem" : "0.75rem",
+              backgroundColor: "var(--wv-sienna)",
+              color: "var(--wv-white)",
+            }}
+          >
+            {balance}
+          </span>
+          <span className="text-xs font-medium text-cadet/70">
+            {hasReached ? (
+              <>you&apos;ve earned enough for {nextGoal.label}!</>
+            ) : (
+              <>
+                crease credits — {nextGoal.target - balance} more for {nextGoal.label}
+              </>
+            )}
+          </span>
+        </div>
         <span className="text-2xs text-cadet/40">{pct}%</span>
       </div>
       <div className="h-2 rounded-full bg-cadet/8 overflow-hidden">

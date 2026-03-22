@@ -22,7 +22,7 @@ import {
   getNextSuggestion,
   recomputeUserProgress,
 } from "@/lib/queries/collections";
-import { getTeaserPlaydates } from "@/lib/queries/playdates";
+import { getTeaserPlaydates, batchGetMaterialsForPlaydates } from "@/lib/queries/playdates";
 import { batchGetPackInfoForPlaydates } from "@/lib/queries/packs";
 import { getRunsForUser } from "@/lib/queries/runs";
 import { getUserOnboardingStatus } from "@/lib/queries/users";
@@ -183,10 +183,12 @@ interface TeaserPlaydate {
 async function SamplerSection() {
   const session = await getSession();
   const playdates = await getTeaserPlaydates();
+  const playdateIds = playdates.map((p: TeaserPlaydate) => p.id);
 
-  const packInfoMap = await batchGetPackInfoForPlaydates(
-    playdates.map((p: TeaserPlaydate) => p.id),
-  );
+  const [packInfoMap, materialsMap] = await Promise.all([
+    batchGetPackInfoForPlaydates(playdateIds),
+    batchGetMaterialsForPlaydates(playdateIds),
+  ]);
 
   // Check if signed-in user needs onboarding
   const onboarding = session
@@ -297,6 +299,7 @@ async function SamplerSection() {
                 tinkeringTier={p.tinkering_tier}
                 coverUrl={p.cover_url}
                 visibleFields={p.gallery_visible_fields}
+                materials={materialsMap.get(p.id) ?? null}
               />
             );
           })}

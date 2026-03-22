@@ -8,4 +8,5 @@ export interface Material {
   id: string;
   title: string;
   form_primary: string | null;
+  functions?: string[] | null;
 }

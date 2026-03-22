@@ -37,8 +37,8 @@ export async function createRun(
     `INSERT INTO runs_cache
        (notion_id, title, playdate_notion_id, run_type, run_date,
         context_tags, trace_evidence, what_changed, next_iteration,
-        created_by, org_id, source, is_find_again)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'app', $12)
+        created_by, org_id, source, is_find_again, materials_used_as)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'app', $12, $13)
      RETURNING id`,
     [
       appNotionId,
@@ -53,6 +53,7 @@ export async function createRun(
       session.userId,
       session.orgId,
       input.isFindAgain ?? false,
+      JSON.stringify(input.materialsUsedAs ?? []),
     ],
   );
 

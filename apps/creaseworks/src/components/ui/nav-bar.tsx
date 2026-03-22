@@ -5,6 +5,7 @@ import { useSession, signOut } from "next-auth/react";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 import NotificationBell from "@/components/ui/notification-bell";
+import { useMode } from "@/components/ui/mode-provider";
 
 /* ── origami-cycle SVG icons ──────────────────────────────────
  * 20×20 icons following the winded.vertigo creative cycle:
@@ -117,16 +118,16 @@ function IconAdmin({ className }: { className?: string }) {
  * by colour association. Colours progress warm → deep → light → cool.
  */
 const SECTION_COLORS: Record<string, string> = {
-  "/find":            "var(--wv-sienna)",    /* find — warm discovery   */
-  "/matcher":         "var(--wv-sienna)",    /* find (legacy redirect)  */
-  "/play":            "var(--wv-redwood)",   /* fold — deep engagement  */
-  "/sampler":         "var(--wv-redwood)",   /* fold (legacy alias)     */
-  "/playbook":        "var(--wv-redwood)",   /* fold (legacy alias)     */
-  "/log":             "var(--wv-champagne)", /* unfold — warm reflection */
-  "/reflections":     "var(--wv-champagne)", /* unfold (legacy alias)   */
-  "/gallery":         "var(--wv-champagne)", /* unfold (legacy alias)   */
-  "/community":       "var(--wv-cadet)",     /* find again — expansive  */
-  "/profile":         "var(--wv-sienna)",    /* me                      */
+  "/find":            "var(--cw-phase-find)",       /* find — discovery blue   */
+  "/matcher":         "var(--cw-phase-find)",       /* find (legacy redirect)  */
+  "/play":            "var(--cw-phase-fold)",       /* fold — warm making      */
+  "/sampler":         "var(--cw-phase-fold)",       /* fold (legacy alias)     */
+  "/playbook":        "var(--cw-phase-fold)",       /* fold (legacy alias)     */
+  "/log":             "var(--cw-phase-unfold)",     /* unfold — reflection     */
+  "/reflections":     "var(--cw-phase-unfold)",     /* unfold (legacy alias)   */
+  "/gallery":         "var(--cw-phase-unfold)",     /* unfold (legacy alias)   */
+  "/community":       "var(--cw-phase-find-again)", /* find again — teal       */
+  "/profile":         "var(--wv-sienna)",           /* me                      */
   "/admin":           "var(--wv-sienna)",
 };
 
@@ -148,12 +149,29 @@ const SECTION_COLORS: Record<string, string> = {
  *   find again → /community   (leaderboard + community activity)
  *   me         → /profile
  */
+/* ── kid mode label map ───────────────────────────────────────────
+ * In kid mode, cycle phase labels become action verbs that children
+ * understand without needing the origami metaphor.
+ */
+const KID_LABELS: Record<string, string> = {
+  find: "look!",
+  fold: "make!",
+  unfold: "show!",
+  "find again": "wow!",
+  me: "me",
+  "sign in": "join!",
+};
+
 export default function NavBar() {
   const { data: session, status } = useSession();
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
+  const { isKidMode } = useMode();
 
   const close = () => setMobileOpen(false);
+
+  /** Map label to kid-friendly version when kid mode is active */
+  const label = (text: string) => isKidMode ? (KID_LABELS[text] ?? text) : text;
 
   const isAuthed = !!session?.user;
 
@@ -166,16 +184,16 @@ export default function NavBar() {
   const navLinks = (
     <>
       <NavLink href="/find" pathname={pathname} icon={<IconFind />} onClick={close}>
-        find
+        {label("find")}
       </NavLink>
       <NavLink href="/play" pathname={pathname} icon={<IconFold />} onClick={close}>
-        fold
+        {label("fold")}
       </NavLink>
       <NavLink href="/log" pathname={pathname} icon={<IconUnfold />} onClick={close}>
-        unfold
+        {label("unfold")}
       </NavLink>
       <NavLink href="/community" pathname={pathname} icon={<IconFindAgain />} onClick={close}>
-        find again
+        {label("find again")}
       </NavLink>
     </>
   );
@@ -239,18 +257,18 @@ export default function NavBar() {
 
   const bottomTabs: Tab[] = isAuthed
     ? [
-        { href: "/matcher", label: "find", icon: <IconFind />, key: "find" },
-        { href: "/play", label: "fold", icon: <IconFold />, key: "fold" },
-        { href: "/log", label: "unfold", icon: <IconUnfold />, key: "unfold" },
-        { href: "/community", label: "find again", icon: <IconFindAgain />, key: "find-again" },
-        { href: "/profile", label: "me", icon: <IconMe />, key: "me" },
+        { href: "/matcher", label: label("find"), icon: <IconFind />, key: "find" },
+        { href: "/play", label: label("fold"), icon: <IconFold />, key: "fold" },
+        { href: "/log", label: label("unfold"), icon: <IconUnfold />, key: "unfold" },
+        { href: "/community", label: label("find again"), icon: <IconFindAgain />, key: "find-again" },
+        { href: "/profile", label: label("me"), icon: <IconMe />, key: "me" },
       ]
     : [
-        { href: "/matcher", label: "find", icon: <IconFind />, key: "find" },
-        { href: "/play", label: "fold", icon: <IconFold />, key: "fold" },
-        { href: "/log", label: "unfold", icon: <IconUnfold />, key: "unfold" },
-        { href: "/community", label: "find again", icon: <IconFindAgain />, key: "find-again" },
-        { href: "/login", label: "sign in", icon: <IconMe />, key: "sign-in" },
+        { href: "/matcher", label: label("find"), icon: <IconFind />, key: "find" },
+        { href: "/play", label: label("fold"), icon: <IconFold />, key: "fold" },
+        { href: "/log", label: label("unfold"), icon: <IconUnfold />, key: "unfold" },
+        { href: "/community", label: label("find again"), icon: <IconFindAgain />, key: "find-again" },
+        { href: "/login", label: label("sign in"), icon: <IconMe />, key: "sign-in" },
       ];
 
   return (
@@ -311,6 +329,31 @@ export default function NavBar() {
           </div>
         )}
       </nav>
+
+      {/* ── co-play FAB (mobile, authenticated only) ── */}
+      {isAuthed && (
+        <Link
+          href="/co-play"
+          className="sm:hidden fixed z-50 flex items-center justify-center rounded-full shadow-lg transition-transform active:scale-90"
+          style={{
+            width: 48,
+            height: 48,
+            bottom: "calc(64px + env(safe-area-inset-bottom, 0px))",
+            right: 16,
+            backgroundColor: "var(--wv-sienna)",
+            color: "var(--wv-white)",
+          }}
+          aria-label="play together"
+          title="co-play"
+        >
+          <svg viewBox="0 0 20 20" width={22} height={22} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="7" cy="8" r="3" />
+            <circle cx="13" cy="8" r="3" />
+            <path d="M2 16c0-2.5 2-4 5-4s5 1.5 5 4" />
+            <path d="M13 12c2.5 0 5 1.5 5 4" />
+          </svg>
+        </Link>
+      )}
 
       {/* ── mobile bottom tab bar ── */}
       <nav

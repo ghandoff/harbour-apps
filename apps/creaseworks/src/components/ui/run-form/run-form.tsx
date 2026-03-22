@@ -15,12 +15,14 @@
  */
 
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import EvidenceCaptureSection, {
   hasEvidenceContent,
 } from "../evidence-capture-section";
 import { uploadPhotoToR2 } from "../evidence-photo-upload";
+import type { PhotoItem } from "../evidence-photo-upload";
+import { useMode } from "../mode-provider";
 import type { Playdate, Material } from "./types";
 import { useRunFormState } from "./use-run-form-state";
 import { RunFormEssentials } from "./run-form-essentials";
@@ -52,7 +54,63 @@ export default function RunForm({
   packInfo?: ReflectionPackInfo | null;
 }) {
   const router = useRouter();
+  const { isKidMode } = useMode();
   const state = useRunFormState(initialPlaydateId);
+  const quickPhotoInputRef = useRef<HTMLInputElement>(null);
+
+  const QUICK_MAX_PHOTOS = 3;
+  const QUICK_MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+  const QUICK_ACCEPTED_MIME = new Set([
+    "image/jpeg",
+    "image/png",
+    "image/heic",
+    "image/webp",
+  ]);
+
+  let quickPhotoLocalId = 0;
+
+  function handleQuickPhotoSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    // Reset input so re-selecting the same file triggers onChange
+    e.target.value = "";
+
+    if (!QUICK_ACCEPTED_MIME.has(file.type)) {
+      state.setError("unsupported file type — use jpeg, png, webp, or heic");
+      return;
+    }
+    if (file.size > QUICK_MAX_FILE_SIZE) {
+      state.setError("photo must be under 5 MB");
+      return;
+    }
+    if (state.evidenceState.photos.length >= QUICK_MAX_PHOTOS) return;
+
+    const newPhoto: PhotoItem = {
+      localId: `quick-${Date.now()}-${quickPhotoLocalId++}`,
+      previewUrl: URL.createObjectURL(file),
+      file,
+      status: "pending",
+    };
+
+    state.setEvidenceState({
+      ...state.evidenceState,
+      photos: [...state.evidenceState.photos, newPhoto],
+    });
+  }
+
+  function removeQuickPhoto(localId: string) {
+    const photo = state.evidenceState.photos.find((p) => p.localId === localId);
+    if (photo) URL.revokeObjectURL(photo.previewUrl);
+    state.setEvidenceState({
+      ...state.evidenceState,
+      photos: state.evidenceState.photos.filter((p) => p.localId !== localId),
+    });
+  }
+
+  // Default to quick share mode when kid mode is active
+  useEffect(() => {
+    if (isKidMode) state.setQuickMode(true);
+  }, [isKidMode]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /**
    * Save evidence items for a newly created reflection.
@@ -141,7 +199,13 @@ export default function RunForm({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!state.title.trim() || !state.runType || !state.runDate) return;
+
+    // Quick mode only requires title + date; full mode requires runType too
+    if (state.quickMode) {
+      if (!state.title.trim() || !state.runDate) return;
+    } else {
+      if (!state.title.trim() || !state.runType || !state.runDate) return;
+    }
 
     state.setLoading(true);
     state.setError(null);
@@ -154,13 +218,21 @@ export default function RunForm({
         body: JSON.stringify({
           title: state.title.trim(),
           playdateId: state.playdateId || null,
-          runType: state.runType,
+          runType: state.quickMode ? "quick_log" : state.runType,
           runDate: state.runDate,
-          contextTags: state.contextTags,
-          traceEvidence: state.traceEvidence,
-          materialIds: state.selectedMaterials,
-          whatChanged: state.whatChanged.trim() || null,
-          nextIteration: state.nextIteration.trim() || null,
+          contextTags: state.quickMode ? [] : state.contextTags,
+          traceEvidence: state.quickMode ? [] : state.traceEvidence,
+          materialIds: state.quickMode ? [] : state.selectedMaterials,
+          materialsUsedAs: state.quickMode
+            ? []
+            : state.selectedMaterials
+                .filter((id) => state.materialsUsedAs[id])
+                .map((id) => ({
+                  material_id: id,
+                  function_used: state.materialsUsedAs[id],
+                })),
+          whatChanged: state.quickMode ? null : (state.whatChanged.trim() || null),
+          nextIteration: state.quickMode ? null : (state.nextIteration.trim() || null),
           isFindAgain: state.isFindAgain,
         }),
       });
@@ -169,7 +241,7 @@ export default function RunForm({
       if (!res.ok) throw new Error(data.error || "failed to create run");
 
       // 2. Save evidence items if any exist (practitioner tier)
-      if (isPractitioner && hasEvidenceContent(state.evidenceState) && data.id) {
+      if ((isPractitioner || state.quickMode) && hasEvidenceContent(state.evidenceState) && data.id) {
         state.setSavingEvidence(true);
         try {
           await saveEvidence(data.id, state.evidenceState);
@@ -243,23 +315,197 @@ export default function RunForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-6"
+      className={state.quickMode ? "space-y-4" : "space-y-6"}
       aria-label="log a reflection"
       aria-describedby={state.error ? "reflection-error" : undefined}
     >
-      <RunFormEssentials state={state} playdates={playdates} />
+      {/* ── mode toggle: quick share / full reflection ──────────────── */}
+      <div className="flex gap-1 rounded-lg p-1" style={{ backgroundColor: "rgba(39, 50, 72, 0.06)" }}>
+        <button
+          type="button"
+          onClick={() => state.setQuickMode(true)}
+          className="flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-all"
+          style={{
+            backgroundColor: state.quickMode ? "var(--wv-seafoam)" : "transparent",
+            color: state.quickMode ? "white" : "var(--wv-cadet)",
+            opacity: state.quickMode ? 1 : 0.6,
+          }}
+        >
+          quick share
+        </button>
+        <button
+          type="button"
+          onClick={() => state.setQuickMode(false)}
+          className="flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-all"
+          style={{
+            backgroundColor: !state.quickMode ? "var(--wv-sienna)" : "transparent",
+            color: !state.quickMode ? "white" : "var(--wv-cadet)",
+            opacity: !state.quickMode ? 1 : 0.6,
+          }}
+        >
+          full reflection
+        </button>
+      </div>
 
-      {/* ── evidence capture section (practitioner tier) ──────────────── */}
-      <EvidenceCaptureSection
-        runId={null}
-        state={state.evidenceState}
-        onChange={state.setEvidenceState}
-        isPractitioner={isPractitioner}
-      />
+      {state.quickMode ? (
+        /* ── quick share mode ──────────────────────────────────────── */
+        <div className="space-y-3">
+          {/* playdate selector */}
+          <div>
+            <label className="block text-xs text-cadet/60 mb-1">
+              linked playdate
+            </label>
+            <select
+              value={state.playdateId}
+              onChange={(e) => state.setPlaydateId(e.target.value)}
+              className="w-full rounded-lg border border-cadet/15 px-3 py-2 text-sm outline-none focus:ring-2 bg-white"
+            >
+              <option value="">none</option>
+              {playdates.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.title}
+                </option>
+              ))}
+            </select>
+          </div>
 
-      <RunFormOptional state={state} materials={materials} />
+          {/* what happened? */}
+          <div>
+            <label className="block text-xs text-cadet/60 mb-1">
+              what happened? <span className="text-redwood">*</span>
+            </label>
+            <input
+              type="text"
+              value={state.title}
+              onChange={(e) => state.setTitle(e.target.value)}
+              placeholder="e.g. we built a tower and it kept falling over"
+              className="w-full rounded-lg border border-cadet/15 px-3 py-2 text-sm outline-none focus:ring-2"
+              required
+            />
+          </div>
 
-      <RunFormActions state={state} />
+          {/* inline photo capture */}
+          <input
+            ref={quickPhotoInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/heic"
+            capture="environment"
+            className="hidden"
+            onChange={handleQuickPhotoSelect}
+          />
+
+          {state.evidenceState.photos.length === 0 ? (
+            <button
+              type="button"
+              className="w-full rounded-lg border-2 border-dashed border-cadet/15 px-4 py-6 text-center transition-all hover:border-cadet/25 hover:bg-champagne/20"
+              onClick={() => quickPhotoInputRef.current?.click()}
+            >
+              <span className="block text-2xl mb-1" aria-hidden>
+                📷
+              </span>
+              <span className="text-xs text-cadet/50">
+                add a photo
+              </span>
+            </button>
+          ) : (
+            <div className="space-y-2">
+              <div className="flex gap-2 flex-wrap">
+                {state.evidenceState.photos.map((photo) => (
+                  <div
+                    key={photo.localId}
+                    className="relative"
+                    style={{ width: 80, height: 80 }}
+                  >
+                    <img
+                      src={photo.previewUrl}
+                      alt="photo preview"
+                      className="rounded-lg object-cover"
+                      style={{ width: 80, height: 80 }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeQuickPhoto(photo.localId)}
+                      className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full text-white text-xs flex items-center justify-center leading-none"
+                      style={{ backgroundColor: "var(--wv-redwood)" }}
+                      aria-label="remove photo"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+              {state.evidenceState.photos.length < QUICK_MAX_PHOTOS && (
+                <button
+                  type="button"
+                  onClick={() => quickPhotoInputRef.current?.click()}
+                  className="text-xs transition-colors"
+                  style={{ color: "var(--wv-sienna)" }}
+                >
+                  + add another
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* hidden date field — auto-set to today */}
+          <input type="hidden" value={state.runDate} />
+
+          {/* submit */}
+          <div className="flex gap-3 pt-1">
+            <button
+              type="submit"
+              disabled={state.loading || !state.title.trim() || !state.runDate}
+              className="rounded-lg px-6 py-2.5 text-sm font-medium text-white disabled:opacity-40 transition-all"
+              style={{ backgroundColor: "var(--wv-seafoam)" }}
+            >
+              {state.loading
+                ? "sharing…"
+                : state.evidenceState.photos.length > 0
+                  ? "share with photo"
+                  : "share"}
+            </button>
+            <button
+              type="button"
+              onClick={() => router.push("/playbook")}
+              className="rounded-lg px-6 py-2.5 text-sm font-medium transition-all hover:opacity-70"
+              style={{ color: "var(--wv-cadet)" }}
+            >
+              cancel
+            </button>
+          </div>
+
+          {/* error */}
+          {state.error && (
+            <div
+              id="reflection-error"
+              className="rounded-lg p-3 text-sm"
+              style={{
+                backgroundColor: "rgba(177, 80, 67, 0.08)",
+                color: "var(--wv-redwood)",
+              }}
+            >
+              {state.error}
+            </div>
+          )}
+        </div>
+      ) : (
+        /* ── full reflection mode ──────────────────────────────────── */
+        <>
+          <RunFormEssentials state={state} playdates={playdates} />
+
+          {/* ── evidence capture section (practitioner tier) ────────── */}
+          <EvidenceCaptureSection
+            runId={null}
+            state={state.evidenceState}
+            onChange={state.setEvidenceState}
+            isPractitioner={isPractitioner}
+          />
+
+          <RunFormOptional state={state} materials={materials} />
+
+          <RunFormActions state={state} />
+        </>
+      )}
     </form>
   );
 }
