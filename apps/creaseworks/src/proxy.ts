@@ -106,14 +106,17 @@ export async function proxy(req: NextRequest) {
   const isAuthRoute = pathname.startsWith("/api/auth/");
   const isWebhookRoute = pathname.startsWith("/api/stripe/webhook") || pathname.startsWith("/api/webhooks/notion");
 
-  // Check authentication via JWT
-  // On HTTPS (production), NextAuth v5 prefixes cookies with __Secure-.
-  // We must tell getToken() so it looks for the right cookie name.
-  const useSecureCookies = req.nextUrl.protocol === "https:";
+  // Check authentication via JWT.
+  // Our auth config (lib/auth.ts) explicitly names the session cookie
+  // "authjs.session-token" (without __Secure- prefix) so it can be
+  // shared across creaseworks + vertigo-vault on .windedvertigo.com.
+  // We must pass the exact cookie name here — otherwise getToken()
+  // infers __Secure-authjs.session-token for HTTPS, which doesn't
+  // match the actual cookie and causes a login redirect loop.
   const token = await getToken({
     req,
     secret: process.env.AUTH_SECRET,
-    secureCookie: useSecureCookies,
+    cookieName: "authjs.session-token",
   });
   const isAuthed = !!token;
 
