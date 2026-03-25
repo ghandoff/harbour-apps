@@ -79,33 +79,62 @@ export async function syncVaultActivities() {
     label: "vault activities",
     parsePage: parseVaultActivityPage,
     upsertRow: async (row) => {
-      // Sync cover image to R2
+      // Check if this page has changed since last sync — skip expensive
+      // image downloads and block fetches for unchanged pages.
+      const existing = await sql`
+        SELECT cover_r2_key, cover_url, body_html, content_md, notion_last_edited
+        FROM vault_activities_cache
+        WHERE notion_id = ${row.notionId}
+      `;
+      const prev = existing.rows[0] as {
+        cover_r2_key: string | null;
+        cover_url: string | null;
+        body_html: string | null;
+        content_md: string | null;
+        notion_last_edited: string | null;
+      } | undefined;
+      const pageUnchanged = prev?.notion_last_edited === row.lastEdited;
+      if (pageUnchanged && prev?.cover_r2_key && prev?.body_html) {
+        console.log(`[sync]   ↳ ${row.name}: unchanged, reusing cached data`);
+      } else {
+        console.log(`[sync]   ↳ ${row.name}: ${prev ? "updated" : "new"}, syncing...`);
+      }
+
+      // Sync cover image to R2 — skip if page unchanged and R2 key exists
       let coverR2Key: string | null = null;
       let coverUrl: string | null = null;
       if (row.coverSourceUrl) {
-        coverR2Key = await syncImageToR2(row.coverSourceUrl, row.notionId, "cover");
-        coverUrl = imageUrl(coverR2Key);
+        if (pageUnchanged && prev?.cover_r2_key) {
+          coverR2Key = prev.cover_r2_key;
+          coverUrl = prev.cover_url;
+        } else {
+          coverR2Key = await syncImageToR2(row.coverSourceUrl, row.notionId, "cover");
+          coverUrl = imageUrl(coverR2Key);
+        }
       }
 
-      // Fetch page body content as HTML + markdown
+      // Fetch page body content — skip if page unchanged and body exists
       let bodyHtml: string | null = null;
       let contentMd: string | null = null;
-      try {
-        bodyHtml = await fetchPageBodyHtml(notion(), row.notionId);
-        // Simple HTML → plain-ish markdown for the standalone vault
-        // (the standalone app currently uses markdown from blocks)
-        contentMd = bodyHtml
-          ? bodyHtml
-              .replace(/<h2[^>]*>/g, "## ")
-              .replace(/<h3[^>]*>/g, "### ")
-              .replace(/<\/h[23]>/g, "\n")
-              .replace(/<li>/g, "- ")
-              .replace(/<\/li>/g, "\n")
-              .replace(/<[^>]+>/g, "")
-              .trim()
-          : null;
-      } catch {
-        // Non-blocking — body content is supplementary
+      if (pageUnchanged && prev?.body_html) {
+        bodyHtml = prev.body_html;
+        contentMd = prev.content_md;
+      } else {
+        try {
+          bodyHtml = await fetchPageBodyHtml(notion(), row.notionId);
+          contentMd = bodyHtml
+            ? bodyHtml
+                .replace(/<h2[^>]*>/g, "## ")
+                .replace(/<h3[^>]*>/g, "### ")
+                .replace(/<\/h[23]>/g, "\n")
+                .replace(/<li>/g, "- ")
+                .replace(/<\/li>/g, "\n")
+                .replace(/<[^>]+>/g, "")
+                .trim()
+            : null;
+        } catch {
+          // Non-blocking — body content is supplementary
+        }
       }
 
       await sql`
