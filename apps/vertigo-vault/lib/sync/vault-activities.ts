@@ -91,9 +91,14 @@ export async function syncVaultActivities() {
         cover_url: string | null;
         body_html: string | null;
         content_md: string | null;
-        notion_last_edited: string | null;
+        notion_last_edited: Date | string | null;
       } | undefined;
-      const pageUnchanged = prev?.notion_last_edited === row.lastEdited;
+      // Postgres returns Date objects for timestamp columns; Notion gives ISO strings.
+      // Normalise both to ISO strings for comparison.
+      const prevEdited = prev?.notion_last_edited instanceof Date
+        ? prev.notion_last_edited.toISOString()
+        : prev?.notion_last_edited;
+      const pageUnchanged = prevEdited === row.lastEdited;
       if (pageUnchanged && prev?.cover_r2_key && prev?.body_html) {
         console.log(`[sync]   ↳ ${row.name}: unchanged, reusing cached data`);
       } else {
