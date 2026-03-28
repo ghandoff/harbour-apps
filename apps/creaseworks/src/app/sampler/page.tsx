@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getTeaserPlaydates, batchGetMaterialsForPlaydates } from "@/lib/queries/playdates";
+import { getTeaserPlaydates } from "@/lib/queries/playdates";
 import { getSession } from "@/lib/auth-helpers";
 import { getUserOnboardingStatus } from "@/lib/queries/users";
 import { getRunsForUser } from "@/lib/queries/runs";
@@ -46,11 +46,7 @@ export default async function SamplerPage() {
 
   const playdateIds = playdates.map((p: TeaserPlaydate) => p.id);
 
-  // Batch-fetch pack info and materials in parallel
-  const [packInfoMap, materialsMap] = await Promise.all([
-    batchGetPackInfoForPlaydates(playdateIds),
-    batchGetMaterialsForPlaydates(playdateIds),
-  ]);
+  const packInfoMap = await batchGetPackInfoForPlaydates(playdateIds);
 
   // Check if signed-in user needs onboarding
   const onboarding = session
@@ -64,6 +60,9 @@ export default async function SamplerPage() {
     userRuns = await getRunsForUser(session, 1, 0);
   }
   const hasRuns = userRuns.length > 0;
+
+  // Tracks the "start here" pick so the grid can skip the duplicate
+  let startHereSlug: string | null = null;
 
   return (
     <main className="min-h-screen px-6 pt-16 pb-24 sm:pb-16 max-w-5xl mx-auto">
@@ -129,6 +128,9 @@ export default async function SamplerPage() {
           (p: TeaserPlaydate) => p.friction_dial !== null && p.friction_dial <= 2 && p.start_in_120s,
         ) ?? playdates[0];
 
+        // Stash the pick slug so the grid can exclude it
+        startHereSlug = pick.slug;
+
         // Show "start here" card for logged-in users with no runs
         if (session && !hasRuns) {
           return (
@@ -182,7 +184,9 @@ export default async function SamplerPage() {
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 wv-stagger">
-          {playdates.map((p: TeaserPlaydate) => {
+          {playdates
+            .filter((p: TeaserPlaydate) => p.slug !== startHereSlug)
+            .map((p: TeaserPlaydate) => {
             const pi = packInfoMap.get(p.id);
             return (
               <PlaydateCard
@@ -201,7 +205,6 @@ export default async function SamplerPage() {
                 tinkeringTier={p.tinkering_tier}
                 coverUrl={p.cover_url}
                 visibleFields={p.gallery_visible_fields}
-                materials={materialsMap.get(p.id) ?? null}
               />
             );
           })}
