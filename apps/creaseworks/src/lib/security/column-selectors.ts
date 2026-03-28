@@ -8,7 +8,9 @@
 
 // ── playdates ────────────────────────────────────────────────────────────
 
-/** Teaser tier — public sampler page, unauthenticated visitors. */
+/** Teaser tier — public sampler page, unauthenticated visitors.
+ *  Includes phase content so sampler playdates can be enjoyed in full.
+ *  The entitled tier adds material tips, substitutions, and PDF access. */
 export const PLAYDATE_TEASER_COLUMNS = [
   "id",
   "slug",
@@ -29,13 +31,7 @@ export const PLAYDATE_TEASER_COLUMNS = [
   "tinkering_tier",
   "cover_url",
   "gallery_visible_fields",
-] as const;
-
-/** Entitled tier — authenticated users whose org owns the pack. */
-export const PLAYDATE_ENTITLED_COLUMNS = [
-  ...PLAYDATE_TEASER_COLUMNS,
-  "slots_optional",
-  "slots_notes",
+  /* phase content — shown in full on sampler pages */
   "find",
   "fold",
   "unfold",
@@ -45,6 +41,13 @@ export const PLAYDATE_ENTITLED_COLUMNS = [
   "find_again_mode",
   "find_again_prompt",
   "find_again_prompt_html",
+] as const;
+
+/** Entitled tier — authenticated users whose org owns the pack. */
+export const PLAYDATE_ENTITLED_COLUMNS = [
+  ...PLAYDATE_TEASER_COLUMNS,
+  "slots_optional",
+  "slots_notes",
   "substitutions_notes",
   "substitutions_notes_html",
   "body_html",

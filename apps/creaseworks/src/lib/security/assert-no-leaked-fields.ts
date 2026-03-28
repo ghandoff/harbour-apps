@@ -26,12 +26,7 @@ const COLLECTIVE_ONLY_FIELDS = new Set([
 const ENTITLED_ONLY_FIELDS = new Set([
   "slots_optional",
   "slots_notes",
-  // rails_sentence is intentionally in PLAYDATE_TEASER_COLUMNS (public)
-  "find",
-  "fold",
-  "unfold",
-  "find_again_mode",
-  "find_again_prompt",
+  // phase content (find, fold, unfold, find_again_*) is now in teaser tier
   "substitutions_notes",
   "body_html",
   "illustration_url",
