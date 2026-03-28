@@ -61,8 +61,29 @@ export default async function SamplerPage() {
   }
   const hasRuns = userRuns.length > 0;
 
-  // Tracks the "start here" pick so the grid can skip the duplicate
-  let startHereSlug: string | null = null;
+  // Pick the "start here" recommendation before rendering so the grid
+  // can filter it out — avoids duplicating the same card in both places.
+  const prefs = onboarding?.play_preferences;
+  const energyPref = prefs?.energy;
+  const contextPref = prefs?.contexts as string[] | undefined;
+
+  const startHerePick = !needsOnboarding && playdates.length > 0
+    ? (playdates.find((p: TeaserPlaydate) => {
+        if (energyPref === "chill" && (p.friction_dial === null || p.friction_dial > 2)) return false;
+        if (energyPref === "active" && (p.friction_dial === null || p.friction_dial < 4)) return false;
+        if (contextPref?.length && p.context_tags?.length) {
+          const tags = p.context_tags as string[];
+          if (!contextPref.some((c: string) => tags.includes(c))) return false;
+        }
+        return p.start_in_120s;
+      }) ?? playdates.find(
+        (p: TeaserPlaydate) => p.friction_dial !== null && p.friction_dial <= 2 && p.start_in_120s,
+      ) ?? playdates[0])
+    : null;
+
+  const gridPlaydates = startHerePick
+    ? playdates.filter((p: TeaserPlaydate) => p.slug !== startHerePick.slug)
+    : playdates;
 
   return (
     <main className="min-h-screen px-6 pt-16 pb-24 sm:pb-16 max-w-5xl mx-auto">
@@ -108,72 +129,43 @@ export default async function SamplerPage() {
       )}
 
       {/* start here — recommend a low-friction quick-start playdate */}
-      {!needsOnboarding && playdates.length > 0 && (() => {
-        // Use preferences to pick a better match if available
-        const prefs = onboarding?.play_preferences;
-        const energyPref = prefs?.energy;
-        const contextPref = prefs?.contexts as string[] | undefined;
-
-        const pick = playdates.find((p: TeaserPlaydate) => {
-          // Match energy preference
-          if (energyPref === "chill" && (p.friction_dial === null || p.friction_dial > 2)) return false;
-          if (energyPref === "active" && (p.friction_dial === null || p.friction_dial < 4)) return false;
-          // Match context preference if set
-          if (contextPref?.length && p.context_tags?.length) {
-            const tags = p.context_tags as string[];
-            if (!contextPref.some((c: string) => tags.includes(c))) return false;
-          }
-          return p.start_in_120s;
-        }) ?? playdates.find(
-          (p: TeaserPlaydate) => p.friction_dial !== null && p.friction_dial <= 2 && p.start_in_120s,
-        ) ?? playdates[0];
-
-        // Stash the pick slug so the grid can exclude it
-        startHereSlug = pick.slug;
-
-        // Show "start here" card for logged-in users with no runs
-        if (session && !hasRuns) {
-          return (
-            <StartHereCard
-              slug={pick.slug}
-              title={pick.title}
-              headline={pick.headline}
-              primaryFunction={pick.primary_function}
-              arcEmphasis={pick.arc_emphasis ?? []}
-              contextTags={pick.context_tags ?? []}
-              frictionDial={pick.friction_dial}
-              startIn120s={pick.start_in_120s}
-              hasFindAgain={pick.has_find_again}
-              runCount={pick.run_count}
-              coverUrl={pick.cover_url}
-              visibleFields={pick.gallery_visible_fields}
-            />
-          );
-        }
-
-        // Otherwise show the standard recommendation link
-        return (
-          <Link
-            href={`/sampler/${pick.slug}`}
-            className="block mb-8 rounded-xl border px-5 py-4 hover:shadow-md transition-all"
-            style={{
-              borderColor: "rgba(228, 196, 137, 0.3)",
-              backgroundColor: "rgba(228, 196, 137, 0.08)",
-            }}
-          >
-            <p className="text-2xs font-semibold tracking-wide text-champagne mb-1">
-              {prefs ? "recommended for you" : "new here? start with this one"}
-            </p>
-            <p className="text-base font-semibold text-cadet">{pick.title}</p>
-            {pick.headline && (
-              <p className="text-sm text-cadet/50 mt-0.5">{pick.headline}</p>
-            )}
-            <p className="text-xs text-cadet/40 mt-2">
-              🌿 chill &middot; ready in 2 min &middot; no account needed &rarr;
-            </p>
-          </Link>
-        );
-      })()}
+      {startHerePick && session && !hasRuns && (
+        <StartHereCard
+          slug={startHerePick.slug}
+          title={startHerePick.title}
+          headline={startHerePick.headline}
+          primaryFunction={startHerePick.primary_function}
+          arcEmphasis={startHerePick.arc_emphasis ?? []}
+          contextTags={startHerePick.context_tags ?? []}
+          frictionDial={startHerePick.friction_dial}
+          startIn120s={startHerePick.start_in_120s}
+          hasFindAgain={startHerePick.has_find_again}
+          runCount={startHerePick.run_count}
+          coverUrl={startHerePick.cover_url}
+          visibleFields={startHerePick.gallery_visible_fields}
+        />
+      )}
+      {startHerePick && (!session || hasRuns) && (
+        <Link
+          href={`/sampler/${startHerePick.slug}`}
+          className="block mb-8 rounded-xl border px-5 py-4 hover:shadow-md transition-all"
+          style={{
+            borderColor: "rgba(228, 196, 137, 0.3)",
+            backgroundColor: "rgba(228, 196, 137, 0.08)",
+          }}
+        >
+          <p className="text-2xs font-semibold tracking-wide text-champagne mb-1">
+            {prefs ? "recommended for you" : "new here? start with this one"}
+          </p>
+          <p className="text-base font-semibold text-cadet">{startHerePick.title}</p>
+          {startHerePick.headline && (
+            <p className="text-sm text-cadet/50 mt-0.5">{startHerePick.headline}</p>
+          )}
+          <p className="text-xs text-cadet/40 mt-2">
+            🌿 chill &middot; ready in 2 min &middot; no account needed &rarr;
+          </p>
+        </Link>
+      )}
 
       {playdates.length === 0 ? (
         <div className="text-center py-20">
@@ -184,9 +176,7 @@ export default async function SamplerPage() {
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 wv-stagger">
-          {playdates
-            .filter((p: TeaserPlaydate) => p.slug !== startHereSlug)
-            .map((p: TeaserPlaydate) => {
+          {gridPlaydates.map((p: TeaserPlaydate) => {
             const pi = packInfoMap.get(p.id);
             return (
               <PlaydateCard
