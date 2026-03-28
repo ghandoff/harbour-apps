@@ -4,8 +4,22 @@ import type { ReactNode } from "react";
 import CardActionSlot from "./card-action-slot";
 import { PlaydateIllustration } from "../playdate-illustration";
 
-/* ── function → colour mapping for form × function pills ── */
+/* ── function → colour mapping for material function pills ── */
 const FUNCTION_COLOURS: Record<string, { bg: string; text: string }> = {
+  /* material functions (from Notion) */
+  express:        { bg: "rgba(177, 80, 67, 0.12)",  text: "var(--wv-redwood)" },
+  inspire:        { bg: "rgba(203, 120, 88, 0.12)", text: "var(--wv-sienna)" },
+  elaborate:      { bg: "rgba(88, 114, 203, 0.12)", text: "var(--wv-cornflower)" },
+  "build":        { bg: "rgba(39, 50, 72, 0.10)",   text: "var(--wv-cadet)" },
+  "capture":      { bg: "rgba(67, 177, 135, 0.12)", text: "var(--wv-seafoam)" },
+  "connect":      { bg: "rgba(67, 177, 135, 0.12)", text: "var(--wv-seafoam)" },
+  "coordinate":   { bg: "rgba(203, 120, 88, 0.12)", text: "var(--wv-sienna)" },
+  "create space": { bg: "rgba(88, 114, 203, 0.12)", text: "var(--wv-cornflower)" },
+  "divide":       { bg: "rgba(67, 72, 36, 0.12)",   text: "var(--wv-moss)" },
+  "enable":       { bg: "rgba(67, 109, 177, 0.12)", text: "var(--wv-navy)" },
+  "organize":     { bg: "rgba(39, 50, 72, 0.10)",   text: "var(--wv-cadet)" },
+  "specify":      { bg: "rgba(177, 80, 67, 0.12)",  text: "var(--wv-redwood)" },
+  /* material forms (legacy fallback) */
   connector:      { bg: "rgba(67, 177, 135, 0.12)", text: "var(--wv-seafoam)" },
   base:           { bg: "rgba(39, 50, 72, 0.10)",   text: "var(--wv-cadet)" },
   container:      { bg: "rgba(88, 114, 203, 0.12)", text: "var(--wv-cornflower)" },
@@ -21,7 +35,8 @@ function getFunctionStyle(fn: string): { bg: string; text: string } {
   for (const [key, style] of Object.entries(FUNCTION_COLOURS)) {
     if (lower.includes(key)) return style;
   }
-  return { bg: "rgba(39, 50, 72, 0.06)", text: "var(--wv-cadet)" };
+  /* pleasant neutral fallback instead of dark cadet */
+  return { bg: "rgba(203, 120, 88, 0.08)", text: "var(--wv-sienna)" };
 }
 
 export interface PlaydateMaterial {
@@ -188,24 +203,23 @@ export function PlaydateCard({
         </div>
       ) : null}
 
+      {/* badges — positioned over cover image */}
+      {badge && (
+        <span
+          className={`absolute top-3 right-3 z-10 inline-flex items-center justify-center rounded-full px-1.5 py-0.5 text-2xs font-semibold leading-none ${badge.className}`}
+          title={progressTier?.replace(/_/g, " ") ?? ""}
+        >
+          {badge.label}
+        </span>
+      )}
+      {isBeginner && !badge && (
+        <span className="absolute top-3 right-3 z-10 inline-flex items-center gap-1 rounded-full bg-white/90 backdrop-blur-sm px-2 py-0.5 text-2xs font-semibold text-sienna shadow-sm">
+          great first pick
+        </span>
+      )}
+
       {/* content area with padding */}
       <div className="p-6">
-        {/* progress tier badge (top-right) */}
-        {badge && (
-          <span
-            className={`absolute top-3 right-3 inline-flex items-center justify-center rounded-full px-1.5 py-0.5 text-2xs font-semibold leading-none ${badge.className}`}
-            title={progressTier?.replace(/_/g, " ") ?? ""}
-          >
-            {badge.label}
-          </span>
-        )}
-
-        {/* beginner-friendly badge */}
-        {isBeginner && !badge && (
-          <span className="absolute top-3 right-3 inline-flex items-center gap-1 rounded-full bg-champagne px-2 py-0.5 text-2xs font-semibold text-sienna">
-            great first pick
-          </span>
-        )}
 
         <h2 className="text-lg font-semibold text-cadet mb-1">{title}</h2>
 
