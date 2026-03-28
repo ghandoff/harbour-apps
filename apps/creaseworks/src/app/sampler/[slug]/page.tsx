@@ -11,20 +11,10 @@ import { getSession } from "@/lib/auth-helpers";
 import Image from "next/image";
 import EntitledPlaydateView from "@/components/ui/entitled-playdate-view";
 import QuickLogButton from "@/components/ui/quick-log-button";
-import { MaterialIllustration } from "@/components/material-illustration";
-
 export const dynamic = "force-dynamic";
 
 interface Props {
   params: Promise<{ slug: string }>;
-}
-
-interface Material {
-  id: string;
-  title: string;
-  form_primary: string;
-  functions: string[] | null;
-  context_tags: string[] | null;
 }
 
 export default async function PlaydateTeaserPage({ params }: Props) {
@@ -84,10 +74,7 @@ export default async function PlaydateTeaserPage({ params }: Props) {
   const playdate = await getTeaserPlaydateBySlug(slug);
   if (!playdate) return notFound();
 
-  const [materials, pack] = await Promise.all([
-    getTeaserMaterialsForPlaydate(playdate.id),
-    getFirstVisiblePackForPlaydate(playdate.id),
-  ]);
+  const pack = await getFirstVisiblePackForPlaydate(playdate.id);
 
   // Entitled user WITH a pack → redirect to the pack's playdate page
   if (session && pack) {
@@ -129,20 +116,8 @@ export default async function PlaydateTeaserPage({ params }: Props) {
         <p className="text-lg text-cadet/60 mb-6">{playdate.headline}</p>
       )}
 
-      {/* the big idea — narrative hook */}
-      {playdate.rails_sentence && (
-        <section className="rounded-xl border border-cadet/10 bg-white p-6 mb-8">
-          <h2 className="text-sm font-semibold text-cadet/80 mb-2">
-            the big idea
-          </h2>
-          <p className="text-sm text-cadet/80 italic">
-            {playdate.rails_sentence}
-          </p>
-        </section>
-      )}
-
-      {/* at a glance — quick parent-readable summary */}
-      <section className="rounded-xl border border-cadet/10 bg-champagne/30 p-6 mb-8">
+      {/* ── tile 1: at a glance ── */}
+      <section className="rounded-xl border border-cadet/10 bg-champagne/30 p-6 mb-4">
         <h2 className="text-sm font-semibold text-cadet/80 mb-4">
           at a glance
         </h2>
@@ -192,30 +167,68 @@ export default async function PlaydateTeaserPage({ params }: Props) {
         </div>
       </section>
 
-      {/* materials preview */}
-      {materials.length > 0 && (
-        <section className="mb-8">
-          <h2 className="text-sm font-semibold text-cadet/80 mb-3">
-            what you&apos;ll need
+      {/* ── tile 2: the big idea ── */}
+      {playdate.rails_sentence && (
+        <section className="rounded-xl border border-cadet/10 bg-white p-6 mb-4">
+          <h2 className="text-sm font-semibold text-cadet/80 mb-2">
+            the big idea
           </h2>
-          <ul className="space-y-2">
-            {materials.map((m: Material) => (
-              <li
-                key={m.id}
-                className="flex items-center gap-2.5 text-sm"
-              >
-                <MaterialIllustration formPrimary={m.form_primary} size={24} className="opacity-80" />
-                <span className="inline-block rounded-full bg-cadet/5 px-2.5 py-0.5 text-xs font-medium text-cadet/70">
-                  {m.form_primary}
-                </span>
-                <span className="text-cadet/80">{m.title}</span>
-              </li>
-            ))}
-          </ul>
+          <p className="text-sm text-cadet/80 italic">
+            {playdate.rails_sentence}
+          </p>
         </section>
       )}
 
-      {/* locked content teaser — FOMO section */}
+      {/* ── tiles 3–6: phase rhythm ── */}
+      <div className="space-y-3 mb-4">
+        {/* tile 3: find */}
+        <section className="rounded-xl border border-redwood/15 bg-redwood/5 p-5">
+          <h3 className="text-xs font-bold text-redwood tracking-wider mb-1">
+            find
+          </h3>
+          <p className="text-sm text-cadet/70">
+            gather your materials and set the stage — this is where curiosity
+            gets sparked and the playdate begins to take shape.
+          </p>
+        </section>
+
+        {/* tile 4: fold */}
+        <section className="rounded-xl border border-sienna/15 bg-sienna/5 p-5">
+          <h3 className="text-xs font-bold text-sienna tracking-wider mb-1">
+            fold
+          </h3>
+          <p className="text-sm text-cadet/70">
+            dive into the hands-on exploration — kids experiment, build,
+            and discover through open-ended play with real materials.
+          </p>
+        </section>
+
+        {/* tile 5: unfold */}
+        <section className="rounded-xl border border-cadet/15 bg-cadet/5 p-5">
+          <h3 className="text-xs font-bold text-cadet tracking-wider mb-1">
+            unfold
+          </h3>
+          <p className="text-sm text-cadet/70">
+            pause and reflect on what happened — notice what kids tried,
+            what surprised them, and what they might do differently next time.
+          </p>
+        </section>
+
+        {/* tile 6: find again (conditional) */}
+        {playdate.has_find_again && (
+          <section className="rounded-xl border border-redwood/20 bg-redwood/5 p-5">
+            <h3 className="text-xs font-bold text-redwood tracking-wider mb-1">
+              find again
+            </h3>
+            <p className="text-sm text-cadet/70">
+              carry the idea beyond the playdate — a prompt to spot the same
+              concept in everyday life, turning one session into ongoing curiosity.
+            </p>
+          </section>
+        )}
+      </div>
+
+      {/* ── full facilitation guide — upsell ── */}
       <section className="rounded-xl border border-sienna/20 bg-gradient-to-b from-champagne/20 to-champagne/5 p-6 mb-8">
         <div className="flex items-start gap-3 mb-4">
           <span className="text-lg leading-none mt-0.5">🔒</span>
@@ -224,33 +237,11 @@ export default async function PlaydateTeaserPage({ params }: Props) {
               full facilitation guide
             </h2>
             <p className="text-sm text-cadet/60">
-              the full playdate includes step-by-step facilitation
-              with three phases — find, fold, and unfold — plus
-              material swap ideas and timing tips.
+              unlock the complete playdate with step-by-step facilitation
+              for each phase, material swap ideas, timing tips, and
+              developmental notes.
             </p>
           </div>
-        </div>
-
-        {/* teaser list of what's inside */}
-        <div className="ml-8 space-y-2 text-sm text-cadet/50 mb-5">
-          <div className="flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-redwood/40" />
-            <span>find — how to set up and introduce the activity</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-sienna/40" />
-            <span>fold — the core hands-on exploration</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-cadet/30" />
-            <span>unfold — reflection and what to notice</span>
-          </div>
-          {playdate.has_find_again && (
-            <div className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-redwood/60" />
-              <span>find again — a prompt to spot the idea in everyday life</span>
-            </div>
-          )}
         </div>
 
         <Link
