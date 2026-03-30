@@ -3,6 +3,7 @@ import { syncAll } from "@/lib/sync";
 
 /** Allow up to 60 s on Hobby, 300 s on Pro. */
 export const maxDuration = 300;
+export const dynamic = "force-dynamic";
 
 /**
  * POST /api/cron/sync-notion
@@ -15,6 +16,10 @@ export async function POST(request: Request) {
   if (!cronSecret) {
     console.error("[cron/sync-notion] CRON_SECRET is not set — rejecting request");
     return NextResponse.json({ error: "not configured" }, { status: 500 });
+  }
+
+  if (!process.env.NOTION_TOKEN) {
+    console.error("[cron/sync-notion] NOTION_TOKEN is not set — sync will fail");
   }
 
   const authHeader = request.headers.get("authorization");

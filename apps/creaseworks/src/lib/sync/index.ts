@@ -28,20 +28,61 @@ export async function syncAll() {
   const t0 = Date.now();
   console.log("[sync] starting full sync…");
 
-  const materialsCount = await syncMaterials();
-  const playdatesCount = await syncPlaydates();
-  const collectionsCount = await syncCollections();
-  const packsCount = await syncPacks();
-  const runsCount = await syncRuns();
-  const cmsPageCount = await syncCmsPages();
-  const siteCopyCount = await syncSiteCopy();
-  const appConfigCount = await syncAppConfig();
+  const errors: string[] = [];
+
+  let materialsCount = 0;
+  try { materialsCount = await syncMaterials(); } catch (e: any) {
+    console.error("[sync] materials failed:", e.message);
+    errors.push(`materials: ${e.message}`);
+  }
+
+  let playdatesCount = 0;
+  try { playdatesCount = await syncPlaydates(); } catch (e: any) {
+    console.error("[sync] playdates failed:", e.message);
+    errors.push(`playdates: ${e.message}`);
+  }
+
+  let collectionsCount = 0;
+  try { collectionsCount = await syncCollections(); } catch (e: any) {
+    console.error("[sync] collections failed:", e.message);
+    errors.push(`collections: ${e.message}`);
+  }
+
+  let packsCount = 0;
+  try { packsCount = await syncPacks(); } catch (e: any) {
+    console.error("[sync] packs failed:", e.message);
+    errors.push(`packs: ${e.message}`);
+  }
+
+  let runsCount = 0;
+  try { runsCount = await syncRuns(); } catch (e: any) {
+    console.error("[sync] runs failed:", e.message);
+    errors.push(`runs: ${e.message}`);
+  }
+
+  let cmsPageCount = 0;
+  try { cmsPageCount = await syncCmsPages(); } catch (e: any) {
+    console.error("[sync] cms pages failed:", e.message);
+    errors.push(`cmsPages: ${e.message}`);
+  }
+
+  let siteCopyCount = 0;
+  try { siteCopyCount = await syncSiteCopy(); } catch (e: any) {
+    console.error("[sync] site copy failed:", e.message);
+    errors.push(`siteCopy: ${e.message}`);
+  }
+
+  let appConfigCount = 0;
+  try { appConfigCount = await syncAppConfig(); } catch (e: any) {
+    console.error("[sync] app config failed:", e.message);
+    errors.push(`appConfig: ${e.message}`);
+  }
 
   // Invalidate matcher cache so new playdates/materials are picked up immediately
   invalidateCandidateCache();
 
   const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
-  console.log(`[sync] full sync complete in ${elapsed}s`);
+  console.log(`[sync] full sync complete in ${elapsed}s — ${errors.length} error(s)`);
 
-  return { materialsCount, playdatesCount, collectionsCount, packsCount, runsCount, cmsPageCount, siteCopyCount, appConfigCount, elapsedSeconds: elapsed };
+  return { materialsCount, playdatesCount, collectionsCount, packsCount, runsCount, cmsPageCount, siteCopyCount, appConfigCount, errors, elapsedSeconds: elapsed };
 }
