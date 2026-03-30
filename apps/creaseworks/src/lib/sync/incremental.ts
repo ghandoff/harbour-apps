@@ -174,6 +174,8 @@ async function upsertMaterial(page: NotionPage) {
   const lastEdited = extractLastEdited(page);
 
   // Extract all material fields — must match materials_cache schema
+  const emoji = extractRichText(props, "emoji");
+  const icon = extractRichText(props, "icon");
   const formPrimary = extractSelect(props, "form (primary)");
   const functions = extractMultiSelect(props, "functions");
   const connectorModes = extractMultiSelect(props, "connector modes");
@@ -189,12 +191,12 @@ async function upsertMaterial(page: NotionPage) {
 
   await sql`
     INSERT INTO materials_cache (
-      notion_id, title, form_primary, functions, connector_modes,
+      notion_id, title, emoji, icon, form_primary, functions, connector_modes,
       context_tags, do_not_use, do_not_use_reason, shareability,
       min_qty_size, examples_notes, generation_notes,
       generation_prompts, source, notion_last_edited, synced_at
     ) VALUES (
-      ${notionId}, ${title}, ${formPrimary},
+      ${notionId}, ${title}, ${emoji}, ${icon}, ${formPrimary},
       ${JSON.stringify(functions)}, ${JSON.stringify(connectorModes)},
       ${JSON.stringify(contextTags)}, ${doNotUse},
       ${doNotUseReason}, ${shareability}, ${minQtySize},
@@ -204,6 +206,8 @@ async function upsertMaterial(page: NotionPage) {
     )
     ON CONFLICT (notion_id) DO UPDATE SET
       title = EXCLUDED.title,
+      emoji = EXCLUDED.emoji,
+      icon = EXCLUDED.icon,
       form_primary = EXCLUDED.form_primary,
       functions = EXCLUDED.functions,
       connector_modes = EXCLUDED.connector_modes,
