@@ -297,13 +297,21 @@ export function FacilitatorDashboard({ state, send, connected }: Props) {
                     reveal results ({submittedCount}/{participants.length})
                   </button>
                 )}
-                <button
-                  onClick={handleAdvance}
-                  disabled={state.currentActivityIndex >= state.activities.length - 1}
-                  className="flex-1 py-2.5 rounded-xl bg-[var(--rh-deep)] text-white text-sm font-semibold hover:bg-black transition-colors disabled:opacity-30"
-                >
-                  next &rarr;
-                </button>
+                {state.currentActivityIndex >= state.activities.length - 1 ? (
+                  <button
+                    onClick={handleEndSession}
+                    className="flex-1 py-2.5 rounded-xl bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition-colors"
+                  >
+                    end session
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleAdvance}
+                    className="flex-1 py-2.5 rounded-xl bg-[var(--rh-deep)] text-white text-sm font-semibold hover:bg-black transition-colors"
+                  >
+                    next &rarr;
+                  </button>
+                )}
               </div>
             </div>
           ) : (
