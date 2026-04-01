@@ -1,10 +1,10 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
 import type { RoomState, FacilitatorMessage } from "@/lib/types";
-import { downloadReport } from "@/lib/export";
+import { downloadReport, generateSessionReport } from "@/lib/export";
 import { ActivityRenderer } from "./activity-renderer";
 import { TimerDisplay } from "./timer-display";
 
@@ -64,6 +64,55 @@ export function FacilitatorDashboard({ state, send, connected }: Props) {
 
   const handleExport = useCallback(() => downloadReport(state), [state]);
 
+  // ── auto-save to Notion when session completes ─────────────────
+  const [saveStatus, setSaveStatus] = useState<
+    "idle" | "saving" | "saved" | "error"
+  >("idle");
+  const savedRef = useRef(false);
+
+  useEffect(() => {
+    if (state.status !== "completed" || savedRef.current) return;
+    savedRef.current = true;
+    setSaveStatus("saving");
+
+    // read session name from sessionStorage (set during session creation)
+    let sessionName = state.code;
+    let template = "";
+    try {
+      const stored = sessionStorage.getItem(`raft:${state.code}`);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        sessionName = parsed.sessionName || sessionName;
+        template = parsed.template || "";
+      }
+    } catch {
+      // ignore
+    }
+
+    const report = generateSessionReport(state);
+
+    fetch("/harbour/raft-house/api/save-session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sessionName,
+        code: state.code,
+        template,
+        facilitator: "",
+        participantCount: participants.length,
+        activityCount: state.activities.length,
+        date: new Date(state.createdAt).toISOString(),
+        results: report,
+      }),
+    })
+      .then((res) => {
+        setSaveStatus(res.ok ? "saved" : "error");
+      })
+      .catch(() => {
+        setSaveStatus("error");
+      });
+  }, [state, participants.length]);
+
   if (state.status === "completed") {
     return (
       <div className="min-h-screen flex items-center justify-center px-6">
@@ -73,6 +122,14 @@ export function FacilitatorDashboard({ state, send, connected }: Props) {
           <p className="text-[var(--rh-text-muted)] mb-6">
             {participants.length} participants crossed with you.
           </p>
+
+          {/* save status indicator */}
+          <p className="text-xs text-[var(--rh-text-muted)] mb-4">
+            {saveStatus === "saving" && "saving to history..."}
+            {saveStatus === "saved" && "✓ saved to session history"}
+            {saveStatus === "error" && "could not save — download results below"}
+          </p>
+
           <div className="flex flex-col items-center gap-3">
             <button
               onClick={handleExport}
@@ -80,6 +137,12 @@ export function FacilitatorDashboard({ state, send, connected }: Props) {
             >
               export results
             </button>
+            <Link
+              href="/facilitate/history"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-black/10 text-sm font-medium hover:bg-black/5 transition-colors"
+            >
+              view session history
+            </Link>
             <Link
               href="/facilitate"
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[var(--rh-teal)] text-white text-sm font-semibold hover:bg-[var(--rh-deep)] transition-colors"

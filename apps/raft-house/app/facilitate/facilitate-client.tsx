@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { generateRoomCode } from "@/lib/room-code";
 import type { Activity } from "@/lib/types";
 import { SessionBuilder } from "@/components/session-builder";
@@ -32,6 +33,8 @@ export default function FacilitateClient({
         JSON.stringify({
           code,
           activities: template.activities,
+          sessionName: template.name,
+          template: template.name,
           createdAt: Date.now(),
         }),
       );
@@ -44,13 +47,23 @@ export default function FacilitateClient({
   return (
     <div className="max-w-2xl mx-auto px-6 py-12">
       <div className="mb-10">
-        <h1 className="text-2xl font-bold tracking-tight mb-2">
-          create a session
-        </h1>
-        <p className="text-sm text-[var(--rh-text-muted)]">
-          choose a template to start a facilitated threshold crossing.
-          participants will join with a room code on their phones.
-        </p>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight mb-2">
+              create a session
+            </h1>
+            <p className="text-sm text-[var(--rh-text-muted)]">
+              choose a template to start a facilitated threshold crossing.
+              participants will join with a room code on their phones.
+            </p>
+          </div>
+          <Link
+            href="/facilitate/history"
+            className="flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium border border-black/10 hover:bg-black/5 transition-colors"
+          >
+            history
+          </Link>
+        </div>
       </div>
 
       {/* template cards */}

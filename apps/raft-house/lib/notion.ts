@@ -2,6 +2,7 @@ import { Client } from "@notionhq/client";
 import type { Activity } from "./types";
 
 const DATABASE_ID = "8ed2d02fc2e647cf9d108a66fef9306e";
+const RESULTS_DATABASE_ID = "6bcdec6d77b84eb6870d83ba59720f04";
 
 export interface NotionSession {
   name: string;
@@ -112,4 +113,129 @@ export async function fetchSessionsFromNotion(): Promise<NotionSession[]> {
       icon: iconForSlug(slug),
     };
   });
+}
+
+// ── session results: write + read ──────────────────────────────
+
+export interface SessionResultPayload {
+  sessionName: string;
+  code: string;
+  template: string;
+  facilitator: string;
+  participantCount: number;
+  activityCount: number;
+  date: string; // ISO-8601
+  results: string; // markdown report
+}
+
+export async function saveSessionResults(
+  payload: SessionResultPayload,
+): Promise<string> {
+  const apiKey = process.env.NOTION_API_KEY;
+  if (!apiKey) throw new Error("NOTION_API_KEY is not set");
+
+  const notion = new Client({ auth: apiKey });
+
+  // Notion rich_text has a 2000-char limit per block — truncate if needed
+  const resultsText =
+    payload.results.length > 2000
+      ? payload.results.slice(0, 1997) + "..."
+      : payload.results;
+
+  const response = await notion.pages.create({
+    parent: { database_id: RESULTS_DATABASE_ID },
+    properties: {
+      Session: { title: [{ text: { content: payload.sessionName } }] },
+      Code: { rich_text: [{ text: { content: payload.code } }] },
+      Template: { rich_text: [{ text: { content: payload.template } }] },
+      Facilitator: {
+        rich_text: [{ text: { content: payload.facilitator } }],
+      },
+      Participants: { number: payload.participantCount },
+      Activities: { number: payload.activityCount },
+      Date: { date: { start: payload.date } },
+      Status: { select: { name: "completed" } },
+      Results: { rich_text: [{ text: { content: resultsText } }] },
+    },
+  });
+
+  return response.id;
+}
+
+export interface SessionHistoryEntry {
+  id: string;
+  sessionName: string;
+  code: string;
+  template: string;
+  facilitator: string;
+  participantCount: number;
+  activityCount: number;
+  date: string;
+  status: string;
+}
+
+export async function fetchSessionHistory(): Promise<SessionHistoryEntry[]> {
+  const apiKey = process.env.NOTION_API_KEY;
+  if (!apiKey) throw new Error("NOTION_API_KEY is not set");
+
+  const notion = new Client({ auth: apiKey });
+
+  const response = await notion.databases.query({
+    database_id: RESULTS_DATABASE_ID,
+    sorts: [{ property: "Date", direction: "descending" }],
+    page_size: 50,
+  });
+
+  return response.results.map((page) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const props = (page as any).properties as Record<string, unknown>;
+
+    return {
+      id: page.id,
+      sessionName: titleToString(props["Session"]),
+      code: richTextToString(props["Code"]),
+      template: richTextToString(props["Template"]),
+      facilitator: richTextToString(props["Facilitator"]),
+      participantCount: numberValue(props["Participants"]),
+      activityCount: numberValue(props["Activities"]),
+      date: dateValue(props["Date"]),
+      status: selectValue(props["Status"]),
+    };
+  });
+}
+
+export async function fetchSessionResult(
+  pageId: string,
+): Promise<{ entry: SessionHistoryEntry; results: string } | null> {
+  const apiKey = process.env.NOTION_API_KEY;
+  if (!apiKey) throw new Error("NOTION_API_KEY is not set");
+
+  const notion = new Client({ auth: apiKey });
+
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const page = (await notion.pages.retrieve({ page_id: pageId })) as any;
+    const props = page.properties as Record<string, unknown>;
+
+    return {
+      entry: {
+        id: page.id,
+        sessionName: titleToString(props["Session"]),
+        code: richTextToString(props["Code"]),
+        template: richTextToString(props["Template"]),
+        facilitator: richTextToString(props["Facilitator"]),
+        participantCount: numberValue(props["Participants"]),
+        activityCount: numberValue(props["Activities"]),
+        date: dateValue(props["Date"]),
+        status: selectValue(props["Status"]),
+      },
+      results: richTextToString(props["Results"]),
+    };
+  } catch {
+    return null;
+  }
+}
+
+function dateValue(prop: unknown): string {
+  return (prop as { date?: { start?: string } | null })?.date?.start ?? "";
 }
