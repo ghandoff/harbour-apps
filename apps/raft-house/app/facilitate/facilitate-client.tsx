@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { generateRoomCode } from "@/lib/room-code";
 import type { Activity } from "@/lib/types";
+import { SessionBuilder } from "@/components/session-builder";
 
 export interface SessionTemplate {
   name: string;
@@ -91,11 +92,19 @@ export default function FacilitateClient({
         ))}
       </div>
 
-      {/* custom session (future) */}
-      <div className="mt-8 p-5 rounded-2xl border border-dashed border-black/10 text-center">
-        <p className="text-sm text-[var(--rh-text-muted)]">
-          custom session builder coming soon — design your own activity sequence
-        </p>
+      {/* custom session builder */}
+      <div className="mt-8">
+        <SessionBuilder
+          disabled={creating}
+          onLaunch={(activities) => {
+            createSession({
+              name: "custom session",
+              description: "",
+              activities,
+              icon: "🛠️",
+            });
+          }}
+        />
       </div>
     </div>
   );
