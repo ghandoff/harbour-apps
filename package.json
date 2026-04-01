@@ -17,6 +17,8 @@
     "build:deep-deck": "npm run build -w apps/deep-deck",
     "dev:depth-chart": "npm run dev -w apps/depth-chart",
     "build:depth-chart": "npm run build -w apps/depth-chart",
+    "dev:raft": "npm run dev -w apps/raft-house",
+    "build:raft": "npm run build -w apps/raft-house",
     "test": "npm run test -w apps/creaseworks",
     "test:a11y": "npm run test:a11y -w apps/creaseworks",
     "lint": "npm run lint -w apps/creaseworks"

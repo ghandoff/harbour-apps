@@ -1,0 +1,32 @@
+{
+  "name": "@windedvertigo/raft-house",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --port 3007",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "party:dev": "npx partykit dev",
+    "party:deploy": "npx partykit deploy"
+  },
+  "dependencies": {
+    "@notionhq/client": "^2.3.0",
+    "next": "^16.2.0",
+    "partysocket": "^1.1.3",
+    "qrcode.react": "^4.2.0",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.0.0",
+    "@types/node": "^22",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9.39.2",
+    "eslint-config-next": "^16.1.6",
+    "partykit": "^0.0.115",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5"
+  }
+}

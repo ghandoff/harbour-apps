@@ -1,0 +1,102 @@
+"use client";
+
+import { useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { generateRoomCode } from "@/lib/room-code";
+import type { Activity } from "@/lib/types";
+
+export interface SessionTemplate {
+  name: string;
+  description: string;
+  activities: Activity[];
+  icon: string;
+}
+
+export default function FacilitateClient({
+  templates,
+}: {
+  templates: SessionTemplate[];
+}) {
+  const router = useRouter();
+  const [creating, setCreating] = useState(false);
+
+  const createSession = useCallback(
+    (template: SessionTemplate) => {
+      setCreating(true);
+      const code = generateRoomCode();
+
+      // store session config in sessionStorage so the live page can read it
+      sessionStorage.setItem(
+        `raft:${code}`,
+        JSON.stringify({
+          code,
+          activities: template.activities,
+          createdAt: Date.now(),
+        }),
+      );
+
+      router.push(`/facilitate/live/${code}`);
+    },
+    [router],
+  );
+
+  return (
+    <div className="max-w-2xl mx-auto px-6 py-12">
+      <div className="mb-10">
+        <h1 className="text-2xl font-bold tracking-tight mb-2">
+          create a session
+        </h1>
+        <p className="text-sm text-[var(--rh-text-muted)]">
+          choose a template to start a facilitated threshold crossing.
+          participants will join with a room code on their phones.
+        </p>
+      </div>
+
+      {/* template cards */}
+      <div className="space-y-4">
+        {templates.map((template) => (
+          <button
+            key={template.name}
+            onClick={() => createSession(template)}
+            disabled={creating}
+            className="w-full text-left p-5 rounded-2xl border border-black/10 bg-white hover:border-[var(--rh-cyan)] hover:shadow-md transition-all group disabled:opacity-50"
+          >
+            <div className="flex items-start gap-4">
+              <span className="text-3xl">{template.icon}</span>
+              <div className="flex-1">
+                <h2 className="font-semibold text-lg group-hover:text-[var(--rh-teal)] transition-colors">
+                  {template.name}
+                </h2>
+                <p className="text-sm text-[var(--rh-text-muted)] mt-1">
+                  {template.description}
+                </p>
+                <div className="flex items-center gap-2 mt-3">
+                  <span className="text-xs bg-[var(--rh-sand)] px-2 py-0.5 rounded-full">
+                    {template.activities.length} activities
+                  </span>
+                  {template.activities.map((a) => (
+                    <span
+                      key={a.id}
+                      className={`phase-dot phase-${a.phase}`}
+                      title={a.phase}
+                    />
+                  ))}
+                </div>
+              </div>
+              <span className="text-[var(--rh-text-muted)] group-hover:text-[var(--rh-teal)] transition-colors">
+                &rarr;
+              </span>
+            </div>
+          </button>
+        ))}
+      </div>
+
+      {/* custom session (future) */}
+      <div className="mt-8 p-5 rounded-2xl border border-dashed border-black/10 text-center">
+        <p className="text-sm text-[var(--rh-text-muted)]">
+          custom session builder coming soon — design your own activity sequence
+        </p>
+      </div>
+    </div>
+  );
+}

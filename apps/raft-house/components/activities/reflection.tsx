@@ -1,0 +1,97 @@
+"use client";
+
+import { useState } from "react";
+import type { ReflectionConfig, Participant } from "@/lib/types";
+
+interface Props {
+  config: ReflectionConfig;
+  role: "facilitator" | "participant";
+  onSubmit?: (response: unknown) => void;
+  responses?: Record<string, unknown>;
+  participants?: Record<string, Participant>;
+  submitted?: boolean;
+}
+
+export function ReflectionActivity({
+  config,
+  role,
+  onSubmit,
+  responses,
+  participants,
+  submitted,
+}: Props) {
+  const [text, setText] = useState("");
+  const charCount = text.length;
+  const meetsMinimum = !config.minLength || charCount >= config.minLength;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!meetsMinimum) return;
+    onSubmit?.(text.trim());
+  };
+
+  return (
+    <div>
+      <h3 className="text-lg font-semibold mb-1">{config.prompt}</h3>
+      {config.shareWithGroup && (
+        <p className="text-xs text-[var(--rh-text-muted)] mb-4">
+          your reflection will be shared with the group
+        </p>
+      )}
+
+      {role === "participant" && !submitted ? (
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <textarea
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="take your time. write what shifted for you..."
+            rows={5}
+            className="w-full px-4 py-3 rounded-xl border border-black/10 bg-white text-sm leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-[var(--rh-cyan)] focus:border-transparent"
+            autoFocus
+          />
+          <div className="flex items-center justify-between">
+            <span
+              className={`text-xs ${meetsMinimum ? "text-green-600" : "text-[var(--rh-text-muted)]"}`}
+            >
+              {charCount}
+              {config.minLength ? ` / ${config.minLength} min` : ""} characters
+            </span>
+            <button
+              type="submit"
+              disabled={!meetsMinimum}
+              className="px-5 py-2.5 rounded-xl bg-[var(--rh-cyan)] text-white text-sm font-semibold hover:bg-[var(--rh-teal)] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              submit reflection
+            </button>
+          </div>
+        </form>
+      ) : role === "participant" && submitted ? (
+        <div className="text-center py-6 text-[var(--rh-text-muted)]">
+          <p className="text-2xl mb-2">🪞</p>
+          <p className="text-sm">reflection submitted</p>
+        </div>
+      ) : (
+        /* facilitator view */
+        <div className="space-y-3 mt-4">
+          {responses ? (
+            Object.entries(responses).map(([pid, response]) => (
+              <div
+                key={pid}
+                className="p-4 rounded-xl bg-white border border-black/5"
+              >
+                <p className="text-xs font-medium text-[var(--rh-text-muted)] mb-1.5">
+                  {participants?.[pid]?.displayName || pid.slice(0, 6)}
+                </p>
+                <p className="text-sm leading-relaxed">{String(response)}</p>
+              </div>
+            ))
+          ) : (
+            <p className="text-sm text-[var(--rh-text-muted)]">
+              reflections are private until revealed
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
