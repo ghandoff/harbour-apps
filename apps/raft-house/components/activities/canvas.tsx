@@ -1,0 +1,259 @@
+"use client";
+
+import { useState, useRef, useCallback } from "react";
+import type { CanvasConfig, Participant } from "@/lib/types";
+
+interface Props {
+  config: CanvasConfig;
+  role: "facilitator" | "participant";
+  onSubmit?: (response: unknown) => void;
+  responses?: Record<string, unknown>;
+  participants?: Record<string, Participant>;
+  submitted?: boolean;
+}
+
+interface Pin {
+  x: number;
+  y: number;
+  note?: string;
+}
+
+const COLORS = [
+  "#2dd4bf", "#f472b6", "#facc15", "#818cf8", "#fb923c",
+  "#34d399", "#f87171", "#a78bfa", "#38bdf8", "#fbbf24",
+];
+
+export function CanvasActivity({
+  config,
+  role,
+  onSubmit,
+  responses,
+  participants,
+  submitted,
+}: Props) {
+  const [pin, setPin] = useState<Pin | null>(null);
+  const [note, setNote] = useState("");
+  const canvasRef = useRef<HTMLDivElement>(null);
+
+  const handleCanvasClick = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const x = Math.round(((e.clientX - rect.left) / rect.width) * config.width);
+      const y = Math.round(((e.clientY - rect.top) / rect.height) * config.height);
+      setPin({ x, y });
+    },
+    [config.width, config.height],
+  );
+
+  const handleSubmit = () => {
+    if (!pin) return;
+    const response: Pin = { x: pin.x, y: pin.y };
+    if (config.allowNote && note.trim()) {
+      response.note = note.trim();
+    }
+    onSubmit?.(response);
+  };
+
+  // convert pin coordinates to percentage for rendering
+  const toPercent = (val: number, max: number) => (val / max) * 100;
+
+  return (
+    <div>
+      <h3 className="text-lg font-semibold mb-4">{config.prompt}</h3>
+
+      {role === "participant" && !submitted ? (
+        <div className="space-y-4">
+          {/* interactive canvas */}
+          <div
+            ref={canvasRef}
+            onClick={handleCanvasClick}
+            className="relative w-full border border-black/10 rounded-xl bg-white cursor-crosshair overflow-hidden select-none"
+            style={{ aspectRatio: `${config.width} / ${config.height}` }}
+          >
+            {/* axis labels */}
+            {config.xLabel && (
+              <span className="absolute bottom-1 left-1/2 -translate-x-1/2 text-[10px] text-[var(--rh-text-muted)] uppercase tracking-wider">
+                {config.xLabel}
+              </span>
+            )}
+            {config.yLabel && (
+              <span className="absolute left-1 top-1/2 -translate-y-1/2 -rotate-90 text-[10px] text-[var(--rh-text-muted)] uppercase tracking-wider origin-center">
+                {config.yLabel}
+              </span>
+            )}
+
+            {/* gridlines */}
+            <div className="absolute inset-0 opacity-10">
+              <div className="absolute left-1/2 top-0 bottom-0 w-px bg-black" />
+              <div className="absolute top-1/2 left-0 right-0 h-px bg-black" />
+            </div>
+
+            {/* zones */}
+            {config.zones?.map((zone) => (
+              <div
+                key={zone.id}
+                className="absolute border border-dashed border-black/15 rounded-lg flex items-center justify-center"
+                style={{
+                  left: `${toPercent(zone.x, config.width)}%`,
+                  top: `${toPercent(zone.y, config.height)}%`,
+                  width: `${toPercent(zone.width, config.width)}%`,
+                  height: `${toPercent(zone.height, config.height)}%`,
+                }}
+              >
+                <span className="text-[10px] text-[var(--rh-text-muted)] uppercase tracking-wider">
+                  {zone.label}
+                </span>
+              </div>
+            ))}
+
+            {/* placed pin */}
+            {pin && (
+              <div
+                className="absolute w-4 h-4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[var(--rh-cyan)] border-2 border-white shadow-md z-10"
+                style={{
+                  left: `${toPercent(pin.x, config.width)}%`,
+                  top: `${toPercent(pin.y, config.height)}%`,
+                }}
+              />
+            )}
+          </div>
+
+          <p className="text-xs text-[var(--rh-text-muted)] text-center">
+            {pin ? "tap again to reposition" : "tap the canvas to place your pin"}
+          </p>
+
+          {/* optional note */}
+          {config.allowNote && pin && (
+            <textarea
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="add a note (optional)..."
+              rows={2}
+              className="w-full px-4 py-3 rounded-xl border border-black/10 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[var(--rh-cyan)]/30"
+            />
+          )}
+
+          {pin && (
+            <button
+              onClick={handleSubmit}
+              className="w-full py-3 rounded-xl bg-[var(--rh-cyan)] text-white font-semibold hover:bg-[var(--rh-teal)] transition-colors"
+            >
+              lock in position
+            </button>
+          )}
+        </div>
+      ) : role === "participant" && submitted ? (
+        <div className="text-center py-6 text-[var(--rh-text-muted)]">
+          <p className="text-2xl mb-2">📍</p>
+          <p className="text-sm">pin placed — waiting for reveal</p>
+        </div>
+      ) : (
+        /* facilitator view */
+        <div className="space-y-4">
+          {responses ? (
+            <>
+              {/* canvas with all pins plotted */}
+              <div
+                className="relative w-full border border-black/10 rounded-xl bg-white overflow-hidden"
+                style={{ aspectRatio: `${config.width} / ${config.height}` }}
+              >
+                {/* axis labels */}
+                {config.xLabel && (
+                  <span className="absolute bottom-1 left-1/2 -translate-x-1/2 text-[10px] text-[var(--rh-text-muted)] uppercase tracking-wider">
+                    {config.xLabel}
+                  </span>
+                )}
+                {config.yLabel && (
+                  <span className="absolute left-1 top-1/2 -translate-y-1/2 -rotate-90 text-[10px] text-[var(--rh-text-muted)] uppercase tracking-wider origin-center">
+                    {config.yLabel}
+                  </span>
+                )}
+
+                {/* gridlines */}
+                <div className="absolute inset-0 opacity-10">
+                  <div className="absolute left-1/2 top-0 bottom-0 w-px bg-black" />
+                  <div className="absolute top-1/2 left-0 right-0 h-px bg-black" />
+                </div>
+
+                {/* zones */}
+                {config.zones?.map((zone) => (
+                  <div
+                    key={zone.id}
+                    className="absolute border border-dashed border-black/15 rounded-lg flex items-center justify-center"
+                    style={{
+                      left: `${toPercent(zone.x, config.width)}%`,
+                      top: `${toPercent(zone.y, config.height)}%`,
+                      width: `${toPercent(zone.width, config.width)}%`,
+                      height: `${toPercent(zone.height, config.height)}%`,
+                    }}
+                  >
+                    <span className="text-[10px] text-[var(--rh-text-muted)] uppercase tracking-wider">
+                      {zone.label}
+                    </span>
+                  </div>
+                ))}
+
+                {/* all participant pins */}
+                {Object.entries(responses).map(([pid, response], i) => {
+                  const p = response as Pin;
+                  const name =
+                    participants?.[pid]?.displayName || pid.slice(0, 4);
+                  const color = COLORS[i % COLORS.length];
+                  return (
+                    <div
+                      key={pid}
+                      className="absolute -translate-x-1/2 -translate-y-1/2 z-10 group"
+                      style={{
+                        left: `${toPercent(p.x, config.width)}%`,
+                        top: `${toPercent(p.y, config.height)}%`,
+                      }}
+                    >
+                      <div
+                        className="w-4 h-4 rounded-full border-2 border-white shadow-md"
+                        style={{ backgroundColor: color }}
+                      />
+                      <div className="absolute left-5 top-0 whitespace-nowrap bg-white/90 px-1.5 py-0.5 rounded text-[10px] font-medium shadow-sm opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                        {name}
+                        {p.note && (
+                          <span className="block text-[var(--rh-text-muted)] font-normal">
+                            {p.note}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* legend */}
+              <div className="flex flex-wrap gap-2">
+                {Object.entries(responses).map(([pid], i) => {
+                  const name =
+                    participants?.[pid]?.displayName || pid.slice(0, 6);
+                  const color = COLORS[i % COLORS.length];
+                  return (
+                    <div
+                      key={pid}
+                      className="flex items-center gap-1.5 text-xs"
+                    >
+                      <span
+                        className="w-2.5 h-2.5 rounded-full"
+                        style={{ backgroundColor: color }}
+                      />
+                      {name}
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          ) : (
+            <p className="text-sm text-[var(--rh-text-muted)]">
+              pins are hidden — click &quot;reveal results&quot; to show the
+              map
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}

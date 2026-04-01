@@ -1,6 +1,6 @@
 import { fetchSessionsFromNotion } from "@/lib/notion";
 import type { NotionSession } from "@/lib/notion";
-import { DEMO_SESSION, playAsPedagogy, sunkCostTrap } from "@/lib/templates";
+import { DEMO_SESSION, playAsPedagogy, sunkCostTrap, systemsThinking } from "@/lib/templates";
 import type { Activity } from "@/lib/types";
 import FacilitateClient from "./facilitate-client";
 import type { SessionTemplate } from "./facilitate-client";
@@ -25,6 +25,13 @@ const FALLBACK_TEMPLATES: SessionTemplate[] = [
     icon: "\u2693",
   },
   {
+    name: "systems thinking",
+    description:
+      "why do more workers not mean more output? explore diminishing returns with live sliders, sort linear vs systemic assumptions, then map where your project sits on the cynefin framework.",
+    activities: systemsThinking(),
+    icon: "\u{1F310}",
+  },
+  {
     name: "opportunity cost (demo)",
     description:
       "a classic crossing session about the threshold concept of opportunity cost. predict \u2192 explore \u2192 reveal \u2192 reflect \u2192 apply.",
@@ -38,6 +45,7 @@ const FALLBACK_TEMPLATES: SessionTemplate[] = [
 const SLUG_TO_ACTIVITIES: Record<string, () => Activity[]> = {
   "play-as-pedagogy": playAsPedagogy,
   "the-sunk-cost-trap": sunkCostTrap,
+  "systems-thinking": systemsThinking,
   "opportunity-cost-demo": () => DEMO_SESSION,
 };
 

@@ -25,6 +25,7 @@ const ICON_MAP: Record<string, string> = {
   "the-sunk-cost-trap": "\u2693",
   "opportunity-cost-demo": "\u{1F4B0}",
   "opportunity-cost": "\u{1F4B0}",
+  "systems-thinking": "\u{1F310}",
 };
 
 function iconForSlug(slug: string): string {

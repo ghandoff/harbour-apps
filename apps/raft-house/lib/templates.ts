@@ -598,6 +598,181 @@ export function sunkCostTrap(): Activity[] {
   ];
 }
 
+// ── whirlpool: systems thinking ──────────────────────────────────
+
+export function systemsThinking(): Activity[] {
+  return [
+    {
+      id: uid(),
+      type: "prediction",
+      phase: "encounter",
+      label: "predict: the paper clip factory",
+      config: {
+        type: "prediction",
+        prediction: {
+          question:
+            "a factory makes 100 paper clips per hour. the owner doubles the workers. how many paper clips per hour does the factory make now?",
+          type: "number",
+          answer: 150,
+          unit: "clips/hr",
+        },
+      },
+      timeLimit: 45,
+    },
+    {
+      id: uid(),
+      type: "rule-sandbox",
+      phase: "struggle",
+      label: "explore: diminishing returns",
+      config: {
+        type: "rule-sandbox",
+        ruleSandbox: {
+          prompt:
+            "adjust the parameters to understand how production actually works. watch what happens as you add more workers to a fixed-size factory floor.",
+          parameters: [
+            {
+              id: "workers",
+              label: "workers",
+              min: 1,
+              max: 50,
+              step: 1,
+              defaultValue: 10,
+            },
+            {
+              id: "floorSize",
+              label: "floor size",
+              min: 100,
+              max: 1000,
+              step: 50,
+              defaultValue: 500,
+              unit: "sqft",
+            },
+            {
+              id: "machineCount",
+              label: "machines",
+              min: 1,
+              max: 20,
+              step: 1,
+              defaultValue: 5,
+            },
+          ],
+          formula:
+            "machineCount * 20 * (1 - (workers / (floorSize / 10)) * (workers / (floorSize / 10)) * 0.3)",
+          outputLabel: "output",
+          outputUnit: "clips/hr",
+          reflectionPrompt:
+            "what happened when you kept adding workers without changing floor size or machines? describe the pattern you noticed.",
+        },
+      },
+      timeLimit: 180,
+    },
+    {
+      id: uid(),
+      type: "sorting",
+      phase: "threshold",
+      label: "categorize: linear vs systemic",
+      config: {
+        type: "sorting",
+        sorting: {
+          prompt:
+            "sort each statement into 'linear thinking' (simple cause → effect) or 'systems thinking' (feedback loops, emergence, non-linearity):",
+          cards: [
+            {
+              id: "more-teachers",
+              content: "more teachers = better student outcomes",
+            },
+            {
+              id: "feedback",
+              content:
+                "teacher burnout reduces quality, which increases class sizes, which increases burnout",
+            },
+            {
+              id: "double-budget",
+              content: "double the marketing budget = double the sales",
+            },
+            {
+              id: "network",
+              content:
+                "each new user makes the platform more valuable for all existing users",
+            },
+            {
+              id: "overtime",
+              content: "more hours worked = more output",
+            },
+            {
+              id: "complexity",
+              content:
+                "adding a feature makes the product harder to learn, which reduces adoption, which reduces revenue for more features",
+            },
+          ],
+          categories: [
+            {
+              id: "linear",
+              label: "linear thinking",
+              description: "assumes simple, proportional cause → effect",
+            },
+            {
+              id: "systems",
+              label: "systems thinking",
+              description: "recognizes feedback loops, emergence, or non-linearity",
+            },
+          ],
+          solution: {
+            "more-teachers": "linear",
+            feedback: "systems",
+            "double-budget": "linear",
+            network: "systems",
+            overtime: "linear",
+            complexity: "systems",
+          },
+        },
+      },
+      timeLimit: 120,
+    },
+    {
+      id: uid(),
+      type: "canvas",
+      phase: "integration",
+      label: "map: where do you operate?",
+      config: {
+        type: "canvas",
+        canvas: {
+          prompt:
+            "place your pin on the map. where does your current project sit? be honest about where you ARE, not where you want to be.",
+          width: 100,
+          height: 100,
+          xLabel: "simple → complex",
+          yLabel: "predictable → emergent",
+          zones: [
+            { id: "obvious", label: "obvious", x: 0, y: 50, width: 25, height: 50 },
+            { id: "complicated", label: "complicated", x: 25, y: 50, width: 25, height: 50 },
+            { id: "complex", label: "complex", x: 50, y: 0, width: 25, height: 50 },
+            { id: "chaotic", label: "chaotic", x: 75, y: 0, width: 25, height: 50 },
+          ],
+          allowNote: true,
+        },
+      },
+      timeLimit: 90,
+    },
+    {
+      id: uid(),
+      type: "reflection",
+      phase: "application",
+      label: "reflect: what changes?",
+      config: {
+        type: "reflection",
+        reflection: {
+          prompt:
+            "if your project sits in the 'complex' or 'chaotic' zone, linear planning won't work. what's one practice you'd change — meetings, roadmaps, metrics, hiring — if you truly accepted that your work is non-linear?",
+          minLength: 80,
+          shareWithGroup: true,
+        },
+      },
+      timeLimit: 240,
+    },
+  ];
+}
+
 // ── demo session ─────────────────────────────────────────────────
 
 export const DEMO_SESSION = classicCrossing({

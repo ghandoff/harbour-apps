@@ -6,6 +6,9 @@ import type {
   PollConfig,
   PredictionConfig,
   PuzzleConfig,
+  SortingConfig,
+  CanvasConfig,
+  RuleSandboxConfig,
 } from "./types";
 
 /** generate a formatted markdown session report from room state */
@@ -52,6 +55,15 @@ export function generateSessionReport(state: RoomState): string {
       case "puzzle":
         formatPuzzle(lines, activity.config.puzzle, responses);
         break;
+      case "canvas":
+        formatCanvas(lines, activity.config.canvas, responses);
+        break;
+      case "sorting":
+        formatSorting(lines, activity.config.sorting, responses);
+        break;
+      case "rule-sandbox":
+        formatRuleSandbox(lines, activity.config.ruleSandbox, responses);
+        break;
       default:
         formatGeneric(lines, responses);
         break;
@@ -91,6 +103,12 @@ function getPrompt(config: ActivityConfig): string | null {
       return config.puzzle.prompt;
     case "asymmetric":
       return config.asymmetric.scenario;
+    case "canvas":
+      return config.canvas.prompt;
+    case "sorting":
+      return config.sorting.prompt;
+    case "rule-sandbox":
+      return config.ruleSandbox.prompt;
     default:
       return null;
   }
@@ -205,6 +223,76 @@ function formatGeneric(lines: string[], responses: ResponseEntry[]) {
         ? response
         : JSON.stringify(response, null, 2);
     lines.push(`- **${displayName}:** ${text}`);
+  }
+}
+
+function formatCanvas(lines: string[], config: CanvasConfig, responses: ResponseEntry[]) {
+  if (config.xLabel || config.yLabel) {
+    lines.push(`**axes:** ${config.xLabel || "x"} × ${config.yLabel || "y"} (${config.width}×${config.height})`);
+    lines.push("");
+  }
+
+  if (responses.length === 0) {
+    lines.push("*no responses*");
+    return;
+  }
+
+  lines.push("### pin placements");
+  lines.push("");
+  for (const { displayName, response } of responses) {
+    const pin = response as { x: number; y: number; note?: string };
+    const noteStr = pin.note ? ` — "${pin.note}"` : "";
+    lines.push(`- **${displayName}:** (${pin.x}, ${pin.y})${noteStr}`);
+  }
+}
+
+function formatSorting(lines: string[], config: SortingConfig, responses: ResponseEntry[]) {
+  if (config.solution) {
+    lines.push("**correct sorting:**");
+    for (const cat of config.categories) {
+      const cards = config.cards.filter((c) => config.solution?.[c.id] === cat.id);
+      lines.push(`- ${cat.label}: ${cards.map((c) => c.content).join(", ")}`);
+    }
+    lines.push("");
+  }
+
+  if (responses.length === 0) {
+    lines.push("*no responses*");
+    return;
+  }
+
+  lines.push("### responses");
+  lines.push("");
+  for (const { displayName, response } of responses) {
+    const mapping = response as Record<string, string>;
+    let correct = 0;
+    if (config.solution) {
+      for (const [cardId, catId] of Object.entries(mapping)) {
+        if (config.solution[cardId] === catId) correct++;
+      }
+    }
+    const scoreStr = config.solution ? ` (${correct}/${config.cards.length} correct)` : "";
+    lines.push(`- **${displayName}:**${scoreStr}`);
+  }
+}
+
+function formatRuleSandbox(lines: string[], config: RuleSandboxConfig, responses: ResponseEntry[]) {
+  lines.push(`**formula:** ${config.formula}`);
+  lines.push(`**output:** ${config.outputLabel}${config.outputUnit ? ` (${config.outputUnit})` : ""}`);
+  lines.push("");
+
+  if (responses.length === 0) {
+    lines.push("*no responses*");
+    return;
+  }
+
+  lines.push("### observations");
+  lines.push("");
+  for (const { displayName, response } of responses) {
+    const sub = response as { parameters: Record<string, number>; output: number; reflection: string };
+    const paramStr = config.parameters.map((p) => `${p.label}=${sub.parameters?.[p.id]}${p.unit || ""}`).join(", ");
+    lines.push(`- **${displayName}** [${paramStr}] → ${config.outputLabel}: ${sub.output}`);
+    lines.push(`  > "${sub.reflection}"`);
   }
 }
 

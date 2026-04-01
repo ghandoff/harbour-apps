@@ -94,13 +94,80 @@ export interface AsymmetricRole {
   question: string;
 }
 
+// wave 3 configs
+
+export interface CanvasConfig {
+  prompt: string;
+  width: number;
+  height: number;
+  /** optional axis labels for the 2D space */
+  xLabel?: string;
+  yLabel?: string;
+  /** optional named zones shown as overlays */
+  zones?: CanvasZone[];
+  allowNote?: boolean;
+}
+
+export interface CanvasZone {
+  id: string;
+  label: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+export interface SortingConfig {
+  prompt: string;
+  cards: SortingCard[];
+  categories: SortingCategory[];
+  /** correct mapping of cardId → categoryId (for scoring) */
+  solution?: Record<string, string>;
+}
+
+export interface SortingCard {
+  id: string;
+  content: string;
+  hint?: string;
+}
+
+export interface SortingCategory {
+  id: string;
+  label: string;
+  description?: string;
+}
+
+export interface RuleSandboxConfig {
+  prompt: string;
+  parameters: SandboxParameter[];
+  /** JS expression evaluated with parameter values as variables, e.g. "price * quantity * (1 - discount)" */
+  formula: string;
+  outputLabel: string;
+  outputUnit?: string;
+  /** question participants answer after exploring */
+  reflectionPrompt: string;
+}
+
+export interface SandboxParameter {
+  id: string;
+  label: string;
+  min: number;
+  max: number;
+  step: number;
+  defaultValue: number;
+  unit?: string;
+}
+
 export type ActivityConfig =
   | { type: "poll"; poll: PollConfig }
   | { type: "prediction"; prediction: PredictionConfig }
   | { type: "reflection"; reflection: ReflectionConfig }
   | { type: "open-response"; openResponse: OpenResponseConfig }
   | { type: "puzzle"; puzzle: PuzzleConfig }
-  | { type: "asymmetric"; asymmetric: AsymmetricConfig };
+  | { type: "asymmetric"; asymmetric: AsymmetricConfig }
+  | { type: "canvas"; canvas: CanvasConfig }
+  | { type: "sorting"; sorting: SortingConfig }
+  | { type: "rule-sandbox"; ruleSandbox: RuleSandboxConfig };
 
 export interface Activity {
   id: string;

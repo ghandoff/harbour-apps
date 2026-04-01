@@ -7,6 +7,9 @@ import { ReflectionActivity } from "./activities/reflection";
 import { OpenResponseActivity } from "./activities/open-response";
 import { PuzzleActivity } from "./activities/puzzle";
 import { AsymmetricActivity } from "./activities/asymmetric";
+import { CanvasActivity } from "./activities/canvas";
+import { SortingActivity } from "./activities/sorting";
+import { RuleSandboxActivity } from "./activities/rule-sandbox";
 
 interface Props {
   activity: Activity;
@@ -100,6 +103,42 @@ export function ActivityRenderer({
           participants={participants}
           submitted={submitted}
           participantIndex={participantIndex}
+        />
+      );
+
+    case "canvas":
+      return (
+        <CanvasActivity
+          config={config.canvas}
+          role={role}
+          onSubmit={onSubmit}
+          responses={responses}
+          participants={participants}
+          submitted={submitted}
+        />
+      );
+
+    case "sorting":
+      return (
+        <SortingActivity
+          config={config.sorting}
+          role={role}
+          onSubmit={onSubmit}
+          responses={responses}
+          participants={participants}
+          submitted={submitted}
+        />
+      );
+
+    case "rule-sandbox":
+      return (
+        <RuleSandboxActivity
+          config={config.ruleSandbox}
+          role={role}
+          onSubmit={onSubmit}
+          responses={responses}
+          participants={participants}
+          submitted={submitted}
         />
       );
 
