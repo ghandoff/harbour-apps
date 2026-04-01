@@ -21,15 +21,28 @@ interface UsePartyOptions {
   participantRole?: string;
 }
 
+const MAX_RECONNECT_ATTEMPTS = 10;
+const MAX_BACKOFF_MS = 16_000;
+
+function getBackoffMs(attempt: number): number {
+  return Math.min(1000 * Math.pow(2, attempt), MAX_BACKOFF_MS);
+}
+
 export function useParty({ roomCode, role, name, participantRole }: UsePartyOptions) {
   const [state, setState] = useState<RoomState | null>(null);
   const [connected, setConnected] = useState(false);
+  const [reconnecting, setReconnecting] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const [connectTrigger, setConnectTrigger] = useState(0);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const wsRef = useRef<WebSocket | null>(null);
   const queueRef = useRef<string[]>([]);
+  const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const attemptRef = useRef(0);
 
   useEffect(() => {
     if (!roomCode) return;
+    if (failed) return;
 
     const protocol = PARTYKIT_HOST.startsWith("localhost") ? "ws" : "wss";
     const params = new URLSearchParams({ role });
@@ -42,6 +55,8 @@ export function useParty({ roomCode, role, name, participantRole }: UsePartyOpti
 
     ws.addEventListener("open", () => {
       setConnected(true);
+      setReconnecting(false);
+      attemptRef.current = 0;
       // flush queued messages
       for (const msg of queueRef.current) {
         ws.send(msg);
@@ -111,20 +126,33 @@ export function useParty({ roomCode, role, name, participantRole }: UsePartyOpti
 
     ws.addEventListener("close", () => {
       setConnected(false);
-      // attempt reconnect after 2s
-      setTimeout(() => {
-        if (wsRef.current === ws) {
-          wsRef.current = null;
-          // trigger re-render to reconnect via effect
-        }
-      }, 2000);
+      if (wsRef.current !== ws) return;
+      wsRef.current = null;
+
+      const attempt = attemptRef.current;
+      if (attempt >= MAX_RECONNECT_ATTEMPTS) {
+        setReconnecting(false);
+        setFailed(true);
+        return;
+      }
+
+      setReconnecting(true);
+      attemptRef.current = attempt + 1;
+      const delay = getBackoffMs(attempt);
+      reconnectTimerRef.current = setTimeout(() => {
+        setConnectTrigger((t) => t + 1);
+      }, delay);
     });
 
     return () => {
       ws.close();
       wsRef.current = null;
+      if (reconnectTimerRef.current) {
+        clearTimeout(reconnectTimerRef.current);
+        reconnectTimerRef.current = null;
+      }
     };
-  }, [roomCode, role, name, participantRole]);
+  }, [roomCode, role, name, participantRole, connectTrigger, failed]);
 
   const send = useCallback(
     (msg: FacilitatorMessage | ParticipantMessage) => {
@@ -146,5 +174,5 @@ export function useParty({ roomCode, role, name, participantRole }: UsePartyOpti
     setNotifications((prev) => prev.filter((n) => n.id !== id));
   }, []);
 
-  return { state, connected, send, notifications, dismissNotification };
+  return { state, connected, reconnecting, failed, send, notifications, dismissNotification };
 }
