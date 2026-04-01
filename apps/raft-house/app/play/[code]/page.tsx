@@ -14,7 +14,7 @@ export default function PlayPage() {
   const displayName = searchParams.get("name") || "anonymous";
   const participantRole = searchParams.get("role") || "participant";
 
-  const { state, connected, send, notifications, dismissNotification } =
+  const { state, connected, send, notifications, dismissNotification, myId } =
     useParty({
       roomCode: code,
       role: "participant",
@@ -80,9 +80,6 @@ export default function PlayPage() {
   }
 
   const activity = state.activities[state.currentActivityIndex];
-  const myId = Object.keys(state.participants).find(
-    (id) => state.participants[id].displayName === displayName,
-  );
   const hasSubmitted = myId && activity
     ? state.participants[myId]?.responses[activity.id] !== undefined
     : false;

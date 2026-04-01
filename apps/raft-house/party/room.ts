@@ -59,8 +59,8 @@ export default class RoomServer {
       this.broadcast({ type: "participant-joined", participant });
     }
 
-    // send full state to the new connection
-    conn.send(JSON.stringify({ type: "state-update", state: this.state } satisfies ServerBroadcast));
+    // send full state + assigned connection ID to the new connection
+    conn.send(JSON.stringify({ type: "state-update", state: this.state, yourId: conn.id } satisfies ServerBroadcast));
     await this.persist();
   }
 
@@ -73,6 +73,8 @@ export default class RoomServer {
     }
 
     if (msg.role === "facilitator") {
+      // only the actual facilitator connection can issue facilitator commands
+      if (sender.id !== this.state.facilitatorId) return;
       this.handleFacilitator(msg, sender);
     } else {
       this.handleParticipant(msg, sender);

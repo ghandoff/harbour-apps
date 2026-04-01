@@ -35,6 +35,7 @@ export function useParty({ roomCode, role, name, participantRole }: UsePartyOpti
   const [failed, setFailed] = useState(false);
   const [connectTrigger, setConnectTrigger] = useState(0);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [myId, setMyId] = useState<string | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const queueRef = useRef<string[]>([]);
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -68,6 +69,7 @@ export function useParty({ roomCode, role, name, participantRole }: UsePartyOpti
       try {
         const msg: ServerBroadcast = JSON.parse(event.data);
         if (msg.type === "state-update") {
+          if (msg.yourId) setMyId(msg.yourId);
           setState(msg.state);
         } else if (msg.type === "activity-changed") {
           setState((prev) =>
@@ -174,5 +176,5 @@ export function useParty({ roomCode, role, name, participantRole }: UsePartyOpti
     setNotifications((prev) => prev.filter((n) => n.id !== id));
   }, []);
 
-  return { state, connected, reconnecting, failed, send, notifications, dismissNotification };
+  return { state, connected, reconnecting, failed, send, notifications, dismissNotification, myId };
 }

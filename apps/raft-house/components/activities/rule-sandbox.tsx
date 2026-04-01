@@ -81,7 +81,7 @@ function evaluateFormula(
     while (pos < expr.length && /[a-zA-Z_0-9]/.test(expr[pos])) {
       name += expr[pos++];
     }
-    if (name in variables) return variables[name];
+    if (Object.prototype.hasOwnProperty.call(variables, name)) return variables[name];
     return NaN;
   }
 

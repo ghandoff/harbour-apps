@@ -240,7 +240,7 @@ export type ParticipantMessage =
   | { type: "navigate"; activityIndex: number };
 
 export type ServerBroadcast =
-  | { type: "state-update"; state: RoomState }
+  | { type: "state-update"; state: RoomState; yourId?: string }
   | { type: "activity-changed"; activityIndex: number; activity: Activity }
   | { type: "timer-sync"; timer: TimerState | null }
   | { type: "results-revealed"; activityId: string; responses: Record<string, unknown> }

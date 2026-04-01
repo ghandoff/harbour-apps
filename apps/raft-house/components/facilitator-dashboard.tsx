@@ -111,7 +111,8 @@ export function FacilitatorDashboard({ state, send, connected }: Props) {
       .catch(() => {
         setSaveStatus("error");
       });
-  }, [state, participants.length]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally fire only when status transitions to completed
+  }, [state.status, state.code]);
 
   if (state.status === "completed") {
     return (
