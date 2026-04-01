@@ -5,7 +5,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import { useParty } from "@/lib/use-party";
 import { ActivityRenderer } from "@/components/activity-renderer";
 import { TimerDisplay } from "@/components/timer-display";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { Notification } from "@/lib/use-party";
 
 export default function PlayPage() {
@@ -21,6 +21,9 @@ export default function PlayPage() {
       name: displayName,
       participantRole,
     });
+
+  // track locally submitted activities for immediate UI feedback
+  const [localSubmitted, setLocalSubmitted] = useState<Set<string>>(new Set());
 
   if (!state) {
     return (
@@ -80,9 +83,10 @@ export default function PlayPage() {
   }
 
   const activity = state.activities[state.currentActivityIndex];
-  const hasSubmitted = myId && activity
+  const serverSubmitted = myId && activity
     ? state.participants[myId]?.responses[activity.id] !== undefined
     : false;
+  const hasSubmitted = serverSubmitted || (activity ? localSubmitted.has(activity.id) : false);
   const participantIds = Object.keys(state.participants).sort();
   const myIndex = myId ? participantIds.indexOf(myId) : 0;
 
@@ -123,6 +127,7 @@ export default function PlayPage() {
             submitted={hasSubmitted}
             participantIndex={myIndex}
             onSubmit={(response) => {
+              setLocalSubmitted((prev) => new Set(prev).add(activity.id));
               send({
                 type: "submit",
                 activityId: activity.id,
