@@ -22,11 +22,69 @@ export interface NotionSession {
 
 // map common template names / slugs to icons
 const ICON_MAP: Record<string, string> = {
+  // legacy templates
   "play-as-pedagogy": "\u{1F3AD}",
   "the-sunk-cost-trap": "\u2693",
   "opportunity-cost-demo": "\u{1F4B0}",
   "opportunity-cost": "\u{1F4B0}",
   "systems-thinking": "\u{1F310}",
+  // original 12
+  "orbit.lab": "\u{1FA90}",
+  "proof.garden": "\u{1F33F}",
+  "signal.flow": "\u{1F4E1}",
+  "bias.lens": "\u{1F50D}",
+  "scale.shift": "\u2696\uFE0F",
+  "pattern.weave": "\u{1F9F6}",
+  "market.mind": "\u{1F4C8}",
+  "rhythm.lab": "\u{1F3B6}",
+  "code.weave": "\u{1F9EC}",
+  "time.prism": "\u{1F52E}",
+  "liminal.pass": "\u{1F6AA}",
+  "emerge.box": "\u{1F4E6}",
+  // mathematics
+  "fold.space": "\u{1F4D0}",
+  "infinity.hotel": "\u{1F3E8}",
+  "variable.engine": "\u2699\uFE0F",
+  // computer science
+  "race.condition": "\u{1F3C1}",
+  "type.tower": "\u{1F5FC}",
+  "state.craft": "\u{1F916}",
+  // physics
+  "frame.shift": "\u{1F30C}",
+  "entropy.garden": "\u{1F331}",
+  "field.canvas": "\u{1F9F2}",
+  // biology
+  "selection.pressure": "\u{1F98E}",
+  "express.ion": "\u{1F9EC}",
+  "web.pulse": "\u{1F578}\uFE0F",
+  // chemistry
+  "bond.craft": "\u269B\uFE0F",
+  "equilibrium.dance": "\u{1FA69}",
+  "reaction.path": "\u{1F9EA}",
+  // economics
+  "margin.call": "\u{1F4B9}",
+  "trade.winds": "\u26F5",
+  "commons.game": "\u{1F33E}",
+  // psychology
+  "mirror.maze": "\u{1FA9E}",
+  "anchor.drift": "\u2693",
+  "story.self": "\u{1F4D6}",
+  // philosophy
+  "ought.machine": "\u{1F914}",
+  "circle.read": "\u{1F504}",
+  "lens.shift": "\u{1F453}",
+  // music
+  "tone.field": "\u{1F3B5}",
+  "voice.weave": "\u{1F3BC}",
+  "sound.color": "\u{1F3A8}",
+  // visual arts & design
+  "space.between": "\u25FB\uFE0F",
+  "hue.shift": "\u{1F308}",
+  "grid.break": "\u{1F4CF}",
+  // writing & language
+  "reader.ghost": "\u{1F47B}",
+  "draft.loop": "\u{1F501}",
+  "genre.shift": "\u{1F4DD}",
 };
 
 function iconForSlug(slug: string): string {

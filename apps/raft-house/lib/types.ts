@@ -22,6 +22,47 @@ export type ActivityType =
   | "sorting"
   | "rule-sandbox";
 
+// ── mechanic metadata ───────────────────────────────────────────
+
+export type InteractionModel =
+  | "sandbox"
+  | "construction"
+  | "reveal"
+  | "negotiation"
+  | "performance"
+  | "investigation"
+  | "competition"
+  | "framing";
+
+export type SocialStructure =
+  | "solo"
+  | "cooperative"
+  | "asymmetric"
+  | "competitive"
+  | "anonymous"
+  | "audience";
+
+export type Tempo =
+  | "contemplative"
+  | "paced"
+  | "timed"
+  | "rapid-fire"
+  | "real-time";
+
+export interface MechanicMetadata {
+  interactionModel?: InteractionModel;
+  socialStructure?: SocialStructure;
+  tempo?: Tempo;
+}
+
+export const TEMPO_DEFAULT_DURATION_MS: Record<Tempo, number | null> = {
+  contemplative: null,
+  paced: null,
+  timed: 120_000,
+  "rapid-fire": 15_000,
+  "real-time": null,
+};
+
 /** participant roles */
 export type ParticipantRole = "participant" | "guide" | "observer";
 
@@ -177,6 +218,7 @@ export interface Activity {
   label: string;
   timeLimit?: number;
   hints?: string[];
+  mechanic?: MechanicMetadata;
 }
 
 // ── participant ──────────────────────────────────────────────────
