@@ -63,6 +63,9 @@ export const TEMPO_DEFAULT_DURATION_MS: Record<Tempo, number | null> = {
   "real-time": null,
 };
 
+/** age-level for language adaptation */
+export type AgeLevel = "kids" | "highschool" | "professional";
+
 /** participant roles */
 export type ParticipantRole = "participant" | "guide" | "observer";
 
@@ -147,6 +150,8 @@ export interface CanvasConfig {
   /** optional named zones shown as overlays */
   zones?: CanvasZone[];
   allowNote?: boolean;
+  /** when set, pin color is derived from its x/y position on the canvas */
+  pinColor?: "hue-mapped";
 }
 
 export interface CanvasZone {
@@ -187,6 +192,8 @@ export interface RuleSandboxConfig {
   outputUnit?: string;
   /** question participants answer after exploring */
   reflectionPrompt: string;
+  /** optional live visualization alongside sliders */
+  visualizer?: "color-preview";
 }
 
 export interface SandboxParameter {
@@ -249,6 +256,7 @@ export interface RoomState {
   facilitatorId: string | null;
   mode: PacingMode;
   displayMode: DisplayMode;
+  ageLevel: AgeLevel;
   status: RoomStatus;
   activities: Activity[];
   currentActivityIndex: number;
@@ -261,7 +269,8 @@ export interface RoomState {
 // ── messages ─────────────────────────────────────────────────────
 
 export type FacilitatorMessage =
-  | { type: "setup"; activities: Activity[]; displayMode?: DisplayMode }
+  | { type: "setup"; activities: Activity[]; displayMode?: DisplayMode; ageLevel?: AgeLevel }
+  | { type: "set-age-level"; ageLevel: AgeLevel }
   | { type: "advance" }
   | { type: "goto"; activityIndex: number }
   | { type: "pause" }

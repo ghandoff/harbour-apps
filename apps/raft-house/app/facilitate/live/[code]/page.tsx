@@ -4,7 +4,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useParty } from "@/lib/use-party";
 import { FacilitatorDashboard } from "@/components/facilitator-dashboard";
-import type { Activity } from "@/lib/types";
+import type { Activity, AgeLevel } from "@/lib/types";
 
 export default function FacilitatorLivePage() {
   const { code } = useParams<{ code: string }>();
@@ -21,11 +21,12 @@ export default function FacilitatorLivePage() {
 
     const stored = sessionStorage.getItem(`raft:${code}`);
     if (stored && state.activities.length === 0) {
-      const config = JSON.parse(stored) as { activities: Activity[]; displayMode?: "shared-screen" | "screenless" };
+      const config = JSON.parse(stored) as { activities: Activity[]; displayMode?: "shared-screen" | "screenless"; ageLevel?: AgeLevel };
       send({
         type: "setup" as const,
         activities: config.activities,
         displayMode: config.displayMode,
+        ageLevel: config.ageLevel,
       });
     }
     setInitialized(true);

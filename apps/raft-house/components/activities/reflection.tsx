@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { ReflectionConfig, Participant } from "@/lib/types";
+import { useAgeLevel } from "@/lib/age-context";
 
 interface Props {
   config: ReflectionConfig;
@@ -20,9 +21,12 @@ export function ReflectionActivity({
   participants,
   submitted,
 }: Props) {
+  const ageLevel = useAgeLevel();
   const [text, setText] = useState("");
   const charCount = text.length;
-  const meetsMinimum = !config.minLength || charCount >= config.minLength;
+  // at kids level, remove minimum length requirement
+  const effectiveMinLength = ageLevel === "kids" ? 0 : config.minLength;
+  const meetsMinimum = !effectiveMinLength || charCount >= effectiveMinLength;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,24 +48,34 @@ export function ReflectionActivity({
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="take your time. write what shifted for you..."
-            rows={5}
+            placeholder={
+              ageLevel === "kids"
+                ? "what do you think? there are no wrong answers!"
+                : "take your time. write what shifted for you..."
+            }
+            rows={ageLevel === "kids" ? 3 : 5}
             className="w-full px-4 py-3 rounded-xl border border-black/10 bg-white text-sm leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-[var(--rh-cyan)] focus:border-transparent"
             autoFocus
           />
           <div className="flex items-center justify-between">
-            <span
-              className={`text-xs ${meetsMinimum ? "text-green-600" : "text-[var(--rh-text-muted)]"}`}
-            >
-              {charCount}
-              {config.minLength ? ` / ${config.minLength} min` : ""} characters
-            </span>
+            {ageLevel === "kids" && charCount > 0 && charCount < 20 ? (
+              <span className="text-xs text-[var(--rh-teal)]">
+                nice start! want to add more?
+              </span>
+            ) : (
+              <span
+                className={`text-xs ${meetsMinimum ? "text-green-600" : "text-[var(--rh-text-muted)]"}`}
+              >
+                {charCount}
+                {effectiveMinLength ? ` / ${effectiveMinLength} min` : ""} characters
+              </span>
+            )}
             <button
               type="submit"
-              disabled={!meetsMinimum}
+              disabled={!meetsMinimum || !text.trim()}
               className="px-5 py-2.5 rounded-xl bg-[var(--rh-cyan)] text-white text-sm font-semibold hover:bg-[var(--rh-teal)] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
             >
-              submit reflection
+              {ageLevel === "kids" ? "share my thoughts" : "submit reflection"}
             </button>
           </div>
         </form>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { AsymmetricConfig, Participant } from "@/lib/types";
+import { useAgeLevel } from "@/lib/age-context";
 
 interface Props {
   config: AsymmetricConfig;
@@ -22,11 +23,23 @@ export function AsymmetricActivity({
   submitted,
   participantIndex = 0,
 }: Props) {
+  const ageLevel = useAgeLevel();
   const [answer, setAnswer] = useState("");
+  const [expanded, setExpanded] = useState(false);
 
   // assign role based on participant index (round-robin)
   const assignedRole =
     config.roles[participantIndex % config.roles.length];
+
+  // at kids level, condense role info to first 2 sentences with "read more"
+  const condensedInfo = ageLevel === "kids"
+    ? (() => {
+        const sentences = assignedRole.info.match(/[^.!?]+[.!?]+/g) || [assignedRole.info];
+        return sentences.length > 2
+          ? { short: sentences.slice(0, 2).join("").trim(), hasMore: true }
+          : { short: assignedRole.info, hasMore: false };
+      })()
+    : null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,12 +60,28 @@ export function AsymmetricActivity({
           {/* role card */}
           <div className="p-4 rounded-xl bg-[var(--rh-deep)] text-white">
             <p className="text-xs uppercase tracking-wider opacity-60 mb-1">
-              your perspective
+              {ageLevel === "kids" ? "you are..." : "your perspective"}
             </p>
             <p className="font-semibold mb-2">{assignedRole.label}</p>
-            <p className="text-sm leading-relaxed opacity-90">
-              {assignedRole.info}
-            </p>
+            {condensedInfo && !expanded ? (
+              <div>
+                <p className="text-sm leading-relaxed opacity-90">
+                  {condensedInfo.short}
+                </p>
+                {condensedInfo.hasMore && (
+                  <button
+                    onClick={() => setExpanded(true)}
+                    className="text-xs text-[var(--rh-cyan)] mt-1.5 hover:underline"
+                  >
+                    read more →
+                  </button>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm leading-relaxed opacity-90">
+                {assignedRole.info}
+              </p>
+            )}
           </div>
 
           {/* their unique question */}

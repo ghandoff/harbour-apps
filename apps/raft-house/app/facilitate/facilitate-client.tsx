@@ -4,8 +4,14 @@ import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { generateRoomCode } from "@/lib/room-code";
-import type { Activity } from "@/lib/types";
+import type { Activity, AgeLevel } from "@/lib/types";
 import { SessionBuilder } from "@/components/session-builder";
+
+const AGE_LEVELS: { value: AgeLevel; label: string; desc: string; icon: string }[] = [
+  { value: "kids", label: "ages 10–14", desc: "simplified language, jargon tooltips, encouraging tone", icon: "🌱" },
+  { value: "highschool", label: "ages 14–18", desc: "standard language, jargon hints on hover", icon: "🌿" },
+  { value: "professional", label: "higher ed+", desc: "full academic language, no simplification", icon: "🌳" },
+];
 
 export interface SessionTemplate {
   name: string;
@@ -21,6 +27,7 @@ export default function FacilitateClient({
 }) {
   const router = useRouter();
   const [creating, setCreating] = useState(false);
+  const [ageLevel, setAgeLevel] = useState<AgeLevel>("professional");
 
   const createSession = useCallback(
     (template: SessionTemplate) => {
@@ -35,13 +42,14 @@ export default function FacilitateClient({
           activities: template.activities,
           sessionName: template.name,
           template: template.name,
+          ageLevel,
           createdAt: Date.now(),
         }),
       );
 
       router.push(`/facilitate/live/${code}`);
     },
-    [router],
+    [router, ageLevel],
   );
 
   return (
@@ -63,6 +71,34 @@ export default function FacilitateClient({
           >
             history
           </Link>
+        </div>
+      </div>
+
+      {/* age-level picker */}
+      <div className="mb-8">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--rh-text-muted)] mb-2">
+          audience level
+        </h2>
+        <div className="grid grid-cols-3 gap-2">
+          {AGE_LEVELS.map((al) => (
+            <button
+              key={al.value}
+              onClick={() => setAgeLevel(al.value)}
+              className={`text-left p-3 rounded-xl border transition-all ${
+                ageLevel === al.value
+                  ? "border-[var(--rh-teal)] bg-[var(--rh-foam)]/10 shadow-sm"
+                  : "border-black/10 hover:border-black/20"
+              }`}
+            >
+              <span className="text-lg">{al.icon}</span>
+              <p className={`text-sm font-medium mt-1 ${ageLevel === al.value ? "text-[var(--rh-teal)]" : ""}`}>
+                {al.label}
+              </p>
+              <p className="text-[10px] text-[var(--rh-text-muted)] mt-0.5 leading-tight">
+                {al.desc}
+              </p>
+            </button>
+          ))}
         </div>
       </div>
 

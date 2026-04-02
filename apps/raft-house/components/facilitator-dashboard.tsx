@@ -3,10 +3,11 @@
 import { useCallback, useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
-import type { RoomState, FacilitatorMessage } from "@/lib/types";
+import type { RoomState, FacilitatorMessage, AgeLevel } from "@/lib/types";
 import { downloadReport, generateSessionReport } from "@/lib/export";
 import { ActivityRenderer } from "./activity-renderer";
 import { TimerDisplay } from "./timer-display";
+import { AgeLevelProvider } from "@/lib/age-context";
 
 interface Props {
   state: RoomState;
@@ -63,6 +64,18 @@ export function FacilitatorDashboard({ state, send, connected }: Props) {
   );
 
   const handleExport = useCallback(() => downloadReport(state), [state]);
+
+  const ageLevelLabels: Record<AgeLevel, { icon: string; label: string }> = {
+    kids: { icon: "🌱", label: "kids" },
+    highschool: { icon: "🌿", label: "high school" },
+    professional: { icon: "🌳", label: "pro" },
+  };
+  const ageLevelOrder: AgeLevel[] = ["kids", "highschool", "professional"];
+  const handleCycleAgeLevel = useCallback(() => {
+    const idx = ageLevelOrder.indexOf(state.ageLevel);
+    const next = ageLevelOrder[(idx + 1) % ageLevelOrder.length];
+    send({ type: "set-age-level", ageLevel: next });
+  }, [send, state.ageLevel]);
 
   // ── auto-save to Notion when session completes ─────────────────
   const [saveStatus, setSaveStatus] = useState<
@@ -157,6 +170,7 @@ export function FacilitatorDashboard({ state, send, connected }: Props) {
   }
 
   return (
+    <AgeLevelProvider level={state.ageLevel}>
     <div className="min-h-screen bg-[var(--rh-sand-light)]">
       {/* ── top bar ───────────────────────────────────────────── */}
       <header className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-black/5 px-4 py-3">
@@ -174,6 +188,13 @@ export function FacilitatorDashboard({ state, send, connected }: Props) {
           </div>
 
           <div className="flex items-center gap-2">
+            <button
+              onClick={handleCycleAgeLevel}
+              className="px-3 py-1.5 rounded-full text-xs font-medium border border-black/10 hover:bg-black/5 transition-colors"
+              title={`audience: ${ageLevelLabels[state.ageLevel].label} — click to change`}
+            >
+              {ageLevelLabels[state.ageLevel].icon} {ageLevelLabels[state.ageLevel].label}
+            </button>
             <button
               onClick={handleToggleMode}
               className="px-3 py-1.5 rounded-full text-xs font-medium border border-black/10 hover:bg-black/5 transition-colors"
@@ -412,5 +433,6 @@ export function FacilitatorDashboard({ state, send, connected }: Props) {
         </div>
       </div>
     </div>
+    </AgeLevelProvider>
   );
 }

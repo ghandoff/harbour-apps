@@ -57,6 +57,16 @@ export function CanvasActivity({
   // convert pin coordinates to percentage for rendering
   const toPercent = (val: number, max: number) => (val / max) * 100;
 
+  // derive color from canvas position when pinColor is "hue-mapped"
+  // x = hue (0–360°), y = saturation (top=muted, bottom=vivid)
+  const pinColorFromPosition = (px: number, py: number): string => {
+    if (config.pinColor !== "hue-mapped") return "var(--rh-cyan)";
+    const hue = Math.round((px / config.width) * 360);
+    const sat = Math.round((py / config.height) * 100);
+    const light = 50; // constant lightness keeps colors readable
+    return `hsl(${hue}, ${sat}%, ${light}%)`;
+  };
+
   return (
     <div>
       <h3 className="text-lg font-semibold mb-4">{config.prompt}</h3>
@@ -67,26 +77,37 @@ export function CanvasActivity({
           <div
             ref={canvasRef}
             onClick={handleCanvasClick}
-            className="relative w-full border border-black/10 rounded-xl bg-white cursor-crosshair overflow-hidden select-none"
-            style={{ aspectRatio: `${config.width} / ${config.height}` }}
+            className="relative w-full border border-black/10 rounded-xl cursor-crosshair overflow-hidden select-none"
+            style={{
+              aspectRatio: `${config.width} / ${config.height}`,
+              background: config.pinColor === "hue-mapped"
+                ? "linear-gradient(to bottom, rgba(128,128,128,0.9), transparent), linear-gradient(to right, hsl(0,80%,50%), hsl(60,80%,50%), hsl(120,80%,50%), hsl(180,80%,50%), hsl(240,80%,50%), hsl(300,80%,50%), hsl(360,80%,50%))"
+                : "white",
+            }}
           >
             {/* axis labels */}
             {config.xLabel && (
-              <span className="absolute bottom-1 left-1/2 -translate-x-1/2 text-[10px] text-[var(--rh-text-muted)] uppercase tracking-wider">
+              <span className={`absolute bottom-1 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-wider ${
+                config.pinColor === "hue-mapped" ? "text-white/60 drop-shadow-sm" : "text-[var(--rh-text-muted)]"
+              }`}>
                 {config.xLabel}
               </span>
             )}
             {config.yLabel && (
-              <span className="absolute left-1 top-1/2 -translate-y-1/2 -rotate-90 text-[10px] text-[var(--rh-text-muted)] uppercase tracking-wider origin-center">
+              <span className={`absolute left-1 top-1/2 -translate-y-1/2 -rotate-90 text-[10px] uppercase tracking-wider origin-center ${
+                config.pinColor === "hue-mapped" ? "text-white/60 drop-shadow-sm" : "text-[var(--rh-text-muted)]"
+              }`}>
                 {config.yLabel}
               </span>
             )}
 
-            {/* gridlines */}
-            <div className="absolute inset-0 opacity-10">
-              <div className="absolute left-1/2 top-0 bottom-0 w-px bg-black" />
-              <div className="absolute top-1/2 left-0 right-0 h-px bg-black" />
-            </div>
+            {/* gridlines — only for non-hue-mapped canvases */}
+            {config.pinColor !== "hue-mapped" && (
+              <div className="absolute inset-0 opacity-10">
+                <div className="absolute left-1/2 top-0 bottom-0 w-px bg-black" />
+                <div className="absolute top-1/2 left-0 right-0 h-px bg-black" />
+              </div>
+            )}
 
             {/* zones */}
             {config.zones?.map((zone) => (
@@ -109,10 +130,11 @@ export function CanvasActivity({
             {/* placed pin */}
             {pin && (
               <div
-                className="absolute w-4 h-4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[var(--rh-cyan)] border-2 border-white shadow-md z-10"
+                className="absolute w-5 h-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow-lg z-10"
                 style={{
                   left: `${toPercent(pin.x, config.width)}%`,
                   top: `${toPercent(pin.y, config.height)}%`,
+                  backgroundColor: pinColorFromPosition(pin.x, pin.y),
                 }}
               />
             )}
@@ -154,26 +176,37 @@ export function CanvasActivity({
             <>
               {/* canvas with all pins plotted */}
               <div
-                className="relative w-full border border-black/10 rounded-xl bg-white overflow-hidden"
-                style={{ aspectRatio: `${config.width} / ${config.height}` }}
+                className="relative w-full border border-black/10 rounded-xl overflow-hidden"
+                style={{
+                  aspectRatio: `${config.width} / ${config.height}`,
+                  background: config.pinColor === "hue-mapped"
+                    ? "linear-gradient(to bottom, rgba(128,128,128,0.9), transparent), linear-gradient(to right, hsl(0,80%,50%), hsl(60,80%,50%), hsl(120,80%,50%), hsl(180,80%,50%), hsl(240,80%,50%), hsl(300,80%,50%), hsl(360,80%,50%))"
+                    : "white",
+                }}
               >
                 {/* axis labels */}
                 {config.xLabel && (
-                  <span className="absolute bottom-1 left-1/2 -translate-x-1/2 text-[10px] text-[var(--rh-text-muted)] uppercase tracking-wider">
+                  <span className={`absolute bottom-1 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-wider ${
+                    config.pinColor === "hue-mapped" ? "text-white/60 drop-shadow-sm" : "text-[var(--rh-text-muted)]"
+                  }`}>
                     {config.xLabel}
                   </span>
                 )}
                 {config.yLabel && (
-                  <span className="absolute left-1 top-1/2 -translate-y-1/2 -rotate-90 text-[10px] text-[var(--rh-text-muted)] uppercase tracking-wider origin-center">
+                  <span className={`absolute left-1 top-1/2 -translate-y-1/2 -rotate-90 text-[10px] uppercase tracking-wider origin-center ${
+                    config.pinColor === "hue-mapped" ? "text-white/60 drop-shadow-sm" : "text-[var(--rh-text-muted)]"
+                  }`}>
                     {config.yLabel}
                   </span>
                 )}
 
-                {/* gridlines */}
-                <div className="absolute inset-0 opacity-10">
-                  <div className="absolute left-1/2 top-0 bottom-0 w-px bg-black" />
-                  <div className="absolute top-1/2 left-0 right-0 h-px bg-black" />
-                </div>
+                {/* gridlines — only for non-hue-mapped canvases */}
+                {config.pinColor !== "hue-mapped" && (
+                  <div className="absolute inset-0 opacity-10">
+                    <div className="absolute left-1/2 top-0 bottom-0 w-px bg-black" />
+                    <div className="absolute top-1/2 left-0 right-0 h-px bg-black" />
+                  </div>
+                )}
 
                 {/* zones */}
                 {config.zones?.map((zone) => (
@@ -198,7 +231,9 @@ export function CanvasActivity({
                   const p = response as Pin;
                   const name =
                     participants?.[pid]?.displayName || pid.slice(0, 4);
-                  const color = COLORS[i % COLORS.length];
+                  const color = config.pinColor === "hue-mapped"
+                    ? pinColorFromPosition(p.x, p.y)
+                    : COLORS[i % COLORS.length];
                   return (
                     <div
                       key={pid}
@@ -209,10 +244,10 @@ export function CanvasActivity({
                       }}
                     >
                       <div
-                        className="w-4 h-4 rounded-full border-2 border-white shadow-md"
+                        className="w-5 h-5 rounded-full border-2 border-white shadow-lg"
                         style={{ backgroundColor: color }}
                       />
-                      <div className="absolute left-5 top-0 whitespace-nowrap bg-white/90 px-1.5 py-0.5 rounded text-[10px] font-medium shadow-sm opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                      <div className="absolute left-6 top-0 whitespace-nowrap bg-white/90 px-1.5 py-0.5 rounded text-[10px] font-medium shadow-sm opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                         {name}
                         {p.note && (
                           <span className="block text-[var(--rh-text-muted)] font-normal">
@@ -227,10 +262,13 @@ export function CanvasActivity({
 
               {/* legend */}
               <div className="flex flex-wrap gap-2">
-                {Object.entries(responses).map(([pid], i) => {
+                {Object.entries(responses).map(([pid, response], i) => {
+                  const p = response as Pin;
                   const name =
                     participants?.[pid]?.displayName || pid.slice(0, 6);
-                  const color = COLORS[i % COLORS.length];
+                  const color = config.pinColor === "hue-mapped"
+                    ? pinColorFromPosition(p.x, p.y)
+                    : COLORS[i % COLORS.length];
                   return (
                     <div
                       key={pid}

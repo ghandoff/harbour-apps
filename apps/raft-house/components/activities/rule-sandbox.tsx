@@ -139,43 +139,80 @@ export function RuleSandboxActivity({
         <div className="space-y-5">
           {/* parameter sliders */}
           <div className="space-y-4">
-            {config.parameters.map((param) => (
-              <div key={param.id}>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="text-sm font-medium">{param.label}</label>
-                  <span className="text-sm font-mono font-bold text-[var(--rh-teal)]">
-                    {values[param.id]}
-                    {param.unit && (
-                      <span className="text-xs text-[var(--rh-text-muted)] ml-0.5">
-                        {param.unit}
-                      </span>
-                    )}
-                  </span>
+            {config.parameters.map((param) => {
+              // color-specific accent colors for RGB sliders
+              const colorAccent = config.visualizer === "color-preview"
+                ? { red: "#ef4444", green: "#22c55e", blue: "#3b82f6" }[param.id]
+                : undefined;
+              return (
+                <div key={param.id}>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-sm font-medium flex items-center gap-2">
+                      {colorAccent && (
+                        <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: colorAccent }} />
+                      )}
+                      {param.label}
+                    </label>
+                    <span className="text-sm font-mono font-bold" style={{ color: colorAccent || "var(--rh-teal)" }}>
+                      {values[param.id]}
+                      {param.unit && (
+                        <span className="text-xs text-[var(--rh-text-muted)] ml-0.5">
+                          {param.unit}
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min={param.min}
+                    max={param.max}
+                    step={param.step}
+                    value={values[param.id]}
+                    onChange={(e) =>
+                      handleChange(param.id, Number(e.target.value))
+                    }
+                    className="w-full"
+                    style={{ accentColor: colorAccent || "var(--rh-cyan)" }}
+                  />
+                  <div className="flex justify-between text-[10px] text-[var(--rh-text-muted)]">
+                    <span>
+                      {param.min}
+                      {param.unit}
+                    </span>
+                    <span>
+                      {param.max}
+                      {param.unit}
+                    </span>
+                  </div>
                 </div>
-                <input
-                  type="range"
-                  min={param.min}
-                  max={param.max}
-                  step={param.step}
-                  value={values[param.id]}
-                  onChange={(e) =>
-                    handleChange(param.id, Number(e.target.value))
-                  }
-                  className="w-full accent-[var(--rh-cyan)]"
-                />
-                <div className="flex justify-between text-[10px] text-[var(--rh-text-muted)]">
-                  <span>
-                    {param.min}
-                    {param.unit}
-                  </span>
-                  <span>
-                    {param.max}
-                    {param.unit}
-                  </span>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
+
+          {/* color preview — shown when visualizer is "color-preview" */}
+          {config.visualizer === "color-preview" && (() => {
+            const r = values["red"] ?? 128;
+            const g = values["green"] ?? 128;
+            const b = values["blue"] ?? 128;
+            const bg = values["context"] ?? 50;
+            const bgVal = Math.round(bg * 2.55);
+            return (
+              <div
+                className="rounded-2xl p-5 transition-colors duration-200"
+                style={{ backgroundColor: `rgb(${bgVal},${bgVal},${bgVal})` }}
+              >
+                <div
+                  className="w-full aspect-square rounded-xl shadow-lg mx-auto max-w-[200px] transition-colors duration-150"
+                  style={{ backgroundColor: `rgb(${r},${g},${b})` }}
+                />
+                <p className="text-center text-xs mt-3 font-mono transition-colors duration-200" style={{
+                  color: bgVal > 128 ? "rgba(0,0,0,0.5)" : "rgba(255,255,255,0.5)",
+                }}>
+                  rgb({r}, {g}, {b}) on {bg}% background
+                </p>
+              </div>
+            );
+          })()}
 
           {/* output display */}
           <div className="p-4 rounded-xl bg-[var(--rh-deep)] text-white text-center">

@@ -15,6 +15,7 @@ function defaultState(roomId: string): RoomState {
     facilitatorId: null,
     mode: "sync",
     displayMode: "shared-screen",
+    ageLevel: "professional",
     status: "lobby",
     activities: [],
     currentActivityIndex: 0,
@@ -104,6 +105,7 @@ export default class RoomServer {
           this.state.status = "active";
           this.state.currentActivityIndex = 0;
           if (msg.displayMode) this.state.displayMode = msg.displayMode;
+          if (msg.ageLevel) this.state.ageLevel = msg.ageLevel;
           this.broadcastState();
         }
         break;
@@ -180,6 +182,11 @@ export default class RoomServer {
 
       case "set-mode":
         this.state.mode = msg.mode;
+        this.broadcastState();
+        break;
+
+      case "set-age-level":
+        this.state.ageLevel = msg.ageLevel;
         this.broadcastState();
         break;
 

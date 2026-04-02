@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import { useParty } from "@/lib/use-party";
 import { ActivityRenderer } from "@/components/activity-renderer";
+import { AgeLevelProvider } from "@/lib/age-context";
 import { TimerDisplay } from "@/components/timer-display";
 import { useCallback, useEffect, useState } from "react";
 import type { Notification } from "@/lib/use-party";
@@ -91,6 +92,7 @@ export default function PlayPage() {
   const myIndex = myId ? participantIds.indexOf(myId) : 0;
 
   return (
+    <AgeLevelProvider level={state.ageLevel}>
     <div className="min-h-screen flex flex-col">
       {/* notifications overlay */}
       <NotificationOverlay
@@ -155,6 +157,7 @@ export default function PlayPage() {
         </div>
       )}
     </div>
+    </AgeLevelProvider>
   );
 }
 
