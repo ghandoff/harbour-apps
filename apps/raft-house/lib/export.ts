@@ -34,6 +34,13 @@ export function generateSessionReport(state: RoomState): string {
     lines.push(`## ${i + 1}. ${activity.label}`);
     lines.push("");
     lines.push(`**type:** ${activity.type} · **phase:** ${activity.phase}`);
+    if (activity.mechanic) {
+      const parts: string[] = [];
+      if (activity.mechanic.interactionModel) parts.push(`model: ${activity.mechanic.interactionModel}`);
+      if (activity.mechanic.socialStructure) parts.push(`social: ${activity.mechanic.socialStructure}`);
+      if (activity.mechanic.tempo) parts.push(`tempo: ${activity.mechanic.tempo}`);
+      if (parts.length > 0) lines.push(`**mechanics:** ${parts.join(" · ")}`);
+    }
     lines.push("");
 
     const prompt = getPrompt(activity.config);

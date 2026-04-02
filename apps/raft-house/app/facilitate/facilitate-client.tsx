@@ -96,6 +96,18 @@ export default function FacilitateClient({
                     />
                   ))}
                 </div>
+                {template.activities.some((a) => a.mechanic?.interactionModel) && (
+                  <div className="flex flex-wrap gap-1 mt-1.5">
+                    {[...new Set(template.activities
+                      .map((a) => a.mechanic?.interactionModel)
+                      .filter(Boolean)
+                    )].map((model) => (
+                      <span key={model} className="text-xs bg-[var(--rh-foam)]/20 text-[var(--rh-teal)] px-1.5 py-0.5 rounded-full">
+                        {model}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
               <span className="text-[var(--rh-text-muted)] group-hover:text-[var(--rh-teal)] transition-colors">
                 &rarr;

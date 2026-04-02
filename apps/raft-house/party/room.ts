@@ -7,6 +7,7 @@ import type {
   Participant,
   ServerBroadcast,
 } from "../lib/types";
+import { TEMPO_DEFAULT_DURATION_MS } from "../lib/types";
 
 function defaultState(roomId: string): RoomState {
   return {
@@ -114,6 +115,17 @@ export default class RoomServer {
           this.state.currentActivityIndex = next;
           this.state.resultsRevealed = false;
           this.state.timer = null;
+          const newActivity = this.state.activities[this.state.currentActivityIndex];
+          if (newActivity?.mechanic?.tempo) {
+            const autoMs = TEMPO_DEFAULT_DURATION_MS[newActivity.mechanic.tempo];
+            if (autoMs) {
+              this.state.timer = {
+                type: "countdown",
+                durationMs: autoMs,
+                startedAt: Date.now(),
+              };
+            }
+          }
           this.broadcast({
             type: "activity-changed",
             activityIndex: next,
@@ -128,6 +140,17 @@ export default class RoomServer {
           this.state.currentActivityIndex = msg.activityIndex;
           this.state.resultsRevealed = false;
           this.state.timer = null;
+          const newActivity = this.state.activities[this.state.currentActivityIndex];
+          if (newActivity?.mechanic?.tempo) {
+            const autoMs = TEMPO_DEFAULT_DURATION_MS[newActivity.mechanic.tempo];
+            if (autoMs) {
+              this.state.timer = {
+                type: "countdown",
+                durationMs: autoMs,
+                startedAt: Date.now(),
+              };
+            }
+          }
           this.broadcast({
             type: "activity-changed",
             activityIndex: msg.activityIndex,

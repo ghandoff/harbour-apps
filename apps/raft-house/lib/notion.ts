@@ -18,6 +18,9 @@ export interface NotionSession {
   facilitatorNotes: string;
   order: number;
   icon: string;
+  interactionModels: string[];
+  socialStructures: string[];
+  tempo: string;
 }
 
 // map common template names / slugs to icons
@@ -169,6 +172,9 @@ export async function fetchSessionsFromNotion(): Promise<NotionSession[]> {
       facilitatorNotes: richTextToString(props["Facilitator Notes"]),
       order: numberValue(props["Order"]),
       icon: iconForSlug(slug),
+      interactionModels: multiSelectValues(props["Interaction Model"]),
+      socialStructures: multiSelectValues(props["Social Structure"]),
+      tempo: selectValue(props["Tempo"]),
     };
   });
 }

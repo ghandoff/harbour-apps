@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import type { Activity, ActivityType, ActivityConfig, Phase, PollOption, PuzzlePiece, SortingCard, SortingCategory, SandboxParameter } from "@/lib/types";
+import type { InteractionModel, SocialStructure, Tempo, MechanicMetadata } from "@/lib/types";
 
 interface Props {
   onLaunch: (activities: Activity[]) => void;
@@ -21,6 +22,34 @@ const ACTIVITY_TYPES: { type: ActivityType; label: string; icon: string }[] = [
 ];
 
 const PHASES: Phase[] = ["encounter", "struggle", "threshold", "integration", "application"];
+
+const INTERACTION_MODELS: { value: InteractionModel; label: string }[] = [
+  { value: "sandbox", label: "sandbox" },
+  { value: "construction", label: "construction" },
+  { value: "reveal", label: "reveal" },
+  { value: "negotiation", label: "negotiation" },
+  { value: "performance", label: "performance" },
+  { value: "investigation", label: "investigation" },
+  { value: "competition", label: "competition" },
+  { value: "framing", label: "framing" },
+];
+
+const SOCIAL_STRUCTURES: { value: SocialStructure; label: string }[] = [
+  { value: "solo", label: "solo" },
+  { value: "cooperative", label: "cooperative" },
+  { value: "asymmetric", label: "asymmetric" },
+  { value: "competitive", label: "competitive" },
+  { value: "anonymous", label: "anonymous" },
+  { value: "audience", label: "audience" },
+];
+
+const TEMPOS: { value: Tempo; label: string }[] = [
+  { value: "contemplative", label: "contemplative" },
+  { value: "paced", label: "paced" },
+  { value: "timed", label: "timed" },
+  { value: "rapid-fire", label: "rapid-fire" },
+  { value: "real-time", label: "real-time" },
+];
 
 let _builderId = 0;
 function uid(): string {
@@ -113,6 +142,7 @@ interface DraftActivity {
   config: ActivityConfig;
   phase: Phase;
   label: string;
+  mechanic?: MechanicMetadata;
 }
 
 export function SessionBuilder({ onLaunch, disabled }: Props) {
@@ -144,6 +174,25 @@ export function SessionBuilder({ onLaunch, disabled }: Props) {
     setEditing((prev) => (prev === id ? null : prev));
   }, []);
 
+  const updateMechanic = useCallback(
+    (index: number, key: keyof MechanicMetadata, value: string | undefined) => {
+      setActivities((prev) =>
+        prev.map((a, i) =>
+          i === index
+            ? {
+                ...a,
+                mechanic: {
+                  ...a.mechanic,
+                  [key]: value,
+                },
+              }
+            : a,
+        ),
+      );
+    },
+    [],
+  );
+
   const moveActivity = useCallback((id: string, direction: -1 | 1) => {
     setActivities((prev) => {
       const idx = prev.findIndex((a) => a.id === id);
@@ -163,6 +212,7 @@ export function SessionBuilder({ onLaunch, disabled }: Props) {
       config: a.config,
       phase: a.phase,
       label: a.label || `${a.type} activity`,
+      mechanic: a.mechanic,
     }));
     onLaunch(built);
   };
@@ -292,6 +342,71 @@ export function SessionBuilder({ onLaunch, disabled }: Props) {
                       activity={act}
                       onChange={(config) => updateActivity(act.id, { config })}
                     />
+
+                    <details className="mt-4 border-t border-black/5 pt-3">
+                      <summary className="text-xs font-semibold uppercase tracking-wider text-[var(--rh-text-muted)] cursor-pointer hover:text-[var(--rh-text)]">
+                        mechanics
+                      </summary>
+                      <div className="mt-3 space-y-3">
+                        <div>
+                          <p className="text-xs text-[var(--rh-text-muted)] mb-1.5">interaction model</p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {INTERACTION_MODELS.map((m) => (
+                              <button
+                                key={m.value}
+                                type="button"
+                                onClick={() => updateMechanic(i, "interactionModel", act.mechanic?.interactionModel === m.value ? undefined : m.value)}
+                                className={`px-2.5 py-1 rounded-full text-xs border transition-colors ${
+                                  act.mechanic?.interactionModel === m.value
+                                    ? "border-[var(--rh-cyan)] bg-[var(--rh-cyan)]/10 text-[var(--rh-teal)] font-medium"
+                                    : "border-black/10 hover:bg-black/5"
+                                }`}
+                              >
+                                {m.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-xs text-[var(--rh-text-muted)] mb-1.5">social structure</p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {SOCIAL_STRUCTURES.map((s) => (
+                              <button
+                                key={s.value}
+                                type="button"
+                                onClick={() => updateMechanic(i, "socialStructure", act.mechanic?.socialStructure === s.value ? undefined : s.value)}
+                                className={`px-2.5 py-1 rounded-full text-xs border transition-colors ${
+                                  act.mechanic?.socialStructure === s.value
+                                    ? "border-[var(--rh-cyan)] bg-[var(--rh-cyan)]/10 text-[var(--rh-teal)] font-medium"
+                                    : "border-black/10 hover:bg-black/5"
+                                }`}
+                              >
+                                {s.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-xs text-[var(--rh-text-muted)] mb-1.5">tempo</p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {TEMPOS.map((t) => (
+                              <button
+                                key={t.value}
+                                type="button"
+                                onClick={() => updateMechanic(i, "tempo", act.mechanic?.tempo === t.value ? undefined : t.value)}
+                                className={`px-2.5 py-1 rounded-full text-xs border transition-colors ${
+                                  act.mechanic?.tempo === t.value
+                                    ? "border-[var(--rh-cyan)] bg-[var(--rh-cyan)]/10 text-[var(--rh-teal)] font-medium"
+                                    : "border-black/10 hover:bg-black/5"
+                                }`}
+                              >
+                                {t.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </details>
                   </div>
                 )}
               </div>

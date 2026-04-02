@@ -269,6 +269,21 @@ export function FacilitatorDashboard({ state, send, connected }: Props) {
                 <span className="text-xs font-medium uppercase tracking-wider text-[var(--rh-text-muted)]">
                   {activity.phase}
                 </span>
+                {activity.mechanic?.interactionModel && (
+                  <span className="text-xs bg-[var(--rh-foam)]/20 text-[var(--rh-teal)] px-2 py-0.5 rounded-full">
+                    {activity.mechanic.interactionModel}
+                  </span>
+                )}
+                {activity.mechanic?.socialStructure && (
+                  <span className="text-xs bg-[var(--rh-foam)]/20 text-[var(--rh-teal)] px-2 py-0.5 rounded-full">
+                    {activity.mechanic.socialStructure}
+                  </span>
+                )}
+                {activity.mechanic?.tempo && (
+                  <span className="text-xs bg-[var(--rh-foam)]/20 text-[var(--rh-teal)] px-2 py-0.5 rounded-full">
+                    {activity.mechanic.tempo}
+                  </span>
+                )}
               </div>
               <div className="bg-white rounded-2xl border border-black/5 p-6 shadow-sm">
                 <ActivityRenderer
