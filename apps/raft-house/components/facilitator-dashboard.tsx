@@ -26,6 +26,7 @@ export function FacilitatorDashboard({ state, send, connected }: Props) {
   const joinUrl = `https://windedvertigo.com/harbour/raft-house/play/${state.code}`;
   const [copied, setCopied] = useState(false);
   const [campfireControlsOpen, setCampfireControlsOpen] = useState(false);
+  const [campfireSubmitted, setCampfireSubmitted] = useState<Set<string>>(new Set());
 
   const handleCopyLink = useCallback(() => {
     navigator.clipboard.writeText(joinUrl).then(() => {
@@ -269,12 +270,22 @@ export function FacilitatorDashboard({ state, send, connected }: Props) {
             </div>
           )}
 
-          {/* activity — rendered large */}
+          {/* activity — rendered as participant so the group can interact */}
           {activity ? (
             <div className="bg-white rounded-2xl border border-black/5 p-8 shadow-sm mb-6">
               <ActivityRenderer
                 activity={activity}
-                role="facilitator"
+                role={state.resultsRevealed ? "facilitator" : "participant"}
+                submitted={campfireSubmitted.has(activity.id)}
+                participantIndex={0}
+                onSubmit={(response) => {
+                  setCampfireSubmitted((prev) => new Set(prev).add(activity.id));
+                  // store as a "campfire" participant so it shows in results
+                  send({
+                    type: "send-hint",
+                    hint: `group response submitted`,
+                  });
+                }}
                 responses={
                   state.resultsRevealed
                     ? Object.fromEntries(
