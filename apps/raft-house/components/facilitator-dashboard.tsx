@@ -71,11 +71,12 @@ export function FacilitatorDashboard({ state, send, connected }: Props) {
     professional: { icon: "🌳", label: "pro" },
   };
   const ageLevelOrder: AgeLevel[] = ["kids", "highschool", "professional"];
+  const currentAgeLevel = state.ageLevel || "professional";
   const handleCycleAgeLevel = useCallback(() => {
-    const idx = ageLevelOrder.indexOf(state.ageLevel);
+    const idx = ageLevelOrder.indexOf(currentAgeLevel);
     const next = ageLevelOrder[(idx + 1) % ageLevelOrder.length];
     send({ type: "set-age-level", ageLevel: next });
-  }, [send, state.ageLevel]);
+  }, [send, currentAgeLevel]);
 
   // ── auto-save to Notion when session completes ─────────────────
   const [saveStatus, setSaveStatus] = useState<
@@ -170,7 +171,7 @@ export function FacilitatorDashboard({ state, send, connected }: Props) {
   }
 
   return (
-    <AgeLevelProvider level={state.ageLevel}>
+    <AgeLevelProvider level={currentAgeLevel}>
     <div className="min-h-screen bg-[var(--rh-sand-light)]">
       {/* ── top bar ───────────────────────────────────────────── */}
       <header className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-black/5 px-4 py-3">
@@ -191,9 +192,9 @@ export function FacilitatorDashboard({ state, send, connected }: Props) {
             <button
               onClick={handleCycleAgeLevel}
               className="px-3 py-1.5 rounded-full text-xs font-medium border border-black/10 hover:bg-black/5 transition-colors"
-              title={`audience: ${ageLevelLabels[state.ageLevel].label} — click to change`}
+              title={`audience: ${ageLevelLabels[currentAgeLevel].label} — click to change`}
             >
-              {ageLevelLabels[state.ageLevel].icon} {ageLevelLabels[state.ageLevel].label}
+              {ageLevelLabels[currentAgeLevel].icon} {ageLevelLabels[currentAgeLevel].label}
             </button>
             <button
               onClick={handleToggleMode}

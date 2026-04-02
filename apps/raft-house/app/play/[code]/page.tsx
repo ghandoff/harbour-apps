@@ -92,7 +92,7 @@ export default function PlayPage() {
   const myIndex = myId ? participantIds.indexOf(myId) : 0;
 
   return (
-    <AgeLevelProvider level={state.ageLevel}>
+    <AgeLevelProvider level={state.ageLevel || "professional"}>
     <div className="min-h-screen flex flex-col">
       {/* notifications overlay */}
       <NotificationOverlay
