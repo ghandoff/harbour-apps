@@ -1,5 +1,5 @@
 import { Client } from "@notionhq/client";
-import type { Activity } from "./types";
+import type { Activity, ActivityConfig, ActivityType } from "./types";
 
 const DATABASE_ID = "8ed2d02fc2e647cf9d108a66fef9306e";
 const RESULTS_DATABASE_ID = "6bcdec6d77b84eb6870d83ba59720f04";
@@ -122,6 +122,234 @@ function multiSelectValues(prop: unknown): string[] {
   return opts.map((o) => o.name);
 }
 
+// ── normalize Notion activity JSON → typed Activity ─────────────
+// Notion stores a flat config object; the app expects a discriminated
+// union with nested keys (e.g. { type: "sorting", sorting: {...} }).
+// This function bridges the two shapes at the system boundary.
+
+interface RawNotionActivity {
+  id: string;
+  type: string;
+  phase?: string;
+  label?: string;
+  config: Record<string, unknown>;
+  timeLimit?: number;
+  hints?: string[];
+  mechanic?: Record<string, unknown>;
+}
+
+function toId(s: string, i: number): string {
+  return s.toLowerCase().replace(/[^a-z0-9]+/g, "-") || `item-${i}`;
+}
+
+function normalizeConfig(
+  type: ActivityType,
+  raw: Record<string, unknown>,
+): ActivityConfig {
+  switch (type) {
+    case "poll": {
+      const options = Array.isArray(raw.options)
+        ? raw.options.map((o: unknown, i: number) =>
+            typeof o === "string"
+              ? { id: toId(o, i), label: o }
+              : (o as { id: string; label: string }),
+          )
+        : [];
+      return {
+        type: "poll",
+        poll: {
+          question: (raw.question ?? raw.prompt ?? "") as string,
+          options,
+          allowMultiple: raw.allowMultiple as boolean | undefined,
+        },
+      };
+    }
+
+    case "prediction": {
+      const options = Array.isArray(raw.options)
+        ? raw.options.map((o: unknown, i: number) =>
+            typeof o === "string"
+              ? { id: toId(o, i), label: o }
+              : (o as { id: string; label: string }),
+          )
+        : undefined;
+      return {
+        type: "prediction",
+        prediction: {
+          question: (raw.question ?? raw.prompt ?? "") as string,
+          type: (raw.type as "number" | "text" | "choice") ?? (options ? "choice" : "text"),
+          options,
+          answer: raw.answer as string | number | undefined,
+          unit: raw.unit as string | undefined,
+        },
+      };
+    }
+
+    case "reflection":
+      return {
+        type: "reflection",
+        reflection: {
+          prompt: (raw.prompt ?? "") as string,
+          minLength: raw.minLength as number | undefined,
+          shareWithGroup: raw.shareWithGroup as boolean | undefined,
+        },
+      };
+
+    case "open-response":
+      return {
+        type: "open-response",
+        openResponse: {
+          prompt: (raw.prompt ?? "") as string,
+          responseType: (raw.responseType as "text" | "drawing") ?? "text",
+          anonymous: raw.anonymous as boolean | undefined,
+        },
+      };
+
+    case "puzzle": {
+      const pieces = Array.isArray(raw.pieces)
+        ? raw.pieces.map((p: unknown, i: number) =>
+            typeof p === "string"
+              ? { id: toId(p, i), content: p }
+              : (p as { id: string; content: string; hint?: string }),
+          )
+        : [];
+      return {
+        type: "puzzle",
+        puzzle: {
+          prompt: (raw.prompt ?? "") as string,
+          pieces,
+          solution: (raw.solution ?? []) as string[],
+          revealOrder: raw.revealOrder as boolean | undefined,
+        },
+      };
+    }
+
+    case "asymmetric": {
+      const roles = Array.isArray(raw.roles)
+        ? raw.roles.map((r: unknown, i: number) => {
+            if (typeof r === "string")
+              return { id: toId(r, i), label: r, info: "", question: "" };
+            return r as { id: string; label: string; info: string; question: string };
+          })
+        : [];
+      return {
+        type: "asymmetric",
+        asymmetric: {
+          scenario: (raw.scenario ?? raw.prompt ?? "") as string,
+          roles,
+          discussionPrompt: (raw.discussionPrompt ?? "") as string,
+          revealPrompt: raw.revealPrompt as string | undefined,
+        },
+      };
+    }
+
+    case "canvas": {
+      return {
+        type: "canvas",
+        canvas: {
+          prompt: (raw.prompt ?? "") as string,
+          width: (raw.width as number) ?? 800,
+          height: (raw.height as number) ?? 600,
+          xLabel: raw.xLabel as string | undefined,
+          yLabel: raw.yLabel as string | undefined,
+          allowNote: raw.allowNote as boolean | undefined,
+        },
+      };
+    }
+
+    case "sorting": {
+      // Notion may use items: string[] instead of cards: SortingCard[]
+      const cards = Array.isArray(raw.cards)
+        ? raw.cards.map((c: unknown, i: number) =>
+            typeof c === "string"
+              ? { id: toId(c, i), content: c }
+              : (c as { id: string; content: string; hint?: string }),
+          )
+        : Array.isArray(raw.items)
+          ? (raw.items as string[]).map((s, i) => ({
+              id: toId(s, i),
+              content: s,
+            }))
+          : [];
+
+      const categories = Array.isArray(raw.categories)
+        ? raw.categories.map((c: unknown, i: number) =>
+            typeof c === "string"
+              ? { id: toId(c, i), label: c }
+              : (c as { id: string; label: string; description?: string }),
+          )
+        : [];
+
+      return {
+        type: "sorting",
+        sorting: {
+          prompt: (raw.prompt ?? "") as string,
+          cards,
+          categories,
+          solution: raw.solution as Record<string, string> | undefined,
+        },
+      };
+    }
+
+    case "rule-sandbox": {
+      const parameters = Array.isArray(raw.parameters)
+        ? (raw.parameters as Array<Record<string, unknown>>).map((p, i) => ({
+            id: (p.id as string) ?? `param-${i}`,
+            label: (p.label as string) ?? "",
+            min: (p.min as number) ?? 0,
+            max: (p.max as number) ?? 100,
+            step: (p.step as number) ?? 1,
+            defaultValue: (p.defaultValue as number) ?? 0,
+            unit: p.unit as string | undefined,
+          }))
+        : [];
+      return {
+        type: "rule-sandbox",
+        ruleSandbox: {
+          prompt: (raw.prompt ?? "") as string,
+          parameters,
+          formula: (raw.formula ?? "") as string,
+          outputLabel: (raw.outputLabel ?? "") as string,
+          outputUnit: raw.outputUnit as string | undefined,
+          reflectionPrompt: (raw.reflectionPrompt ?? "") as string,
+        },
+      };
+    }
+  }
+}
+
+function normalizeActivity(raw: RawNotionActivity): Activity | null {
+  const actType = raw.type as ActivityType;
+  const validTypes: ActivityType[] = [
+    "poll", "prediction", "reflection", "open-response",
+    "puzzle", "asymmetric", "canvas", "sorting", "rule-sandbox",
+  ];
+  if (!validTypes.includes(actType)) return null;
+
+  // If config already has the discriminated union shape, pass through
+  if (raw.config && "type" in raw.config && raw.config.type === actType) {
+    const configKey = actType === "open-response"
+      ? "openResponse"
+      : actType === "rule-sandbox"
+        ? "ruleSandbox"
+        : actType;
+    if (configKey in raw.config) {
+      return raw as unknown as Activity;
+    }
+  }
+
+  return {
+    id: raw.id,
+    type: actType,
+    config: normalizeConfig(actType, raw.config),
+    phase: (raw.phase ?? "encounter") as Activity["phase"],
+    label: raw.label ?? "",
+    timeLimit: raw.timeLimit,
+    hints: raw.hints,
+    mechanic: raw.mechanic as Activity["mechanic"],
+  };
+}
+
 // ── fetch sessions from Notion ──────────────────────────────────
 
 export async function fetchSessionsFromNotion(): Promise<NotionSession[]> {
@@ -151,7 +379,11 @@ export async function fetchSessionsFromNotion(): Promise<NotionSession[]> {
     let activities: Activity[] | null = null;
     if (activitiesRaw) {
       try {
-        activities = JSON.parse(activitiesRaw) as Activity[];
+        const parsed = JSON.parse(activitiesRaw) as RawNotionActivity[];
+        const normalized = parsed
+          .map(normalizeActivity)
+          .filter((a): a is Activity => a !== null);
+        activities = normalized.length > 0 ? normalized : null;
       } catch {
         // invalid JSON — will fall back to template-generated activities
         activities = null;
