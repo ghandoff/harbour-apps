@@ -276,6 +276,7 @@ export type FacilitatorMessage =
   | { type: "pause" }
   | { type: "resume" }
   | { type: "set-mode"; mode: PacingMode }
+  | { type: "set-display-mode"; displayMode: DisplayMode }
   | { type: "send-hint"; hint: string; participantId?: string }
   | { type: "lock-responses" }
   | { type: "reveal-results" }

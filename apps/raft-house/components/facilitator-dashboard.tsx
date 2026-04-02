@@ -21,9 +21,11 @@ export function FacilitatorDashboard({ state, send, connected }: Props) {
   const connectedCount = participants.filter(
     (p) => p.connectionStatus === "connected",
   ).length;
+  const isCampfire = state.displayMode === "shared-screen";
 
   const joinUrl = `https://windedvertigo.com/harbour/raft-house/play/${state.code}`;
   const [copied, setCopied] = useState(false);
+  const [campfireControlsOpen, setCampfireControlsOpen] = useState(false);
 
   const handleCopyLink = useCallback(() => {
     navigator.clipboard.writeText(joinUrl).then(() => {
@@ -77,6 +79,15 @@ export function FacilitatorDashboard({ state, send, connected }: Props) {
     const next = ageLevelOrder[(idx + 1) % ageLevelOrder.length];
     send({ type: "set-age-level", ageLevel: next });
   }, [send, currentAgeLevel]);
+
+  const handleToggleDisplayMode = useCallback(
+    () =>
+      send({
+        type: "set-display-mode",
+        displayMode: state.displayMode === "shared-screen" ? "screenless" : "shared-screen",
+      }),
+    [send, state.displayMode],
+  );
 
   // ── auto-save to Notion when session completes ─────────────────
   const [saveStatus, setSaveStatus] = useState<
@@ -190,28 +201,194 @@ export function FacilitatorDashboard({ state, send, connected }: Props) {
 
           <div className="flex items-center gap-2">
             <button
+              onClick={handleToggleDisplayMode}
+              className="px-3 py-1.5 rounded-full text-xs font-medium border border-black/10 hover:bg-black/5 transition-colors"
+              title={isCampfire ? "campfire mode (shared screen) — click to switch to phones" : "phones mode — click to switch to campfire"}
+            >
+              {isCampfire ? "🔥 campfire" : "📱 phones"}
+            </button>
+            <button
               onClick={handleCycleAgeLevel}
               className="px-3 py-1.5 rounded-full text-xs font-medium border border-black/10 hover:bg-black/5 transition-colors"
               title={`audience: ${ageLevelLabels[currentAgeLevel].label} — click to change`}
             >
               {ageLevelLabels[currentAgeLevel].icon} {ageLevelLabels[currentAgeLevel].label}
             </button>
-            <button
-              onClick={handleToggleMode}
-              className="px-3 py-1.5 rounded-full text-xs font-medium border border-black/10 hover:bg-black/5 transition-colors"
-            >
-              {state.mode === "sync" ? "🔒 sync" : "🔓 async"}
-            </button>
-            <button
-              onClick={handlePause}
-              className="px-3 py-1.5 rounded-full text-xs font-medium border border-black/10 hover:bg-black/5 transition-colors"
-            >
-              {state.status === "paused" ? "▶ resume" : "⏸ pause"}
-            </button>
+            {!isCampfire && (
+              <>
+                <button
+                  onClick={handleToggleMode}
+                  className="px-3 py-1.5 rounded-full text-xs font-medium border border-black/10 hover:bg-black/5 transition-colors"
+                >
+                  {state.mode === "sync" ? "🔒 sync" : "🔓 async"}
+                </button>
+                <button
+                  onClick={handlePause}
+                  className="px-3 py-1.5 rounded-full text-xs font-medium border border-black/10 hover:bg-black/5 transition-colors"
+                >
+                  {state.status === "paused" ? "▶ resume" : "⏸ pause"}
+                </button>
+              </>
+            )}
           </div>
         </div>
       </header>
 
+      {/* ── campfire (shared-screen) mode ──────────────────── */}
+      {isCampfire ? (
+        <div className="max-w-2xl mx-auto px-4 py-8 w-full">
+          {/* progress indicator */}
+          <div className="flex items-center gap-1.5 mb-6">
+            {state.activities.map((_, i) => (
+              <div
+                key={i}
+                className={`h-1.5 flex-1 rounded-full transition-colors ${
+                  i < state.currentActivityIndex
+                    ? "bg-[var(--rh-teal)]"
+                    : i === state.currentActivityIndex
+                      ? "bg-[var(--rh-cyan)]"
+                      : "bg-black/10"
+                }`}
+              />
+            ))}
+          </div>
+
+          {/* phase + timer */}
+          {activity && (
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-2">
+                <span className={`phase-dot phase-${activity.phase}`} />
+                <span className="text-sm font-medium uppercase tracking-wider text-[var(--rh-text-muted)]">
+                  {activity.phase}
+                </span>
+                <span className="text-sm text-[var(--rh-text-muted)]">
+                  {state.currentActivityIndex + 1}/{state.activities.length}
+                </span>
+              </div>
+              {state.timer && <TimerDisplay timer={state.timer} />}
+            </div>
+          )}
+
+          {/* activity — rendered large */}
+          {activity ? (
+            <div className="bg-white rounded-2xl border border-black/5 p-8 shadow-sm mb-6">
+              <ActivityRenderer
+                activity={activity}
+                role="facilitator"
+                responses={
+                  state.resultsRevealed
+                    ? Object.fromEntries(
+                        Object.entries(state.participants)
+                          .filter(([, p]) => p.responses[activity.id] !== undefined)
+                          .map(([id, p]) => [id, p.responses[activity.id]]),
+                      )
+                    : undefined
+                }
+                participants={state.participants}
+              />
+            </div>
+          ) : (
+            <div className="text-center py-12 text-[var(--rh-text-muted)]">
+              <p>no activities loaded</p>
+            </div>
+          )}
+
+          {/* campfire controls */}
+          <div className="flex gap-3">
+            {!state.resultsRevealed && activity && (
+              <button
+                onClick={handleReveal}
+                className="flex-1 py-3 rounded-xl bg-[var(--rh-cyan)] text-white text-sm font-semibold hover:bg-[var(--rh-teal)] transition-colors"
+              >
+                reveal results ({submittedCount}/{participants.length})
+              </button>
+            )}
+            {state.currentActivityIndex >= state.activities.length - 1 ? (
+              <button
+                onClick={handleEndSession}
+                className="flex-1 py-3 rounded-xl bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition-colors"
+              >
+                end session
+              </button>
+            ) : (
+              <button
+                onClick={handleAdvance}
+                className="flex-1 py-3 rounded-xl bg-[var(--rh-deep)] text-white text-sm font-semibold hover:bg-black transition-colors"
+              >
+                next &rarr;
+              </button>
+            )}
+          </div>
+
+          {/* expandable controls drawer */}
+          <div className="mt-6">
+            <button
+              onClick={() => setCampfireControlsOpen(!campfireControlsOpen)}
+              className="text-xs text-[var(--rh-text-muted)] hover:text-[var(--rh-text)] transition-colors"
+            >
+              {campfireControlsOpen ? "hide controls ▲" : "more controls ▼"}
+            </button>
+            {campfireControlsOpen && (
+              <div className="mt-3 p-4 bg-white rounded-xl border border-black/5 space-y-3">
+                {/* timer */}
+                <div>
+                  <p className="text-xs font-medium text-[var(--rh-text-muted)] mb-2">timer</p>
+                  {state.timer ? (
+                    <TimerDisplay timer={state.timer} />
+                  ) : (
+                    <div className="flex gap-2">
+                      {[60, 120, 180, 300].map((s) => (
+                        <button
+                          key={s}
+                          onClick={() => handleStartTimer(s)}
+                          className="px-3 py-1.5 rounded-lg text-xs border border-black/10 hover:bg-black/5 transition-colors"
+                        >
+                          {s >= 60 ? `${s / 60}m` : `${s}s`}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                {/* activity jump */}
+                <div>
+                  <p className="text-xs font-medium text-[var(--rh-text-muted)] mb-2">jump to activity</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {state.activities.map((act, i) => (
+                      <button
+                        key={act.id}
+                        onClick={() => send({ type: "goto", activityIndex: i })}
+                        className={`px-2.5 py-1 rounded-lg text-xs transition-colors ${
+                          i === state.currentActivityIndex
+                            ? "bg-[var(--rh-teal)] text-white"
+                            : "border border-black/10 hover:bg-black/5"
+                        }`}
+                      >
+                        {i + 1}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {/* export + end */}
+                <div className="flex items-center gap-3 pt-2 border-t border-black/5">
+                  <button
+                    onClick={handleExport}
+                    className="px-3 py-1.5 rounded-lg text-xs border border-black/10 hover:bg-black/5 transition-colors"
+                  >
+                    export results
+                  </button>
+                  <button
+                    onClick={handleEndSession}
+                    className="text-xs text-red-500 hover:text-red-700 transition-colors"
+                  >
+                    end session
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      ) : (
+      /* ── phones (screenless) mode — original 3-column layout ── */
       <div className="max-w-6xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* ── left: activity sequence ────────────────────────── */}
         <div className="lg:col-span-1">
@@ -433,6 +610,7 @@ export function FacilitatorDashboard({ state, send, connected }: Props) {
           )}
         </div>
       </div>
+      )}
     </div>
     </AgeLevelProvider>
   );

@@ -14,7 +14,7 @@ function defaultState(roomId: string): RoomState {
     code: roomId,
     facilitatorId: null,
     mode: "sync",
-    displayMode: "shared-screen",
+    displayMode: "screenless",
     ageLevel: "professional",
     status: "lobby",
     activities: [],
@@ -187,6 +187,11 @@ export default class RoomServer {
 
       case "set-age-level":
         this.state.ageLevel = msg.ageLevel;
+        this.broadcastState();
+        break;
+
+      case "set-display-mode":
+        this.state.displayMode = msg.displayMode;
         this.broadcastState();
         break;
 
