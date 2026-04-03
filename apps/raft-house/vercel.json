@@ -1,0 +1,3 @@
+{
+  "installCommand": "node -e \"const p=require('./package.json');delete p.dependencies['@windedvertigo/auth'];delete p.dependencies['@windedvertigo/stripe'];require('fs').writeFileSync('./package.json',JSON.stringify(p,null,2))\" && npm install"
+}
