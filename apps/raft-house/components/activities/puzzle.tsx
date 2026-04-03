@@ -102,14 +102,24 @@ export function PuzzleActivity({
             </div>
           )}
 
-          {order.length === config.pieces.length && (
-            <button
-              onClick={handleSubmit}
-              className="w-full py-3 rounded-xl bg-[var(--rh-cyan)] text-white font-semibold hover:bg-[var(--rh-teal)] transition-colors"
-            >
-              lock in sequence
-            </button>
-          )}
+          <div className="flex gap-3 items-center">
+            {order.length === config.pieces.length ? (
+              <button
+                onClick={handleSubmit}
+                className="flex-1 py-3 rounded-xl bg-[var(--rh-cyan)] text-white font-semibold hover:bg-[var(--rh-teal)] transition-colors"
+              >
+                lock in sequence
+              </button>
+            ) : <span className="flex-1" />}
+            {order.length > 0 && (
+              <button
+                onClick={() => setOrder([])}
+                className="text-xs text-[var(--rh-text-muted)] hover:text-[var(--rh-text)] transition-colors"
+              >
+                start over
+              </button>
+            )}
+          </div>
         </div>
       ) : role === "participant" && submitted ? (
         <div className="text-center py-6 text-[var(--rh-text-muted)]">
@@ -153,7 +163,7 @@ export function PuzzleActivity({
                     >
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-xs font-medium text-[var(--rh-text-muted)]">
-                          {participants?.[pid]?.displayName || pid.slice(0, 6)}
+                          {participants?.[pid]?.displayName || `participant ${Object.keys(responses).indexOf(pid) + 1}`}
                         </span>
                         <span
                           className={`text-xs font-bold ${score === config.solution.length ? "text-green-600" : "text-[var(--rh-text-muted)]"}`}

@@ -264,7 +264,7 @@ export function RuleSandboxActivity({
               {Object.entries(responses).map(([pid, response]) => {
                 const sub = response as SandboxResponse;
                 const name =
-                  participants?.[pid]?.displayName || pid.slice(0, 6);
+                  participants?.[pid]?.displayName || `participant ${Object.keys(responses).indexOf(pid) + 1}`;
                 return (
                   <div
                     key={pid}

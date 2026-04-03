@@ -88,17 +88,19 @@ export function ReflectionActivity({
         /* facilitator view */
         <div className="space-y-3 mt-4">
           {responses ? (
-            Object.entries(responses).map(([pid, response]) => (
-              <div
-                key={pid}
-                className="p-4 rounded-xl bg-white border border-black/5"
-              >
-                <p className="text-xs font-medium text-[var(--rh-text-muted)] mb-1.5">
-                  {participants?.[pid]?.displayName || pid.slice(0, 6)}
-                </p>
-                <p className="text-sm leading-relaxed">{String(response)}</p>
-              </div>
-            ))
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {Object.entries(responses).map(([pid, response]) => (
+                <div
+                  key={pid}
+                  className="p-4 rounded-xl bg-white border border-black/5"
+                >
+                  <p className="text-xs font-medium text-[var(--rh-text-muted)] mb-1.5">
+                    {participants?.[pid]?.displayName || `participant ${Object.keys(responses).indexOf(pid) + 1}`}
+                  </p>
+                  <p className="text-sm leading-relaxed">{String(response)}</p>
+                </div>
+              ))}
+            </div>
           ) : (
             <p className="text-sm text-[var(--rh-text-muted)]">
               reflections are private until revealed

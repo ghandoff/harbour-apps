@@ -23,6 +23,12 @@ const COLORS = [
   "#34d399", "#f87171", "#a78bfa", "#38bdf8", "#fbbf24",
 ];
 
+function pinColor(index: number, total: number): string {
+  if (total <= COLORS.length) return COLORS[index % COLORS.length];
+  const hue = (index * 360 / total) % 360;
+  return `hsl(${hue}, 70%, 50%)`;
+}
+
 export function CanvasActivity({
   config,
   role,
@@ -227,13 +233,13 @@ export function CanvasActivity({
                 ))}
 
                 {/* all participant pins */}
-                {Object.entries(responses).map(([pid, response], i) => {
+                {Object.entries(responses).map(([pid, response], i, arr) => {
                   const p = response as Pin;
                   const name =
-                    participants?.[pid]?.displayName || pid.slice(0, 4);
+                    participants?.[pid]?.displayName || `participant ${Object.keys(responses).indexOf(pid) + 1}`;
                   const color = config.pinColor === "hue-mapped"
                     ? pinColorFromPosition(p.x, p.y)
-                    : COLORS[i % COLORS.length];
+                    : pinColor(i, arr.length);
                   return (
                     <div
                       key={pid}
@@ -262,13 +268,13 @@ export function CanvasActivity({
 
               {/* legend */}
               <div className="flex flex-wrap gap-2">
-                {Object.entries(responses).map(([pid, response], i) => {
+                {Object.entries(responses).map(([pid, response], i, arr) => {
                   const p = response as Pin;
                   const name =
-                    participants?.[pid]?.displayName || pid.slice(0, 6);
+                    participants?.[pid]?.displayName || `participant ${Object.keys(responses).indexOf(pid) + 1}`;
                   const color = config.pinColor === "hue-mapped"
                     ? pinColorFromPosition(p.x, p.y)
-                    : COLORS[i % COLORS.length];
+                    : pinColor(i, arr.length);
                   return (
                     <div
                       key={pid}

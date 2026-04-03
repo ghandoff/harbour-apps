@@ -44,10 +44,7 @@ export function PollActivity({
           {config.options.map((option) => (
             <button
               key={option.id}
-              onClick={() => {
-                setSelected(option.id);
-                onSubmit?.(option.id);
-              }}
+              onClick={() => setSelected(option.id)}
               className={`w-full text-left px-4 py-3 rounded-xl border transition-all text-sm ${
                 selected === option.id
                   ? "border-[var(--rh-cyan)] bg-[var(--rh-cyan)]/10 font-medium"
@@ -57,6 +54,15 @@ export function PollActivity({
               {option.label}
             </button>
           ))}
+          <button
+            onClick={() => {
+              if (selected) onSubmit?.(selected);
+            }}
+            disabled={!selected}
+            className="w-full py-3 rounded-xl bg-[var(--rh-cyan)] text-white font-semibold hover:bg-[var(--rh-teal)] transition-colors disabled:opacity-30 mt-1"
+          >
+            lock in my vote
+          </button>
         </div>
       ) : role === "participant" && submitted ? (
         <div className="text-center py-6 text-[var(--rh-text-muted)]">

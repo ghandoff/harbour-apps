@@ -153,7 +153,7 @@ export function AsymmetricActivity({
                         >
                           <p className="text-xs text-[var(--rh-text-muted)] mb-1">
                             {participants?.[pid]?.displayName ||
-                              pid.slice(0, 6)}
+                              `participant ${Object.keys(responses).indexOf(pid) + 1}`}
                           </p>
                           <p className="text-sm">
                             {(resp as { answer: string }).answer}
@@ -181,7 +181,7 @@ export function AsymmetricActivity({
                 perspectives are hidden — reveal to start discussion
               </p>
               {/* show role distribution */}
-              <div className="grid grid-cols-2 gap-2">
+              <div className={`grid gap-2 ${config.roles.length <= 2 ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-3"}`}>
                 {config.roles.map((r) => (
                   <div
                     key={r.id}

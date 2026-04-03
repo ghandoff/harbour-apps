@@ -59,7 +59,7 @@ export function OpenResponseActivity({
         /* facilitator: display wall */
         <div className="space-y-3 mt-2">
           {responses ? (
-            <div className="grid grid-cols-1 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {Object.entries(responses).map(([pid, response]) => (
                 <div
                   key={pid}
@@ -67,7 +67,7 @@ export function OpenResponseActivity({
                 >
                   {!config.anonymous && (
                     <p className="text-xs font-medium text-[var(--rh-text-muted)] mb-1.5">
-                      {participants?.[pid]?.displayName || pid.slice(0, 6)}
+                      {participants?.[pid]?.displayName || `participant ${Object.keys(responses).indexOf(pid) + 1}`}
                     </p>
                   )}
                   <p className="text-sm leading-relaxed">{String(response)}</p>

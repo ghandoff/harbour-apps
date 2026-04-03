@@ -132,14 +132,24 @@ export function SortingActivity({
             })}
           </div>
 
-          {allAssigned && (
-            <button
-              onClick={handleSubmit}
-              className="w-full py-3 rounded-xl bg-[var(--rh-cyan)] text-white font-semibold hover:bg-[var(--rh-teal)] transition-colors"
-            >
-              lock in sorting
-            </button>
-          )}
+          <div className="flex gap-3 items-center">
+            {allAssigned ? (
+              <button
+                onClick={handleSubmit}
+                className="flex-1 py-3 rounded-xl bg-[var(--rh-cyan)] text-white font-semibold hover:bg-[var(--rh-teal)] transition-colors"
+              >
+                lock in sorting
+              </button>
+            ) : <span className="flex-1" />}
+            {Object.keys(assignments).length > 0 && (
+              <button
+                onClick={() => setAssignments({})}
+                className="text-xs text-[var(--rh-text-muted)] hover:text-[var(--rh-text)] transition-colors"
+              >
+                start over
+              </button>
+            )}
+          </div>
         </div>
       ) : role === "participant" && submitted ? (
         <div className="text-center py-6 text-[var(--rh-text-muted)]">
@@ -192,7 +202,7 @@ export function SortingActivity({
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-medium text-[var(--rh-text-muted)]">
                           {participants?.[pid]?.displayName ||
-                            pid.slice(0, 6)}
+                            `participant ${Object.keys(responses).indexOf(pid) + 1}`}
                         </span>
                         {config.solution && (
                           <span
