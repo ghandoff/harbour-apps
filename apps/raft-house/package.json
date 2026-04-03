@@ -11,7 +11,13 @@
     "party:deploy": "npx partykit deploy"
   },
   "dependencies": {
+    "@auth/core": "^0.41.0",
+    "@windedvertigo/stripe": "*",
+    "stripe": "^17.7.0",
     "@notionhq/client": "^2.3.0",
+    "@vercel/postgres": "^0.10.0",
+    "@windedvertigo/auth": "*",
+    "next-auth": "^5.0.0-beta.30",
     "html-to-image": "^1.11.13",
     "next": "^16.2.0",
     "partysocket": "^1.1.3",

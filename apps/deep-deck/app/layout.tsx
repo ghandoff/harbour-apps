@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { auth } from "@/lib/auth";
+import { HarbourNav } from "@windedvertigo/auth/harbour-nav";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -35,11 +37,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const session = await auth();
+
   return (
     <html lang="en">
       <head>
@@ -56,16 +60,9 @@ export default function RootLayout({
       </head>
       <body className="antialiased">
         <a href="#main" className="skip-link">
-          Skip to content
+          skip to content
         </a>
-        <nav className="px-6 pt-4">
-          <a
-            href="/harbour"
-            className="text-xs uppercase tracking-wider opacity-30 hover:opacity-60 transition-opacity inline-block"
-          >
-            &larr; harbour
-          </a>
-        </nav>
+        <HarbourNav currentApp="deep-deck" user={session?.user} />
         <main id="main">{children}</main>
       </body>
     </html>

@@ -3,6 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   basePath: "/harbour/raft-house",
   poweredByHeader: false,
+  transpilePackages: ["@windedvertigo/auth", "@windedvertigo/stripe"],
 
   async headers() {
     return [
@@ -25,15 +26,15 @@ const nextConfig: NextConfig = {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com",
+              "script-src 'self' 'unsafe-inline' https://js.stripe.com https://va.vercel-scripts.com",
               "style-src 'self' 'unsafe-inline'",
               "font-src 'self'",
               "img-src 'self' data: https:",
-              "connect-src 'self' https://vitals.vercel-insights.com wss://*.partykit.dev wss://*.partykit.io",
-              "frame-src 'none'",
+              "connect-src 'self' https://api.stripe.com https://vitals.vercel-insights.com https://accounts.google.com wss://*.partykit.dev wss://*.partykit.io",
+              "frame-src https://js.stripe.com https://accounts.google.com",
               "worker-src 'self'",
               "base-uri 'self'",
-              "form-action 'self'",
+              "form-action 'self' https://accounts.google.com",
             ].join("; "),
           },
         ],

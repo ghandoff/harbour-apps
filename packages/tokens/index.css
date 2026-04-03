@@ -315,3 +315,34 @@
 .wv-header-signout:hover {
   opacity: 0.8;
 }
+
+/* ── harbour nav (cross-app strip) ──────────────────────────────
+   compact variant of wv-header used by the shared HarbourNav
+   component. sits above each app's own navigation.                */
+
+.wv-header.harbour-nav {
+  padding: 8px 24px;
+  font-size: 0.8125rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.wv-header.harbour-nav .wv-header-nav {
+  gap: var(--space-md, 16px);
+}
+
+.wv-header.harbour-nav .wv-header-nav-link,
+.wv-header.harbour-nav .wv-header-nav a {
+  font-size: 0.75rem;
+  opacity: 0.6;
+}
+
+.wv-header.harbour-nav .wv-header-nav-link:hover,
+.wv-header.harbour-nav .wv-header-nav a:hover {
+  opacity: 1;
+}
+
+@media (max-width: 639px) {
+  .wv-header.harbour-nav .wv-header-nav {
+    display: none;
+  }
+}

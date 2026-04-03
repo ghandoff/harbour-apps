@@ -17,7 +17,7 @@ export async function create_plan(
   source_format: string = "text"
 ) {
   const r = await sql.query(
-    `INSERT INTO plans (user_id, title, subject, grade_level, raw_text, source_format)
+    `INSERT INTO dc_plans (user_id, title, subject, grade_level, raw_text, source_format)
      VALUES ($1, $2, $3, $4, $5, $6)
      RETURNING id`,
     [user_id, title, subject, grade_level, raw_text, source_format]
@@ -27,7 +27,7 @@ export async function create_plan(
 
 export async function get_plan(plan_id: string, user_id: string) {
   const r = await sql.query(
-    "SELECT * FROM plans WHERE id = $1 AND user_id = $2",
+    "SELECT * FROM dc_plans WHERE id = $1 AND user_id = $2",
     [plan_id, user_id]
   );
   return r.rows[0] ?? null;
@@ -36,8 +36,8 @@ export async function get_plan(plan_id: string, user_id: string) {
 export async function get_plans_for_user(user_id: string, limit = 50) {
   const r = await sql.query(
     `SELECT p.id, p.title, p.subject, p.grade_level, p.source_format, p.created_at,
-            (SELECT count(*) FROM objectives o WHERE o.plan_id = p.id) as objectives_count
-     FROM plans p
+            (SELECT count(*) FROM dc_objectives o WHERE o.plan_id = p.id) as objectives_count
+     FROM dc_plans p
      WHERE p.user_id = $1
      ORDER BY p.created_at DESC
      LIMIT $2`,
@@ -48,14 +48,14 @@ export async function get_plans_for_user(user_id: string, limit = 50) {
 
 export async function delete_plan(plan_id: string, user_id: string) {
   await sql.query(
-    "DELETE FROM plans WHERE id = $1 AND user_id = $2",
+    "DELETE FROM dc_plans WHERE id = $1 AND user_id = $2",
     [plan_id, user_id]
   );
 }
 
 export async function count_plans_this_month(user_id: string) {
   const r = await sql.query(
-    `SELECT count(*) as cnt FROM plans
+    `SELECT count(*) as cnt FROM dc_plans
      WHERE user_id = $1
      AND created_at >= date_trunc('month', now())`,
     [user_id]
@@ -72,7 +72,7 @@ export async function save_objectives(
   for (let i = 0; i < objectives.length; i++) {
     const obj = objectives[i];
     await sql.query(
-      `INSERT INTO objectives (id, plan_id, raw_text, cognitive_verb, blooms_level, knowledge_dimension, content_topic, context, confidence, sort_order)
+      `INSERT INTO dc_objectives (id, plan_id, raw_text, cognitive_verb, blooms_level, knowledge_dimension, content_topic, context, confidence, sort_order)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
       [
         obj.id,
@@ -92,7 +92,7 @@ export async function save_objectives(
 
 export async function get_objectives_for_plan(plan_id: string) {
   const r = await sql.query(
-    "SELECT * FROM objectives WHERE plan_id = $1 ORDER BY sort_order",
+    "SELECT * FROM dc_objectives WHERE plan_id = $1 ORDER BY sort_order",
     [plan_id]
   );
   return r.rows.map((row) => ({
@@ -118,7 +118,7 @@ export async function save_task(
   authenticity_passed: boolean
 ) {
   await sql.query(
-    `INSERT INTO tasks (id, objective_id, blooms_level, task_format, prompt_text, time_estimate_min, collaboration_mode, rubric_json, ej_scaffold_json, authenticity_json, reliability_notes, generation_attempts, authenticity_passed)
+    `INSERT INTO dc_tasks (id, objective_id, blooms_level, task_format, prompt_text, time_estimate_min, collaboration_mode, rubric_json, ej_scaffold_json, authenticity_json, reliability_notes, generation_attempts, authenticity_passed)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
      ON CONFLICT (id) DO UPDATE SET
        prompt_text = EXCLUDED.prompt_text,
@@ -148,8 +148,8 @@ export async function save_task(
 
 export async function get_tasks_for_plan(plan_id: string) {
   const r = await sql.query(
-    `SELECT t.* FROM tasks t
-     JOIN objectives o ON o.id = t.objective_id
+    `SELECT t.* FROM dc_tasks t
+     JOIN dc_objectives o ON o.id = t.objective_id
      WHERE o.plan_id = $1`,
     [plan_id]
   );
@@ -166,7 +166,7 @@ export async function save_feedback(
   comment: string | null
 ) {
   await sql.query(
-    `INSERT INTO feedback (user_id, task_id, plan_id, rating, comment)
+    `INSERT INTO dc_feedback (user_id, task_id, plan_id, rating, comment)
      VALUES ($1, $2, $3, $4, $5)`,
     [user_id, task_id, plan_id, rating, comment]
   );
@@ -180,7 +180,7 @@ export async function track_event(
   metadata: Record<string, unknown> = {}
 ) {
   await sql.query(
-    `INSERT INTO usage_events (user_id, event_type, metadata)
+    `INSERT INTO dc_usage_events (user_id, event_type, metadata)
      VALUES ($1, $2, $3)`,
     [user_id, event_type, JSON.stringify(metadata)]
   );

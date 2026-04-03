@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
+import { auth } from "@/lib/auth";
 import AuthSessionProvider from "@/components/session-provider";
-import AuthButton from "@/components/auth-button";
+import { HarbourNav } from "@windedvertigo/auth/harbour-nav";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -40,11 +41,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const session = await auth();
+
   return (
     <html lang="en">
       <head>
@@ -64,9 +67,7 @@ export default function RootLayout({
           <a href="#main" className="skip-link">
             skip to content
           </a>
-          <nav className="fixed top-0 right-0 z-40 p-4">
-            <AuthButton />
-          </nav>
+          <HarbourNav currentApp="depth-chart" user={session?.user} />
           {children}
         </AuthSessionProvider>
       </body>

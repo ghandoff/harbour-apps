@@ -11,7 +11,11 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.52.0",
     "@react-pdf/renderer": "^4.3.2",
+    "@auth/core": "^0.41.0",
+    "@windedvertigo/stripe": "*",
+    "stripe": "^17.7.0",
     "@vercel/postgres": "^0.10.0",
+    "@windedvertigo/auth": "*",
     "@windedvertigo/tokens": "*",
     "jszip": "^3.10.1",
     "mammoth": "^1.12.0",

@@ -1,24 +1,2 @@
-import "next-auth";
-import "next-auth/jwt";
-
-declare module "next-auth" {
-  interface Session {
-    userId: string;
-    orgId: string | null;
-    orgName: string | null;
-    orgRole: string | null;
-    isAdmin: boolean;
-    uiTier: string;
-  }
-}
-
-declare module "next-auth/jwt" {
-  interface JWT {
-    userId: string;
-    orgId: string | null;
-    orgName: string | null;
-    orgRole: string | null;
-    isAdmin: boolean;
-    uiTier: string;
-  }
-}
+// Harbour session type augmentations — provided by @windedvertigo/auth/types
+import "@windedvertigo/auth/types";

@@ -5,6 +5,8 @@ import "./globals.css";
 import Providers from "@/components/providers";
 import NavBar from "@/components/ui/nav-bar";
 import Footer from "@/components/ui/footer";
+import { auth } from "@/lib/auth";
+import { HarbourNav } from "@windedvertigo/auth/harbour-nav";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -77,7 +79,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const cookieStore = await cookies();
+  const [cookieStore, session] = await Promise.all([cookies(), auth()]);
   const reduceMotion = cookieStore.get("cw-reduce-motion")?.value === "true";
   const dyslexiaFont = cookieStore.get("cw-dyslexia-font")?.value === "true";
   const calmTheme = cookieStore.get("cw-calm-theme")?.value === "true";
@@ -104,6 +106,7 @@ export default async function RootLayout({
           >
             skip to main content
           </a>
+          <HarbourNav currentApp="creaseworks" user={session?.user} />
           <NavBar />
           <div id="main-content">
             {children}

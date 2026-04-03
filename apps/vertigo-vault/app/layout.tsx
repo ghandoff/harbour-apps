@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { auth } from "@/lib/auth";
 import { Providers } from "@/components/providers";
+import { HarbourNav } from "@windedvertigo/auth/harbour-nav";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -36,11 +38,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const session = await auth();
+
   return (
     <html lang="en">
       <head>
@@ -56,7 +60,10 @@ export default function RootLayout({
         />
       </head>
       <body className="antialiased">
-        <Providers>{children}</Providers>
+        <Providers>
+          <HarbourNav currentApp="vertigo-vault" user={session?.user} />
+          {children}
+        </Providers>
       </body>
     </html>
   );

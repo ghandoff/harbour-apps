@@ -1,3 +1,5 @@
-import { handlers } from "@/lib/auth";
+import { createAuthRouteHandler } from "@windedvertigo/auth/route-handler";
+import { authConfig } from "@/lib/auth";
 
-export const { GET, POST } = handlers;
+const { GET, POST } = createAuthRouteHandler("depth-chart", authConfig);
+export { GET, POST };
