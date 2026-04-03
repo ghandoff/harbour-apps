@@ -171,10 +171,10 @@ export function FacilitatorDashboard({ state, send, connected }: Props) {
               view session history
             </Link>
             <Link
-              href="/facilitate"
+              href="/"
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[var(--rh-teal)] text-white text-sm font-semibold hover:bg-[var(--rh-deep)] transition-colors"
             >
-              start another session
+              back to raft.house
             </Link>
           </div>
         </div>
