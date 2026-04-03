@@ -327,6 +327,12 @@ export async function downloadReport(state: RoomState) {
   const dataUrl = await toPng(node, {
     backgroundColor: "#faf9f6",
     pixelRatio: 2,
+    width: node.scrollWidth,
+    height: node.scrollHeight,
+    style: {
+      margin: "0",
+      maxWidth: "none",
+    },
   });
 
   const a = document.createElement("a");
