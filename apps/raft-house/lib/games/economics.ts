@@ -27,6 +27,7 @@ export function marginCall(): Activity[] {
       },
       phase: "encounter",
       label: "predict: who saw it coming",
+      discussionPrompt: "only 3% — why does hindsight make financial collapses feel obvious? what does that mean for the next time someone says 'everyone can see this coming'?",
       timeLimit: 45,
       hints: [
         "most analysts had buy ratings on lehman into the summer of 2008",
@@ -56,6 +57,7 @@ export function marginCall(): Activity[] {
       },
       phase: "struggle",
       label: "decide: flash crash",
+      discussionPrompt: "look at the spread — who sold, who bought? the 15-second pressure is the point. what does your gut reaction reveal about your risk tolerance?",
       timeLimit: 15,
       hints: [
         "historically, markets recover from single-day drops over 90% of the time within 12 months",
@@ -103,6 +105,7 @@ export function marginCall(): Activity[] {
       },
       phase: "threshold",
       label: "sort: reading the signals",
+      discussionPrompt: "the yield curve has predicted every recession since 1955 — but the stock market gives false positives. why is a boring bond spread more reliable than the market?",
       timeLimit: 120,
       hints: [
         "leading indicators predict \u2014 lagging indicators confirm",
@@ -124,8 +127,12 @@ export function marginCall(): Activity[] {
             "map where each investment type falls on the risk-reward spectrum. place traditional and alternative assets on the canvas.",
           width: 800,
           height: 600,
-          xLabel: "risk (volatility / standard deviation \u2192)",
-          yLabel: "expected annual return (\u2192)",
+          xLabel: "risk (volatility)",
+          yLabel: "expected annual return",
+          xLow: "low risk",
+          xHigh: "high risk",
+          yLow: "low return",
+          yHigh: "high return",
           zones: [
             { id: "safe", label: "low risk, low return", x: 0, y: 400, width: 300, height: 200 },
             { id: "balanced", label: "moderate risk, moderate return", x: 200, y: 200, width: 300, height: 200 },
@@ -137,6 +144,8 @@ export function marginCall(): Activity[] {
       phase: "integration",
       label: "map: risk-reward frontier",
       timeLimit: 150,
+      discussionPrompt:
+        "did the group place any assets in surprising positions? where do crypto, real estate, and index funds cluster \u2014 and does the pattern resemble the efficient frontier?",
       hints: [
         "treasury bonds are the classic low-risk anchor point",
         "the efficient frontier is a curve, not a straight line",
@@ -197,6 +206,7 @@ export function tradeWinds(): Activity[] {
       },
       phase: "encounter",
       label: "predict: the ricardo puzzle",
+      discussionPrompt: "who picked 'portugal wins'? absolute advantage is intuitive but wrong here — what's the leap to comparative advantage?",
       timeLimit: 60,
       hints: [
         "this is david ricardo's classic example from 1817",
@@ -272,8 +282,12 @@ export function tradeWinds(): Activity[] {
             "map each country's production possibility frontier. place them on the canvas to show who has comparative advantage in what. draw or note the trade flows that emerged from your negotiation.",
           width: 800,
           height: 600,
-          xLabel: "agricultural / raw material output \u2192",
-          yLabel: "manufactured / tech output \u2192",
+          xLabel: "agricultural / raw material output",
+          yLabel: "manufactured / tech output",
+          xLow: "low output",
+          xHigh: "high output",
+          yLow: "low output",
+          yHigh: "high output",
           zones: [
             { id: "primary", label: "primary goods specialists", x: 500, y: 350, width: 300, height: 250 },
             { id: "industrial", label: "manufacturing specialists", x: 0, y: 0, width: 300, height: 250 },
@@ -285,6 +299,8 @@ export function tradeWinds(): Activity[] {
       phase: "threshold",
       label: "map: comparative advantage",
       timeLimit: 150,
+      discussionPrompt:
+        "which countries ended up closest together on the map? did the negotiation outcomes match what comparative advantage theory would predict?",
       mechanic: {
         interactionModel: "sandbox",
         socialStructure: "cooperative",
@@ -370,6 +386,7 @@ export function commonsGame(): Activity[] {
       },
       phase: "struggle",
       label: "decide: fish or conserve (round 1)",
+      discussionPrompt: "show the results — how many people took more than their sustainable share? did anyone take the maximum? ask them why without judgment",
       timeLimit: 30,
       hints: [
         "if everyone takes their sustainable share (20 fish / N players), the fishery sustains forever",
@@ -448,6 +465,7 @@ export function commonsGame(): Activity[] {
       },
       phase: "integration",
       label: "draft: your governance rule",
+      discussionPrompt: "read a few rules aloud — which ones would actually survive contact with human self-interest? ostrom's insight was that the community writes the rules, not outsiders",
       timeLimit: 180,
       mechanic: {
         interactionModel: "construction",
@@ -505,6 +523,7 @@ export function scaleShift(): Activity[] {
       },
       phase: "encounter",
       label: "predict: the paradox of thrift",
+      discussionPrompt: "saving money is individually rational — who picked 'the economy grows'? this is the composition fallacy in action. what felt wrong about the correct answer?",
       timeLimit: 60,
       hints: [
         "keynes identified this paradox in the 1930s",
@@ -599,6 +618,7 @@ export function scaleShift(): Activity[] {
       },
       phase: "threshold",
       label: "sort: micro or macro?",
+      discussionPrompt: "externalities trip everyone up — pollution is a micro concept about market failure, not a macro one. where does the boundary between micro and macro actually blur?",
       timeLimit: 120,
       hints: [
         "micro = decisions of individuals and firms",
@@ -686,6 +706,7 @@ export function marketMind(): Activity[] {
       },
       phase: "encounter",
       label: "predict: the mug experiment",
+      discussionPrompt: "the endowment effect is 2x — owning something doubles its value to you. where has this shown up in your own buying and selling decisions?",
       timeLimit: 60,
       hints: [
         "this is one of the most replicated findings in behavioral economics",
@@ -798,6 +819,7 @@ export function marketMind(): Activity[] {
       },
       phase: "integration",
       label: "poll: know your bias",
+      discussionPrompt: "which bias got the most votes? if it's loss aversion or herding — those are the two that drive market bubbles. does knowing your bias help you resist it?",
       timeLimit: 45,
       mechanic: {
         interactionModel: "reveal",

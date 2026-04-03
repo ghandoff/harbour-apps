@@ -144,9 +144,14 @@ export interface CanvasConfig {
   prompt: string;
   width: number;
   height: number;
-  /** optional axis labels for the 2D space */
+  /** optional axis titles centered along each edge */
   xLabel?: string;
   yLabel?: string;
+  /** endpoint labels — render at the four edges of the canvas */
+  xLow?: string;
+  xHigh?: string;
+  yLow?: string;
+  yHigh?: string;
   /** optional named zones shown as overlays */
   zones?: CanvasZone[];
   allowNote?: boolean;
@@ -226,6 +231,8 @@ export interface Activity {
   timeLimit?: number;
   hints?: string[];
   mechanic?: MechanicMetadata;
+  /** shown to facilitator after results are revealed — guides group discussion */
+  discussionPrompt?: string;
 }
 
 // ── participant ──────────────────────────────────────────────────

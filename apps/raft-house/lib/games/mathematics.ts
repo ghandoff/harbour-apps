@@ -16,6 +16,7 @@ export function foldSpace(): Activity[] {
       type: "prediction",
       phase: "encounter",
       label: "predict: fold geometry",
+      discussionPrompt: "most people guess more than 2 pieces — why does folding make us overestimate? what does the symmetry of the fold do to the cut?",
       config: {
         type: "prediction",
         prediction: {
@@ -34,6 +35,7 @@ export function foldSpace(): Activity[] {
       type: "puzzle",
       phase: "struggle",
       label: "sequence: origami crane",
+      discussionPrompt: "the petal fold is where most people get lost — it's a 3D operation described in 2D words. what does that say about the limits of verbal instructions for spatial tasks?",
       config: {
         type: "puzzle",
         puzzle: {
@@ -134,6 +136,7 @@ export function infinityHotel(): Activity[] {
       type: "prediction",
       phase: "encounter",
       label: "predict: infinite vacancy",
+      discussionPrompt: "all infinitely many guests must move — who said 'that's impossible'? what finite intuition did infinity just break for you?",
       config: {
         type: "prediction",
         prediction: {
@@ -190,6 +193,7 @@ export function infinityHotel(): Activity[] {
       type: "sorting",
       phase: "threshold",
       label: "categorize: countable vs uncountable",
+      discussionPrompt: "rationals are countable but reals aren't — both are infinite but one is 'bigger.' which placement caused the most debate?",
       config: {
         type: "sorting",
         sorting: {
@@ -237,6 +241,7 @@ export function infinityHotel(): Activity[] {
       type: "poll",
       phase: "integration",
       label: "vote: what makes infinity strange",
+      discussionPrompt: "look at the vote distribution — which property got the fewest votes? that might be the one people haven't fully absorbed yet",
       config: {
         type: "poll",
         poll: {
@@ -353,6 +358,7 @@ export function variableEngine(): Activity[] {
       type: "sorting",
       phase: "threshold",
       label: "categorize: expression types",
+      discussionPrompt: "logarithmic growth is technically 'grows steadily' at the slow end — but it decelerates. did anyone want a fourth category for 'growth that slows down'?",
       config: {
         type: "sorting",
         sorting: {
@@ -450,6 +456,7 @@ export function proofGarden(): Activity[] {
       type: "puzzle",
       phase: "struggle",
       label: "sequence: proof that sqrt(2) is irrational",
+      discussionPrompt: "the contradiction is beautiful — both a and b must be even, but we said 'lowest terms.' who found the logic chain hardest to follow?",
       config: {
         type: "puzzle",
         puzzle: {
@@ -679,6 +686,7 @@ export function patternWeave(): Activity[] {
       type: "sorting",
       phase: "integration",
       label: "categorize: sequence families",
+      discussionPrompt: "primes have 'no known closed formula' — mathematicians have tried for millennia. what does it mean that a pattern can be perfectly defined but still resist compression?",
       config: {
         type: "sorting",
         sorting: {

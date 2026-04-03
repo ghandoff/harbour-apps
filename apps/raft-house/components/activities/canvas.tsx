@@ -63,6 +63,47 @@ export function CanvasActivity({
   // convert pin coordinates to percentage for rendering
   const toPercent = (val: number, max: number) => (val / max) * 100;
 
+  const isHueMapped = config.pinColor === "hue-mapped";
+  const labelClass = isHueMapped ? "text-white/60 drop-shadow-sm" : "text-[var(--rh-text-muted)]";
+
+  // reusable axis labels block for both participant + facilitator views
+  const axisLabels = (
+    <>
+      {/* endpoint labels — four edges */}
+      {config.xLow && (
+        <span className={`absolute bottom-1 left-2 text-[10px] tracking-wider ${labelClass}`}>
+          {config.xLow}
+        </span>
+      )}
+      {config.xHigh && (
+        <span className={`absolute bottom-1 right-2 text-[10px] tracking-wider ${labelClass}`}>
+          {config.xHigh}
+        </span>
+      )}
+      {config.yLow && (
+        <span className={`absolute bottom-2 left-1 -rotate-90 origin-bottom-left text-[10px] tracking-wider whitespace-nowrap ${labelClass}`}>
+          {config.yLow}
+        </span>
+      )}
+      {config.yHigh && (
+        <span className={`absolute top-2 left-1 -rotate-90 origin-top-left text-[10px] tracking-wider whitespace-nowrap ${labelClass}`}>
+          {config.yHigh}
+        </span>
+      )}
+      {/* centered axis titles (legacy xLabel/yLabel) — only if no endpoints */}
+      {config.xLabel && !config.xLow && !config.xHigh && (
+        <span className={`absolute bottom-1 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-wider ${labelClass}`}>
+          {config.xLabel}
+        </span>
+      )}
+      {config.yLabel && !config.yLow && !config.yHigh && (
+        <span className={`absolute left-1 top-1/2 -translate-y-1/2 -rotate-90 text-[10px] uppercase tracking-wider origin-center ${labelClass}`}>
+          {config.yLabel}
+        </span>
+      )}
+    </>
+  );
+
   // derive color from canvas position when pinColor is "hue-mapped"
   // x = hue (0–360°), y = saturation (top=muted, bottom=vivid)
   const pinColorFromPosition = (px: number, py: number): string => {
@@ -91,21 +132,7 @@ export function CanvasActivity({
                 : "white",
             }}
           >
-            {/* axis labels */}
-            {config.xLabel && (
-              <span className={`absolute bottom-1 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-wider ${
-                config.pinColor === "hue-mapped" ? "text-white/60 drop-shadow-sm" : "text-[var(--rh-text-muted)]"
-              }`}>
-                {config.xLabel}
-              </span>
-            )}
-            {config.yLabel && (
-              <span className={`absolute left-1 top-1/2 -translate-y-1/2 -rotate-90 text-[10px] uppercase tracking-wider origin-center ${
-                config.pinColor === "hue-mapped" ? "text-white/60 drop-shadow-sm" : "text-[var(--rh-text-muted)]"
-              }`}>
-                {config.yLabel}
-              </span>
-            )}
+            {axisLabels}
 
             {/* gridlines — only for non-hue-mapped canvases */}
             {config.pinColor !== "hue-mapped" && (
@@ -265,6 +292,44 @@ export function CanvasActivity({
                   );
                 })}
               </div>
+
+              {/* cluster summary */}
+              {(() => {
+                const pins = Object.values(responses).map((r) => r as Pin);
+                if (pins.length < 2) return null;
+                const avgX = pins.reduce((s, p) => s + p.x, 0) / pins.length;
+                const avgY = pins.reduce((s, p) => s + p.y, 0) / pins.length;
+                const spread = Math.sqrt(
+                  pins.reduce((s, p) => s + (p.x - avgX) ** 2 + (p.y - avgY) ** 2, 0) / pins.length,
+                );
+                const maxSpread = Math.sqrt(config.width ** 2 + config.height ** 2) / 2;
+                const consensus = 1 - Math.min(spread / maxSpread, 1);
+                const consensusLabel =
+                  consensus > 0.75 ? "tight consensus" :
+                  consensus > 0.5 ? "moderate agreement" :
+                  consensus > 0.25 ? "spread out" : "wide disagreement";
+
+                // describe centroid position using endpoint labels
+                const xPos = avgX / config.width;
+                const yPos = avgY / config.height;
+                const xDesc = config.xLow && config.xHigh
+                  ? (xPos < 0.33 ? config.xLow : xPos > 0.67 ? config.xHigh : `between ${config.xLow} and ${config.xHigh}`)
+                  : null;
+                const yDesc = config.yLow && config.yHigh
+                  ? (yPos > 0.67 ? config.yLow : yPos < 0.33 ? config.yHigh : `between ${config.yLow} and ${config.yHigh}`)
+                  : null;
+
+                return (
+                  <div className="p-3 rounded-xl bg-[var(--rh-sand)] border border-black/5 text-sm">
+                    <p className="font-medium mb-1">group pattern: {consensusLabel}</p>
+                    <p className="text-xs text-[var(--rh-text-muted)]">
+                      {xDesc && yDesc
+                        ? `the group clusters toward ${xDesc}, ${yDesc}`
+                        : `${pins.length} pins placed — ${consensusLabel.toLowerCase()}`}
+                    </p>
+                  </div>
+                );
+              })()}
 
               {/* legend */}
               <div className="flex flex-wrap gap-2">

@@ -31,6 +31,7 @@ export function selectionPressure(): Activity[] {
       },
       phase: "encounter",
       label: "predict: evolution speed",
+      discussionPrompt: "who guessed closest? ask why — did anyone reason from bacterial division rates or was it pure intuition?",
       timeLimit: 45,
       hints: [
         "E. coli divides every ~20 minutes",
@@ -191,6 +192,7 @@ export function selectionPressure(): Activity[] {
       },
       phase: "threshold",
       label: "sort: visible to selection",
+      discussionPrompt: "which card sparked the most disagreement? blood type is tricky — it's neutral now but not during malaria outbreaks",
       timeLimit: 150,
       hints: [
         "selection can only act on traits that affect the organism's phenotype",
@@ -303,6 +305,7 @@ export function expressIon(): Activity[] {
       },
       phase: "encounter",
       label: "predict: gene activation",
+      discussionPrompt: "most people overestimate the percentage. why does 'same DNA, different cell' feel counterintuitive?",
       timeLimit: 45,
       hints: [
         "a liver cell doesn't need to produce melanin",
@@ -371,6 +374,7 @@ export function expressIon(): Activity[] {
       },
       phase: "struggle",
       label: "sequence: gene to protein",
+      discussionPrompt: "where did people get stuck? the splicing step often catches people — why does the cell bother editing its own messages?",
       timeLimit: 150,
       hints: [
         "the central dogma: DNA → RNA → protein",
@@ -510,6 +514,7 @@ export function webPulse(): Activity[] {
       },
       phase: "encounter",
       label: "predict: trophic cascades",
+      discussionPrompt: "wolves changing rivers — who found that believable? what does it reveal about how far indirect effects can travel?",
       timeLimit: 60,
       hints: [
         "elk had been overgrazing riverbanks for decades without wolves",
@@ -673,6 +678,7 @@ export function webPulse(): Activity[] {
       },
       phase: "integration",
       label: "vote: who to save",
+      discussionPrompt: "look at the vote split — did the asymmetric role exercise change who people wanted to protect? anyone vote for their own species?",
       timeLimit: 60,
       mechanic: {
         interactionModel: "reveal",
@@ -733,6 +739,7 @@ export function emergeBox(): Activity[] {
       },
       phase: "encounter",
       label: "predict: emergent complexity",
+      discussionPrompt: "a computer from four rules — who believed it before the reveal? what's the gap between 'simple rules' and 'complex output' in your mental model?",
       timeLimit: 45,
       hints: [
         "people have been studying the game of life since 1970",

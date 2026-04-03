@@ -97,8 +97,12 @@ export function frameShift(): Activity[] {
             "map where the three reference frames agree and disagree. place a pin for each physical quantity — does it look the same or different across frames?",
           width: 800,
           height: 600,
-          xLabel: "same across all frames",
-          yLabel: "different across frames",
+          xLabel: "frame agreement",
+          yLabel: "frame dependence",
+          xLow: "same across all frames",
+          xHigh: "seems invariant but isn't",
+          yLow: "frame-invariant",
+          yHigh: "frame-dependent",
           zones: [
             {
               id: "invariant",
@@ -131,6 +135,8 @@ export function frameShift(): Activity[] {
       phase: "threshold",
       label: "map: invariant vs. relative",
       timeLimit: 180,
+      discussionPrompt:
+        "which quantities did the group disagree about — did anyone place velocity or energy in the invariant zone? what does the 'tricky' zone reveal about intuitions vs. physics?",
       hints: [
         "acceleration due to gravity is the same for all observers",
         "velocity and trajectory shape change between frames",
@@ -201,6 +207,7 @@ export function entropyGarden(): Activity[] {
       },
       phase: "encounter",
       label: "predict: entropy",
+      discussionPrompt: "who picked 'ice reforms'? that would violate the second law. what makes spontaneous re-ordering feel possible even though it isn't?",
       timeLimit: 45,
       hints: [
         "think about what 'spontaneous' means in thermodynamics",
@@ -295,6 +302,7 @@ export function entropyGarden(): Activity[] {
       },
       phase: "threshold",
       label: "feel: inevitable decay",
+      discussionPrompt: "look at the emotional distribution — 'frustrated' vs 'peaceful' vs 'motivated.' the same physical law produces completely different emotional responses. why?",
       timeLimit: 60,
       mechanic: {
         interactionModel: "reveal",
@@ -478,6 +486,7 @@ export function fieldCanvas(): Activity[] {
       },
       phase: "threshold",
       label: "sort: field types",
+      discussionPrompt: "the motor uses magnetic fields but requires electric current to create them — where does electric end and magnetic begin? maxwell showed they're the same thing",
       timeLimit: 120,
       hints: [
         "static electricity involves charges that aren't moving",
@@ -739,6 +748,7 @@ export function timePrism(): Activity[] {
       },
       phase: "encounter",
       label: "predict: wave-particle duality",
+      discussionPrompt: "individual electrons hit one spot but the pattern is wave-like — who found this genuinely unsettling? that discomfort is the correct response to quantum mechanics",
       timeLimit: 60,
       hints: [
         "each individual electron hits the screen at one specific point",
@@ -835,6 +845,7 @@ export function timePrism(): Activity[] {
       },
       phase: "threshold",
       label: "vote: does observation create reality?",
+      discussionPrompt: "look at the split between copenhagen and many-worlds — physicists are divided the same way. anyone pick 'shut up and calculate'? that's actually the most popular among working physicists",
       timeLimit: 60,
       mechanic: {
         interactionModel: "reveal",

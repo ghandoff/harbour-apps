@@ -16,6 +16,7 @@ export function raceCondition(): Activity[] {
       type: "prediction",
       phase: "encounter",
       label: "predict: concurrent access",
+      discussionPrompt: "the answer is $400, not -$200 — both withdrawals succeed because they read before either writes. who fell for the sequential thinking trap?",
       config: {
         type: "prediction",
         prediction: {
@@ -83,6 +84,7 @@ export function raceCondition(): Activity[] {
       type: "puzzle",
       phase: "threshold",
       label: "sequence: deadlock conditions",
+      discussionPrompt: "all four conditions must hold simultaneously — which one seems easiest to break in practice? that's your prevention strategy",
       config: {
         type: "puzzle",
         puzzle: {
@@ -121,6 +123,7 @@ export function raceCondition(): Activity[] {
       type: "poll",
       phase: "integration",
       label: "vote: prevention strategies",
+      discussionPrompt: "look at the split — did anyone pick lock-free? that's the hardest to implement but the only one that eliminates the problem entirely",
       config: {
         type: "poll",
         poll: {
@@ -167,6 +170,7 @@ export function typeTower(): Activity[] {
       type: "prediction",
       phase: "encounter",
       label: "predict: type safety",
+      discussionPrompt: "110, not 11 — string concatenation then numeric subtraction. who traced through the types correctly on the first try?",
       config: {
         type: "prediction",
         prediction: {
@@ -184,6 +188,7 @@ export function typeTower(): Activity[] {
       type: "sorting",
       phase: "struggle",
       label: "categorize: type compatibility",
+      discussionPrompt: "the 'coerced' category is where bugs hide — which coercion surprised you most? why do languages allow implicit conversion at all?",
       config: {
         type: "sorting",
         sorting: {
@@ -236,6 +241,7 @@ export function typeTower(): Activity[] {
       type: "puzzle",
       phase: "threshold",
       label: "sequence: build a type-safe stack",
+      discussionPrompt: "the validate step returns User | Error — what happens to the tower if you skip error handling? that's where real systems crash",
       config: {
         type: "puzzle",
         puzzle: {
@@ -371,6 +377,8 @@ export function stateCraft(): Activity[] {
       type: "canvas",
       phase: "threshold",
       label: "map: draw the state diagram",
+      discussionPrompt:
+        "did everyone place the error state in the same region? which states ended up closest to each other — and does that match the transitions you'd expect in a real music player?",
       config: {
         type: "canvas",
         canvas: {
@@ -378,8 +386,12 @@ export function stateCraft(): Activity[] {
             "place pins to represent the states of a simple music player: stopped, playing, paused, loading, error. then mentally trace the transitions between them. place each state where it makes spatial sense — states that can transition to each other should be near each other.",
           width: 100,
           height: 100,
-          xLabel: "← inactive — active →",
-          yLabel: "↑ error state — normal operation ↓",
+          xLabel: "activity",
+          yLabel: "operation status",
+          xLow: "inactive",
+          xHigh: "active",
+          yLow: "normal operation",
+          yHigh: "error state",
           zones: [
             { id: "idle", label: "idle zone", x: 0, y: 50, width: 30, height: 50 },
             { id: "active", label: "active zone", x: 40, y: 50, width: 40, height: 50 },
@@ -607,6 +619,7 @@ export function codeWeave(): Activity[] {
       type: "puzzle",
       phase: "struggle",
       label: "sequence: sort algorithm",
+      discussionPrompt: "bubble sort takes three passes for four elements — how many passes would a list of 1,000 elements need in the worst case? that's why O(n^2) matters",
       config: {
         type: "puzzle",
         puzzle: {

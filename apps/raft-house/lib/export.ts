@@ -303,16 +303,36 @@ function formatRuleSandbox(lines: string[], config: RuleSandboxConfig, responses
   }
 }
 
-/** trigger a file download in the browser */
-export function downloadReport(state: RoomState) {
-  const content = generateSessionReport(state);
-  const blob = new Blob([content], { type: "text/markdown;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
+/** capture the debrief view as a PNG image and download it */
+export async function downloadReport(state: RoomState) {
+  const { toPng } = await import("html-to-image");
+
+  // the SessionDebrief component renders inside a div with this data attribute
+  const node = document.querySelector("[data-debrief]") as HTMLElement | null;
+  if (!node) {
+    // fallback: download markdown if debrief DOM isn't available
+    const content = generateSessionReport(state);
+    const blob = new Blob([content], { type: "text/markdown;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `raft-house-${state.code}-${Date.now()}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    return;
+  }
+
+  const dataUrl = await toPng(node, {
+    backgroundColor: "#faf9f6",
+    pixelRatio: 2,
+  });
+
   const a = document.createElement("a");
-  a.href = url;
-  a.download = `raft-house-${state.code}-${Date.now()}.md`;
+  a.href = dataUrl;
+  a.download = `raft-house-${state.code}.png`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
-  URL.revokeObjectURL(url);
 }

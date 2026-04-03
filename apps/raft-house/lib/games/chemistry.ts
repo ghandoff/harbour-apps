@@ -30,6 +30,7 @@ export function bondCraft(): Activity[] {
       },
       phase: "encounter",
       label: "predict: crystal showdown",
+      discussionPrompt: "salt seems harder and more solid — why did so many people pick it? what does this reveal about everyday intuitions vs. bond strength?",
       timeLimit: 45,
       hints: [
         "think about what holds the atoms together in each crystal",
@@ -77,6 +78,7 @@ export function bondCraft(): Activity[] {
       },
       phase: "struggle",
       label: "sort: bond families",
+      discussionPrompt: "HF trips people up — it's two nonmetals but the electronegativity gap is huge. where does the boundary between covalent and ionic actually live?",
       timeLimit: 120,
       hints: [
         "metals bonding with nonmetals usually form ionic bonds",
@@ -224,6 +226,7 @@ export function equilibriumDance(): Activity[] {
       },
       phase: "encounter",
       label: "predict: the color shift",
+      discussionPrompt: "cooling makes it lighter, not darker — who had the right reasoning even if they picked wrong? what does 'favoring the exothermic direction' mean intuitively?",
       timeLimit: 45,
       hints: [
         "the forward reaction (N\u2082O\u2084 \u2192 2NO\u2082) is endothermic",
@@ -307,6 +310,7 @@ export function equilibriumDance(): Activity[] {
       },
       phase: "threshold",
       label: "sort: which way does it shift?",
+      discussionPrompt: "catalysts and inert gas both go in 'no shift' — did that surprise anyone? what makes them different from every other intervention?",
       timeLimit: 120,
       hints: [
         "catalysts speed up both directions equally",
@@ -336,6 +340,7 @@ export function equilibriumDance(): Activity[] {
       },
       phase: "integration",
       label: "poll: dynamic vs static",
+      discussionPrompt: "if anyone picked 'molecules stop moving' — that's the most common misconception. why does 'nothing seems to change' trick us into thinking nothing is happening?",
       timeLimit: 60,
       mechanic: {
         interactionModel: "reveal",
@@ -389,6 +394,7 @@ export function reactionPath(): Activity[] {
       },
       phase: "encounter",
       label: "predict: catalyst power",
+      discussionPrompt: "40,000x faster — did anyone come close? the exponential relationship between activation energy and rate is deeply counterintuitive",
       timeLimit: 60,
       hints: [
         "the arrhenius equation relates rate to e^(-Ea/RT)",
@@ -456,6 +462,7 @@ export function reactionPath(): Activity[] {
       },
       phase: "threshold",
       label: "sequence: the reaction path",
+      discussionPrompt: "the umbrella inversion — who got that step wrong? SN2 happens in a single moment but we had to break it into five steps to understand it",
       timeLimit: 150,
       hints: [
         "SN2 is a single concerted step \u2014 bond making and breaking happen simultaneously",

@@ -42,6 +42,7 @@ export function spaceBetween(): Activity[] {
       type: "sorting",
       phase: "struggle",
       label: "sort: composition principles",
+      discussionPrompt: "negative space as 'balance' not 'meaning' — did anyone disagree? what happens to a composition when you treat emptiness as active design, not leftover?",
       timeLimit: 150,
       config: {
         type: "sorting",
@@ -87,6 +88,8 @@ export function spaceBetween(): Activity[] {
       phase: "threshold",
       label: "compose: focus points",
       timeLimit: 180,
+      discussionPrompt:
+        "where did the group cluster their focus points? did anyone place the figure off-center, and how does that change the emotional weight of the composition?",
       config: {
         type: "canvas",
         canvas: {
@@ -96,6 +99,10 @@ export function spaceBetween(): Activity[] {
           height: 600,
           xLabel: "frame width",
           yLabel: "frame height",
+          xLow: "left edge",
+          xHigh: "right edge",
+          yLow: "bottom edge",
+          yHigh: "top edge",
           zones: [
             { id: "upper-third", label: "sky / upper third", x: 0, y: 0, width: 900, height: 200 },
             { id: "middle-third", label: "horizon / middle third", x: 0, y: 200, width: 900, height: 200 },
@@ -197,6 +204,7 @@ export function hueShift(): Activity[] {
       type: "sorting",
       phase: "struggle",
       label: "sort: color temperature",
+      discussionPrompt: "chartreuse is the most ambiguous — it shifts warm or cool depending on what's beside it. who put it in 'ambiguous' and who committed to a temperature?",
       timeLimit: 120,
       config: {
         type: "sorting",
@@ -264,6 +272,8 @@ export function hueShift(): Activity[] {
       phase: "integration",
       label: "map: color relationships",
       timeLimit: 180,
+      discussionPrompt:
+        "do the pins cluster around warm or cool hues? what does the group's color map reveal about shared emotional associations with color?",
       config: {
         type: "canvas",
         canvas: {
@@ -271,8 +281,12 @@ export function hueShift(): Activity[] {
             "place a pin where you think the most emotionally powerful color lives. the x-axis is hue — from red on the left through green in the middle to violet on the right. the y-axis is saturation — muted at the top, vivid at the bottom. your pin will become the color at that position. try a few spots before locking in.",
           width: 360,
           height: 360,
-          xLabel: "hue (red → green → violet)",
-          yLabel: "saturation (muted ↓ vivid)",
+          xLabel: "hue",
+          yLabel: "saturation",
+          xLow: "red",
+          xHigh: "violet",
+          yLow: "vivid",
+          yHigh: "muted",
           pinColor: "hue-mapped",
           allowNote: true,
         },
@@ -398,6 +412,7 @@ export function gridBreak(): Activity[] {
       type: "sorting",
       phase: "threshold",
       label: "sort: design principles",
+      discussionPrompt: "white space as 'final polish' is counterintuitive — most beginners add it last, but experts plan for it first. what shifts when you treat emptiness as the starting point?",
       timeLimit: 120,
       config: {
         type: "sorting",
@@ -438,6 +453,7 @@ export function gridBreak(): Activity[] {
       type: "poll",
       phase: "integration",
       label: "vote: best constraint",
+      discussionPrompt: "which constraint got the fewest votes? often the most limiting one produces the most creative result. did the vote match which designs were actually most inventive?",
       timeLimit: 60,
       config: {
         type: "poll",

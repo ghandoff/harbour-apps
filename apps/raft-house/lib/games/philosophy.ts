@@ -26,6 +26,7 @@ export function oughtMachine(): Activity[] {
       },
       phase: "encounter",
       label: "predict: universal moral intuitions",
+      discussionPrompt: "81% pull the switch — but the footbridge version (pushing someone) drops to ~50%. same math, different action. what's the moral difference between pulling a lever and using your hands?",
       timeLimit: 60_000,
       hints: [
         "the switch version gets much higher agreement than the footbridge version (pushing someone)",
@@ -135,6 +136,7 @@ export function oughtMachine(): Activity[] {
       },
       phase: "threshold",
       label: "sequence: singer's argument",
+      discussionPrompt: "the argument is logically valid — if you accept all premises, the conclusion follows. which premise do you reject, and why? that's where your moral philosophy lives",
       timeLimit: 150_000,
       hints: [
         "start with the most general principle, then add specifics",
@@ -177,6 +179,7 @@ export function oughtMachine(): Activity[] {
       },
       phase: "integration",
       label: "vote: where you actually stand",
+      discussionPrompt: "did anyone's vote change from what they would have picked before the debate? if 'moral pluralism' won — is that wisdom or evasion?",
       timeLimit: 45_000,
       mechanic: {
         interactionModel: "reveal",
@@ -281,6 +284,7 @@ export function circleRead(): Activity[] {
       },
       phase: "struggle",
       label: "arrange: layers of reading",
+      discussionPrompt: "compare sequences — who started with surface reading and who jumped to personal? the order you chose reveals whether you read bottom-up or top-down",
       timeLimit: 120_000,
       hints: [
         "there's no wrong order — the point is to notice your sequence",
@@ -569,6 +573,7 @@ export function lensShift(): Activity[] {
       },
       phase: "threshold",
       label: "sort: claims to traditions",
+      discussionPrompt: "the camus quote — 'one must imagine sisyphus happy' — did anyone sort it wrong? existentialism and absurdism overlap but diverge on whether meaning is chosen or defied",
       timeLimit: 180_000,
       hints: [
         "ask yourself: where does this claim locate truth — in the mind, the senses, consequences, or choice?",
@@ -770,6 +775,7 @@ export function liminalPass(): Activity[] {
       },
       phase: "struggle",
       label: "sort: threshold or not?",
+      discussionPrompt: "the quadratic formula vs opportunity cost — one is forgettable, one is irreversible. what makes the difference? ask who's been changed by a concept and can't go back",
       timeLimit: 180_000,
       hints: [
         "ask: can you un-learn this? does understanding it change how you see other things?",
@@ -853,6 +859,7 @@ export function liminalPass(): Activity[] {
       },
       phase: "integration",
       label: "name: a threshold crossed",
+      discussionPrompt: "read a few responses aloud — look for the common thread. most thresholds involve a moment where the old way of seeing became impossible. what triggered the crossing?",
       timeLimit: 180_000,
       mechanic: {
         interactionModel: "performance",

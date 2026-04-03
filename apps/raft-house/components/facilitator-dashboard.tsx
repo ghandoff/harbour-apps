@@ -8,6 +8,7 @@ import { downloadReport, generateSessionReport } from "@/lib/export";
 import { ActivityRenderer } from "./activity-renderer";
 import { TimerDisplay } from "./timer-display";
 import { AgeLevelProvider } from "@/lib/age-context";
+import { SessionDebrief } from "./session-debrief";
 
 interface Props {
   state: RoomState;
@@ -142,43 +143,11 @@ export function FacilitatorDashboard({ state, send, connected }: Props) {
 
   if (state.status === "completed") {
     return (
-      <div className="min-h-screen flex items-center justify-center px-6">
-        <div className="text-center max-w-md">
-          <p className="text-4xl mb-4">🛶</p>
-          <h1 className="text-2xl font-bold mb-2">session complete</h1>
-          <p className="text-[var(--rh-text-muted)] mb-6">
-            {participants.length} participants crossed with you.
-          </p>
-
-          {/* save status indicator */}
-          <p className="text-xs text-[var(--rh-text-muted)] mb-4">
-            {saveStatus === "saving" && "saving to history..."}
-            {saveStatus === "saved" && "✓ saved to session history"}
-            {saveStatus === "error" && "could not save — download results below"}
-          </p>
-
-          <div className="flex flex-col items-center gap-3">
-            <button
-              onClick={handleExport}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-black/10 text-sm font-medium hover:bg-black/5 transition-colors"
-            >
-              export results
-            </button>
-            <Link
-              href="/facilitate/history"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-black/10 text-sm font-medium hover:bg-black/5 transition-colors"
-            >
-              view session history
-            </Link>
-            <Link
-              href="/"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[var(--rh-teal)] text-white text-sm font-semibold hover:bg-[var(--rh-deep)] transition-colors"
-            >
-              back to raft.house
-            </Link>
-          </div>
-        </div>
-      </div>
+      <SessionDebrief
+        state={state}
+        saveStatus={saveStatus}
+        onExport={handleExport}
+      />
     );
   }
 
@@ -301,6 +270,16 @@ export function FacilitatorDashboard({ state, send, connected }: Props) {
           ) : (
             <div className="text-center py-12 text-[var(--rh-text-muted)]">
               <p>no activities loaded</p>
+            </div>
+          )}
+
+          {/* discussion prompt — campfire reveal */}
+          {state.resultsRevealed && activity?.discussionPrompt && (
+            <div className="p-4 rounded-xl bg-[var(--rh-sand)] border border-black/5">
+              <p className="text-xs uppercase tracking-wider text-[var(--rh-text-muted)] mb-1">
+                discussion prompt
+              </p>
+              <p className="text-sm font-medium">{activity.discussionPrompt}</p>
             </div>
           )}
 
@@ -511,6 +490,16 @@ export function FacilitatorDashboard({ state, send, connected }: Props) {
                   participants={state.participants}
                 />
               </div>
+
+              {/* discussion prompt — shown after reveal */}
+              {state.resultsRevealed && activity.discussionPrompt && (
+                <div className="p-4 rounded-xl bg-[var(--rh-sand)] border border-black/5 mt-3">
+                  <p className="text-xs uppercase tracking-wider text-[var(--rh-text-muted)] mb-1">
+                    discussion prompt
+                  </p>
+                  <p className="text-sm font-medium">{activity.discussionPrompt}</p>
+                </div>
+              )}
 
               {/* facilitator action buttons */}
               <div className="flex gap-3 mt-4">

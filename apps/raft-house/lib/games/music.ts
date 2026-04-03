@@ -42,6 +42,7 @@ export function toneField(): Activity[] {
       type: "sorting",
       phase: "struggle",
       label: "sort: interval tension",
+      discussionPrompt: "the perfect 4th is controversial — consonant in most contexts but dissonant in strict counterpoint. did anyone disagree with its placement?",
       timeLimit: 120,
       config: {
         type: "sorting",
@@ -86,6 +87,8 @@ export function toneField(): Activity[] {
       phase: "threshold",
       label: "map: spatial harmony",
       timeLimit: 180,
+      discussionPrompt:
+        "where did the group place most of their notes — in the bass foundation, the harmonic center, or the melodic space? what does that tell you about how the group hears richness?",
       config: {
         type: "canvas",
         canvas: {
@@ -93,8 +96,12 @@ export function toneField(): Activity[] {
             "place notes on the harmony map. imagine you're arranging instruments in a room — where would each voice sit to create the richest sound? think about how pauline oliveros described 'deep listening' as spatial awareness of sound.",
           width: 800,
           height: 600,
-          xLabel: "pitch (low → high)",
-          yLabel: "brightness (dark → shimmering)",
+          xLabel: "pitch",
+          yLabel: "brightness",
+          xLow: "low",
+          xHigh: "high",
+          yLow: "shimmering",
+          yHigh: "dark",
           zones: [
             { id: "bass", label: "bass foundation", x: 0, y: 400, width: 200, height: 200 },
             { id: "mid", label: "harmonic center", x: 250, y: 200, width: 300, height: 200 },
@@ -244,6 +251,7 @@ export function voiceWeave(): Activity[] {
       type: "poll",
       phase: "threshold",
       label: "vote: what makes blend",
+      discussionPrompt: "if 'active listening' got the most votes — that's interesting because it's the only skill that's purely receptive. blending requires giving up control. who found that hardest?",
       timeLimit: 60,
       config: {
         type: "poll",
@@ -356,6 +364,7 @@ export function soundColor(): Activity[] {
       type: "sorting",
       phase: "struggle",
       label: "sort: sound qualities",
+      discussionPrompt: "there's no solution key here — this is pure cross-modal instinct. where did the group agree most? where was there no consensus? what does agreement reveal about shared perception?",
       timeLimit: 150,
       config: {
         type: "sorting",
@@ -464,6 +473,7 @@ export function rhythmLab(): Activity[] {
       type: "prediction",
       phase: "encounter",
       label: "predict: polyrhythm",
+      discussionPrompt: "12 beats — the LCM of 3 and 4. who used math versus who tried to count it out in their head? which approach felt more musical?",
       timeLimit: 60,
       config: {
         type: "prediction",
@@ -549,6 +559,7 @@ export function rhythmLab(): Activity[] {
       type: "poll",
       phase: "integration",
       label: "vote: groove feel",
+      discussionPrompt: "if 'human imperfection' and 'the pocket' both got votes — they're the same thing. quantized-perfect rhythms feel dead. what does that say about the role of error in art?",
       timeLimit: 60,
       config: {
         type: "poll",

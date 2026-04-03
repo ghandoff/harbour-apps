@@ -117,6 +117,7 @@ export function readerGhost(): Activity[] {
       type: "poll",
       phase: "integration",
       label: "vote: most surprising reaction",
+      discussionPrompt: "the writer assumed one audience but there were four. which gap between intended and received meaning was widest? that gap is where persuasion fails in the real world",
       timeLimit: 60,
       config: {
         type: "poll",
@@ -198,6 +199,7 @@ export function draftLoop(): Activity[] {
       type: "puzzle",
       phase: "struggle",
       label: "sequence: argument structure",
+      discussionPrompt: "the 'turn' paragraph is where most people stumble — it's the thesis but it appears after the counterargument. who put it earlier? what does that say about when insight arrives in real writing?",
       timeLimit: 180,
       config: {
         type: "puzzle",
@@ -251,6 +253,7 @@ export function draftLoop(): Activity[] {
       type: "sorting",
       phase: "threshold",
       label: "sort: writing elements",
+      discussionPrompt: "the analogy ('town without a bookstore is like a body without a nervous system') — is that evidence or rhetoric? where's the line between persuasion and proof?",
       timeLimit: 120,
       config: {
         type: "sorting",
@@ -442,6 +445,7 @@ export function genreShift(): Activity[] {
       type: "sorting",
       phase: "threshold",
       label: "sort: genre conventions",
+      discussionPrompt: "dialect in 'journalism' not 'fiction' — did that surprise anyone? journalistic voice varies hugely by outlet. what conventions signal 'this is trustworthy' vs 'this is literary'?",
       timeLimit: 120,
       config: {
         type: "sorting",
@@ -487,6 +491,7 @@ export function genreShift(): Activity[] {
       type: "poll",
       phase: "integration",
       label: "vote: most effective transformation",
+      discussionPrompt: "if the poem won — why does poetic form make a scientific fact feel more urgent? if the noir won — what does cynicism do that sincerity can't?",
       timeLimit: 60,
       config: {
         type: "poll",

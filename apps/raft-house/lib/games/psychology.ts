@@ -26,6 +26,7 @@ export function mirrorMaze(): Activity[] {
       },
       phase: "encounter",
       label: "predict: inattentional blindness",
+      discussionPrompt: "50% miss a gorilla — and most people guess much lower. what does your own guess reveal about your confidence in your own attention?",
       timeLimit: 45_000,
       hints: [
         "the study is often called 'the invisible gorilla'",
@@ -115,6 +116,7 @@ export function mirrorMaze(): Activity[] {
       },
       phase: "threshold",
       label: "vote: whose perception wins?",
+      discussionPrompt: "the behaviorist usually gets the fewest votes — 'most honest about limits' doesn't feel satisfying. why do we prefer a compelling story over an accurate but incomplete observation?",
       timeLimit: 45_000,
       mechanic: {
         interactionModel: "reveal",
@@ -132,8 +134,12 @@ export function mirrorMaze(): Activity[] {
             "place a pin where you fall. the x-axis is how you see yourself; the y-axis is how you think others see you. the gap between the two is what cooley (1902) called the 'looking-glass self' — we become what we think others think we are.",
           width: 600,
           height: 600,
-          xLabel: "self-perception (cold & analytical <-> warm & intuitive)",
-          yLabel: "perceived by others (cold & analytical <-> warm & intuitive)",
+          xLabel: "self-perception",
+          yLabel: "perceived by others",
+          xLow: "cold & analytical",
+          xHigh: "warm & intuitive",
+          yLow: "cold & analytical",
+          yHigh: "warm & intuitive",
           zones: [
             {
               id: "aligned",
@@ -174,6 +180,8 @@ export function mirrorMaze(): Activity[] {
       phase: "integration",
       label: "map: self vs. mirror",
       timeLimit: 120_000,
+      discussionPrompt:
+        "do most pins fall along the diagonal (self-perception matches perceived-by-others), or is there a gap? what does the cluster pattern reveal about the looking-glass self?",
       mechanic: {
         interactionModel: "sandbox",
         socialStructure: "solo",
@@ -225,6 +233,7 @@ export function anchorDrift(): Activity[] {
       },
       phase: "encounter",
       label: "predict: the original anchor",
+      discussionPrompt: "a random wheel number shifted estimates by 20 points — and participants knew it was random. what does that say about the power of arbitrary first numbers in negotiations?",
       timeLimit: 45_000,
       hints: [
         "the wheel number was completely random — it shouldn't have mattered at all",
@@ -254,6 +263,7 @@ export function anchorDrift(): Activity[] {
       },
       phase: "struggle",
       label: "estimate: anchored guessing",
+      discussionPrompt: "the anchor was 4,200 and the real answer is 17 million. did the low anchor pull anyone toward 'fewer than 10 million'? raise your hand if you felt the pull",
       timeLimit: 15_000,
       hints: [
         "the real answer is about 17 million cataloged books and 170 million total items",
@@ -346,6 +356,7 @@ export function anchorDrift(): Activity[] {
       },
       phase: "threshold",
       label: "sort: the bias taxonomy",
+      discussionPrompt: "framing as 'retrieval' surprises people — it's about which version of information comes to mind first, not about evaluating it. which categorization sparked the most debate?",
       timeLimit: 180_000,
       hints: [
         "retrieval biases affect what comes to mind first",
@@ -460,6 +471,7 @@ export function storySelf(): Activity[] {
       },
       phase: "encounter",
       label: "predict: redemption vs. contamination",
+      discussionPrompt: "63% use redemption narratives in the US — but this varies hugely across cultures. does your own default narrative feel chosen or inherited from your culture?",
       timeLimit: 60_000,
       hints: [
         "american culture heavily favors redemption narratives — 'what doesn't kill you makes you stronger'",
@@ -588,6 +600,7 @@ export function storySelf(): Activity[] {
       },
       phase: "integration",
       label: "craft: the six-word life",
+      discussionPrompt: "read a few aloud without naming authors — which memoirs are redemption arcs and which are contamination sequences? the word choice reveals the narrator's framework",
       timeLimit: 120_000,
       mechanic: {
         interactionModel: "performance",
@@ -669,6 +682,7 @@ export function biasLens(): Activity[] {
       },
       phase: "struggle",
       label: "choose: the hiring gut-check",
+      discussionPrompt: "show the results — if 'alex' dominated, ask what 'equally qualified' actually meant to people. the nontraditional path triggers status quo bias even when we know better",
       timeLimit: 30_000,
       hints: [
         "there is no right answer — but there is a revealing one",
@@ -761,6 +775,7 @@ export function biasLens(): Activity[] {
       },
       phase: "threshold",
       label: "sort: bias families",
+      discussionPrompt: "naive realism as a 'social' bias surprises people — it's about believing your view is objective while others are biased. who felt personally called out?",
       timeLimit: 180_000,
       hints: [
         "cognitive biases are about information processing errors",
