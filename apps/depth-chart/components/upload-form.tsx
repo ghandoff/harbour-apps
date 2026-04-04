@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useCallback, useRef } from "react";
+import { FrameworkToggles } from "./framework-toggles";
+import type { TeacherConfig } from "@/lib/types";
 
 const ACCEPTED_TYPES = [
   "application/pdf",
@@ -23,6 +25,7 @@ interface UploadFormProps {
     subject: string;
     grade_level: string;
     title: string;
+    frameworks: TeacherConfig["frameworks"];
   }) => void;
   is_loading: boolean;
   initial_text?: string;
@@ -34,6 +37,7 @@ export function UploadForm({ on_submit, is_loading, initial_text }: UploadFormPr
   const [grade_level, set_grade_level] = useState("");
   const [title, set_title] = useState("");
   const [file, set_file] = useState<File | null>(null);
+  const [frameworks, set_frameworks] = useState<TeacherConfig["frameworks"]>({ webb_dok: false, solo: false });
   const [drag_active, set_drag_active] = useState(false);
   const file_input_ref = useRef<HTMLInputElement>(null);
 
@@ -49,9 +53,10 @@ export function UploadForm({ on_submit, is_loading, initial_text }: UploadFormPr
         subject,
         grade_level,
         title,
+        frameworks,
       });
     },
-    [raw_text, subject, grade_level, title, file, has_content, on_submit]
+    [raw_text, subject, grade_level, title, file, frameworks, has_content, on_submit]
   );
 
   const accept_file = useCallback((f: File) => {
@@ -134,6 +139,13 @@ export function UploadForm({ on_submit, is_loading, initial_text }: UploadFormPr
             className="w-full bg-white/5 border border-white/15 rounded-lg px-4 py-3 text-[var(--color-text-on-dark)] placeholder:text-white/30 focus:outline-none focus:border-[var(--wv-champagne)] transition-colors"
           />
         </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-[var(--color-text-on-dark-muted)] mb-2">
+          analytical frameworks
+        </label>
+        <FrameworkToggles frameworks={frameworks} on_change={set_frameworks} />
       </div>
 
       <div>

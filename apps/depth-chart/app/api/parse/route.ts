@@ -14,12 +14,17 @@ export async function POST(request: Request) {
     let raw_text: string;
     let subject = "";
     let grade_level = "";
+    let frameworks: { webb_dok: boolean; solo: boolean } | undefined;
 
     if (content_type.includes("multipart/form-data")) {
       const form = await request.formData();
       const file = form.get("file") as File | null;
       subject = (form.get("subject") as string) || "";
       grade_level = (form.get("grade_level") as string) || "";
+      const fw_raw = form.get("frameworks") as string | null;
+      if (fw_raw) {
+        try { frameworks = JSON.parse(fw_raw); } catch {}
+      }
 
       if (!file) {
         return NextResponse.json({ error: "file is required" }, { status: 400 });
@@ -41,13 +46,14 @@ export async function POST(request: Request) {
       raw_text = body.raw_text;
       subject = body.subject || "";
       grade_level = body.grade_level || "";
+      frameworks = body.frameworks;
     }
 
     const response = await client.messages.create({
       model: "claude-sonnet-4-20250514",
       max_tokens: 4096,
       system: PARSE_OBJECTIVES_SYSTEM,
-      messages: [{ role: "user", content: build_parse_prompt({ raw_text, subject, grade_level }) }],
+      messages: [{ role: "user", content: build_parse_prompt({ raw_text, subject, grade_level, frameworks }) }],
     });
 
     const text = response.content

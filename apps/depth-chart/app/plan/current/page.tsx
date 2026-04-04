@@ -17,12 +17,19 @@ import {
   download_rubric_csv,
   download_plan_rubrics_csv,
 } from "@/lib/lms-export";
+import { BLOOMS_ORDER } from "@/lib/blooms";
+import { DOK_ORDER } from "@/lib/webb";
+import { SOLO_ORDER } from "@/lib/solo";
+import harbour_rules from "@/data/harbour-recommendations.json";
 import type {
   LearningObjective,
   GeneratedTask,
   AlignmentReport as AlignmentReportType,
   BloomsLevel,
+  WebbDOKLevel,
+  SOLOLevel,
   TeacherConfig,
+  HarbourRecommendation,
 } from "@/lib/types";
 
 interface StoredPlan {
@@ -38,19 +45,60 @@ const DEFAULT_CONFIG: TeacherConfig = {
   max_minutes: 45,
   collaboration_mode: "individual",
   preferred_formats: [],
+  frameworks: { webb_dok: false, solo: false },
 };
 
-function build_alignment_report(objectives: LearningObjective[]): AlignmentReportType {
+function compute_harbour_recommendations(
+  objectives: LearningObjective[],
+  subject: string,
+): HarbourRecommendation[] {
+  const total = objectives.length;
+  if (total === 0) return [];
+
   const distribution: Record<BloomsLevel, number> = {
     remember: 0, understand: 0, apply: 0, analyse: 0, evaluate: 0, create: 0,
   };
+  for (const obj of objectives) distribution[obj.blooms_level]++;
 
-  for (const obj of objectives) {
-    distribution[obj.blooms_level]++;
-  }
+  const gaps = BLOOMS_ORDER.filter((level) => (distribution[level] || 0) / total < 0.1);
+  if (gaps.length === 0) return [];
+
+  const rules = harbour_rules as HarbourRecommendation[];
+  return rules
+    .filter((r) =>
+      r.blooms_levels.some((l) => gaps.includes(l as BloomsLevel)) &&
+      (r.subject_tags.length === 0 || r.subject_tags.some((t) => subject.toLowerCase().includes(t)))
+    )
+    .slice(0, 5);
+}
+
+function build_alignment_report(objectives: LearningObjective[], subject: string): AlignmentReportType {
+  const distribution: Record<BloomsLevel, number> = {
+    remember: 0, understand: 0, apply: 0, analyse: 0, evaluate: 0, create: 0,
+  };
+  for (const obj of objectives) distribution[obj.blooms_level]++;
 
   const hocs_count = distribution.analyse + distribution.evaluate + distribution.create;
   const total = objectives.length;
+
+  const has_dok = objectives.some((o) => o.webb_dok);
+  const has_solo = objectives.some((o) => o.solo_level);
+
+  let webb_distribution: Record<WebbDOKLevel, number> | undefined;
+  if (has_dok) {
+    webb_distribution = { "1": 0, "2": 0, "3": 0, "4": 0 };
+    for (const obj of objectives) {
+      if (obj.webb_dok) webb_distribution[obj.webb_dok]++;
+    }
+  }
+
+  let solo_distribution: Record<SOLOLevel, number> | undefined;
+  if (has_solo) {
+    solo_distribution = { pre_structural: 0, uni_structural: 0, multi_structural: 0, relational: 0, extended_abstract: 0 };
+    for (const obj of objectives) {
+      if (obj.solo_level) solo_distribution[obj.solo_level]++;
+    }
+  }
 
   return {
     objectives_count: total,
@@ -58,6 +106,9 @@ function build_alignment_report(objectives: LearningObjective[]): AlignmentRepor
     gaps: [],
     blooms_distribution: distribution,
     hocs_percentage: total > 0 ? (hocs_count / total) * 100 : 0,
+    webb_distribution,
+    solo_distribution,
+    harbour_recommendations: compute_harbour_recommendations(objectives, subject),
   };
 }
 
@@ -209,7 +260,7 @@ export default function PlanPage() {
     );
   }
 
-  const report = build_alignment_report(plan.objectives);
+  const report = build_alignment_report(plan.objectives, plan.subject);
 
   return (
     <main id="main" className="min-h-screen px-6 pt-24 pb-16">

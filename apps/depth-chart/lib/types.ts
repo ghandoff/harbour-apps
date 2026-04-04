@@ -14,6 +14,15 @@ export type KnowledgeDimension =
   | "procedural"
   | "metacognitive";
 
+export type WebbDOKLevel = "1" | "2" | "3" | "4";
+
+export type SOLOLevel =
+  | "pre_structural"
+  | "uni_structural"
+  | "multi_structural"
+  | "relational"
+  | "extended_abstract";
+
 // ── Core entities ─────────────────────────────────────────────────
 
 export interface LessonPlan {
@@ -38,6 +47,8 @@ export interface LearningObjective {
   content_topic: string;
   context: string;
   confidence: number;
+  webb_dok?: WebbDOKLevel;
+  solo_level?: SOLOLevel;
   tasks: GeneratedTask[];
 }
 
@@ -133,6 +144,21 @@ export interface AlignmentReport {
   gaps: AlignmentGap[];
   blooms_distribution: Record<BloomsLevel, number>;
   hocs_percentage: number;
+  webb_distribution?: Record<WebbDOKLevel, number>;
+  solo_distribution?: Record<SOLOLevel, number>;
+  harbour_recommendations?: HarbourRecommendation[];
+}
+
+export interface HarbourRecommendation {
+  app: "raft-house" | "creaseworks" | "vertigo-vault";
+  activity_slug: string;
+  activity_name: string;
+  reason: string;
+  url: string;
+  blooms_levels: BloomsLevel[];
+  subject_tags: string[];
+  duration_minutes?: number;
+  group_size?: string;
 }
 
 export interface AlignmentGap {
@@ -153,4 +179,8 @@ export interface TeacherConfig {
   max_minutes: number;
   collaboration_mode: "individual" | "pairs" | "small_group" | "whole_class";
   preferred_formats: TaskFormat[];
+  frameworks: {
+    webb_dok: boolean;
+    solo: boolean;
+  };
 }

@@ -17,6 +17,19 @@
   --dc-bloom-analyse:    #f59e0b;
   --dc-bloom-evaluate:   #ef4444;
   --dc-bloom-create:     #8b5cf6;
+
+  /* webb's DOK colours (warm progression: sand → amber → orange → red) */
+  --dc-dok-1: #d4a574;
+  --dc-dok-2: #e8a849;
+  --dc-dok-3: #e07b3a;
+  --dc-dok-4: #c94a2e;
+
+  /* SOLO taxonomy colours (cool progression: slate → teal → cyan → blue → indigo) */
+  --dc-solo-pre:       #6b7280;
+  --dc-solo-uni:       #5eaaa8;
+  --dc-solo-multi:     #3bb4c1;
+  --dc-solo-relational:#2d8cc4;
+  --dc-solo-extended:  #6366f1;
 }
 
 /* ── skip-link (a11y) ──────────────────────────────────────────── */

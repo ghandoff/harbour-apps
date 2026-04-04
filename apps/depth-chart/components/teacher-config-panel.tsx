@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import { AUTHENTICITY_CRITERIA } from "@/lib/authenticity";
 import { TASK_FORMATS } from "@/lib/task-formats";
 import { get_valid_formats } from "@/lib/blooms";
+import { FrameworkToggles } from "./framework-toggles";
 import type { TeacherConfig, TaskFormat, BloomsLevel } from "@/lib/types";
 
 interface TeacherConfigPanelProps {
@@ -64,6 +65,17 @@ export function TeacherConfigPanel({ config, on_change, active_levels }: Teacher
 
       {expanded && (
         <div className="px-5 pb-5 space-y-6 border-t border-white/10 pt-5">
+          {/* analytical frameworks */}
+          <div>
+            <label className="block text-xs font-medium text-[var(--color-text-on-dark-muted)] mb-2">
+              analytical frameworks
+            </label>
+            <FrameworkToggles
+              frameworks={config.frameworks}
+              on_change={(frameworks) => update({ frameworks })}
+            />
+          </div>
+
           {/* time limit */}
           <div>
             <label className="block text-xs font-medium text-[var(--color-text-on-dark-muted)] mb-2">

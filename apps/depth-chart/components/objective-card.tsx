@@ -12,11 +12,29 @@ interface ObjectiveCardProps {
 export function ObjectiveCard({ objective, on_generate, is_generating }: ObjectiveCardProps) {
   return (
     <div className="bg-white/5 border border-white/10 rounded-xl p-5 space-y-3">
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-3">
         <p className="text-sm text-[var(--color-text-on-dark)] leading-relaxed flex-1">
           {objective.raw_text}
         </p>
-        <BloomsBadge level={objective.blooms_level} size="md" />
+        <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
+          <BloomsBadge level={objective.blooms_level} size="md" />
+          {objective.webb_dok && (
+            <span
+              className="text-[10px] font-bold px-1.5 py-0.5 rounded"
+              style={{ backgroundColor: `var(--dc-dok-${objective.webb_dok})`, color: "var(--wv-cadet)" }}
+            >
+              DOK {objective.webb_dok}
+            </span>
+          )}
+          {objective.solo_level && (
+            <span
+              className="text-[10px] font-bold px-1.5 py-0.5 rounded"
+              style={{ backgroundColor: `var(--dc-solo-${objective.solo_level.split("_")[0]})`, color: "var(--wv-cadet)" }}
+            >
+              {objective.solo_level.replace(/_/g, " ")}
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-3 text-xs text-[var(--color-text-on-dark-muted)]">

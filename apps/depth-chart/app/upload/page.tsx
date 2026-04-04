@@ -4,7 +4,7 @@ import { Suspense, useState, useCallback, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { UploadForm } from "@/components/upload-form";
-import type { LearningObjective } from "@/lib/types";
+import type { LearningObjective, TeacherConfig } from "@/lib/types";
 
 interface ParsedPlan {
   title: string;
@@ -25,7 +25,7 @@ function UploadPageInner() {
   const [parsed, set_parsed] = useState<ParsedPlan | null>(null);
 
   const handle_submit = useCallback(
-    async (data: { raw_text?: string; file?: File; subject: string; grade_level: string; title: string }) => {
+    async (data: { raw_text?: string; file?: File; subject: string; grade_level: string; title: string; frameworks: TeacherConfig["frameworks"] }) => {
       set_is_loading(true);
       set_error(null);
 
@@ -39,6 +39,7 @@ function UploadPageInner() {
           form.append("file", data.file);
           form.append("subject", data.subject);
           form.append("grade_level", data.grade_level);
+          form.append("frameworks", JSON.stringify(data.frameworks));
 
           res = await fetch("/harbour/depth-chart/api/parse", {
             method: "POST",
@@ -52,6 +53,7 @@ function UploadPageInner() {
               raw_text: data.raw_text,
               subject: data.subject,
               grade_level: data.grade_level,
+              frameworks: data.frameworks,
             }),
           });
         }

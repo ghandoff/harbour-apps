@@ -1,6 +1,9 @@
 "use client";
 
 import { BLOOMS_LEVELS, BLOOMS_ORDER } from "@/lib/blooms";
+import { DOK_LEVELS, DOK_ORDER } from "@/lib/webb";
+import { SOLO_LEVELS, SOLO_ORDER } from "@/lib/solo";
+import { HarbourRecommendations } from "./harbour-recommendations";
 import type { AlignmentReport as AlignmentReportType } from "@/lib/types";
 
 interface AlignmentReportProps {
@@ -59,6 +62,74 @@ export function AlignmentReport({ report }: AlignmentReportProps) {
         })}
       </div>
 
+      {/* Webb DOK distribution */}
+      {report.webb_distribution && (
+        <div className="space-y-1.5">
+          <p className="text-xs font-medium text-[var(--color-text-on-dark-muted)]">
+            webb's depth of knowledge
+          </p>
+          {DOK_ORDER.map((level) => {
+            const count = report.webb_distribution![level] || 0;
+            const info = DOK_LEVELS[level];
+            const max_dok = Math.max(...Object.values(report.webb_distribution!), 1);
+            return (
+              <div key={level} className="flex items-center gap-2">
+                <span className="text-xs text-[var(--color-text-on-dark-muted)] w-20 shrink-0">
+                  DOK {info.order}
+                </span>
+                <div className="flex-1 h-4 bg-white/5 rounded overflow-hidden">
+                  <div
+                    className="h-full rounded transition-all"
+                    style={{
+                      width: `${(count / max_dok) * 100}%`,
+                      backgroundColor: info.color,
+                      minWidth: count > 0 ? "8px" : "0",
+                    }}
+                  />
+                </div>
+                <span className="text-xs text-[var(--color-text-on-dark-muted)] w-4 text-right">
+                  {count}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* SOLO distribution */}
+      {report.solo_distribution && (
+        <div className="space-y-1.5">
+          <p className="text-xs font-medium text-[var(--color-text-on-dark-muted)]">
+            SOLO taxonomy
+          </p>
+          {SOLO_ORDER.map((level) => {
+            const count = report.solo_distribution![level] || 0;
+            const info = SOLO_LEVELS[level];
+            const max_solo = Math.max(...Object.values(report.solo_distribution!), 1);
+            return (
+              <div key={level} className="flex items-center gap-2">
+                <span className="text-xs text-[var(--color-text-on-dark-muted)] w-28 shrink-0 truncate" title={info.label}>
+                  {info.label}
+                </span>
+                <div className="flex-1 h-4 bg-white/5 rounded overflow-hidden">
+                  <div
+                    className="h-full rounded transition-all"
+                    style={{
+                      width: `${(count / max_solo) * 100}%`,
+                      backgroundColor: info.color,
+                      minWidth: count > 0 ? "8px" : "0",
+                    }}
+                  />
+                </div>
+                <span className="text-xs text-[var(--color-text-on-dark-muted)] w-4 text-right">
+                  {count}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
       {/* gaps */}
       {report.gaps.length > 0 && (
         <div className="space-y-1.5">
@@ -76,6 +147,11 @@ export function AlignmentReport({ report }: AlignmentReportProps) {
             </div>
           ))}
         </div>
+      )}
+
+      {/* harbour recommendations */}
+      {report.harbour_recommendations && report.harbour_recommendations.length > 0 && (
+        <HarbourRecommendations recommendations={report.harbour_recommendations} />
       )}
     </div>
   );
