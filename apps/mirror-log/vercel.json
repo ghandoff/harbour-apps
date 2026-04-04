@@ -1,0 +1,4 @@
+{
+  "ignoreCommand": "npx turbo-ignore @windedvertigo/mirror-log-app",
+  "framework": "nextjs"
+}

@@ -1,0 +1,4 @@
+{
+  "ignoreCommand": "npx turbo-ignore @windedvertigo/tidal-pool",
+  "framework": "nextjs"
+}
