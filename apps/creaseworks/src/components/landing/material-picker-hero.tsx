@@ -49,7 +49,7 @@ export default function MaterialPickerHero({ materials }: MaterialPickerHeroProp
           <button
             key={m.id}
             onClick={() => router.push(`/find?material=${slug}`)}
-            className="flex flex-col items-center gap-1.5 rounded-2xl px-2 py-3 transition-all hover:scale-105 active:scale-95"
+            className="flex flex-col items-center justify-center gap-1 rounded-2xl px-1.5 py-2.5 h-full transition-all hover:scale-105 active:scale-95"
             style={{
               backgroundColor: tint,
               border: "1px solid rgba(255,235,210,0.08)",
@@ -57,22 +57,22 @@ export default function MaterialPickerHero({ materials }: MaterialPickerHeroProp
             }}
             aria-label={`find playdates using ${m.title}`}
           >
-            <span className="flex items-center justify-center" style={{ width: 48, height: 48 }}>
+            <span className="flex items-center justify-center" style={{ width: 40, height: 40 }}>
               {m.icon ? (
                 <Image
                   src={`/harbour/creaseworks/icons/materials/${m.icon}.png`}
                   alt=""
-                  width={48}
-                  height={48}
+                  width={40}
+                  height={40}
                   className="object-contain"
                 />
               ) : (
-                <span className="text-3xl leading-none">{m.emoji ?? "🧱"}</span>
+                <span className="text-2xl leading-none">{m.emoji ?? "🧱"}</span>
               )}
             </span>
             <span
-              className="text-2xs font-medium leading-tight text-center"
-              style={{ color: "rgba(255,235,210,0.7)" }}
+              className="font-medium leading-tight text-center line-clamp-2"
+              style={{ color: "rgba(255,235,210,0.7)", fontSize: "0.625rem" }}
             >
               {m.title}
             </span>
