@@ -29,6 +29,8 @@ export interface ChecklistItem {
   id: string;
   label: string;
   emoji: string;
+  /** optional custom icon URL — replaces the text emoji when present */
+  iconSrc?: string;
   /** true = required material, false = optional slot (bonus) */
   required: boolean;
 }

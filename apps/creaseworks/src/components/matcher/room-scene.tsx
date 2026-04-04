@@ -16,7 +16,7 @@ import { useMemo } from "react";
 import { RoomConfig } from "./room-config";
 import { EmojiTile } from "./emoji-tile";
 import { Material } from "./types";
-import { getMaterialEmoji } from "./material-emoji";
+import { getMaterialEmoji, getMaterialIcon } from "./material-emoji";
 
 interface RoomSceneProps {
   room: RoomConfig;
@@ -111,6 +111,7 @@ export function RoomScene({
             <EmojiTile
               key={mat.id}
               emoji={getMaterialEmoji(mat.title, mat.form_primary, mat.emoji)}
+              emojiSrc={getMaterialIcon(mat.title, mat.form_primary, mat.emoji, mat.icon) ?? undefined}
               label={mat.title}
               selected={selectedMaterials.has(mat.id)}
               onClick={() => onMaterialTap(mat.id)}

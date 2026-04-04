@@ -60,7 +60,7 @@ export default function MaterialPickerHero({ materials }: MaterialPickerHeroProp
             <span className="flex items-center justify-center" style={{ width: 48, height: 48 }}>
               {m.icon ? (
                 <Image
-                  src={`/harbour/creaseworks/icons/materials/${m.icon}`}
+                  src={`/harbour/creaseworks/icons/materials/${m.icon}.png`}
                   alt=""
                   width={48}
                   height={48}

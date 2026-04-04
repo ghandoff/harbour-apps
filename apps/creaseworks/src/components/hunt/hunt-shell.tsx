@@ -19,7 +19,7 @@ import { useState, useCallback, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { EmojiTile } from "../matcher/emoji-tile";
 import { ProgressRing } from "../matcher/progress-ring";
-import { getMaterialEmoji } from "../matcher/material-emoji";
+import { getMaterialEmoji, getMaterialIcon } from "../matcher/material-emoji";
 import { findRoomsForMaterial } from "../matcher/room-config";
 import { apiUrl } from "@/lib/api-url";
 import { RankedPlaydate, MatcherResult } from "@/lib/queries/matcher/types";
@@ -55,6 +55,7 @@ function buildChecklistItems(playdate: RankedPlaydate): ChecklistItem[] {
       id: mat.id,
       label: mat.title,
       emoji: getMaterialEmoji(mat.title, mat.formPrimary),
+      iconSrc: getMaterialIcon(mat.title, mat.formPrimary) ?? undefined,
       required: true,
     });
   }
@@ -559,8 +560,19 @@ export default function HuntShell({ contexts }: HuntShellProps) {
                   {checked ? "✓" : ""}
                 </span>
 
-                {/* emoji + label */}
-                <span className="text-xl">{item.emoji}</span>
+                {/* emoji or custom icon + label */}
+                {item.iconSrc ? (
+                  <img
+                    src={item.iconSrc}
+                    alt=""
+                    width={24}
+                    height={24}
+                    className="object-contain flex-shrink-0"
+                    draggable={false}
+                  />
+                ) : (
+                  <span className="text-xl">{item.emoji}</span>
+                )}
                 <div className="flex-1 min-w-0">
                   <span
                     className="text-sm font-medium block"
