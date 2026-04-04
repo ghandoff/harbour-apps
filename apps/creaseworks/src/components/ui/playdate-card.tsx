@@ -4,41 +4,6 @@ import type { ReactNode } from "react";
 import CardActionSlot from "./card-action-slot";
 import { PlaydateIllustration } from "../playdate-illustration";
 
-/* ── function → colour mapping for material function pills ── */
-const FUNCTION_COLOURS: Record<string, { bg: string; text: string }> = {
-  /* material functions (from Notion) */
-  express:        { bg: "rgba(177, 80, 67, 0.12)",  text: "var(--wv-redwood)" },
-  inspire:        { bg: "rgba(203, 120, 88, 0.12)", text: "var(--wv-sienna)" },
-  elaborate:      { bg: "rgba(88, 114, 203, 0.12)", text: "var(--wv-cornflower)" },
-  "build":        { bg: "rgba(39, 50, 72, 0.10)",   text: "var(--wv-cadet)" },
-  "capture":      { bg: "rgba(67, 177, 135, 0.12)", text: "var(--wv-seafoam)" },
-  "connect":      { bg: "rgba(67, 177, 135, 0.12)", text: "var(--wv-seafoam)" },
-  "coordinate":   { bg: "rgba(203, 120, 88, 0.12)", text: "var(--wv-sienna)" },
-  "create space": { bg: "rgba(88, 114, 203, 0.12)", text: "var(--wv-cornflower)" },
-  "divide":       { bg: "rgba(67, 72, 36, 0.12)",   text: "var(--wv-moss)" },
-  "enable":       { bg: "rgba(67, 109, 177, 0.12)", text: "var(--wv-navy)" },
-  "organize":     { bg: "rgba(39, 50, 72, 0.10)",   text: "var(--wv-cadet)" },
-  "specify":      { bg: "rgba(177, 80, 67, 0.12)",  text: "var(--wv-redwood)" },
-  /* material forms (legacy fallback) */
-  connector:      { bg: "rgba(67, 177, 135, 0.12)", text: "var(--wv-seafoam)" },
-  base:           { bg: "rgba(39, 50, 72, 0.10)",   text: "var(--wv-cadet)" },
-  container:      { bg: "rgba(88, 114, 203, 0.12)", text: "var(--wv-cornflower)" },
-  "mark making":  { bg: "rgba(203, 120, 88, 0.12)", text: "var(--wv-sienna)" },
-  shaping:        { bg: "rgba(177, 80, 67, 0.12)",  text: "var(--wv-redwood)" },
-  dividing:       { bg: "rgba(67, 72, 36, 0.12)",   text: "var(--wv-moss)" },
-  joining:        { bg: "rgba(67, 177, 135, 0.12)", text: "var(--wv-seafoam)" },
-  stacking:       { bg: "rgba(67, 109, 177, 0.12)", text: "var(--wv-navy)" },
-};
-
-function getFunctionStyle(fn: string): { bg: string; text: string } {
-  const lower = fn.toLowerCase();
-  for (const [key, style] of Object.entries(FUNCTION_COLOURS)) {
-    if (lower.includes(key)) return style;
-  }
-  /* pleasant neutral fallback instead of dark cadet */
-  return { bg: "rgba(203, 120, 88, 0.08)", text: "var(--wv-sienna)" };
-}
-
 export interface PlaydateMaterial {
   id: string;
   title: string;
@@ -260,33 +225,6 @@ export function PlaydateCard({
             )}
           </div>
         )}
-
-        {/* function pills — colour-coded form × function tags */}
-        {show("materials") && materials && materials.length > 0 && (() => {
-          const allFunctions = new Set<string>();
-          for (const mat of materials) {
-            if (mat.functions) {
-              for (const fn of mat.functions) allFunctions.add(fn);
-            }
-          }
-          if (allFunctions.size === 0) return null;
-          return (
-            <div className="flex flex-wrap gap-1 mb-2.5">
-              {Array.from(allFunctions).slice(0, 4).map((fn) => {
-                const style = getFunctionStyle(fn);
-                return (
-                  <span
-                    key={fn}
-                    className="inline-block rounded-full px-1.5 py-px text-2xs font-medium"
-                    style={{ backgroundColor: style.bg, color: style.text }}
-                  >
-                    {fn}
-                  </span>
-                );
-              })}
-            </div>
-          );
-        })()}
 
         <div className="flex flex-wrap gap-1 mb-2">
           {show("primaryFunction") && primaryFunction && (

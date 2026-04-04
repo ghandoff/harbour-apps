@@ -113,16 +113,15 @@ export default async function SamplerPage() {
                 title={p.title}
                 headline={p.headline}
                 primaryFunction={p.primary_function}
-                arcEmphasis={p.arc_emphasis ?? []}
+                arcEmphasis={[]}
                 contextTags={p.context_tags ?? []}
                 frictionDial={p.friction_dial}
                 startIn120s={p.start_in_120s}
                 hasFindAgain={p.has_find_again}
                 runCount={p.run_count}
                 packInfo={pi ? { packSlug: pi.packSlug, packTitle: pi.packTitle } : null}
-                tinkeringTier={p.tinkering_tier}
                 coverUrl={p.cover_url}
-                visibleFields={p.gallery_visible_fields}
+                visibleFields={["headline", "primaryFunction", "energyLevel", "startIn120s", "findAgain", "runCount", "packInfo"]}
               />
             );
           })}
