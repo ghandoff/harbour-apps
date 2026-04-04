@@ -2,7 +2,8 @@
 
 /**
  * Inspector panel for a selected element.
- * Shows value slider, connections, and delete button.
+ * Desktop (≥ 640px): sidebar.
+ * Mobile (< 640px): bottom sheet overlay.
  */
 
 import type { PoolElement, Connection, PoolAction, ConnectionType } from "@/lib/types";
@@ -35,8 +36,8 @@ export function ElementInspector({
   const findLabel = (id: string) =>
     allElements.find((e) => e.id === id)?.label ?? id;
 
-  return (
-    <div className="w-64 shrink-0 flex flex-col gap-4 overflow-y-auto max-h-full p-4 bg-white/5 rounded-xl border border-white/10">
+  const content = (
+    <>
       {/* Header */}
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-2">
@@ -134,6 +135,36 @@ export function ElementInspector({
       >
         remove element
       </button>
-    </div>
+    </>
+  );
+
+  return (
+    <>
+      {/* Desktop sidebar (≥ 640px) */}
+      <div className="hidden sm:flex w-64 shrink-0 flex-col gap-4 overflow-y-auto max-h-full p-4 bg-white/5 rounded-xl border border-white/10">
+        {content}
+      </div>
+
+      {/* Mobile bottom sheet (< 640px) */}
+      <div className="sm:hidden fixed inset-x-0 bottom-0 z-40">
+        {/* Scrim */}
+        <div
+          className="fixed inset-0 bg-black/30"
+          onClick={onClose}
+          aria-hidden="true"
+        />
+        <div
+          className="relative flex flex-col gap-4 p-4 pb-6 bg-[var(--wv-cadet,#273248)] border-t border-white/10 rounded-t-2xl max-h-[50vh] overflow-y-auto"
+          role="dialog"
+          aria-label={`${element.label} inspector`}
+        >
+          {/* Drag handle */}
+          <div className="flex justify-center">
+            <div className="w-10 h-1 rounded-full bg-white/20" />
+          </div>
+          {content}
+        </div>
+      </div>
+    </>
   );
 }

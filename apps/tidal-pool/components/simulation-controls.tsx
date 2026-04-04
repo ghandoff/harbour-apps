@@ -2,6 +2,7 @@
 
 /**
  * Play/pause, step, speed, and reset controls for the simulation.
+ * Wraps gracefully at narrow viewports (< 640px).
  */
 
 import type { SimSpeed, PoolAction } from "@/lib/types";
@@ -26,7 +27,7 @@ export function SimulationControls({
   const canPlay = elementCount > 0;
 
   return (
-    <div className="flex items-center gap-3 px-4 py-3 bg-white/5 rounded-xl border border-white/10">
+    <div className="flex flex-wrap items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 bg-white/5 rounded-xl border border-white/10">
       {/* Play / Pause */}
       <button
         onClick={() => dispatch({ type: playing ? "PAUSE" : "PLAY" })}
@@ -49,7 +50,7 @@ export function SimulationControls({
       </button>
 
       {/* Speed selector */}
-      <div className="flex items-center gap-1 ml-2">
+      <div className="flex items-center gap-1">
         {([1, 2, 4] as SimSpeed[]).map((s) => (
           <button
             key={s}
@@ -66,27 +67,23 @@ export function SimulationControls({
         ))}
       </div>
 
-      {/* Tick counter */}
-      <div className="ml-auto flex items-center gap-4 text-xs text-[var(--color-text-on-dark-muted)]">
-        <span>
-          tick {tick}
-        </span>
-        <span>
-          {elementCount} elements · {connectionCount} connections
-        </span>
-      </div>
-
-      {/* Reset */}
+      {/* Reset — moved before stats so it stays on the first row on mobile */}
       <button
         onClick={() => {
           dispatch({ type: "PAUSE" });
           dispatch({ type: "RESET" });
         }}
-        className="px-3 py-1.5 rounded-lg text-xs font-semibold text-[var(--color-text-on-dark-muted)] hover:text-[var(--color-text-on-dark)] hover:bg-white/10 transition-all"
+        className="px-3 py-1.5 rounded-lg text-xs font-semibold text-[var(--color-text-on-dark-muted)] hover:text-[var(--color-text-on-dark)] hover:bg-white/10 transition-all sm:ml-auto sm:order-last"
         aria-label="Reset pool"
       >
         reset
       </button>
+
+      {/* Stats line — wraps to second row on mobile */}
+      <div className="flex items-center gap-3 sm:gap-4 text-[10px] sm:text-xs text-[var(--color-text-on-dark-muted)] w-full sm:w-auto sm:ml-auto order-last sm:order-none">
+        <span>tick {tick}</span>
+        <span>{elementCount} el · {connectionCount} conn</span>
+      </div>
     </div>
   );
 }

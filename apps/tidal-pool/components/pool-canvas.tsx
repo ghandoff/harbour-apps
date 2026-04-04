@@ -4,6 +4,9 @@
  * Main interactive canvas component.
  * Handles drag-and-drop from palette, element selection,
  * element dragging, and connection drawing.
+ *
+ * Mobile: shift+click replaced by a "connect mode" toggle.
+ * Touch-tap on two elements in sequence creates a connection.
  */
 
 import { useState, useCallback, useEffect } from "react";
@@ -36,6 +39,7 @@ export function PoolCanvas({
 }: PoolCanvasProps) {
   const [connectingFrom, setConnectingFrom] = useState<string | null>(null);
   const [connectionType, setConnectionType] = useState<ConnectionType>("amplifying");
+  const [connectMode, setConnectMode] = useState(false);
   const [mousePos, setMousePos] = useState<{ x: number; y: number } | null>(null);
   const [draggingElement, setDraggingElement] = useState<string | null>(null);
 
@@ -53,6 +57,7 @@ export function PoolCanvas({
     function onKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") {
         setConnectingFrom(null);
+        setConnectMode(false);
         onSelectElement(null);
       }
       if (e.key === "Delete" || e.key === "Backspace") {
@@ -65,6 +70,11 @@ export function PoolCanvas({
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [selectedElementId, dispatch, onSelectElement]);
+
+  // When connect mode is toggled off, cancel any in-progress connection
+  useEffect(() => {
+    if (!connectMode) setConnectingFrom(null);
+  }, [connectMode]);
 
   // Mouse down — start drag or start connection
   const onMouseDown = useCallback(
@@ -79,8 +89,9 @@ export function PoolCanvas({
             addConnection(connectingFrom, hit.id, connectionType);
           }
           setConnectingFrom(null);
-        } else if (e.shiftKey) {
-          // Shift+click starts connection mode
+          if (!connectMode) setConnectMode(false);
+        } else if (e.shiftKey || connectMode) {
+          // Shift+click or connect mode starts connection
           setConnectingFrom(hit.id);
         } else {
           // Regular click — select and start drag
@@ -88,15 +99,13 @@ export function PoolCanvas({
           setDraggingElement(hit.id);
         }
       } else if (hit.type === "connection" && hit.id) {
-        // Click connection to select (future: edit)
         onSelectElement(null);
       } else {
-        // Click empty space
         onSelectElement(null);
         setConnectingFrom(null);
       }
     },
-    [elements, connections, connectingFrom, connectionType, getCanvasPos, onSelectElement, addConnection],
+    [elements, connections, connectingFrom, connectionType, connectMode, getCanvasPos, onSelectElement, addConnection],
   );
 
   const onMouseMove = useCallback(
@@ -115,7 +124,7 @@ export function PoolCanvas({
     setDraggingElement(null);
   }, []);
 
-  // Drop from palette
+  // Drop from palette (desktop)
   const onDrop = useCallback(
     (e: React.DragEvent<HTMLCanvasElement>) => {
       e.preventDefault();
@@ -135,19 +144,36 @@ export function PoolCanvas({
     e.dataTransfer.dropEffect = "copy";
   }, []);
 
-  // Touch support
+  // Touch support — drag elements + connect mode
   const onTouchStart = useCallback(
     (e: React.TouchEvent<HTMLCanvasElement>) => {
       if (e.touches.length !== 1) return;
       const touch = e.touches[0]!;
       const pos = getCanvasPos(touch.clientX, touch.clientY);
       const el = hitTestElement(pos.x, pos.y, elements);
+
       if (el) {
-        onSelectElement(el.id);
-        setDraggingElement(el.id);
+        if (connectingFrom) {
+          // Complete connection via touch
+          if (connectingFrom !== el.id) {
+            addConnection(connectingFrom, el.id, connectionType);
+          }
+          setConnectingFrom(null);
+        } else if (connectMode) {
+          // Connect mode: first tap selects source
+          setConnectingFrom(el.id);
+        } else {
+          // Normal: select and start drag
+          onSelectElement(el.id);
+          setDraggingElement(el.id);
+        }
+      } else {
+        // Tapped empty space
+        setConnectingFrom(null);
+        onSelectElement(null);
       }
     },
-    [elements, getCanvasPos, onSelectElement],
+    [elements, connectingFrom, connectionType, connectMode, getCanvasPos, onSelectElement, addConnection],
   );
 
   const onTouchMove = useCallback(
@@ -164,6 +190,10 @@ export function PoolCanvas({
   const onTouchEnd = useCallback(() => {
     setDraggingElement(null);
   }, []);
+
+  const connectingFromElement = connectingFrom
+    ? elements.find((e) => e.id === connectingFrom)
+    : null;
 
   return (
     <div className="relative flex-1 min-h-0 rounded-xl overflow-hidden border border-white/10">
@@ -184,17 +214,45 @@ export function PoolCanvas({
         tabIndex={0}
       />
 
+      {/* Connect mode toggle — shown when elements exist */}
+      {elements.length >= 2 && (
+        <button
+          onClick={() => {
+            setConnectMode((v) => !v);
+            if (connectMode) setConnectingFrom(null);
+          }}
+          className={`absolute top-3 right-3 px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
+            connectMode
+              ? "bg-[var(--wv-sienna)] text-[var(--color-text-on-dark)]"
+              : "bg-black/40 backdrop-blur text-[var(--color-text-on-dark-muted)] hover:text-[var(--color-text-on-dark)]"
+          }`}
+          aria-label={connectMode ? "Exit connect mode" : "Enter connect mode"}
+          aria-pressed={connectMode}
+        >
+          {connectMode ? "connecting ✕" : "🔗 connect"}
+        </button>
+      )}
+
       {/* Connection mode hint */}
       {connectingFrom && (
         <div className="absolute top-3 left-1/2 -translate-x-1/2 px-4 py-2 bg-black/60 backdrop-blur rounded-full text-xs text-[var(--color-text-on-dark)]">
-          click another element to connect · esc to cancel
+          {connectingFromElement
+            ? `tap another element to connect from ${connectingFromElement.label}`
+            : "tap another element to connect"}
         </div>
       )}
 
       {/* Hint when empty */}
-      {elements.length > 0 && connections.length === 0 && (
-        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 px-4 py-2 bg-black/40 backdrop-blur rounded-full text-xs text-[var(--color-text-on-dark-muted)]">
+      {elements.length > 0 && connections.length === 0 && !connectMode && !connectingFrom && (
+        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 px-4 py-2 bg-black/40 backdrop-blur rounded-full text-xs text-[var(--color-text-on-dark-muted)] hidden sm:block">
           shift+click an element to start drawing a connection
+        </div>
+      )}
+
+      {/* Mobile hint — use connect button */}
+      {elements.length > 0 && connections.length === 0 && !connectMode && !connectingFrom && (
+        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 px-4 py-2 bg-black/40 backdrop-blur rounded-full text-xs text-[var(--color-text-on-dark-muted)] sm:hidden">
+          tap 🔗 connect to link elements
         </div>
       )}
 

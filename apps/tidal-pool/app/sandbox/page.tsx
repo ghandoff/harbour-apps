@@ -4,6 +4,10 @@
  * tidal.pool sandbox — the main interactive experience.
  * Blank pool with full palette access. No auth required.
  * Includes mirror.log reflection prompt after pausing simulation.
+ *
+ * Layout:
+ *   Desktop (≥ 640px): palette sidebar | canvas | inspector sidebar
+ *   Mobile  (< 640px): canvas (fills height) → controls + palette at bottom
  */
 
 import { useState, useCallback } from "react";
@@ -39,6 +43,17 @@ export default function SandboxPage() {
     setHasReflected(true);
   }, []);
 
+  /** Mobile tap-to-add: place element at canvas centre with small random offset */
+  const handleTapAdd = useCallback(
+    (item: PaletteItem) => {
+      const offsetX = (Math.random() - 0.5) * 80;
+      const offsetY = (Math.random() - 0.5) * 80;
+      const id = addElementFromPalette(item, 400 + offsetX, 300 + offsetY);
+      setSelectedId(id);
+    },
+    [addElementFromPalette],
+  );
+
   return (
     <div className="h-screen flex flex-col">
       {/* Header */}
@@ -52,7 +67,7 @@ export default function SandboxPage() {
       </header>
 
       {/* Controls */}
-      <div className="shrink-0 px-4 pt-3">
+      <div className="shrink-0 px-3 sm:px-4 pt-2 sm:pt-3">
         <SimulationControls
           playing={state.playing}
           speed={state.speed}
@@ -63,15 +78,12 @@ export default function SandboxPage() {
         />
       </div>
 
-      {/* Main area: palette + canvas + inspector */}
-      <div className="flex-1 flex min-h-0 px-4 py-3 gap-3">
-        {/* Palette */}
+      {/* ── Desktop layout: palette | canvas | inspector ── */}
+      <div className="hidden sm:flex flex-1 min-h-0 px-4 py-3 gap-3">
         <ElementPalette
           items={DEFAULT_PALETTE}
           onDragStart={setDraggedItem}
         />
-
-        {/* Canvas */}
         <PoolCanvas
           elements={state.elements}
           connections={state.connections}
@@ -83,8 +95,44 @@ export default function SandboxPage() {
           addElementFromPalette={addElementFromPalette}
           addConnection={addConnection}
         />
+        {selectedElement && (
+          <ElementInspector
+            element={selectedElement}
+            connections={state.connections}
+            allElements={state.elements}
+            dispatch={dispatch}
+            onClose={() => setSelectedId(null)}
+          />
+        )}
+      </div>
 
-        {/* Inspector (conditional) */}
+      {/* ── Mobile layout: canvas → palette strip at bottom ── */}
+      <div className="flex sm:hidden flex-col flex-1 min-h-0">
+        {/* Canvas fills remaining space */}
+        <div className="flex-1 min-h-0 px-3 py-2">
+          <PoolCanvas
+            elements={state.elements}
+            connections={state.connections}
+            tick={state.tick}
+            dispatch={dispatch}
+            selectedElementId={selectedId}
+            onSelectElement={setSelectedId}
+            paletteItems={DEFAULT_PALETTE}
+            addElementFromPalette={addElementFromPalette}
+            addConnection={addConnection}
+          />
+        </div>
+
+        {/* Palette strip at bottom */}
+        <div className="shrink-0 px-3 pb-2">
+          <ElementPalette
+            items={DEFAULT_PALETTE}
+            onDragStart={setDraggedItem}
+            onTapAdd={handleTapAdd}
+          />
+        </div>
+
+        {/* Mobile inspector renders as bottom sheet overlay (inside component) */}
         {selectedElement && (
           <ElementInspector
             element={selectedElement}
@@ -98,7 +146,7 @@ export default function SandboxPage() {
 
       {/* Reflection prompt trigger */}
       {shouldOfferReflection && !showReflection && (
-        <div className="shrink-0 px-4 pb-3">
+        <div className="shrink-0 px-3 sm:px-4 pb-3">
           <button
             onClick={() => setShowReflection(true)}
             className="w-full py-3 rounded-xl border border-white/10 bg-white/5 text-sm text-[var(--color-text-on-dark-muted)] hover:text-[var(--color-text-on-dark)] hover:bg-white/10 transition-all"
@@ -110,7 +158,7 @@ export default function SandboxPage() {
 
       {/* mirror.log reflection panel */}
       {showReflection && (
-        <div className="shrink-0 px-4 pb-4">
+        <div className="shrink-0 px-3 sm:px-4 pb-4">
           <ReflectionPrompt
             sourceApp="tidal-pool"
             skillsExercised={["systems-thinking", "cause-and-effect"]}

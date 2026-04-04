@@ -3,6 +3,10 @@
 /**
  * Scenario client — interactive simulation pre-loaded with
  * elements and connections from a Notion scenario.
+ *
+ * Layout mirrors sandbox/page.tsx:
+ *   Desktop (≥ 640px): palette sidebar | canvas | inspector sidebar
+ *   Mobile  (< 640px): canvas fills height → palette strip at bottom
  */
 
 import { useState, useCallback, useEffect } from "react";
@@ -48,6 +52,17 @@ export function ScenarioClient({
     setHasReflected(true);
   }, []);
 
+  /** Mobile tap-to-add: place element at canvas centre with small random offset */
+  const handleTapAdd = useCallback(
+    (item: PaletteItem) => {
+      const offsetX = (Math.random() - 0.5) * 80;
+      const offsetY = (Math.random() - 0.5) * 80;
+      const id = addElementFromPalette(item, 400 + offsetX, 300 + offsetY);
+      setSelectedId(id);
+    },
+    [addElementFromPalette],
+  );
+
   return (
     <div className="h-screen flex flex-col">
       {/* Header */}
@@ -62,7 +77,7 @@ export function ScenarioClient({
 
       {/* Challenge prompt */}
       {scenario.challengePrompt && (
-        <div className="shrink-0 px-4 pt-3">
+        <div className="shrink-0 px-3 sm:px-4 pt-3">
           <div className="p-3 rounded-xl border border-white/10 bg-white/5 text-sm">
             <span className="text-[var(--wv-sienna)] font-semibold text-xs uppercase tracking-wider mr-2">
               challenge
@@ -75,7 +90,7 @@ export function ScenarioClient({
       )}
 
       {/* Controls */}
-      <div className="shrink-0 px-4 pt-3">
+      <div className="shrink-0 px-3 sm:px-4 pt-2 sm:pt-3">
         <SimulationControls
           playing={state.playing}
           speed={state.speed}
@@ -86,10 +101,9 @@ export function ScenarioClient({
         />
       </div>
 
-      {/* Main area: palette + canvas + inspector */}
-      <div className="flex-1 flex min-h-0 px-4 py-3 gap-3">
+      {/* ── Desktop layout: palette | canvas | inspector ── */}
+      <div className="hidden sm:flex flex-1 min-h-0 px-4 py-3 gap-3">
         <ElementPalette items={palette} onDragStart={setDraggedItem} />
-
         <PoolCanvas
           elements={state.elements}
           connections={state.connections}
@@ -101,6 +115,40 @@ export function ScenarioClient({
           addElementFromPalette={addElementFromPalette}
           addConnection={addConnection}
         />
+        {selectedElement && (
+          <ElementInspector
+            element={selectedElement}
+            connections={state.connections}
+            allElements={state.elements}
+            dispatch={dispatch}
+            onClose={() => setSelectedId(null)}
+          />
+        )}
+      </div>
+
+      {/* ── Mobile layout: canvas → palette strip at bottom ── */}
+      <div className="flex sm:hidden flex-col flex-1 min-h-0">
+        <div className="flex-1 min-h-0 px-3 py-2">
+          <PoolCanvas
+            elements={state.elements}
+            connections={state.connections}
+            tick={state.tick}
+            dispatch={dispatch}
+            selectedElementId={selectedId}
+            onSelectElement={setSelectedId}
+            paletteItems={palette}
+            addElementFromPalette={addElementFromPalette}
+            addConnection={addConnection}
+          />
+        </div>
+
+        <div className="shrink-0 px-3 pb-2">
+          <ElementPalette
+            items={palette}
+            onDragStart={setDraggedItem}
+            onTapAdd={handleTapAdd}
+          />
+        </div>
 
         {selectedElement && (
           <ElementInspector
@@ -115,7 +163,7 @@ export function ScenarioClient({
 
       {/* Reflection prompt trigger */}
       {shouldOfferReflection && !showReflection && (
-        <div className="shrink-0 px-4 pb-3">
+        <div className="shrink-0 px-3 sm:px-4 pb-3">
           <button
             onClick={() => setShowReflection(true)}
             className="w-full py-3 rounded-xl border border-white/10 bg-white/5 text-sm text-[var(--color-text-on-dark-muted)] hover:text-[var(--color-text-on-dark)] hover:bg-white/10 transition-all"
@@ -127,7 +175,7 @@ export function ScenarioClient({
 
       {/* mirror.log reflection panel */}
       {showReflection && (
-        <div className="shrink-0 px-4 pb-4">
+        <div className="shrink-0 px-3 sm:px-4 pb-4">
           <ReflectionPrompt
             sourceApp="tidal-pool"
             skillsExercised={scenario.skillSlugs}
@@ -143,7 +191,7 @@ export function ScenarioClient({
 
       {/* Skill tags footer */}
       {scenario.skillSlugs.length > 0 && (
-        <div className="shrink-0 px-4 pb-3 flex items-center gap-2">
+        <div className="shrink-0 px-3 sm:px-4 pb-3 flex flex-wrap items-center gap-2">
           <span className="text-[10px] text-[var(--color-text-on-dark-muted)] uppercase tracking-wider">
             skills:
           </span>

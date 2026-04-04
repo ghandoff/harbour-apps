@@ -1,2 +1,11 @@
 @import "tailwindcss";
 @import "@windedvertigo/tokens/index.css";
+
+/* Hide scrollbar for horizontal scroll strips (mobile palette) */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}

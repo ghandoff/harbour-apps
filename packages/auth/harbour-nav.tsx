@@ -1,11 +1,16 @@
+"use client";
+
 /**
  * Shared harbour navigation bar — rendered at the top of every harbour app.
  *
- * Server component. Each app's layout calls auth() locally and passes the
- * session data as props. The nav itself has no auth dependency.
+ * Client component (needs useState for mobile menu toggle).
+ * Each app's layout calls auth() locally and passes the session data as props.
+ * The nav itself has no auth dependency.
  *
  * Uses the .wv-header* CSS classes from @windedvertigo/tokens.
  */
+
+import { useState, useEffect, useCallback } from "react";
 
 const HARBOUR_APPS = [
   {
@@ -84,11 +89,25 @@ export function HarbourNav({
   signInPath,
   signOutPath,
 }: HarbourNavProps) {
+  const [menuOpen, setMenuOpen] = useState(false);
   const otherApps = HARBOUR_APPS.filter((app) => app.key !== currentApp);
   const current = HARBOUR_APPS.find((app) => app.key === currentApp);
   const basePath = `/harbour/${currentApp}`;
   const resolvedSignIn = signInPath ?? `${basePath}/login`;
   const resolvedSignOut = signOutPath ?? `${basePath}/api/auth/signout`;
+
+  // Close on Escape key
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key === "Escape" && menuOpen) setMenuOpen(false);
+    },
+    [menuOpen],
+  );
+
+  useEffect(() => {
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [handleKeyDown]);
 
   return (
     <header className="wv-header harbour-nav" style={{ position: "sticky", top: 0, zIndex: 50 }}>
@@ -112,6 +131,19 @@ export function HarbourNav({
         <span className="wv-header-brand">{current?.label ?? currentApp}</span>
       </div>
 
+      {/* Hamburger toggle — visible only on mobile (< 640px) */}
+      <button
+        className="harbour-nav-toggle"
+        onClick={() => setMenuOpen((v) => !v)}
+        aria-label={menuOpen ? "close navigation menu" : "open navigation menu"}
+        aria-expanded={menuOpen}
+      >
+        <span style={{ fontSize: "1.125rem", lineHeight: 1 }}>
+          {menuOpen ? "✕" : "☰"}
+        </span>
+      </button>
+
+      {/* Desktop nav — hidden on mobile via CSS */}
       <nav className="wv-header-nav" aria-label="harbour apps">
         {otherApps.map((app) => (
           <a
@@ -139,6 +171,50 @@ export function HarbourNav({
           </a>
         )}
       </nav>
+
+      {/* Mobile dropdown menu */}
+      {menuOpen && (
+        <div className="harbour-nav-mobile-menu" role="navigation" aria-label="harbour apps mobile">
+          {otherApps.map((app) => (
+            <a
+              key={app.key}
+              href={app.href}
+              className="harbour-nav-mobile-link"
+              onClick={() => setMenuOpen(false)}
+            >
+              <span>{app.label}</span>
+              <span className="harbour-nav-mobile-tagline">{app.tagline}</span>
+            </a>
+          ))}
+
+          <div className="harbour-nav-mobile-divider" />
+
+          {user ? (
+            <div className="harbour-nav-mobile-user">
+              <span className="wv-header-email">
+                {user.name ?? user.email}
+              </span>
+              <a
+                href={resolvedSignOut}
+                className="harbour-nav-mobile-link"
+                onClick={() => setMenuOpen(false)}
+                style={{ color: "var(--color-accent-on-dark, #e09878)" }}
+              >
+                sign out
+              </a>
+            </div>
+          ) : (
+            <a
+              href={resolvedSignIn}
+              className="harbour-nav-mobile-link"
+              onClick={() => setMenuOpen(false)}
+              style={{ color: "var(--color-accent-on-dark, #e09878)" }}
+            >
+              sign in
+            </a>
+          )}
+        </div>
+      )}
     </header>
   );
 }

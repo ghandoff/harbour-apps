@@ -346,3 +346,97 @@
     display: none;
   }
 }
+
+/* ── harbour nav mobile menu ───────────────────────────────────
+   hamburger toggle + dropdown for < 640px viewports.             */
+
+.harbour-nav-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--wv-white, #fff);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.harbour-nav-toggle:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+@media (max-width: 639px) {
+  .harbour-nav-toggle {
+    display: flex;
+  }
+}
+
+.harbour-nav-mobile-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  padding: 8px 16px 16px;
+  background-color: var(--wv-cadet, #273248);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  animation: harbour-menu-slide 200ms ease-out;
+}
+
+@keyframes harbour-menu-slide {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  @keyframes harbour-menu-slide {
+    from, to { opacity: 1; transform: none; }
+  }
+}
+
+@media (min-width: 640px) {
+  .harbour-nav-mobile-menu {
+    display: none;
+  }
+}
+
+.harbour-nav-mobile-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 8px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--wv-white, #fff);
+  text-decoration: none;
+  border-radius: 8px;
+  transition: background 0.15s ease;
+}
+
+.harbour-nav-mobile-link:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.harbour-nav-mobile-tagline {
+  font-size: 0.6875rem;
+  font-weight: 400;
+  color: var(--color-text-on-dark-muted, rgba(255, 255, 255, 0.5));
+}
+
+.harbour-nav-mobile-divider {
+  height: 1px;
+  margin: 4px 8px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.harbour-nav-mobile-user {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 8px;
+}
