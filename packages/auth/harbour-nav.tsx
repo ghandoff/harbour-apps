@@ -38,6 +38,24 @@ const HARBOUR_APPS = [
     href: "/harbour/raft-house",
     tagline: "group learning",
   },
+  {
+    key: "tidal-pool",
+    label: "tidal.pool",
+    href: "/harbour/tidal-pool",
+    tagline: "systems thinking sandbox",
+  },
+  {
+    key: "paper-trail",
+    label: "paper.trail",
+    href: "/harbour/paper-trail",
+    tagline: "physical-digital bridge",
+  },
+  {
+    key: "mirror-log",
+    label: "mirror.log",
+    href: "/harbour/mirror-log",
+    tagline: "reflection journal",
+  },
 ] as const;
 
 export type HarbourAppKey =
@@ -45,7 +63,10 @@ export type HarbourAppKey =
   | "vertigo-vault"
   | "depth-chart"
   | "deep-deck"
-  | "raft-house";
+  | "raft-house"
+  | "tidal-pool"
+  | "paper-trail"
+  | "mirror-log";
 
 export interface HarbourNavProps {
   currentApp: HarbourAppKey;

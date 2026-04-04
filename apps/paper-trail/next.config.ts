@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   basePath: "/harbour/paper-trail",
   poweredByHeader: false,
-  transpilePackages: ["@windedvertigo/tokens", "@windedvertigo/mirror-log"],
+  transpilePackages: ["@windedvertigo/tokens", "@windedvertigo/mirror-log", "@windedvertigo/auth", "@windedvertigo/stripe"],
 
   async headers() {
     return [

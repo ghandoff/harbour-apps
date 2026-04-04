@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/next";
+import { auth } from "@/lib/auth";
+import AuthSessionProvider from "@/components/session-provider";
+import { HarbourNav } from "@windedvertigo/auth/harbour-nav";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -18,11 +21,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default function MirrorLogLayout({
+export default async function MirrorLogLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const session = await auth();
+
   return (
     <html lang="en">
       <head>
@@ -38,10 +43,13 @@ export default function MirrorLogLayout({
         />
       </head>
       <body className="bg-[var(--wv-cadet)] text-[var(--color-text-on-dark)] font-[family-name:var(--font-body)] antialiased">
-        <a href="#main" className="skip-link">
-          Skip to content
-        </a>
-        {children}
+        <AuthSessionProvider>
+          <a href="#main" className="skip-link">
+            skip to content
+          </a>
+          <HarbourNav currentApp="mirror-log" user={session?.user} />
+          {children}
+        </AuthSessionProvider>
         <Analytics />
       </body>
     </html>
