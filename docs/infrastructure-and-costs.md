@@ -1,6 +1,6 @@
 # infrastructure, services, and cost management
 
-> last updated: 2026-03-18
+> last updated: 2026-04-03
 
 ## the $200 vercel bill — what happened
 
@@ -48,18 +48,18 @@ additionally, the GitHub Actions `sync-notion.yml` bot pushed daily commits that
 
 ### service dependency matrix
 
-| service | creaseworks | vertigo-vault | pocket.prompts | depth-chart | harbour | site | nordic-sqr-rct | deep-deck |
-|---------|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
-| Neon | x | x | | x | | | | |
-| Stripe | x | x | | | | | | |
-| Cloudflare R2 | x | x | | | | | | |
-| Notion | x | x | x | | | | x | |
-| Resend | x | x | | x | | | | |
-| Anthropic | | x | x | x | | | | |
-| Google OAuth | x | x | | | | | | |
-| Auth.js | x | x | | x | | | | |
-| Slack | | | x | | | | | |
-| Upstash KV | | | x | | | | | |
+| service | creaseworks | vertigo-vault | pocket.prompts | depth-chart | harbour | site | nordic-sqr-rct | deep-deck | tidal-pool | paper-trail | mirror-log |
+|---------|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
+| Neon | x | x | | x | | | | | | | |
+| Stripe | x | x | | | | | | | | | |
+| Cloudflare R2 | x | x | | | | | | | | | |
+| Notion | x | x | x | | | | x | | x | x | |
+| Resend | x | x | | x | | | | | | | |
+| Anthropic | | x | x | x | | | | | | | |
+| Google OAuth | x | x | | | | | | | | | |
+| Auth.js | x | x | | x | | | | | | | |
+| Slack | | | x | | | | | | | | |
+| Upstash KV | | | x | | | | | | | | |
 
 ### env vars by app
 
@@ -70,6 +70,12 @@ additionally, the GitHub Actions `sync-notion.yml` bot pushed daily commits that
 **depth-chart**: POSTGRES_URL, AUTH_SECRET, ANTHROPIC_API_KEY, RESEND_API_KEY, NOTION_TOKEN
 
 **vertigo-vault**: POSTGRES_URL, AUTH_SECRET, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, STRIPE_SECRET_KEY, R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, RESEND_API_KEY, ANTHROPIC_API_KEY, NOTION_TOKEN
+
+**tidal-pool**: NOTION_TOKEN, NOTION_DB_TIDAL_ELEMENTS, NOTION_DB_TIDAL_SCENARIOS
+
+**paper-trail**: NOTION_TOKEN, NOTION_DB_PAPER_TRAIL_ACTIVITIES
+
+**mirror-log**: (none — client-only, reads from shared localStorage)
 
 ---
 
@@ -85,6 +91,9 @@ additionally, the GitHub Actions `sync-notion.yml` bot pushed daily commits that
 | **harbour** | **disconnected** | no | static Next.js, proxied via site rewrites — deploy manually via `vercel --prod` |
 | **nordic-sqr-rct** | **disconnected** | no | stable, deploy manually via `vercel --prod` |
 | **deep-deck** | **disconnected** | no | stable, deploy manually via `vercel --prod` |
+| **tidal-pool** | **disconnected** | no | Next.js + Notion (elements/scenarios DBs), deploy via `scripts/deploy-tidal-pool.sh` |
+| **paper-trail** | **disconnected** | no | Next.js + Notion (activities DB) + camera API, deploy via `scripts/deploy-paper-trail.sh` |
+| **mirror-log** | **disconnected** | no | Next.js client-only (shared localStorage), deploy via `scripts/deploy-mirror-log.sh` |
 | conference-experience | never connected | no | CLI-deployed once |
 | automations | separate branch | manual | weekly summary serverless function |
 
