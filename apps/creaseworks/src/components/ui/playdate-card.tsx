@@ -88,20 +88,20 @@ function functionAccentColor(fn: string | null): string {
 
 /** Translate friction dial to parent-friendly energy level label */
 /* ── tinkering tier visual mapping ── */
-const TINKERING_TIERS: Record<string, { emoji: string; label: string; className: string }> = {
-  guided:      { emoji: "🧩", label: "guided",      className: "bg-cadet/8 text-cadet/60" },
-  scaffolded:  { emoji: "🔧", label: "scaffolded",  className: "bg-champagne text-cadet/70" },
-  "open-ended":{ emoji: "🎨", label: "open-ended",  className: "bg-sienna/12 text-sienna/80" },
-  "free-form": { emoji: "✨", label: "free-form",   className: "bg-redwood/10 text-redwood/70" },
+const TINKERING_TIERS: Record<string, { label: string; className: string }> = {
+  guided:      { label: "guided",      className: "bg-cadet/8 text-cadet/60" },
+  scaffolded:  { label: "scaffolded",  className: "bg-champagne text-cadet/70" },
+  "open-ended":{ label: "open-ended",  className: "bg-sienna/12 text-sienna/80" },
+  "free-form": { label: "free-form",   className: "bg-redwood/10 text-redwood/70" },
 };
 
 function getEnergyLabel(
   frictionDial: number | null,
-): { emoji: string; label: string } | null {
+): { label: string } | null {
   if (frictionDial === null) return null;
-  if (frictionDial <= 2) return { emoji: "🌿", label: "calm" };
-  if (frictionDial === 3) return { emoji: "🌤️", label: "moderate" };
-  return { emoji: "⚡", label: "active" };
+  if (frictionDial <= 2) return { label: "calm" };
+  if (frictionDial === 3) return { label: "moderate" };
+  return { label: "active" };
 }
 
 /** Pack badge info for FOMO upsell on sampler cards */
@@ -183,7 +183,7 @@ export function PlaydateCard({
   return (
     <Link
       href={href ?? `/sampler/${slug}`}
-      className="relative block rounded-xl border border-cadet/10 bg-white shadow-sm hover:shadow-md hover:border-sienna/40 hover:-translate-y-0.5 transition-all duration-200 overflow-hidden"
+      className="relative flex flex-col h-full rounded-xl border border-cadet/10 bg-white shadow-sm hover:shadow-md hover:border-sienna/40 hover:-translate-y-0.5 transition-all duration-200 overflow-hidden"
       style={{ borderLeftWidth: 3, borderLeftColor: functionAccentColor(primaryFunction) }}
     >
       {/* cover / illustration header */}
@@ -219,12 +219,12 @@ export function PlaydateCard({
       )}
 
       {/* content area with padding */}
-      <div className="p-6">
+      <div className="flex-1 flex flex-col p-4">
 
-        <h2 className="text-lg font-semibold text-cadet mb-1">{title}</h2>
+        <h2 className="text-base font-semibold text-cadet leading-snug mb-1">{title}</h2>
 
         {show("headline") && headline && (
-          <p className="text-sm text-cadet/60 mb-3">{headline}</p>
+          <p className="text-xs text-cadet/60 mb-2 line-clamp-2">{headline}</p>
         )}
 
         {/* material icons row — small visual "what do I need?" */}
@@ -277,7 +277,7 @@ export function PlaydateCard({
                 return (
                   <span
                     key={fn}
-                    className="inline-block rounded-full px-2 py-0.5 text-2xs font-medium"
+                    className="inline-block rounded-full px-1.5 py-px text-2xs font-medium"
                     style={{ backgroundColor: style.bg, color: style.text }}
                   >
                     {fn}
@@ -288,29 +288,29 @@ export function PlaydateCard({
           );
         })()}
 
-        <div className="flex flex-wrap gap-1.5 mb-3">
+        <div className="flex flex-wrap gap-1 mb-2">
           {show("primaryFunction") && primaryFunction && (
-            <span className="inline-block rounded-full bg-champagne px-2.5 py-0.5 text-xs font-medium text-cadet">
+            <span className="inline-block rounded-full bg-champagne px-2 py-px text-2xs font-medium text-cadet">
               {primaryFunction}
             </span>
           )}
           {show("ageRange") && ageRange && (
-            <span className="inline-block rounded-full bg-cadet/8 px-2.5 py-0.5 text-xs font-medium text-cadet/70">
+            <span className="inline-block rounded-full bg-cadet/8 px-2 py-px text-2xs font-medium text-cadet/70">
               ages {ageRange}
             </span>
           )}
           {show("tinkeringTier") && tinkeringTier && TINKERING_TIERS[tinkeringTier] && (
             <span
-              className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${TINKERING_TIERS[tinkeringTier].className}`}
+              className={`inline-block rounded-full px-2 py-px text-2xs font-medium ${TINKERING_TIERS[tinkeringTier].className}`}
               title={`tinkering: ${tinkeringTier}`}
             >
-              {TINKERING_TIERS[tinkeringTier].emoji} {TINKERING_TIERS[tinkeringTier].label}
+              {TINKERING_TIERS[tinkeringTier].label}
             </span>
           )}
           {show("arcEmphasis") && arcEmphasis.map((arc) => (
             <span
               key={arc}
-              className={`inline-block rounded-full px-2.5 py-0.5 text-xs ${ARC_COLOURS[arc.toLowerCase()] ?? "bg-cadet/5 text-cadet/70"}`}
+              className={`inline-block rounded-full px-2 py-px text-2xs ${ARC_COLOURS[arc.toLowerCase()] ?? "bg-cadet/5 text-cadet/70"}`}
             >
               {arc}
             </span>
@@ -319,45 +319,46 @@ export function PlaydateCard({
 
         {/* pack badge — shows when playdate is in an unpurchased pack */}
         {show("packInfo") && packInfo && (
-          <span className="inline-flex items-center gap-1 rounded-full bg-sienna/8 px-2.5 py-0.5 text-2xs font-medium text-sienna/70 mb-2">
-            🔒 {packInfo.packTitle}
+          <span className="inline-flex items-center gap-1 rounded-full bg-sienna/8 px-2 py-px text-2xs font-medium text-sienna/70 mb-2">
+            {packInfo.packTitle}
           </span>
         )}
 
-        <div className="flex items-center gap-3 text-xs text-cadet/50">
+        {/* bottom metadata — pushed to card bottom */}
+        <div className="mt-auto flex items-center gap-2 text-2xs text-cadet/50 pt-2 border-t border-cadet/5">
           {show("energyLevel") && frictionDial !== null && (() => {
             const energy = getEnergyLabel(frictionDial);
             return energy ? (
               <span title={`energy level ${frictionDial}/5`}>
-                {energy.emoji} {energy.label}
+                {energy.label}
               </span>
             ) : null;
           })()}
           {show("startIn120s") && startIn120s && <span>ready in 2 min</span>}
           {show("findAgain") && hasFindAgain && (
-            <span className="inline-block rounded-full bg-sienna/10 px-2 py-0.5 text-xs font-medium text-sienna">
+            <span className="inline-block rounded-full bg-sienna/10 px-1.5 py-px text-2xs font-medium text-sienna">
               find again
             </span>
           )}
           {show("runCount") && !!runCount && runCount > 0 && (
             runCount >= 5 ? (
-              <span className="inline-flex items-center gap-1 rounded-full bg-sienna/15 px-2 py-0.5 text-xs font-semibold text-sienna">
-                🔥 popular
+              <span className="inline-flex items-center gap-1 rounded-full bg-sienna/15 px-1.5 py-px text-2xs font-semibold text-sienna">
+                popular
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1 rounded-full bg-cadet/8 px-2 py-0.5 text-xs font-medium text-cadet/60">
+              <span className="inline-flex items-center gap-1 rounded-full bg-cadet/8 px-1.5 py-px text-2xs font-medium text-cadet/60">
                 {runCount} {runCount === 1 ? "try" : "tries"}
               </span>
             )
           )}
           {show("evidenceCount") && !!evidenceCount && evidenceCount > 0 && (
             <span className="text-2xs text-cadet/40">
-              {evidenceCount} piece{evidenceCount !== 1 ? "s" : ""} of evidence
+              {evidenceCount} piece{evidenceCount !== 1 ? "s" : ""}
             </span>
           )}
           {show("familyCount") && !!family_count && family_count > 0 && (
             <span className="text-2xs text-cadet/40">
-              {family_count} {family_count === 1 ? "family" : "families"} exploring
+              {family_count} {family_count === 1 ? "family" : "families"}
             </span>
           )}
         </div>
