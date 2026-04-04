@@ -17,6 +17,16 @@ const LABEL_FONT = '500 11px "Inter", system-ui, sans-serif';
 const VALUE_FONT = '700 14px "Inter", system-ui, sans-serif';
 const ICON_FONT = "20px serif";
 
+// Resolve CSS custom properties for canvas (which doesn't understand var())
+function resolveToken(name: string, fallback: string): string {
+  if (typeof document === "undefined") return fallback;
+  return (
+    getComputedStyle(document.documentElement)
+      .getPropertyValue(name)
+      .trim() || fallback
+  );
+}
+
 const CONNECTION_COLORS: Record<ConnectionType, string> = {
   amplifying: "rgba(34, 197, 94, 0.6)", // green
   dampening: "rgba(239, 68, 68, 0.6)", // red
@@ -158,7 +168,7 @@ function drawElement(
 
   // Value number
   ctx.font = VALUE_FONT;
-  ctx.fillStyle = "#ffebd2";
+  ctx.fillStyle = resolveToken("--wv-champagne", "#ffebd2");
   ctx.fillText(Math.round(value).toString(), x, y + 14);
 
   ctx.restore();

@@ -138,7 +138,7 @@ export function useSimulation(initialState?: Partial<PoolState>) {
 
   // ── convenience methods ─────────────────────────────────
 
-  let nextId = useRef(0);
+  const nextId = useRef(0);
 
   const addElementFromPalette = useCallback(
     (item: PaletteItem, x: number, y: number) => {
