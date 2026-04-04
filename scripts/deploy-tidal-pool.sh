@@ -24,7 +24,7 @@ PROJECT_JSON="$VERCEL_DIR/project.json"
 BACKUP_JSON="$VERCEL_DIR/project.json.bak"
 
 # TODO: Replace with actual project ID after creating Vercel project
-TIDAL_POOL_PROJECT_ID="prj_REPLACE_ME"
+TIDAL_POOL_PROJECT_ID="prj_cbNGb206jHi08fgSVjSKdOvLgdYt"
 TIDAL_POOL_ORG_ID="team_wrpRda7ZzXdu7nKcEVVXY3th"
 
 DEPLOY_FLAGS="--prod"
