@@ -16,10 +16,24 @@ export function useCamera() {
 
   const start = useCallback(async () => {
     try {
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment", width: { ideal: 1920 }, height: { ideal: 1080 } },
-        audio: false,
-      });
+      let mediaStream: MediaStream;
+      try {
+        // Prefer rear camera on mobile; ideal constraint won't reject on desktop
+        mediaStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 } },
+          audio: false,
+        });
+      } catch (firstErr) {
+        // Fallback: drop facingMode if it over-constrained (desktop with front-only webcam)
+        if (firstErr instanceof DOMException && firstErr.name === "OverconstrainedError") {
+          mediaStream = await navigator.mediaDevices.getUserMedia({
+            video: { width: { ideal: 1920 }, height: { ideal: 1080 } },
+            audio: false,
+          });
+        } else {
+          throw firstErr;
+        }
+      }
       setStream(mediaStream);
       setError(null);
 
@@ -28,10 +42,27 @@ export function useCamera() {
         videoRef.current.onloadedmetadata = () => setReady(true);
       }
     } catch (err) {
-      const message =
-        err instanceof DOMException && err.name === "NotAllowedError"
-          ? "camera access was denied. please allow camera access in your browser settings."
-          : "could not access the camera. make sure your device has a camera available.";
+      let message: string;
+      if (err instanceof DOMException) {
+        switch (err.name) {
+          case "NotAllowedError":
+            message = "camera access was denied. please allow camera access in your browser settings.";
+            break;
+          case "NotFoundError":
+            message = "no camera was found on this device.";
+            break;
+          case "NotReadableError":
+            message = "the camera is in use by another app. close other tabs or apps using the camera and try again.";
+            break;
+          case "SecurityError":
+            message = "camera access is blocked by a security policy. make sure you're using https.";
+            break;
+          default:
+            message = "could not access the camera. make sure your device has a camera available.";
+        }
+      } else {
+        message = "could not access the camera. make sure your device has a camera available.";
+      }
       setError(message);
     }
   }, []);

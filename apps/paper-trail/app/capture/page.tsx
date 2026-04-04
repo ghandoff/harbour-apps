@@ -51,11 +51,11 @@ function CaptureInner() {
     }
   }, [capture, stop]);
 
-  const handleRetake = useCallback(() => {
+  const handleRetake = useCallback(async () => {
     setImageDataUrl(null);
     setAnnotations([]);
     setPhase("viewfinder");
-    start();
+    await start();
   }, [start]);
 
   const handleSave = useCallback(() => {
