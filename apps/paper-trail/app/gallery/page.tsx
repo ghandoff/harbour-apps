@@ -36,12 +36,12 @@ export default function GalleryPage() {
   return (
     <div className="min-h-screen flex flex-col">
       <header className="wv-header">
-        <Link href="/harbour/paper-trail" className="wv-header-brand">
+        <Link href="/" className="wv-header-brand">
           ← paper.trail
         </Link>
         <nav className="wv-header-nav hidden sm:flex">
           <Link
-            href="/harbour/paper-trail/capture"
+            href="/capture"
             className="wv-header-nav-link"
             data-accent
           >
@@ -60,7 +60,7 @@ export default function GalleryPage() {
                 no captures yet. complete an activity and capture your work.
               </p>
               <Link
-                href="/harbour/paper-trail/capture"
+                href="/capture"
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[var(--wv-redwood)] text-[var(--color-text-on-dark)] font-semibold hover:brightness-110 transition-all no-underline"
               >
                 open camera →

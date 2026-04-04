@@ -16,11 +16,11 @@ export default async function PaperTrailHome() {
     <main id="main" className="min-h-screen flex flex-col">
       {/* Header */}
       <header className="wv-header">
-        <Link href="/harbour" className="wv-header-brand">
+        <a href="/harbour" className="wv-header-brand">
           ← the harbour
-        </Link>
+        </a>
         <nav className="wv-header-nav hidden sm:flex">
-          <Link href="/harbour/paper-trail/gallery" className="wv-header-nav-link" data-accent>
+          <Link href="/gallery" className="wv-header-nav-link" data-accent>
             gallery
           </Link>
         </nav>
@@ -95,7 +95,7 @@ export default async function PaperTrailHome() {
             {activities.map((a) => (
               <Link
                 key={a.slug}
-                href={`/harbour/paper-trail/activity/${a.slug}`}
+                href={`/activity/${a.slug}`}
                 className="p-5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all no-underline group"
               >
                 <span className="text-xs font-semibold text-[var(--wv-sienna)] uppercase tracking-wider">
@@ -121,7 +121,7 @@ export default async function PaperTrailHome() {
               activities are being prepared. check back soon.
             </p>
             <Link
-              href="/harbour/paper-trail/gallery"
+              href="/gallery"
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[var(--wv-redwood)] text-[var(--color-text-on-dark)] font-semibold hover:brightness-110 transition-all no-underline"
             >
               view your gallery →

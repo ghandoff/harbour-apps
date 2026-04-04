@@ -52,7 +52,7 @@ export function ScenarioClient({
     <div className="h-screen flex flex-col">
       {/* Header */}
       <header className="wv-header shrink-0">
-        <Link href="/harbour/tidal-pool" className="wv-header-brand">
+        <Link href="/" className="wv-header-brand">
           ← tidal.pool
         </Link>
         <span className="text-xs text-[var(--color-text-on-dark-muted)]">

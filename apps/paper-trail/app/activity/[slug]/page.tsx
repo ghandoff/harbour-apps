@@ -24,12 +24,12 @@ export default async function ActivityPage({
   return (
     <main id="main" className="min-h-screen flex flex-col">
       <header className="wv-header">
-        <Link href="/harbour/paper-trail" className="wv-header-brand">
+        <Link href="/" className="wv-header-brand">
           ← paper.trail
         </Link>
         <nav className="wv-header-nav hidden sm:flex">
           <Link
-            href={`/harbour/paper-trail/capture?activity=${activity.slug}`}
+            href={`/capture?activity=${activity.slug}`}
             className="wv-header-nav-link"
             data-accent
           >
@@ -102,7 +102,7 @@ export default async function ActivityPage({
               {activity.capturePrompts.map((prompt) => (
                 <Link
                   key={prompt}
-                  href={`/harbour/paper-trail/capture?activity=${activity.slug}&prompt=${encodeURIComponent(prompt)}`}
+                  href={`/capture?activity=${activity.slug}&prompt=${encodeURIComponent(prompt)}`}
                   className="flex items-center gap-3 p-3 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all no-underline group"
                 >
                   <span className="text-[var(--wv-sienna)]">📷</span>
@@ -138,7 +138,7 @@ export default async function ActivityPage({
         {/* CTA */}
         <div className="flex gap-3">
           <Link
-            href={`/harbour/paper-trail/capture?activity=${activity.slug}`}
+            href={`/capture?activity=${activity.slug}`}
             className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[var(--wv-redwood)] text-[var(--color-text-on-dark)] font-semibold hover:brightness-110 transition-all no-underline"
           >
             capture your work →

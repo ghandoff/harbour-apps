@@ -16,11 +16,11 @@ export default async function TidalPoolHome() {
     <main id="main" className="min-h-screen flex flex-col">
       {/* Header */}
       <header className="wv-header">
-        <Link href="/harbour" className="wv-header-brand">
+        <a href="/harbour" className="wv-header-brand">
           ← the harbour
-        </Link>
+        </a>
         <nav className="wv-header-nav hidden sm:flex">
-          <Link href="/harbour/tidal-pool/sandbox" className="wv-header-nav-link" data-accent>
+          <Link href="/sandbox" className="wv-header-nav-link" data-accent>
             sandbox
           </Link>
         </nav>
@@ -43,7 +43,7 @@ export default async function TidalPoolHome() {
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
-              href="/harbour/tidal-pool/sandbox"
+              href="/sandbox"
               className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[var(--wv-redwood)] text-[var(--color-text-on-dark)] font-semibold hover:brightness-110 transition-all no-underline"
             >
               open sandbox
@@ -63,7 +63,7 @@ export default async function TidalPoolHome() {
             {scenarios.map((s) => (
               <Link
                 key={s.slug}
-                href={`/harbour/tidal-pool/scenario/${s.slug}`}
+                href={`/scenario/${s.slug}`}
                 className="p-5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all no-underline group"
               >
                 <span className="text-xs font-semibold text-[var(--wv-sienna)] uppercase tracking-wider">

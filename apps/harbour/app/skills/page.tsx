@@ -83,7 +83,7 @@ export default async function SkillsPage() {
               .
             </p>
             <a
-              href="/"
+              href="/harbour"
               className="inline-block text-sm text-[var(--color-text-on-dark-muted)] hover:text-[var(--wv-champagne)] transition-colors no-underline"
             >
               ← back to the harbour

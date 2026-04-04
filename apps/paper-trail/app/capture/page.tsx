@@ -86,7 +86,7 @@ function CaptureInner() {
   return (
     <div className="h-screen flex flex-col">
       <header className="wv-header shrink-0">
-        <Link href="/harbour/paper-trail" className="wv-header-brand">
+        <Link href="/" className="wv-header-brand">
           ← paper.trail
         </Link>
         <span className="text-xs text-[var(--color-text-on-dark-muted)]">
@@ -128,7 +128,7 @@ function CaptureInner() {
               <div className="text-center">
                 <p className="text-red-400 mb-4">{error}</p>
                 <Link
-                  href="/harbour/paper-trail"
+                  href="/"
                   className="text-[var(--color-accent-on-dark)] underline"
                 >
                   back to activities
@@ -214,7 +214,7 @@ function CaptureInner() {
                 capture another
               </button>
               <Link
-                href="/harbour/paper-trail/gallery"
+                href="/gallery"
                 className="px-5 py-2.5 rounded-full bg-[var(--wv-redwood)] text-[var(--color-text-on-dark)] font-semibold hover:brightness-110 transition-all no-underline"
               >
                 view gallery →
