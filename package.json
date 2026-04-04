@@ -19,6 +19,8 @@
     "build:depth-chart": "npm run build -w apps/depth-chart",
     "dev:raft": "npm run dev -w apps/raft-house",
     "build:raft": "npm run build -w apps/raft-house",
+    "dev:harbour": "npm run dev -w apps/harbour",
+    "build:harbour": "npm run build -w apps/harbour",
     "dev:tidal-pool": "npm run dev -w apps/tidal-pool",
     "build:tidal-pool": "npm run build -w apps/tidal-pool",
     "dev:paper-trail": "npm run dev -w apps/paper-trail",

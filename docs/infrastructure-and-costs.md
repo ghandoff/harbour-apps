@@ -88,7 +88,7 @@ additionally, the GitHub Actions `sync-notion.yml` bot pushed daily commits that
 | pocket-prompts | yes | yes (turbo-ignore) | serverless functions (Anthropic SDK) |
 | vertigo-vault | yes | yes (turbo-ignore) | Next.js + Neon + Stripe |
 | depth-chart | yes | yes (turbo-ignore) | Next.js + Anthropic SDK |
-| **harbour** | **disconnected** | no | static Next.js, proxied via site rewrites — deploy manually via `vercel --prod` |
+| **harbour** | **disconnected** | no | harbour hub (tile grid + credibility), deploy via `scripts/deploy-harbour.sh` |
 | **nordic-sqr-rct** | **disconnected** | no | stable, deploy manually via `vercel --prod` |
 | **deep-deck** | **disconnected** | no | stable, deploy manually via `vercel --prod` |
 | **tidal-pool** | **disconnected** | no | Next.js + Notion (elements/scenarios DBs), deploy via `scripts/deploy-tidal-pool.sh` |

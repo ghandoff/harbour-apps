@@ -11,6 +11,7 @@ npm workspaces + Turborepo. all dev commands run from monorepo root.
 this repo holds the apps hosted at `windedvertigo.com/harbour/*`.
 
 ```
+apps/harbour/          → Next.js 16, TS, Notion API (harbour hub — tile grid + credibility)
 apps/creaseworks/      → Next.js 16, TS, Auth.js, Neon, Stripe (main product)
 apps/depth-chart/      → Next.js 16, TS, Anthropic SDK (assessment generator)
 apps/vertigo-vault/    → Next.js 16, TS, Notion API
@@ -20,7 +21,7 @@ packages/tokens/       → CSS custom properties + TS exports (single source of 
 ```
 
 sibling repos (same GitHub org, same local directory):
-- `ghandoff/windedvertigo` — static site + harbour Next.js app (windedvertigo.com)
+- `ghandoff/windedvertigo` — static site (windedvertigo.com)
 - `ghandoff/pocket-prompts` — voice pipeline backend + mobile app
 - `ghandoff/nordic-sqr-rct` — Nordic SQR-RCT review platform
 
