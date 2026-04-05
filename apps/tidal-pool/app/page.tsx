@@ -13,7 +13,7 @@ export default async function TidalPoolHome() {
   const scenarios = await fetchScenarios();
 
   return (
-    <main id="main" className="min-h-screen flex flex-col">
+    <main id="main" className="flex-1 min-h-0 flex flex-col overflow-y-auto">
       {/* Header */}
       <header className="wv-header">
         <a href="/harbour" className="wv-header-brand">

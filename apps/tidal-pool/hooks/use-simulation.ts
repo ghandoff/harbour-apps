@@ -88,6 +88,40 @@ function poolReducer(state: PoolState, action: PoolAction): PoolState {
         connections: action.scenario.connections,
       };
 
+    case "FIT_TO_CANVAS": {
+      // Re-centre elements to fit within the actual canvas dimensions
+      const els = state.elements;
+      if (els.length === 0) return state;
+
+      const margin = 50; // px padding from edge
+      const minX = Math.min(...els.map((e) => e.x));
+      const maxX = Math.max(...els.map((e) => e.x));
+      const minY = Math.min(...els.map((e) => e.y));
+      const maxY = Math.max(...els.map((e) => e.y));
+
+      const contentW = maxX - minX || 1;
+      const contentH = maxY - minY || 1;
+      const contentCX = (minX + maxX) / 2;
+      const contentCY = (minY + maxY) / 2;
+
+      const canvasCX = action.width / 2;
+      const canvasCY = action.height / 2;
+
+      // Scale down if content overflows, but never scale up
+      const scaleX = (action.width - margin * 2) / contentW;
+      const scaleY = (action.height - margin * 2) / contentH;
+      const scale = Math.min(scaleX, scaleY, 1);
+
+      return {
+        ...state,
+        elements: els.map((e) => ({
+          ...e,
+          x: canvasCX + (e.x - contentCX) * scale,
+          y: canvasCY + (e.y - contentCY) * scale,
+        })),
+      };
+    }
+
     default:
       return state;
   }

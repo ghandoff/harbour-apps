@@ -9,7 +9,7 @@
  *   Mobile  (< 640px): canvas fills height → palette strip at bottom
  */
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useSimulation } from "@/hooks/use-simulation";
 import { PoolCanvas } from "@/components/pool-canvas";
@@ -32,11 +32,26 @@ export function ScenarioClient({
   const [, setDraggedItem] = useState<PaletteItem | null>(null);
   const [showReflection, setShowReflection] = useState(false);
   const [hasReflected, setHasReflected] = useState(false);
+  const hasFitted = useRef(false);
 
   // Load scenario on mount
   useEffect(() => {
     dispatch({ type: "LOAD_SCENARIO", scenario });
+    hasFitted.current = false;
   }, [dispatch, scenario]);
+
+  // After scenario loads + canvas renders, fit elements to actual canvas size
+  useEffect(() => {
+    if (hasFitted.current || state.elements.length === 0) return;
+    const canvases = document.querySelectorAll("canvas");
+    const canvas = Array.from(canvases).find((c) => c.offsetWidth > 0);
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    if (rect.width > 0 && rect.height > 0) {
+      dispatch({ type: "FIT_TO_CANVAS", width: rect.width, height: rect.height });
+      hasFitted.current = true;
+    }
+  }, [state.elements.length, dispatch]);
 
   const selectedElement =
     state.elements.find((e) => e.id === selectedId) ?? null;
@@ -55,16 +70,22 @@ export function ScenarioClient({
   /** Mobile tap-to-add: place element at canvas centre with small random offset */
   const handleTapAdd = useCallback(
     (item: PaletteItem) => {
+      // Find the visible canvas (skip the hidden desktop one)
+      const canvases = document.querySelectorAll("canvas");
+      const canvas = Array.from(canvases).find((c) => c.offsetWidth > 0);
+      const rect = canvas?.getBoundingClientRect();
+      const cx = rect ? rect.width / 2 : 200;
+      const cy = rect ? rect.height / 2 : 200;
       const offsetX = (Math.random() - 0.5) * 80;
       const offsetY = (Math.random() - 0.5) * 80;
-      const id = addElementFromPalette(item, 400 + offsetX, 300 + offsetY);
+      const id = addElementFromPalette(item, cx + offsetX, cy + offsetY);
       setSelectedId(id);
     },
     [addElementFromPalette],
   );
 
   return (
-    <div className="h-screen flex flex-col">
+    <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
       {/* Header */}
       <header className="wv-header shrink-0">
         <Link href="/" className="wv-header-brand">
@@ -128,7 +149,7 @@ export function ScenarioClient({
 
       {/* ── Mobile layout: canvas → palette strip at bottom ── */}
       <div className="flex sm:hidden flex-col flex-1 min-h-0">
-        <div className="flex-1 min-h-0 px-3 py-2">
+        <div className="flex flex-col flex-1 min-h-0 px-3 py-2">
           <PoolCanvas
             elements={state.elements}
             connections={state.connections}

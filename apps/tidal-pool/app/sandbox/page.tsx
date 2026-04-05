@@ -46,16 +46,22 @@ export default function SandboxPage() {
   /** Mobile tap-to-add: place element at canvas centre with small random offset */
   const handleTapAdd = useCallback(
     (item: PaletteItem) => {
+      // Find the visible canvas (skip the hidden desktop one)
+      const canvases = document.querySelectorAll("canvas");
+      const canvas = Array.from(canvases).find((c) => c.offsetWidth > 0);
+      const rect = canvas?.getBoundingClientRect();
+      const cx = rect ? rect.width / 2 : 200;
+      const cy = rect ? rect.height / 2 : 200;
       const offsetX = (Math.random() - 0.5) * 80;
       const offsetY = (Math.random() - 0.5) * 80;
-      const id = addElementFromPalette(item, 400 + offsetX, 300 + offsetY);
+      const id = addElementFromPalette(item, cx + offsetX, cy + offsetY);
       setSelectedId(id);
     },
     [addElementFromPalette],
   );
 
   return (
-    <div className="h-screen flex flex-col">
+    <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
       {/* Header */}
       <header className="wv-header shrink-0">
         <Link href="/" className="wv-header-brand">
@@ -109,7 +115,7 @@ export default function SandboxPage() {
       {/* ── Mobile layout: canvas → palette strip at bottom ── */}
       <div className="flex sm:hidden flex-col flex-1 min-h-0">
         {/* Canvas fills remaining space */}
-        <div className="flex-1 min-h-0 px-3 py-2">
+        <div className="flex flex-col flex-1 min-h-0 px-3 py-2">
           <PoolCanvas
             elements={state.elements}
             connections={state.connections}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Fragment } from "react";
 import type { Game } from "./game-showcase";
 
 interface GameDockProps {
@@ -23,7 +23,7 @@ function DockCard({
       onClick={onClick}
       aria-expanded={isActive}
       aria-controls={`dock-detail-${game.slug}`}
-      className={`game-card dock-card group relative rounded-2xl overflow-hidden ${game.image ? "" : `bg-gradient-to-br ${game.color}`} p-6 sm:p-8 border text-left transition-all duration-300 flex flex-col justify-between aspect-[5/3] ${
+      className={`game-card dock-card group relative w-full rounded-2xl overflow-hidden ${game.image ? "" : `bg-gradient-to-br ${game.color}`} p-6 sm:p-8 border text-left transition-all duration-300 flex flex-col justify-between aspect-[5/3] ${
         isActive
           ? "border-white/20 shadow-2xl ring-2 ring-white/10 scale-[1.02]"
           : "border-white/5 shadow-lg hover:border-white/10"
@@ -98,7 +98,7 @@ function DockDetail({ game, isOpen }: { game: Game; isOpen: boolean }) {
             {game.status === "live" && (
               <a
                 href={game.href}
-                className={`inline-flex items-center gap-2 mt-6 px-5 py-2.5 rounded-full ${game.accentColor} text-[var(--color-text-on-dark)] text-sm font-semibold hover:brightness-110 transition-all no-underline`}
+                className="inline-flex items-center gap-2 mt-6 px-5 py-2.5 rounded-full bg-[var(--wv-sienna)] text-[var(--color-text-on-dark)] text-sm font-semibold hover:brightness-110 transition-all no-underline border border-white/10"
               >
                 open {game.name}
                 <span aria-hidden="true">&rarr;</span>
@@ -145,8 +145,6 @@ export function GameDock({ games }: GameDockProps) {
   const toggle = (slug: string) =>
     setActiveSlug((prev) => (prev === slug ? null : slug));
 
-  const activeGame = games.find((g) => g.slug === activeSlug);
-
   return (
     <div
       ref={dockRef}
@@ -156,27 +154,57 @@ export function GameDock({ games }: GameDockProps) {
         tap a card to see what&apos;s inside.
       </p>
 
-      {/* 2x2 grid on desktop, 2-col on tablet, stacked on mobile */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+      {/* ── Mobile: stacked cards with inline detail below each ── */}
+      <div className="flex flex-col gap-4 sm:hidden">
         {games.map((game, i) => (
-          <DockCard
-            key={game.slug}
-            game={game}
-            isActive={activeSlug === game.slug}
-            onClick={() => toggle(game.slug)}
-            index={i}
-          />
+          <div key={game.slug}>
+            <DockCard
+              game={game}
+              isActive={activeSlug === game.slug}
+              onClick={() => toggle(game.slug)}
+              index={i}
+            />
+            <DockDetail
+              game={game}
+              isOpen={activeSlug === game.slug}
+            />
+          </div>
         ))}
       </div>
 
-      {/* expanded detail panel — sits below the grid */}
-      {games.map((game) => (
-        <DockDetail
-          key={game.slug}
-          game={game}
-          isOpen={activeSlug === game.slug}
-        />
-      ))}
+      {/* ── Desktop: 2-col grid with detail below each row ── */}
+      <div className="hidden sm:grid grid-cols-2 gap-5">
+        {games.map((game, i) => (
+          <Fragment key={game.slug}>
+            <DockCard
+              game={game}
+              isActive={activeSlug === game.slug}
+              onClick={() => toggle(game.slug)}
+              index={i}
+            />
+
+            {/* After the last card in each row (every 2nd, or the final card
+                if the total is odd), render details for both cards in this row.
+                col-span-2 spans the full grid width; collapsed panels are 0px. */}
+            {(i % 2 === 1 || i === games.length - 1) && (
+              <div className="col-span-2">
+                {games
+                  .slice(
+                    Math.floor(i / 2) * 2,
+                    Math.floor(i / 2) * 2 + 2,
+                  )
+                  .map((g) => (
+                    <DockDetail
+                      key={g.slug}
+                      game={g}
+                      isOpen={activeSlug === g.slug}
+                    />
+                  ))}
+              </div>
+            )}
+          </Fragment>
+        ))}
+      </div>
     </div>
   );
 }

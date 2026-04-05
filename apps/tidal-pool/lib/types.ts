@@ -79,7 +79,8 @@ export type PoolAction =
   | { type: "PAUSE" }
   | { type: "SET_SPEED"; speed: SimSpeed }
   | { type: "RESET" }
-  | { type: "LOAD_SCENARIO"; scenario: Scenario };
+  | { type: "LOAD_SCENARIO"; scenario: Scenario }
+  | { type: "FIT_TO_CANVAS"; width: number; height: number };
 
 // ── Scenario (from Notion) ──────────────────────────────────
 

@@ -42,7 +42,7 @@ export default async function TidalPoolLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="bg-[var(--wv-cadet)] text-[var(--color-text-on-dark)] font-[family-name:var(--font-body)] antialiased">
+      <body className="bg-[var(--wv-cadet)] text-[var(--color-text-on-dark)] font-[family-name:var(--font-body)] antialiased flex flex-col h-screen">
         <AuthSessionProvider>
           <a href="#main" className="skip-link">
             skip to content
