@@ -208,7 +208,7 @@ export function PoolCanvas({
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
-        className="w-full h-full cursor-crosshair"
+        className="w-full h-full cursor-crosshair touch-none"
         role="application"
         aria-label="tidal pool simulation canvas"
         tabIndex={0}
