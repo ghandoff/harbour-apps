@@ -589,6 +589,9 @@ export default function DiscoverPage() {
     lastDist: 0,
     startX: 0,
     startY: 0,
+    // touch gesture tracking
+    touches: 0,
+    pinching: false,
   });
 
   // ── screen transitions ──
@@ -764,7 +767,9 @@ export default function DiscoverPage() {
     if (!el) return;
     const ms = mapState.current;
 
+    // ── mouse / pointer (desktop only) ──────────────────────────
     const onDown = (e: PointerEvent) => {
+      if (e.pointerType === "touch") return; // handled by touch events
       if ((e.target as HTMLElement).closest(".fchip")) return;
       if ((e.target as HTMLElement).closest(".raft")) return;
       ms.dragging = true;
@@ -776,6 +781,7 @@ export default function DiscoverPage() {
       el.setPointerCapture(e.pointerId);
     };
     const onMove = (e: PointerEvent) => {
+      if (e.pointerType === "touch") return;
       if (!ms.dragging) return;
       ms.x += e.clientX - ms.lastX;
       ms.y += e.clientY - ms.lastY;
@@ -783,7 +789,8 @@ export default function DiscoverPage() {
       ms.lastY = e.clientY;
       applyTransform();
     };
-    const onUp = () => {
+    const onUp = (e: PointerEvent) => {
+      if (e.pointerType === "touch") return;
       ms.dragging = false;
       el.classList.remove("dragging");
     };
@@ -799,37 +806,90 @@ export default function DiscoverPage() {
       ms.scale = ns;
       applyTransform();
     };
+
+    // ── touch (mobile) ──────────────────────────────────────────
+    // unified handler: 1 finger = pan, 2 fingers = pinch-zoom + pan
     const onTouchStart = (e: TouchEvent) => {
-      if (e.touches.length === 2) {
+      ms.touches = e.touches.length;
+      if (e.touches.length === 1) {
+        if ((e.target as HTMLElement).closest(".fchip")) return;
+        if ((e.target as HTMLElement).closest(".raft")) return;
+        ms.dragging = true;
+        ms.pinching = false;
+        ms.lastX = e.touches[0].clientX;
+        ms.lastY = e.touches[0].clientY;
+        ms.startX = ms.lastX;
+        ms.startY = ms.lastY;
+        el.classList.add("dragging");
+      } else if (e.touches.length === 2) {
+        // transition from pan to pinch — stop pan, start pinch
+        ms.dragging = false;
+        ms.pinching = true;
         ms.lastDist = Math.hypot(
           e.touches[0].clientX - e.touches[1].clientX,
           e.touches[0].clientY - e.touches[1].clientY,
         );
+        ms.lastX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+        ms.lastY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
       }
     };
     const onTouchMove = (e: TouchEvent) => {
-      if (e.touches.length === 2) {
+      e.preventDefault(); // prevent page scroll/bounce
+
+      if (e.touches.length === 1 && ms.dragging) {
+        // single-finger pan
+        const dx = e.touches[0].clientX - ms.lastX;
+        const dy = e.touches[0].clientY - ms.lastY;
+        ms.x += dx;
+        ms.y += dy;
+        ms.lastX = e.touches[0].clientX;
+        ms.lastY = e.touches[0].clientY;
+        applyTransform();
+      } else if (e.touches.length === 2 && ms.pinching) {
+        // two-finger pinch-zoom + simultaneous pan
         const dist = Math.hypot(
           e.touches[0].clientX - e.touches[1].clientX,
           e.touches[0].clientY - e.touches[1].clientY,
         );
+        const cx = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+        const cy = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+
+        // zoom around pinch center
         if (ms.lastDist > 0) {
           const d = dist / ms.lastDist;
           const ns = Math.max(0.3, Math.min(2, ms.scale * d));
-          const cx =
-            (e.touches[0].clientX + e.touches[1].clientX) / 2;
-          const cy =
-            (e.touches[0].clientY + e.touches[1].clientY) / 2;
-          ms.x = cx - (cx - ms.x) * (ns / ms.scale);
-          ms.y = cy - (cy - ms.y) * (ns / ms.scale);
+          const rect = el.getBoundingClientRect();
+          const ox = cx - rect.left;
+          const oy = cy - rect.top;
+          ms.x = ox - (ox - ms.x) * (ns / ms.scale);
+          ms.y = oy - (oy - ms.y) * (ns / ms.scale);
           ms.scale = ns;
-          applyTransform();
         }
+
+        // pan with pinch center movement
+        ms.x += cx - ms.lastX;
+        ms.y += cy - ms.lastY;
+
         ms.lastDist = dist;
+        ms.lastX = cx;
+        ms.lastY = cy;
+        applyTransform();
       }
     };
-    const onTouchEnd = () => {
-      ms.lastDist = 0;
+    const onTouchEnd = (e: TouchEvent) => {
+      ms.touches = e.touches.length;
+      if (e.touches.length === 0) {
+        ms.dragging = false;
+        ms.pinching = false;
+        ms.lastDist = 0;
+        el.classList.remove("dragging");
+      } else if (e.touches.length === 1 && ms.pinching) {
+        // went from 2 fingers to 1 — resume pan from current finger
+        ms.pinching = false;
+        ms.dragging = true;
+        ms.lastX = e.touches[0].clientX;
+        ms.lastY = e.touches[0].clientY;
+      }
     };
 
     el.addEventListener("pointerdown", onDown);
@@ -837,9 +897,9 @@ export default function DiscoverPage() {
     el.addEventListener("pointerup", onUp);
     el.addEventListener("pointercancel", onUp);
     el.addEventListener("wheel", onWheel, { passive: false });
-    el.addEventListener("touchstart", onTouchStart, { passive: true });
-    el.addEventListener("touchmove", onTouchMove, { passive: true });
-    el.addEventListener("touchend", onTouchEnd, { passive: true });
+    el.addEventListener("touchstart", onTouchStart, { passive: false });
+    el.addEventListener("touchmove", onTouchMove, { passive: false });
+    el.addEventListener("touchend", onTouchEnd, { passive: false });
 
     return () => {
       el.removeEventListener("pointerdown", onDown);

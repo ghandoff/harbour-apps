@@ -257,7 +257,7 @@
    ARCHIPELAGO — islands + moored rafts
    ═══════════════════════════════════════════════════════ */
 
-.archipelago { overflow: hidden; cursor: grab; user-select: none; }
+.archipelago { overflow: hidden; cursor: grab; user-select: none; touch-action: none; }
 .archipelago.dragging { cursor: grabbing; }
 
 .map-world {
