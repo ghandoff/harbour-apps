@@ -24,8 +24,10 @@ npm install
 
 # 3. Copy workspace package snapshots into node_modules
 if [ -d "scripts/workspace-stubs" ]; then
-  cp -r scripts/workspace-stubs/@windedvertigo node_modules/@windedvertigo
+  mkdir -p node_modules/@windedvertigo
+  cp -r scripts/workspace-stubs/@windedvertigo/* node_modules/@windedvertigo/
 fi
+echo "[vercel-install] copied stubs: $(ls node_modules/@windedvertigo/ 2>/dev/null)"
 
 # 4. Patch globals.css — inline tokens CSS and fix monorepo references
 echo "[vercel-install] patching globals.css..."
