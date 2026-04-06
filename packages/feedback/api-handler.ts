@@ -39,16 +39,29 @@ export function createFeedbackHandler(defaultAppSlug: string) {
         console.log("[feedback]", JSON.stringify({ app_slug, route, feedback_type, severity, comment, device_info }));
       }
 
-      // optional slack notification
+      // optional slack notification (supports webhook URL or bot token)
       const slackUrl = process.env.SLACK_FEEDBACK_WEBHOOK_URL;
+      const slackToken = process.env.SLACK_BOT_TOKEN;
+      const slackChannel = process.env.SLACK_FEEDBACK_CHANNEL;
+
+      const icon = feedback_type === "bug" ? "🔴" : feedback_type === "confusing" ? "🟡" : feedback_type === "idea" ? "💡" : "💬";
+      const text = `${icon} *[${app_slug}]* ${feedback_type} (${severity}/5)${comment ? `\n> ${comment}` : ""}`;
+
       if (slackUrl) {
-        const icon = feedback_type === "bug" ? "🔴" : feedback_type === "confusing" ? "🟡" : feedback_type === "idea" ? "💡" : "💬";
-        const text = `${icon} *[${app_slug}]* ${feedback_type} (${severity}/5)${comment ? `\n> ${comment}` : ""}`;
         fetch(slackUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ text }),
-        }).catch(() => {}); // fire and forget
+        }).catch(() => {});
+      } else if (slackToken && slackChannel) {
+        fetch("https://slack.com/api/chat.postMessage", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${slackToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ channel: slackChannel, text }),
+        }).catch(() => {});
       }
 
       return NextResponse.json({ ok: true });
