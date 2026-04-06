@@ -17,6 +17,7 @@
     "@notionhq/client": "^2.3.0",
     "@vercel/postgres": "^0.10.0",
     "@windedvertigo/auth": "*",
+    "@windedvertigo/feedback": "*",
     "next-auth": "^5.0.0-beta.30",
     "html-to-image": "^1.11.13",
     "next": "^16.2.0",

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { auth } from "@/lib/auth";
 import { HarbourNav } from "@windedvertigo/auth/harbour-nav";
+import { FeedbackWidget } from "@windedvertigo/feedback";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -54,6 +55,7 @@ export default async function RootLayout({
         </a>
         <HarbourNav currentApp="raft-house" user={session?.user} />
         <main id="main">{children}</main>
+        <FeedbackWidget appSlug="raft-house" />
       </body>
     </html>
   );

@@ -16,6 +16,7 @@
     "stripe": "^17.7.0",
     "@vercel/postgres": "^0.10.0",
     "@windedvertigo/auth": "*",
+    "@windedvertigo/feedback": "*",
     "@windedvertigo/tokens": "*",
     "jszip": "^3.10.1",
     "mammoth": "^1.12.0",

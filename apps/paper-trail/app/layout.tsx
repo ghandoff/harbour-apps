@@ -3,6 +3,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { auth } from "@/lib/auth";
 import AuthSessionProvider from "@/components/session-provider";
 import { HarbourNav } from "@windedvertigo/auth/harbour-nav";
+import { FeedbackWidget } from "@windedvertigo/feedback";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -49,6 +50,7 @@ export default async function PaperTrailLayout({
           </a>
           <HarbourNav currentApp="paper-trail" user={session?.user} />
           {children}
+          <FeedbackWidget appSlug="paper-trail" />
         </AuthSessionProvider>
         <Analytics />
       </body>

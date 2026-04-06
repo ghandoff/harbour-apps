@@ -61,6 +61,73 @@ const HARBOUR_APPS = [
     href: "/harbour/mirror-log",
     tagline: "reflection journal",
   },
+  // ── threshold concept apps ──
+  {
+    key: "orbit-lab",
+    label: "orbit.lab",
+    href: "/harbour/orbit-lab",
+    tagline: "orbital mechanics",
+  },
+  {
+    key: "proof-garden",
+    label: "proof.garden",
+    href: "/harbour/proof-garden",
+    tagline: "mathematical proof",
+  },
+  {
+    key: "bias-lens",
+    label: "bias.lens",
+    href: "/harbour/bias-lens",
+    tagline: "cognitive bias",
+  },
+  {
+    key: "scale-shift",
+    label: "scale.shift",
+    href: "/harbour/scale-shift",
+    tagline: "powers of ten",
+  },
+  {
+    key: "pattern-weave",
+    label: "pattern.weave",
+    href: "/harbour/pattern-weave",
+    tagline: "gestalt perception",
+  },
+  {
+    key: "market-mind",
+    label: "market.mind",
+    href: "/harbour/market-mind",
+    tagline: "opportunity cost",
+  },
+  {
+    key: "rhythm-lab",
+    label: "rhythm.lab",
+    href: "/harbour/rhythm-lab",
+    tagline: "subdivision & groove",
+  },
+  {
+    key: "code-weave",
+    label: "code.weave",
+    href: "/harbour/code-weave",
+    tagline: "recursion & abstraction",
+  },
+  {
+    key: "time-prism",
+    label: "time.prism",
+    href: "/harbour/time-prism",
+    tagline: "historical empathy",
+  },
+  {
+    key: "liminal-pass",
+    label: "liminal.pass",
+    href: "/harbour/liminal-pass",
+    tagline: "threshold concepts",
+  },
+  {
+    key: "emerge-box",
+    label: "emerge.box",
+    href: "/harbour/emerge-box",
+    tagline: "cellular automata",
+  },
 ] as const;
 
 export type HarbourAppKey =
@@ -71,7 +138,18 @@ export type HarbourAppKey =
   | "raft-house"
   | "tidal-pool"
   | "paper-trail"
-  | "mirror-log";
+  | "mirror-log"
+  | "orbit-lab"
+  | "proof-garden"
+  | "bias-lens"
+  | "scale-shift"
+  | "pattern-weave"
+  | "market-mind"
+  | "rhythm-lab"
+  | "code-weave"
+  | "time-prism"
+  | "liminal-pass"
+  | "emerge-box";
 
 export interface HarbourNavProps {
   currentApp: HarbourAppKey;

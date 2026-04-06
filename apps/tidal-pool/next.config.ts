@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   basePath: "/harbour/tidal-pool",
   poweredByHeader: false,
-  transpilePackages: ["@windedvertigo/tokens", "@windedvertigo/mirror-log", "@windedvertigo/auth", "@windedvertigo/stripe"],
+  transpilePackages: ["@windedvertigo/tokens", "@windedvertigo/mirror-log", "@windedvertigo/auth", "@windedvertigo/stripe", "@windedvertigo/feedback"],
 
   async headers() {
     return [

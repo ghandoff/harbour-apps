@@ -7,6 +7,7 @@ import NavBar from "@/components/ui/nav-bar";
 import Footer from "@/components/ui/footer";
 import { auth } from "@/lib/auth";
 import { HarbourNav } from "@windedvertigo/auth/harbour-nav";
+import { FeedbackWidget } from "@windedvertigo/feedback";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -112,6 +113,7 @@ export default async function RootLayout({
             {children}
           </div>
           <Footer />
+          <FeedbackWidget appSlug="creaseworks" />
         </Providers>
       </body>
     </html>

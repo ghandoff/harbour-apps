@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
      generates correct asset URLs and internal links under that prefix. */
   basePath: "/harbour/creaseworks",
   poweredByHeader: false,
-  transpilePackages: ["@windedvertigo/tokens", "@windedvertigo/auth", "@windedvertigo/stripe"],
+  transpilePackages: ["@windedvertigo/tokens", "@windedvertigo/auth", "@windedvertigo/stripe", "@windedvertigo/feedback"],
 
   /* Custom loader routes all next/image requests through Cloudflare CDN
      (cdn.creaseworks.co) instead of Vercel's /_next/image proxy.
