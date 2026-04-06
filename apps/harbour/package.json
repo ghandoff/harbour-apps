@@ -11,6 +11,8 @@
   "dependencies": {
     "@notionhq/client": "^2.3.0",
     "@vercel/analytics": "^2.0.1",
+    "@vercel/postgres": "^0.10.0",
+    "@windedvertigo/feedback": "*",
     "@windedvertigo/tokens": "*",
     "next": "^16.1.6",
     "react": "^19.2.3",

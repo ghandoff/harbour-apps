@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/next";
+import { FeedbackWidget } from "@windedvertigo/feedback";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -64,6 +65,7 @@ export default function RootLayout({
           Skip to content
         </a>
         {children}
+        <FeedbackWidget appSlug="harbour" />
         <Analytics />
       </body>
     </html>

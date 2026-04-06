@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   basePath: "/harbour",
   poweredByHeader: false,
-  transpilePackages: ["@windedvertigo/tokens"],
+  transpilePackages: ["@windedvertigo/tokens", "@windedvertigo/feedback"],
 
   async headers() {
     return [
