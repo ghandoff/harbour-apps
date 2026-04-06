@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   basePath: "/harbour/deep-deck",
   poweredByHeader: false,
-  transpilePackages: ["@windedvertigo/auth", "@windedvertigo/stripe", "@windedvertigo/feedback"],
+  transpilePackages: ["@windedvertigo/tokens", "@windedvertigo/auth", "@windedvertigo/stripe", "@windedvertigo/feedback"],
 
   async headers() {
     return [
