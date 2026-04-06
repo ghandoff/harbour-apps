@@ -27,11 +27,7 @@ if [ -d "scripts/workspace-stubs" ]; then
   mkdir -p node_modules/@windedvertigo
   cp -r scripts/workspace-stubs/@windedvertigo/* node_modules/@windedvertigo/
 fi
-echo "[vercel-install] copied stubs: $(ls node_modules/@windedvertigo/ 2>/dev/null)"
-
 # 4. Patch globals.css — inline tokens CSS and fix monorepo references
-echo "[vercel-install] patching globals.css..."
-echo "[vercel-install] tokens exists: $(test -f ./node_modules/@windedvertigo/tokens/index.css && echo yes || echo no)"
 node -e "
   const fs = require('fs');
   let css = fs.readFileSync('./app/globals.css', 'utf8');
@@ -47,5 +43,4 @@ node -e "
   // remove @source directives pointing outside the app directory
   css = css.replace(/@source\s+['\"]\.\.\/\.\.\/.+['\"];?\n?/g, '');
   fs.writeFileSync('./app/globals.css', css);
-  console.log('[vercel-install] globals.css first line:', css.split('\\n')[1]);
 "
