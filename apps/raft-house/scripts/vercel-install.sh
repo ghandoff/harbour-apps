@@ -27,16 +27,19 @@ if [ -d "scripts/workspace-stubs" ]; then
   cp -r scripts/workspace-stubs/@windedvertigo node_modules/@windedvertigo
 fi
 
-# 4. Patch globals.css — replace workspace @import with direct path
-#    and remove @source directives that reference monorepo-relative paths
+# 4. Patch globals.css — inline tokens CSS and fix monorepo references
 node -e "
   const fs = require('fs');
   let css = fs.readFileSync('./app/globals.css', 'utf8');
-  // replace @import of workspace package with node_modules path
-  css = css.replace(
-    /@import ['\"]@windedvertigo\/tokens\/index\.css['\"];?/,
-    '@import \"../node_modules/@windedvertigo/tokens/index.css\";'
-  );
+  // inline the tokens CSS directly (replace @import with file contents)
+  const tokensPath = './node_modules/@windedvertigo/tokens/index.css';
+  if (fs.existsSync(tokensPath)) {
+    const tokensCss = fs.readFileSync(tokensPath, 'utf8');
+    css = css.replace(
+      /@import ['\"]@windedvertigo\/tokens\/index\.css['\"];?\n?/,
+      tokensCss + '\n'
+    );
+  }
   // remove @source directives pointing outside the app directory
   css = css.replace(/@source\s+['\"]\.\.\/\.\.\/.+['\"];?\n?/g, '');
   fs.writeFileSync('./app/globals.css', css);
