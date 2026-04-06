@@ -5,8 +5,8 @@
 # packages (@windedvertigo/*) can't be resolved by npm install.
 #
 # Solution: Strip workspace deps before npm install, then copy the
-# actual package sources from the repo (checked into this directory
-# as a snapshot) into node_modules so the build resolves them.
+# actual package sources into node_modules. Also patch CSS imports
+# that use workspace package paths or relative monorepo paths.
 
 set -e
 
@@ -26,3 +26,18 @@ npm install
 if [ -d "scripts/workspace-stubs" ]; then
   cp -r scripts/workspace-stubs/@windedvertigo node_modules/@windedvertigo
 fi
+
+# 4. Patch globals.css — replace workspace @import with direct path
+#    and remove @source directives that reference monorepo-relative paths
+node -e "
+  const fs = require('fs');
+  let css = fs.readFileSync('./app/globals.css', 'utf8');
+  // replace @import of workspace package with node_modules path
+  css = css.replace(
+    /@import ['\"]@windedvertigo\/tokens\/index\.css['\"];?/,
+    '@import \"../node_modules/@windedvertigo/tokens/index.css\";'
+  );
+  // remove @source directives pointing outside the app directory
+  css = css.replace(/@source\s+['\"]\.\.\/\.\.\/.+['\"];?\n?/g, '');
+  fs.writeFileSync('./app/globals.css', css);
+"
