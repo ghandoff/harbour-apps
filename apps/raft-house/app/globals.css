@@ -1,6 +1,9 @@
 @import "tailwindcss";
 @import "@windedvertigo/tokens/index.css";
 
+@source "../../packages/feedback";
+@source "../../packages/auth";
+
 :root {
   /* raft.house brand tokens — teal/cyan water crossing aesthetic */
   --rh-deep: #0f2a2e;

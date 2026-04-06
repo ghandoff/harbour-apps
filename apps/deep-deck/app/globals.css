@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+@source "../../packages/feedback";
+@source "../../packages/auth";
+
 :root {
   /* Brand tokens */
   --dd-cadet: #273248;
