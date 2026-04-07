@@ -207,7 +207,7 @@ triggered by github dependabot email about **CVE-2026-39363** (vite arbitrary fi
 **production runtime exposure: zero across all repos.**
 
 **known dev-only exceptions tracked here:**
-1. `harbour-apps` — partykit chain in raft-house (4 alerts). next check: bump partykit when v0.0.116+ ships.
+1. `harbour-apps` — partykit chain in raft-house (4 alerts). **investigated 07 apr 2026:** partykit is load-bearing for raft-house's multiplayer backend (`apps/raft-house/party/room.ts` is a full `Party.Server` class). vulnerable chain (`miniflare/undici/esbuild`) is in the local emulator, not runtime. `partykit@0.0.115` is the latest published version — **no upgrade path exists**, package appears dormant. options to eliminate: (a) wait for upstream partykit release, (b) migrate raft-house to liveblocks / cloudflare durable objects directly / pusher (multi-day rewrite). holding for now.
 2. `pocket-prompts/backend` — vercel CLI 41 transitives (15 alerts). next check: evaluate removing vercel from devDependencies entirely.
 
 **also verified:** 19/20 harbour apps have static CSP in `next.config.ts`. vertigo-vault uses **per-request CSP with nonce + strict-dynamic** in `proxy.ts` (stricter — gold standard).
