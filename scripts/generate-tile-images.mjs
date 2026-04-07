@@ -13,12 +13,13 @@
  *
  * Usage:
  *   OPENAI_API_KEY=sk-... node scripts/generate-tile-images.mjs
- *   OPENAI_API_KEY=sk-... node scripts/generate-tile-images.mjs --slug creaseworks
- *   OPENAI_API_KEY=sk-... node scripts/generate-tile-images.mjs --quality low
+ *   GEMINI_API_KEY=AIza... node scripts/generate-tile-images.mjs --provider imagen
+ *   node scripts/generate-tile-images.mjs --slug creaseworks --provider imagen
  *
  * Flags:
+ *   --provider <openai|imagen>   default: openai (gpt-image-1). imagen uses Google Imagen 3.
  *   --slug <slug>        only generate one tile (matches the slug field below)
- *   --quality <low|med|high>   default: high. cost: low ~$0.04, med ~$0.07, high ~$0.17 per image.
+ *   --quality <low|med|high>   default: high. (openai only — imagen has no quality tiers.)
  *   --dry-run            print prompts and exit, no API calls
  *
  * Cost reference (1024x1024):
@@ -93,17 +94,80 @@ const has = (name) => args.includes(name);
 
 const onlySlug = flag("--slug");
 const quality = flag("--quality") || "high"; // low | medium | high
+const provider = flag("--provider") || "openai"; // openai | imagen
 const dryRun = has("--dry-run");
 
+if (!["openai", "imagen"].includes(provider)) {
+  console.error(`error: --provider must be one of: openai, imagen (got "${provider}")`);
+  process.exit(1);
+}
 if (!["low", "medium", "high"].includes(quality)) {
   console.error(`error: --quality must be one of: low, medium, high (got "${quality}")`);
   process.exit(1);
 }
 
-const apiKey = process.env.OPENAI_API_KEY;
-if (!dryRun && !apiKey) {
-  console.error("error: OPENAI_API_KEY env var is required (or use --dry-run)");
-  process.exit(1);
+const openaiKey = process.env.OPENAI_API_KEY;
+const geminiKey = process.env.GEMINI_API_KEY;
+
+if (!dryRun) {
+  if (provider === "openai" && !openaiKey) {
+    console.error("error: OPENAI_API_KEY env var is required for --provider openai");
+    process.exit(1);
+  }
+  if (provider === "imagen" && !geminiKey) {
+    console.error("error: GEMINI_API_KEY env var is required for --provider imagen");
+    process.exit(1);
+  }
+}
+
+async function generateOpenAi(fullPrompt) {
+  const res = await fetch("https://api.openai.com/v1/images/generations", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${openaiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "gpt-image-1",
+      prompt: fullPrompt,
+      size: "1024x1024",
+      quality,
+      n: 1,
+    }),
+  });
+  if (!res.ok) {
+    const errBody = await res.text();
+    throw new Error(`HTTP ${res.status}: ${errBody.slice(0, 300)}`);
+  }
+  const data = await res.json();
+  const b64 = data?.data?.[0]?.b64_json;
+  if (!b64) throw new Error("no image in response");
+  return b64;
+}
+
+async function generateImagen(fullPrompt) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${geminiKey}`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      instances: [{ prompt: fullPrompt }],
+      parameters: {
+        sampleCount: 1,
+        aspectRatio: "1:1",
+        safetyFilterLevel: "block_only_high",
+        personGeneration: "allow_adult",
+      },
+    }),
+  });
+  if (!res.ok) {
+    const errBody = await res.text();
+    throw new Error(`HTTP ${res.status}: ${errBody.slice(0, 300)}`);
+  }
+  const data = await res.json();
+  const b64 = data?.predictions?.[0]?.bytesBase64Encoded;
+  if (!b64) throw new Error(`no image in response: ${JSON.stringify(data).slice(0, 200)}`);
+  return b64;
 }
 
 const tilesToGenerate = onlySlug
@@ -117,7 +181,7 @@ if (onlySlug && tilesToGenerate.length === 0) {
 }
 
 // ── main loop ────────────────────────────────────────────────
-console.log(`generating ${tilesToGenerate.length} tile(s) at quality=${quality}`);
+console.log(`generating ${tilesToGenerate.length} tile(s) via ${provider}${provider === "openai" ? ` (quality=${quality})` : ""}`);
 console.log(`output dir: ${OUTPUT_DIR}\n`);
 
 await mkdir(OUTPUT_DIR, { recursive: true });
@@ -138,37 +202,9 @@ for (const tile of tilesToGenerate) {
   process.stdout.write(`  ${tile.name.padEnd(16)} → `);
 
   try {
-    const res = await fetch("https://api.openai.com/v1/images/generations", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "gpt-image-1",
-        prompt: fullPrompt,
-        size: "1024x1024",
-        quality,
-        n: 1,
-      }),
-    });
-
-    if (!res.ok) {
-      const errBody = await res.text();
-      console.log(`FAILED (${res.status})`);
-      console.error(`    ${errBody.slice(0, 300)}`);
-      failed++;
-      continue;
-    }
-
-    const data = await res.json();
-    const b64 = data?.data?.[0]?.b64_json;
-    if (!b64) {
-      console.log(`FAILED (no image in response)`);
-      failed++;
-      continue;
-    }
-
+    const b64 = provider === "openai"
+      ? await generateOpenAi(fullPrompt)
+      : await generateImagen(fullPrompt);
     await writeFile(outPath, Buffer.from(b64, "base64"));
     console.log(`ok (${(Buffer.from(b64, "base64").length / 1024).toFixed(0)} KB)`);
     succeeded++;
