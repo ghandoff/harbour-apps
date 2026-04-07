@@ -2,9 +2,13 @@
 /**
  * generate-tile-images.mjs
  *
- * Generates 19 harbour tile images via OpenAI's gpt-image-1 model and
- * saves them to apps/harbour/public/images/{slug}.png — the path the
- * harbour hub's notion.ts already references.
+ * Generates 19 harbour tile images via OpenAI's gpt-image-1 model
+ * (or Google Imagen 4) and saves them to a STAGING folder:
+ * apps/harbour/public/images/_generated/{slug}.png
+ *
+ * The harbour hub reads from apps/harbour/public/images/{slug}.png,
+ * so generated tiles do NOT replace existing ones. Review side-by-side
+ * and manually move the keepers up one level.
  *
  * Why gpt-image-1 over dall-e-3:
  *   - much stronger prompt adherence on detailed compositional instructions
@@ -34,7 +38,10 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = join(__dirname, "..");
-const OUTPUT_DIR = join(REPO_ROOT, "apps/harbour/public/images");
+// Write to a staging subfolder so we never overwrite existing tiles.
+// Review the output side-by-side with the current images, then manually
+// move the keepers up one level into apps/harbour/public/images/.
+const OUTPUT_DIR = join(REPO_ROOT, "apps/harbour/public/images/_generated");
 
 // ── shared style baseline (prepended to every prompt) ─────────
 const STYLE_BASELINE = `Bright daylight palette: warm cream background (#fdf6e8), with accents in soft turquoise (#7dd3c0), warm coral (#ff8a65), butter yellow (#ffd54f), and sky blue (#90caf9). Playful but not cartoony — illustrated editorial style with clean linework, gentle gradients, and subtle paper-grain texture. Square composition. No text, no UI chrome, no logos. Avoid cluttered or dark scenes.`;
