@@ -186,3 +186,30 @@ the claude API charges are billed by Anthropic, not Vercel. pocket.prompts uses 
 - **shared auth cookies**: creaseworks and vertigo-vault share session cookies on `.windedvertigo.com`. changes to `AUTH_SECRET` in one will break sessions in the other.
 - **site rewrites**: the static site proxies `/harbour/*` to the harbour Vercel deployment. if harbour's URL changes, update `apps/site/vercel.json` rewrites.
 - **neon connection pooling**: always use `POSTGRES_URL` (pooled) for app connections and `POSTGRES_URL_NON_POOLING` (direct) only for migrations.
+
+---
+
+## security audit log
+
+### 07 april 2026 — full sweep across all four local repos
+
+triggered by github dependabot email about **CVE-2026-39363** (vite arbitrary file read via dev server websocket).
+
+| repo | before | after | notes |
+|---|---|---|---|
+| harbour-apps | 5 (3 mod, 2 high) | 4 dev-only | vite CVE patched. remaining 4 alerts all in `partykit → miniflare/undici/esbuild` chain (raft-house). zero production exposure — partykit is local dev only. **waiting upstream**. |
+| windedvertigo | 4 (2 mod, 2 high) | **0** | bumped `@anthropic-ai/sdk` 0.80 → 0.84 in `crm/` (patches GHSA-5474-4w2j-mq4c memory tool sandbox escape). path-to-regexp, picomatch, brace-expansion auto-fixed. |
+| nordic-sqr-rct | 6 (2 mod, 4 high) | **0** | clean. |
+| pocket-prompts/backend | 17 (1 low, 8 mod, 8 high) | 15 dev-only | bumped `@anthropic-ai/sdk` 0.78 → 0.84. remaining 15 are **all** transitive deps of `vercel` CLI 41 (devDependency). vercel 50 actually brings *more* vulns (30), so we held at 41. **dev-only, never reaches production**. future fix: remove `vercel` from devDependencies and rely on globally-installed CLI. |
+| pocket-prompts/backend/mcp | 2 (1 mod, 1 high) | **0** | clean. |
+| pocket-prompts/app | 5 (2 mod, 3 high) | **0** | clean. |
+
+**production runtime exposure: zero across all repos.**
+
+**known dev-only exceptions tracked here:**
+1. `harbour-apps` — partykit chain in raft-house (4 alerts). next check: bump partykit when v0.0.116+ ships.
+2. `pocket-prompts/backend` — vercel CLI 41 transitives (15 alerts). next check: evaluate removing vercel from devDependencies entirely.
+
+**also verified:** 19/20 harbour apps have static CSP in `next.config.ts`. vertigo-vault uses **per-request CSP with nonce + strict-dynamic** in `proxy.ts` (stricter — gold standard).
+
+**next sweep due:** 07 july 2026 (quarterly), or sooner if dependabot pages.
