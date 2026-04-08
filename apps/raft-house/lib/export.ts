@@ -246,10 +246,25 @@ function formatCanvas(lines: string[], config: CanvasConfig, responses: Response
 
   lines.push("### pin placements");
   lines.push("");
+  const catLabel = (id?: string) =>
+    id ? config.pinCategories?.find((c) => c.id === id)?.label ?? id : null;
   for (const { displayName, response } of responses) {
-    const pin = response as { x: number; y: number; note?: string };
-    const noteStr = pin.note ? ` — "${pin.note}"` : "";
-    lines.push(`- **${displayName}:** (${pin.x}, ${pin.y})${noteStr}`);
+    const pins = Array.isArray(response)
+      ? (response as { x: number; y: number; note?: string; categoryId?: string }[])
+      : [response as { x: number; y: number; note?: string; categoryId?: string }];
+    if (pins.length === 1) {
+      const p = pins[0];
+      const cat = catLabel(p.categoryId);
+      const meta = [cat, p.note ? `"${p.note}"` : null].filter(Boolean).join(" — ");
+      lines.push(`- **${displayName}:** (${p.x}, ${p.y})${meta ? ` — ${meta}` : ""}`);
+    } else {
+      lines.push(`- **${displayName}:** ${pins.length} pins`);
+      for (const p of pins) {
+        const cat = catLabel(p.categoryId);
+        const meta = [cat, p.note ? `"${p.note}"` : null].filter(Boolean).join(" — ");
+        lines.push(`  - (${p.x}, ${p.y})${meta ? ` — ${meta}` : ""}`);
+      }
+    }
   }
 }
 

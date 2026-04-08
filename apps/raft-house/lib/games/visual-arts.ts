@@ -108,6 +108,13 @@ export function spaceBetween(): Activity[] {
             { id: "middle-third", label: "horizon / middle third", x: 0, y: 200, width: 900, height: 200 },
             { id: "lower-third", label: "ground / lower third", x: 0, y: 400, width: 900, height: 200 },
           ],
+          multiPin: true,
+          minPins: 3,
+          pinCategories: [
+            { id: "focus", label: "focal point", color: "#ef4444" },
+            { id: "leading", label: "leading line", color: "#3b82f6" },
+            { id: "emphasis", label: "emphasis area", color: "#f59e0b" },
+          ],
           allowNote: true,
         },
       },

@@ -129,6 +129,8 @@ export function frameShift(): Activity[] {
               height: 200,
             },
           ],
+          multiPin: true,
+          minPins: 3,
           allowNote: true,
         },
       },
@@ -373,11 +375,17 @@ export function fieldCanvas(): Activity[] {
         type: "canvas",
         canvas: {
           prompt:
-            "place charges on the field canvas. positive charges are red pins, negative charges are blue pins. place at least 3 charges and add a note describing what you think the field lines look like between them. try to create a region where the field is nearly zero.",
+            "place charges on the field canvas. pick + or − below, then tap to place. place at least 3 charges and add a note describing what you think the field lines look like between them. try to create a region where the field is nearly zero.",
           width: 800,
           height: 800,
           xLabel: "x position (cm)",
           yLabel: "y position (cm)",
+          multiPin: true,
+          minPins: 3,
+          pinCategories: [
+            { id: "positive", label: "+ positive charge", color: "#ef4444" },
+            { id: "negative", label: "− negative charge", color: "#3b82f6" },
+          ],
           zones: [
             {
               id: "dipole-zone",
@@ -678,6 +686,8 @@ export function orbitLab(): Activity[] {
               height: 200,
             },
           ],
+          multiPin: true,
+          minPins: 3,
           allowNote: true,
         },
       },

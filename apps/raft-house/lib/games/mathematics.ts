@@ -99,6 +99,8 @@ export function foldSpace(): Activity[] {
             { id: "diagonal-1", label: "diagonal /", x: 0, y: 0, width: 100, height: 100 },
             { id: "diagonal-2", label: "diagonal \\", x: 0, y: 0, width: 100, height: 100 },
           ],
+          multiPin: true,
+          minPins: 4,
           allowNote: true,
         },
       },

@@ -135,8 +135,12 @@ function summarizeActivity(
       return { ...base, insight: `${count} sortings submitted` };
     }
     case "canvas": {
-      const pins = Object.values(responses).map((r) => r as { x: number; y: number });
-      if (pins.length < 2) return { ...base, insight: `${count} pins placed` };
+      const pins = Object.values(responses).flatMap((r) =>
+        Array.isArray(r)
+          ? (r as { x: number; y: number }[])
+          : [r as { x: number; y: number }],
+      );
+      if (pins.length < 2) return { ...base, insight: `${pins.length} pins placed` };
       const avgX = pins.reduce((s, p) => s + p.x, 0) / pins.length;
       const avgY = pins.reduce((s, p) => s + p.y, 0) / pins.length;
       const cfg = activity.config.canvas;

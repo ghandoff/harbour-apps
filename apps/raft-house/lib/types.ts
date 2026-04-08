@@ -157,6 +157,18 @@ export interface CanvasConfig {
   allowNote?: boolean;
   /** when set, pin color is derived from its x/y position on the canvas */
   pinColor?: "hue-mapped";
+  /** when true, participants place multiple pins instead of one */
+  multiPin?: boolean;
+  /** minimum number of pins required when multiPin is true */
+  minPins?: number;
+  /** categories for pin types — when set, participant picks one before placing each pin */
+  pinCategories?: CanvasPinCategory[];
+}
+
+export interface CanvasPinCategory {
+  id: string;
+  label: string;
+  color: string;
 }
 
 export interface CanvasZone {
