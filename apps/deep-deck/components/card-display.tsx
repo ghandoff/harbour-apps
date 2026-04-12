@@ -17,7 +17,7 @@ function CardBack({ card, currentDepth }: { card: Card; currentDepth: DepthLevel
       <div className="flex flex-col h-full p-6">
         <div className="flex items-center gap-2 mb-4">
           <span className="inline-block w-3 h-3 rounded-full bg-[var(--dd-champagne)]" />
-          <span className="text-xs font-medium uppercase tracking-wider text-[var(--dd-champagne)] opacity-80">
+          <span className="text-xs font-medium tracking-wider text-[var(--dd-champagne)] opacity-80">
             Conversation
           </span>
         </div>
@@ -39,7 +39,7 @@ function CardBack({ card, currentDepth }: { card: Card; currentDepth: DepthLevel
       <div className="flex flex-col h-full p-6">
         <div className="flex items-center gap-2 mb-4">
           <span className="inline-block w-3 h-3 rounded-full bg-[var(--dd-sienna)]" />
-          <span className="text-xs font-medium uppercase tracking-wider text-[var(--dd-sienna)] opacity-80">
+          <span className="text-xs font-medium tracking-wider text-[var(--dd-sienna)] opacity-80">
             Game
           </span>
         </div>
@@ -57,7 +57,7 @@ function CardBack({ card, currentDepth }: { card: Card; currentDepth: DepthLevel
     <div className="flex flex-col items-center justify-center h-full p-6 text-center">
       <div className="flex items-center gap-2 mb-4">
         <span className="inline-block w-3 h-3 rounded-full bg-[var(--dd-redwood)]" />
-        <span className="text-xs font-medium uppercase tracking-wider text-[var(--dd-redwood)]">
+        <span className="text-xs font-medium tracking-wider text-[var(--dd-redwood)]">
           Wild Card
         </span>
       </div>

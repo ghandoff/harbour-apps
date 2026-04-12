@@ -1,4 +1,4 @@
-import { sql } from "@vercel/postgres";
+import { sql } from "./db";
 
 /**
  * Shared Auth.js adapter for all harbour apps.

@@ -6,7 +6,7 @@
  * All queries run against the shared Neon Postgres database.
  */
 
-import { sql } from "@vercel/postgres";
+import { sql } from "./db";
 
 // ── Stripe customer management ──────────────────────────────────────
 

@@ -84,7 +84,7 @@ const TILES = [
   { slug: "code-weave", name: "code.weave",
     visual: "A delicate tree-diagram that branches downward, with each node connected to two smaller children, fading from solid colour at the top to soft sketch at the bottom. A single highlighted path runs from root to one leaf. Tree nodes in turquoise circles, branches in coral, highlighted path in butter yellow, leaves in sky blue." },
   { slug: "time-prism", name: "time.prism",
-    visual: "A triangular glass prism on a cream surface, splitting a single beam of warm light into three coloured rays that fan outward. Each ray ends at a small hand-drawn icon (a key, a letter, a compass). A faint dust-mote floats in the beam. Rays in coral, butter yellow, and turquoise, icons in sky blue." },
+    visual: "A simple triangular glass shape resting on a cream surface, with three coloured ribbons fanning outward from one edge. Each ribbon ends at a small hand-drawn icon: a key, an envelope, and a compass. Ribbons in coral, butter yellow, and turquoise. Icons outlined in sky blue. Soft flat illustration, no photorealism." },
   { slug: "liminal-pass", name: "liminal.pass",
     visual: "A simple stone archway standing alone in an open space, with light streaming through it from the far side. The ground on the near side is muted; the ground visible through the archway is brighter and more colourful, as if a different world begins on the other side. Archway in warm coral stone, near-side ground in muted sky blue, far-side ground glowing in butter yellow and turquoise. Soft volumetric light." },
   { slug: "emerge-box", name: "emerge.box",

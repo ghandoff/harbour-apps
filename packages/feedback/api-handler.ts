@@ -28,8 +28,9 @@ export function createFeedbackHandler(defaultAppSlug: string) {
       }
 
       // store in postgres if POSTGRES_URL is available
-      if (process.env.POSTGRES_URL) {
-        const { sql } = await import("@vercel/postgres");
+      if (process.env.POSTGRES_URL || process.env.DATABASE_URL) {
+        const { neon } = await import("@neondatabase/serverless");
+        const sql = neon(process.env.POSTGRES_URL || process.env.DATABASE_URL!);
         await sql`
           INSERT INTO harbour_feedback (app_slug, route, feedback_type, severity, comment, device_info)
           VALUES (${app_slug}, ${route || null}, ${feedback_type}, ${severity}, ${comment || null}, ${JSON.stringify(device_info || {})})

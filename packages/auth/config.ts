@@ -1,7 +1,7 @@
 import NextAuth, { type NextAuthConfig } from "next-auth";
 import Resend from "next-auth/providers/resend";
 import Google from "next-auth/providers/google";
-import { sql } from "@vercel/postgres";
+import { sql } from "./db";
 import { harbourAdapter } from "./adapter";
 import { harbourCookies } from "./cookies";
 import type { HarbourAuthOptions } from "./types";

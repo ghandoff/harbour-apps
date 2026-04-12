@@ -7,7 +7,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { createHarbourCheckout, checkEntitlement } from "@windedvertigo/stripe";
-import { sql } from "@vercel/postgres";
+import { sql } from "@/lib/db";
 
 const APP_URL =
   process.env.NEXT_PUBLIC_APP_URL ||

@@ -19,7 +19,7 @@
     "queries.ts"
   ],
   "peerDependencies": {
-    "@vercel/postgres": "^0.10.0",
+    "@neondatabase/serverless": ">=0.9.0",
     "stripe": ">=14"
   }
 }

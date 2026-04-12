@@ -6,7 +6,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://windedvertigo.com"),
-  title: "raft.house — winded.vertigo",
+  title: "raft.house — the harbour",
   description:
     "a facilitated, real-time learning platform that helps groups cross threshold concepts through play. use it to cross, then let it go.",
   alternates: {
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "website",
-    title: "raft.house — winded.vertigo",
+    title: "raft.house — the harbour",
     description:
       "facilitated threshold crossings — jackbox meets escape room meets socratic seminar.",
     url: "/harbour/raft-house",
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary",
-    title: "raft.house — winded.vertigo",
+    title: "raft.house — the harbour",
     description:
       "facilitated threshold crossings — jackbox meets escape room meets socratic seminar.",
   },

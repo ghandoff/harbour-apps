@@ -24,6 +24,11 @@ Thumbs.db
 # Vercel
 .vercel/
 
+# Cloudflare Workers (OpenNext build output + wrangler state)
+.open-next/
+.wrangler/
+.dev.vars
+
 # TypeScript build info
 *.tsbuildinfo
 

@@ -6,7 +6,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://windedvertigo.com"),
-  title: "deep.deck — winded.vertigo",
+  title: "deep.deck — the harbour",
   description:
     "a digital card game that helps teachers and parents connect with children through conversation, play, and reflection.",
   alternates: {
@@ -14,16 +14,16 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "website",
-    title: "deep.deck — winded.vertigo",
+    title: "deep.deck — the harbour",
     description:
       "a digital card game that helps teachers and parents connect with children through conversation, play, and reflection.",
     url: "/harbour/deep-deck",
-    siteName: "winded.vertigo",
+    siteName: "the harbour",
     images: [{ url: "/images/logo.png", width: 512, height: 512 }],
   },
   twitter: {
     card: "summary",
-    title: "deep.deck — winded.vertigo",
+    title: "deep.deck — the harbour",
     description:
       "a digital card game that helps teachers and parents connect with children through conversation, play, and reflection.",
     images: ["/images/logo.png"],

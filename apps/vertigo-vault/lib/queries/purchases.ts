@@ -3,7 +3,6 @@
  */
 
 import { sql } from "@/lib/db";
-import type { VercelPoolClient } from "@vercel/postgres";
 
 /** Queryable interface shared by the pool-level `sql` and a dedicated client. */
 type Queryable = { query: (text: string, values?: unknown[]) => Promise<{ rows: any[] }> };
