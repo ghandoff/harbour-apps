@@ -14,7 +14,7 @@
     "@vercel/analytics": "^2.0.1",
     "@windedvertigo/feedback": "*",
     "@windedvertigo/tokens": "*",
-    "next": "^16.1.6",
+    "next": "^16.2.3",
     "react": "^19.2.3",
     "react-dom": "^19.2.3"
   },
