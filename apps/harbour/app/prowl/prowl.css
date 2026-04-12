@@ -1179,6 +1179,196 @@
   }
 }
 
+/* ── mobile (participant devices) ─────────────────────────────── */
+
+@media (max-width: 768px) {
+  .arrive-title {
+    font-size: clamp(1.8rem, 8vw, 2.5rem);
+  }
+
+  .arrive-subtitle,
+  .arrive-reveal {
+    font-size: 0.95rem;
+    max-width: 90vw;
+    padding: 0 1rem;
+  }
+
+  .breath-ring {
+    width: 120px;
+    height: 120px;
+  }
+
+  .prowl-btn {
+    min-height: 44px;
+    min-width: 160px;
+    font-size: 1rem;
+    padding: 0.75rem 1.75rem;
+  }
+
+  .prowl-progress {
+    height: 3px;
+  }
+
+  /* gathering */
+  .gathering-prompt {
+    font-size: 1rem;
+    padding: 0 1rem;
+  }
+
+  .gathering-input {
+    bottom: 8%;
+    width: 90vw;
+  }
+
+  .gathering-input input {
+    font-size: 1.1rem;
+    width: 100%;
+  }
+
+  .gathering-cloud {
+    width: 95vw;
+    height: 45vh;
+  }
+
+  /* oracle */
+  .oracle-content,
+  .oracle-spotlight {
+    padding: 0 1rem;
+  }
+
+  .oracle-input {
+    flex-direction: column;
+    width: 90vw;
+  }
+
+  .oracle-input input {
+    width: 100%;
+    font-size: 1.1rem;
+  }
+
+  .countdown-wrap {
+    width: 120px;
+    height: 120px;
+  }
+
+  .countdown-ring {
+    width: 120px;
+    height: 120px;
+  }
+
+  .countdown-number {
+    font-size: 2rem;
+  }
+
+  /* knock */
+  .knock-btn {
+    width: 120px;
+    height: 120px;
+    font-size: 1.1rem;
+  }
+
+  /* deep deck */
+  .deepdeck-content {
+    padding: 0 1rem;
+  }
+
+  .card-flip-wrap {
+    width: 280px;
+    height: 180px;
+  }
+
+  /* breath gate */
+  .breath-gate-text {
+    font-size: 1rem;
+    padding: 0 1rem;
+  }
+
+  /* nicasio */
+  .nicasio-content {
+    padding: 0 1.5rem;
+  }
+
+  .nicasio-line {
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+
+  .nicasio-question {
+    font-size: 1.2rem;
+  }
+
+  /* cairn */
+  .cairn-stones-source {
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 0 1rem;
+  }
+
+  .cairn-stone-btn {
+    padding: 0.5rem;
+  }
+
+  .cairn-text,
+  .cairn-question {
+    font-size: 1rem;
+    padding: 0 1rem;
+  }
+
+  /* drift */
+  .drift-content {
+    padding: 0 1.5rem;
+  }
+
+  .drift-line {
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+
+  .drift-input {
+    flex-direction: column;
+    width: 90vw;
+  }
+
+  .drift-input input {
+    width: 100%;
+    font-size: 1.1rem;
+  }
+
+  /* miniplayer — smaller on mobile (if host on phone) */
+  .mini-player {
+    top: 0.75rem;
+    right: 0.75rem;
+    padding: 0.35rem 0.5rem;
+    gap: 0.35rem;
+  }
+
+  .mini-player-volume {
+    width: 40px;
+  }
+}
+
+@media (max-width: 480px) {
+  .arrive-title {
+    font-size: 1.6rem;
+  }
+
+  .typewriter {
+    font-size: 0.9rem;
+    padding: 0 0.75rem;
+  }
+
+  .card-flip-wrap {
+    width: 240px;
+    height: 160px;
+  }
+
+  .knock-btn {
+    width: 100px;
+    height: 100px;
+  }
+}
+
 /* ── reduced motion ───────────────────────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {
