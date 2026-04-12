@@ -28,7 +28,7 @@ const nextConfig: NextConfig = {
               "font-src 'self'",
               "img-src 'self' data: https:",
               "connect-src 'self' https://vitals.vercel-insights.com https://api.notion.com",
-              "frame-src 'none'",
+              "frame-src 'self' https://www.youtube.com",
               "worker-src 'self'",
               "base-uri 'self'",
               "form-action 'self'",
