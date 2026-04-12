@@ -215,6 +215,13 @@ function Particles({
 /* ── main component ───────────────────────────────────────────── */
 
 export function ProwlClient() {
+  /* ── role detection ── */
+  const [isHost, setIsHost] = useState(false);
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setIsHost(params.get("role") === "host");
+  }, []);
+
   /* ── shared state (from server) ── */
   const [shared, setShared] = useState<ProwlState | null>(null);
   const prevScreenRef = useRef(0);
@@ -224,15 +231,18 @@ export function ProwlClient() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const audio = useAudio();
 
+  // youtube miniplayer state (host only)
+  const [ytPlaying, setYtPlaying] = useState(true);
+  const [ytVolume, setYtVolume] = useState(80);
+
   // input fields (local only)
   const [gatherInput, setGatherInput] = useState("");
   const [oracleInput, setOracleInput] = useState("");
   const [driftInput, setDriftInput] = useState("");
   const gatherInputRef = useRef<HTMLInputElement>(null);
 
-  // arrive breathing animation (local — CSS-driven, triggered by shared.arriveBegun)
-  const [breathPhase, setBreathPhase] = useState<"waiting" | "breathing" | "done">("waiting");
-  const [breathLabel, setBreathLabel] = useState("");
+  // arrive breathing animation (state-driven, triggered by shared.arriveBegun)
+  const [breathProgress, setBreathProgress] = useState(-1); // -1 = not started, 0..1 = progress through sequence
   const [breathDone, setBreathDone] = useState(false);
   const [revealDone, setRevealDone] = useState(false);
   const [typewriterText, setTypewriterText] = useState("");
@@ -351,10 +361,10 @@ export function ProwlClient() {
     return () => document.removeEventListener("keydown", handler);
   }, [cur, act]);
 
-  /* ── screen 0: arrive breathing sequence ────────────────────── */
+  /* ── screen 0: arrive breathing sequence (state-driven) ─────── */
 
   useEffect(() => {
-    if (!arriveBegun || breathPhase !== "waiting") return;
+    if (!arriveBegun || breathProgress >= 0) return;
 
     // unmute YouTube audio
     iframeRef.current?.contentWindow?.postMessage(
@@ -366,33 +376,23 @@ export function ProwlClient() {
       "*"
     );
 
-    const t1 = setTimeout(() => setBreathPhase("breathing"), 3000);
+    // Total sequence: 3s delay + 3×14s breathing = 45s
+    const TOTAL_MS = 45000;
+    const start = Date.now();
 
-    const breathCycleMs = 14000;
-    const labels = [
-      { offset: 3000, text: "breathe in..." },
-      { offset: 3000 + 4000, text: "hold..." },
-      { offset: 3000 + 8000, text: "breathe out..." },
-      { offset: 3000 + breathCycleMs, text: "breathe in..." },
-      { offset: 3000 + breathCycleMs + 4000, text: "hold..." },
-      { offset: 3000 + breathCycleMs + 8000, text: "breathe out..." },
-      { offset: 3000 + 2 * breathCycleMs, text: "breathe in..." },
-      { offset: 3000 + 2 * breathCycleMs + 4000, text: "hold..." },
-      { offset: 3000 + 2 * breathCycleMs + 8000, text: "breathe out..." },
-    ];
+    const interval = setInterval(() => {
+      const elapsed = Date.now() - start;
+      const progress = Math.min(elapsed / TOTAL_MS, 1);
+      setBreathProgress(progress);
 
-    const labelTimers = labels.map((l) =>
-      setTimeout(() => setBreathLabel(l.text), l.offset)
-    );
+      if (progress >= 1) {
+        clearInterval(interval);
+        setBreathDone(true);
+      }
+    }, 33); // ~30fps
 
-    const t2 = setTimeout(() => {
-      setBreathPhase("done");
-      setBreathDone(true);
-      setBreathLabel("");
-    }, 3000 + 3 * breathCycleMs);
-
-    const t3 = setTimeout(() => setRevealDone(true), 3000 + 3 * breathCycleMs + 1500);
-
+    // post-breath sequence: reveal text, then typewriter
+    const t3 = setTimeout(() => setRevealDone(true), TOTAL_MS + 1500);
     const t4 = setTimeout(() => {
       let i = 0;
       const tw = setInterval(() => {
@@ -403,16 +403,50 @@ export function ProwlClient() {
           setTypewriterDone(true);
         }
       }, 45);
-    }, 3000 + 3 * breathCycleMs + 4500);
+    }, TOTAL_MS + 4500);
 
     return () => {
-      clearTimeout(t1);
-      clearTimeout(t2);
+      clearInterval(interval);
       clearTimeout(t3);
       clearTimeout(t4);
-      labelTimers.forEach(clearTimeout);
     };
-  }, [arriveBegun, breathPhase]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [arriveBegun]);
+
+  // derive breathing visuals from progress
+  const breathVisuals = (() => {
+    if (breathProgress < 0) return { scale: 0.6, opacity: 0, label: "" };
+    if (breathDone) return { scale: 0.6, opacity: 0, label: "" };
+
+    const DELAY_FRAC = 3000 / 45000;      // first 3s = delay
+    const CYCLE_FRAC = 14000 / 45000;      // each cycle
+    const INHALE_FRAC = 4000 / 14000;
+    const HOLD_FRAC = 4000 / 14000;
+
+    // fade-in during delay
+    if (breathProgress < DELAY_FRAC) {
+      const t = breathProgress / DELAY_FRAC;
+      return { scale: 0.6, opacity: Math.min(t * (DELAY_FRAC / (1000 / 45000)), 1) * 0.3, label: "" };
+    }
+
+    const breathFrac = (breathProgress - DELAY_FRAC) / (1 - DELAY_FRAC); // 0..1 through breathing
+    const cycleFrac = breathFrac * 3; // 0..3 (which cycle)
+    const inCycle = cycleFrac % 1;    // 0..1 within current cycle
+
+    const smoothstep = (t: number) => t * t * (3 - 2 * t);
+
+    if (inCycle < INHALE_FRAC) {
+      const t = inCycle / INHALE_FRAC;
+      const e = smoothstep(t);
+      return { scale: 0.6 + 0.4 * e, opacity: 0.3 + 0.5 * e, label: "breathe in..." };
+    } else if (inCycle < INHALE_FRAC + HOLD_FRAC) {
+      return { scale: 1.0, opacity: 0.8, label: "hold..." };
+    } else {
+      const t = (inCycle - INHALE_FRAC - HOLD_FRAC) / (1 - INHALE_FRAC - HOLD_FRAC);
+      const e = smoothstep(t);
+      return { scale: 1.0 - 0.4 * e, opacity: 0.8 - 0.5 * e, label: "breathe out..." };
+    }
+  })();
 
   /* ── oracle countdown (local tick from shared start time) ──── */
 
@@ -556,16 +590,83 @@ export function ProwlClient() {
         style={{ width: `${(cur / (TOTAL_SCREENS - 1)) * 100}%` }}
       />
 
-      {/* ── screen 0: arrive ── */}
-      <div className={scClass(0, "arrive")} aria-label="arrive — land here">
-        {/* audio-only: iframe hidden visually, plays alan watts lo-fi 0:00–4:15 */}
+      {/* ── youtube iframe (host only, persists across screens) ── */}
+      {isHost && (
         <iframe
           ref={iframeRef}
           src={`https://www.youtube.com/embed/${YOUTUBE_ID}?autoplay=1&mute=1&loop=1&playlist=${YOUTUBE_ID}&start=0&end=255&controls=0&showinfo=0&rel=0&modestbranding=1&enablejsapi=1&origin=${typeof window !== "undefined" ? window.location.origin : ""}`}
           allow="autoplay; encrypted-media"
           title="ambient audio — alan watts"
-          style={{ position: "absolute", width: 1, height: 1, opacity: 0, pointerEvents: "none" }}
+          style={{ position: "fixed", width: 1, height: 1, opacity: 0, pointerEvents: "none", zIndex: -1 }}
         />
+      )}
+
+      {/* ── youtube miniplayer (host only) ── */}
+      {isHost && arriveBegun && (
+        <div className="mini-player">
+          <button
+            className="mini-player-btn"
+            onClick={() => {
+              const cmd = ytPlaying ? "pauseVideo" : "playVideo";
+              iframeRef.current?.contentWindow?.postMessage(
+                JSON.stringify({ event: "command", func: cmd }),
+                "*"
+              );
+              setYtPlaying(!ytPlaying);
+            }}
+            aria-label={ytPlaying ? "pause audio" : "play audio"}
+          >
+            {ytPlaying ? "⏸" : "▶"}
+          </button>
+          <button
+            className="mini-player-btn"
+            onClick={() => {
+              iframeRef.current?.contentWindow?.postMessage(
+                JSON.stringify({ event: "command", func: "seekTo", args: [0, true] }),
+                "*"
+              );
+              iframeRef.current?.contentWindow?.postMessage(
+                JSON.stringify({ event: "command", func: "playVideo" }),
+                "*"
+              );
+              setYtPlaying(true);
+            }}
+            aria-label="restart audio"
+          >
+            ↺
+          </button>
+          <input
+            className="mini-player-volume"
+            type="range"
+            min="0"
+            max="100"
+            value={ytVolume}
+            onChange={(e) => {
+              const vol = Number(e.target.value);
+              setYtVolume(vol);
+              iframeRef.current?.contentWindow?.postMessage(
+                JSON.stringify({ event: "command", func: "setVolume", args: [vol] }),
+                "*"
+              );
+            }}
+            aria-label="volume"
+          />
+        </div>
+      )}
+
+      {/* ── host advance control (visible on all screens) ── */}
+      {isHost && !GATE_INDICES.has(cur) && cur < TOTAL_SCREENS - 1 && (
+        <button
+          className="host-advance"
+          onClick={() => act("advance")}
+          aria-label="advance to next screen"
+        >
+          →
+        </button>
+      )}
+
+      {/* ── screen 0: arrive ── */}
+      <div className={scClass(0, "arrive")} aria-label="arrive — land here">
 
         <Particles count={20} color="var(--prowl-champagne)" />
 
@@ -587,11 +688,15 @@ export function ProwlClient() {
               </p>
 
               <div
-                className={`breath-ring${breathPhase === "breathing" ? " breathing" : ""}`}
-                style={breathDone ? { opacity: 0, transition: "opacity 1s ease" } : undefined}
+                className="breath-ring"
+                style={{
+                  transform: `scale(${breathVisuals.scale})`,
+                  opacity: breathVisuals.opacity,
+                  transition: breathDone ? "opacity 1s ease" : undefined,
+                }}
               />
-              <p className={`breath-label${breathPhase === "breathing" ? " visible" : ""}`}>
-                {breathLabel}
+              <p className={`breath-label${breathVisuals.label ? " visible" : ""}`}>
+                {breathVisuals.label}
               </p>
 
               {breathDone && (
