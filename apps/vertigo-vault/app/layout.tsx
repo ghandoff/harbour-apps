@@ -1,9 +1,16 @@
+import { Inter } from "next/font/google";
 import type { Metadata } from "next";
 import { auth } from "@/lib/auth";
 import { Providers } from "@/components/providers";
 import { HarbourNav } from "@windedvertigo/auth/harbour-nav";
 
 import "./globals.css";
+
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-inter",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://windedvertigo.com"),
@@ -47,19 +54,7 @@ export default async function RootLayout({
   const session = await auth();
 
   return (
-    <html lang="en">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
-          rel="stylesheet"
-        />
-      </head>
+    <html lang="en" className={inter.variable}>
       <body className="antialiased">
         <Providers>
           <HarbourNav currentApp="vertigo-vault" user={session?.user} />
