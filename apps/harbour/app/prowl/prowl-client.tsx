@@ -603,7 +603,7 @@ export function ProwlClient() {
       {isHost && (
         <iframe
           ref={iframeRef}
-          src={`https://www.youtube.com/embed/${YOUTUBE_ID}?autoplay=1&mute=1&loop=1&playlist=${YOUTUBE_ID}&start=0&end=255&controls=0&showinfo=0&rel=0&modestbranding=1&enablejsapi=1&origin=${typeof window !== "undefined" ? window.location.origin : ""}`}
+          src={`https://www.youtube.com/embed/${YOUTUBE_ID}?autoplay=1&mute=1&start=0&end=255&controls=0&showinfo=0&rel=0&modestbranding=1&enablejsapi=1&origin=${typeof window !== "undefined" ? window.location.origin : ""}`}
           allow="autoplay; encrypted-media"
           title="ambient audio — alan watts"
           style={{ position: "fixed", width: 1, height: 1, opacity: 0, pointerEvents: "none", zIndex: -1 }}
