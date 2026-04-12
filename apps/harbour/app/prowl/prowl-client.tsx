@@ -366,7 +366,11 @@ export function ProwlClient() {
   useEffect(() => {
     if (!arriveBegun || breathProgress >= 0) return;
 
-    // unmute YouTube audio
+    // restart YouTube audio from beginning and unmute
+    iframeRef.current?.contentWindow?.postMessage(
+      JSON.stringify({ event: "command", func: "seekTo", args: [0, true] }),
+      "*"
+    );
     iframeRef.current?.contentWindow?.postMessage(
       JSON.stringify({ event: "command", func: "unMute" }),
       "*"
@@ -376,13 +380,18 @@ export function ProwlClient() {
       "*"
     );
 
-    // Total sequence: 3s delay + 3×14s breathing = 45s
-    const TOTAL_MS = 45000;
+    // Breathing: 3s delay + 3×14s = 45s. Audio: 4:15 = 255s.
+    // Reveal text syncs with end of audio so "when you open your eyes..."
+    // lands as Alan Watts fades out.
+    const BREATH_MS = 45000;
+    const AUDIO_MS = 255000;   // 4m15s
+    const REVEAL_AT = AUDIO_MS - 5000;  // 4:10 — reveal fades in 5s before audio ends
+    const TYPEWRITER_AT = AUDIO_MS;     // 4:15 — question starts as audio ends
     const start = Date.now();
 
     const interval = setInterval(() => {
       const elapsed = Date.now() - start;
-      const progress = Math.min(elapsed / TOTAL_MS, 1);
+      const progress = Math.min(elapsed / BREATH_MS, 1);
       setBreathProgress(progress);
 
       if (progress >= 1) {
@@ -391,8 +400,8 @@ export function ProwlClient() {
       }
     }, 33); // ~30fps
 
-    // post-breath sequence: reveal text, then typewriter
-    const t3 = setTimeout(() => setRevealDone(true), TOTAL_MS + 1500);
+    // post-breath sequence: reveal text synced to audio end, then typewriter
+    const t3 = setTimeout(() => setRevealDone(true), REVEAL_AT);
     const t4 = setTimeout(() => {
       let i = 0;
       const tw = setInterval(() => {
@@ -403,7 +412,7 @@ export function ProwlClient() {
           setTypewriterDone(true);
         }
       }, 45);
-    }, TOTAL_MS + 4500);
+    }, TYPEWRITER_AT);
 
     return () => {
       clearInterval(interval);
