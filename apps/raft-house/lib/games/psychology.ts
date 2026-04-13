@@ -868,3 +868,261 @@ export function biasLens(): Activity[] {
     },
   ];
 }
+
+// ── pale.blue ──────────────────────────────────────────────────
+// perceive → dissolve → carry | paced
+// the overview effect — altitude as cognitive threshold crossing
+
+export function paleBlue(): Activity[] {
+  return [
+    {
+      id: uid(),
+      type: "prediction",
+      config: {
+        type: "prediction",
+        prediction: {
+          question:
+            "astronauts report a profound cognitive shift when first seeing earth from space. frank white named it the 'overview effect' in 1987. of the ~680 people who have been to space, roughly what percentage report experiencing it?",
+          type: "number",
+          answer: 90,
+          unit: "%",
+        },
+      },
+      phase: "encounter",
+      label: "predict: who feels the shift",
+      timeLimit: 60_000,
+      discussionPrompt:
+        "nearly everyone who goes to space reports the effect — the near-unanimity is itself remarkable. what does it mean that a single visual experience can rewrite a worldview in seconds?",
+      hints: [
+        "it's much higher than most people guess",
+        "the effect is reported across nationalities, missions, and eras",
+      ],
+      mechanic: {
+        interactionModel: "reveal",
+        socialStructure: "solo",
+        tempo: "timed",
+      },
+    },
+    {
+      id: uid(),
+      type: "asymmetric",
+      config: {
+        type: "asymmetric",
+        asymmetric: {
+          scenario:
+            "the ISS cupola window. you've been in orbit for 3 days. mission control says 'look out now — you're passing over your hometown.' you look down.",
+          roles: [
+            {
+              id: "astronaut",
+              label: "the astronaut",
+              info: "you see your city from 400 km up. you can cover it with your thumb. your family is under that thumb. you feel your chest tighten — not from fear but from an emotion you don't have a word for. the borders between countries are invisible. the atmosphere is a tissue-thin blue line. you realize in your bones that everything you've ever known — every war, every love story, every city — exists in that fragile shell. describe what's happening to you right now.",
+              question:
+                "what is the physical sensation? where does it hit you?",
+            },
+            {
+              id: "philosopher",
+              label: "the philosopher",
+              info: "you're reading real astronaut testimony. edgar mitchell (apollo 14) said: 'you develop an instant global consciousness, a people orientation, an intense dissatisfaction with the state of the world, and a compulsion to do something about it.' ron garan called the thin atmosphere 'the orbital perspective' and said it made borders look absurd. describe how seeing earth as a single system — not as nations — changes what 'home' means.",
+              question:
+                "if everyone could see this view, what political concept would become hardest to defend?",
+            },
+            {
+              id: "poet",
+              label: "the poet",
+              info: "you're writing the entry in your crew journal that night. you've been trained in science and engineering. nothing in your training prepared you for this. the earth doesn't care about your mission objectives. it just glows. the sunrise takes 45 seconds and paints the atmosphere in colors you've never seen. you see 16 sunrises a day. each one rewrites something in you. write the journal entry.",
+              question:
+                "what word are you looking for that doesn't exist yet?",
+            },
+          ],
+          discussionPrompt:
+            "the astronaut felt it in the body. the philosopher understood it in the mind. the poet tried to capture it in language. which dimension would hit you hardest — and what's lost when we can only share the view through a screen?",
+          revealPrompt:
+            "all three are valid entry points to the same shift. the overview effect isn't just visual — it's somatic, cognitive, and linguistic simultaneously. that's what makes it a threshold crossing.",
+        },
+      },
+      phase: "struggle",
+      label: "inhabit: three windows on one earth",
+      timeLimit: 300_000,
+      hints: [
+        "there is no wrong answer — the roles are lenses, not limits",
+        "astronauts consistently report the experience as 'beyond words'",
+        "pay attention to what your role makes visible and invisible",
+      ],
+      mechanic: {
+        interactionModel: "investigation",
+        socialStructure: "asymmetric",
+        tempo: "paced",
+      },
+    },
+    {
+      id: uid(),
+      type: "canvas",
+      config: {
+        type: "canvas",
+        canvas: {
+          prompt:
+            "map how the overview effect shifts priorities. place pins for concerns that move when you see earth from space. where does each concern sit BEFORE the shift, and where does it land AFTER? use the canvas to trace the migration.",
+          width: 800,
+          height: 600,
+          xLow: "local / personal",
+          xHigh: "global / planetary",
+          yLow: "abstract idea",
+          yHigh: "felt urgency",
+          zones: [
+            {
+              id: "unchanged",
+              label: "remains unchanged",
+              x: 0,
+              y: 0,
+              width: 300,
+              height: 250,
+            },
+            {
+              id: "amplified",
+              label: "becomes urgent",
+              x: 500,
+              y: 350,
+              width: 300,
+              height: 250,
+            },
+            {
+              id: "dissolved",
+              label: "dissolves entirely",
+              x: 0,
+              y: 400,
+              width: 300,
+              height: 200,
+            },
+          ],
+          multiPin: true,
+          minPins: 3,
+          pinCategories: [
+            { id: "before", label: "before the shift", color: "#94a3b8" },
+            { id: "after", label: "after the shift", color: "#3b82f6" },
+          ],
+          allowNote: true,
+        },
+      },
+      phase: "threshold",
+      label: "map: what moves when you zoom out",
+      timeLimit: 180_000,
+      discussionPrompt:
+        "look at the group's map. what moved the most? what stayed still? is there anything that moved in a direction that surprised you?",
+      hints: [
+        "think about national identity, climate, daily routines, family",
+        "some things might become MORE local after the shift, not less",
+        "use the note field to name what each pin represents",
+      ],
+      mechanic: {
+        interactionModel: "construction",
+        socialStructure: "cooperative",
+        tempo: "paced",
+      },
+    },
+    {
+      id: uid(),
+      type: "sorting",
+      config: {
+        type: "sorting",
+        sorting: {
+          prompt:
+            "sort these real astronaut quotes by the dimension of the overview effect they express.",
+          cards: [
+            {
+              id: "shepard",
+              content:
+                "\"when I looked at the earth from space, I cried\" — alan shepard",
+            },
+            {
+              id: "sagan",
+              content:
+                "\"the earth is a very small stage in a vast cosmic arena\" — carl sagan",
+            },
+            {
+              id: "mitchell",
+              content:
+                "\"you develop an instant global consciousness\" — edgar mitchell",
+            },
+            {
+              id: "hadfield",
+              content:
+                "\"borders are invisible from up here\" — chris hadfield",
+            },
+            {
+              id: "garan-thin",
+              content:
+                "\"the atmosphere is paper thin — frighteningly thin\" — ron garan",
+            },
+            {
+              id: "garan-return",
+              content:
+                "\"I left earth a fighter pilot. I returned a humanitarian\" — ron garan",
+            },
+            {
+              id: "schweickart",
+              content:
+                "\"we are all riding on a spaceship together\" — rusty schweickart",
+            },
+            {
+              id: "jemison",
+              content:
+                "\"the most beautiful thing I've ever seen and the most terrifying\" — mae jemison",
+            },
+          ],
+          categories: [
+            { id: "awe", label: "awe / wonder" },
+            { id: "fragility", label: "fragility / fear" },
+            { id: "unity", label: "unity / connection" },
+            { id: "action", label: "call to action" },
+          ],
+          solution: {
+            shepard: "awe",
+            sagan: "awe",
+            mitchell: "unity",
+            hadfield: "unity",
+            "garan-thin": "fragility",
+            "garan-return": "action",
+            schweickart: "unity",
+            jemison: "awe",
+          },
+        },
+      },
+      phase: "integration",
+      label: "sort: voices from orbit",
+      timeLimit: 120_000,
+      discussionPrompt:
+        "some quotes could fit multiple categories — where did the group disagree? the ambiguity reveals that the overview effect isn't a single emotion but a constellation of responses. which dimension resonated most with you?",
+      hints: [
+        "some quotes genuinely fit more than one category",
+        "the 'correct' sorting is debatable — that's the point",
+        "notice which dimension you're drawn to first",
+      ],
+      mechanic: {
+        interactionModel: "construction",
+        socialStructure: "cooperative",
+        tempo: "paced",
+      },
+    },
+    {
+      id: uid(),
+      type: "reflection",
+      config: {
+        type: "reflection",
+        reflection: {
+          prompt:
+            "you cannot go to space. but frank white argues the overview effect can be triggered by any experience that forces a radical shift in scale — seeing a city from a mountaintop, looking through a microscope for the first time, holding a newborn. write about a moment when your perspective shifted so completely that you couldn't un-see the new view. what did you do differently afterward?",
+          minLength: 80,
+          shareWithGroup: true,
+        },
+      },
+      phase: "application",
+      label: "reflect: your own overview",
+      timeLimit: 300_000,
+      mechanic: {
+        interactionModel: "framing",
+        socialStructure: "solo",
+        tempo: "contemplative",
+      },
+    },
+  ];
+}

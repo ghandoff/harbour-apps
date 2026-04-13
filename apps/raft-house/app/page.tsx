@@ -86,6 +86,7 @@ const VERB_COLORS: Record<string, string> = {
   rewrite: "#d97706",
   survive: "#ef4444",
   predict: "#f59e0b",
+  gaze: "#6366f1",
 };
 
 const GAMES: Game[] = [
@@ -195,6 +196,9 @@ const GAMES: Game[] = [
   { name: "bias.lens", icon: "\u{1F50D}", disc: "psychology", energy: "contemplative", social: "solo",
     desc: "choose a scenario, reveal hidden biases, reflect on what you missed. paced solo journey",
     mechanics: { input: "mouse/touch", agency: "you observe", coreLoop: "choose\u2192reveal\u2192reflect", temporality: "paced", verb: "lens", color: VERB_COLORS.lens } },
+  { name: "pale.blue", icon: "\u{1F30D}", disc: "psychology", energy: "contemplative", social: "collaborative",
+    desc: "altitude as metaphor \u2014 zoom out until borders dissolve. the overview effect as threshold crossing",
+    mechanics: { input: "mouse/touch", agency: "you observe", coreLoop: "ascend\u2192shift\u2192return", temporality: "paced", verb: "gaze", color: VERB_COLORS.gaze } },
 
   // ── philosophy ──
   { name: "ought.machine", icon: "\u{1F914}", disc: "philosophy", energy: "energized", social: "solo",

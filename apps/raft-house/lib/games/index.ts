@@ -19,7 +19,7 @@ import { bondCraft, equilibriumDance, reactionPath } from "./chemistry";
 import { marginCall, tradeWinds, commonsGame, scaleShift, marketMind } from "./economics";
 
 // ── psychology ──
-import { mirrorMaze, anchorDrift, storySelf, biasLens } from "./psychology";
+import { mirrorMaze, anchorDrift, storySelf, biasLens, paleBlue } from "./psychology";
 
 // ── philosophy ──
 import { oughtMachine, circleRead, lensShift, liminalPass } from "./philosophy";
@@ -82,6 +82,7 @@ export const GAME_REGISTRY: Record<string, () => Activity[]> = {
   "anchor.drift": anchorDrift,
   "story.self": storySelf,
   "bias.lens": biasLens,
+  "pale.blue": paleBlue,
 
   // philosophy
   "ought.machine": oughtMachine,
