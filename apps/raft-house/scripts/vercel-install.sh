@@ -22,6 +22,9 @@ node -e "
 # 2. Install public dependencies
 npm install
 
+# 2.5. Install peer deps required by workspace stubs (not in raft-house's own package.json)
+npm install @vercel/postgres stripe --save=false 2>/dev/null || true
+
 # 3. Copy workspace package snapshots into node_modules
 if [ -d "scripts/workspace-stubs" ]; then
   mkdir -p node_modules/@windedvertigo
