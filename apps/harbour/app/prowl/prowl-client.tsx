@@ -699,7 +699,7 @@ export function ProwlClient() {
         <Particles count={20} color="var(--prowl-champagne)" />
 
         <div className="arrive-content">
-          <h1 className="arrive-title">the world prowl</h1>
+          <h1 className="arrive-title">play reconnect</h1>
 
           {!arriveBegun ? (
             <button
