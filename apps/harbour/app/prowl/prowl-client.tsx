@@ -675,6 +675,15 @@ export function ProwlClient() {
         <div className="host-nav">
           <button
             className="host-nav-btn"
+            onClick={() => act("reset")}
+            aria-label="restart from beginning"
+            title="restart"
+          >
+            ⟲
+          </button>
+          <span className="host-nav-sep" />
+          <button
+            className="host-nav-btn"
             onClick={() => act("set_screen", { screen: Math.max(cur - 1, 0) })}
             disabled={cur === 0}
             aria-label="go back"
