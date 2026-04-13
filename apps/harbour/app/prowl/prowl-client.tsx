@@ -30,7 +30,14 @@ const DEEP_DECK_PROMPTS = [
 ];
 
 const NICASIO_PHOTOS: string[] = [
-  // placeholder — garrett adds 6-8 photo URLs from Google Drive
+  "/harbour/prowl/photos/nicasio-hills.jpg",
+  "/harbour/prowl/photos/card-workshop.jpg",
+  "/harbour/prowl/photos/group-hike.jpg",
+  "/harbour/prowl/photos/cows-hillside.jpg",
+  "/harbour/prowl/photos/team-couch.jpg",
+  "/harbour/prowl/photos/pizza-making.jpg",
+  "/harbour/prowl/photos/aaron-fruit.jpg",
+  "/harbour/prowl/photos/maria-art.jpg",
 ];
 
 const STONE_COLOURS = [
