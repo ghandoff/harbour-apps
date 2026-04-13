@@ -670,15 +670,27 @@ export function ProwlClient() {
         </div>
       )}
 
-      {/* ── host advance control (visible on all screens) ── */}
-      {isHost && !GATE_INDICES.has(cur) && cur < TOTAL_SCREENS - 1 && (
-        <button
-          className="host-advance"
-          onClick={() => act("advance")}
-          aria-label="advance to next screen"
-        >
-          →
-        </button>
+      {/* ── host navigation controls (visible on all screens) ── */}
+      {isHost && (
+        <div className="host-nav">
+          <button
+            className="host-nav-btn"
+            onClick={() => act("set_screen", { screen: Math.max(cur - 1, 0) })}
+            disabled={cur === 0}
+            aria-label="go back"
+          >
+            ←
+          </button>
+          <span className="host-nav-label">{cur + 1}/{TOTAL_SCREENS}</span>
+          <button
+            className="host-nav-btn"
+            onClick={() => act("set_screen", { screen: Math.min(cur + 1, TOTAL_SCREENS - 1) })}
+            disabled={cur === TOTAL_SCREENS - 1}
+            aria-label="go forward"
+          >
+            →
+          </button>
+        </div>
       )}
 
       {/* ── screen 0: arrive ── */}

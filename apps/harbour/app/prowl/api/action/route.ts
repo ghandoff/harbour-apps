@@ -39,6 +39,14 @@ export async function POST(req: NextRequest) {
       }));
       break;
 
+    case "set_screen": {
+      const screen = Number(payload?.screen ?? -1);
+      if (screen < 0 || screen > 8)
+        return NextResponse.json({ error: "invalid screen" }, { status: 400 });
+      state = await updateState((s) => ({ ...s, screen }));
+      break;
+    }
+
     /* ── gate 1: gathering ── */
     case "add_word": {
       const text = String(payload?.text ?? "").trim().toLowerCase();

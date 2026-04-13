@@ -108,31 +108,63 @@
   cursor: pointer;
 }
 
-/* ── host advance button ─────────────────────────────────────── */
+/* ── host navigation controls ─────────────────────────────────── */
 
-.host-advance {
+.host-nav {
   position: fixed;
   bottom: 1.5rem;
   right: 1.5rem;
   z-index: 9999;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
   background: rgba(39, 50, 72, 0.6);
   border: 1px solid rgba(255, 235, 210, 0.3);
-  color: var(--prowl-champagne);
-  font-size: 1.2rem;
-  cursor: pointer;
-  opacity: 0.4;
+  border-radius: 20px;
+  padding: 0.25rem 0.5rem;
+  opacity: 0.35;
   transition: opacity 0.3s ease, background 0.3s ease;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.host-nav:hover {
+  opacity: 1;
+  background: rgba(39, 50, 72, 0.9);
+}
+
+.host-nav-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: transparent;
+  border: 1px solid rgba(255, 235, 210, 0.3);
+  color: var(--prowl-champagne);
+  font-size: 1rem;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: background 0.2s ease;
 }
 
-.host-advance:hover {
-  opacity: 1;
-  background: rgba(39, 50, 72, 0.9);
+.host-nav-btn:hover:not(:disabled) {
+  background: rgba(255, 235, 210, 0.15);
+}
+
+.host-nav-btn:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+.host-nav-label {
+  color: var(--prowl-champagne);
+  font-size: 0.7rem;
+  font-family: var(--font-mono, monospace);
+  letter-spacing: 0.05em;
+  min-width: 2rem;
+  text-align: center;
+  opacity: 0.7;
 }
 
 /* ── screen 0: arrive ─────────────────────────────────────────── */
