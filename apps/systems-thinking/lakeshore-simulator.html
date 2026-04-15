@@ -169,67 +169,6 @@ html, body {
   background: var(--soft-card);
 }
 
-/* -- screen: roles -- */
-.screen-roles {
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 48px 24px;
-}
-.roles-title {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 24px;
-}
-.roles-grid {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 16px;
-  max-width: 720px;
-  margin-bottom: 36px;
-}
-.role-card {
-  background: var(--soft-card);
-  border: 1px solid var(--rule);
-  padding: 20px 16px;
-  width: 130px;
-  text-align: center;
-  transition: border-color 0.2s;
-}
-.role-card:hover {
-  border-color: var(--sienna);
-}
-.role-icon {
-  font-size: 28px;
-  margin-bottom: 8px;
-  display: block;
-}
-.role-name {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--cadet);
-  line-height: 1.3;
-  margin-bottom: 4px;
-}
-.role-interest {
-  font-size: 11px;
-  color: var(--muted);
-  line-height: 1.4;
-  font-style: italic;
-}
-.roles-instruction {
-  font-size: 14px;
-  color: var(--muted);
-  max-width: 38ch;
-  line-height: 1.6;
-  margin-bottom: 32px;
-}
-
 /* -- screen: baseline -- */
 .screen-baseline {
   flex-direction: column;
@@ -261,6 +200,85 @@ html, body {
 .baseline-btn-wrap {
   margin-top: 32px;
 }
+
+/* -- explore mode (pre-commitment) -- */
+.decisions-explore .decisions-right { display: none; }
+.decisions-explore .decisions-left {
+  width: 100% !important;
+  max-width: none !important;
+  border-right: none !important;
+}
+.explore-prompt {
+  background: var(--soft-card);
+  border: 1px solid var(--rule);
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  color: var(--cadet);
+  line-height: 1.6;
+}
+.explore-prompt strong { font-weight: 600; }
+.explore-prompt .explore-sub {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+.btn-choose {
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--cadet);
+  background: none;
+  border: 1.5px solid var(--cadet);
+  padding: 6px 16px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.btn-choose:hover { background: var(--cadet); color: var(--champagne); }
+.btn-choose:focus-visible { outline: 3px solid #3B82F6; outline-offset: 2px; }
+.intervention-card.committed { border-color: var(--cadet); border-width: 2px; }
+.committed-badge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background: var(--cadet);
+  color: var(--champagne);
+  padding: 2px 8px;
+  margin-left: 8px;
+}
+.commit-confirm {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(39, 50, 72, 0.85);
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px;
+}
+.commit-confirm.visible { display: flex; }
+.commit-confirm-inner {
+  background: var(--champagne);
+  padding: 40px;
+  max-width: 480px;
+}
+.commit-confirm-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--cadet);
+  margin-bottom: 12px;
+}
+.commit-confirm-body {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+.commit-confirm-actions { display: flex; gap: 12px; justify-content: center; }
 
 /* -- screen: decisions -- */
 .screen-decisions {
@@ -309,6 +327,27 @@ html, body {
   flex: 1;
   position: relative;
   min-height: 0;
+}
+.chart-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  background: rgba(255, 246, 229, 0.85);
+  transition: opacity 0.4s;
+}
+.chart-placeholder.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+.chart-placeholder-text {
+  font-size: 13px;
+  color: var(--muted);
+  text-align: center;
+  line-height: 1.5;
+  max-width: 220px;
 }
 
 /* political capital meter */
@@ -370,6 +409,76 @@ html, body {
 }
 .intervention-card.was-run {
   border-color: var(--sienna);
+}
+.intervention-card.locked {
+  opacity: 0.55;
+  pointer-events: none;
+  position: relative;
+}
+.intervention-card.locked .card-lock-overlay {
+  pointer-events: auto;
+  cursor: not-allowed;
+}
+.card-lock-overlay {
+  display: none;
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  align-items: center;
+  justify-content: center;
+}
+.locked .card-lock-overlay {
+  display: flex;
+}
+.lock-icon {
+  font-size: 28px;
+  opacity: 0.6;
+}
+.lock-tooltip {
+  position: absolute;
+  bottom: calc(50% + 24px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--cadet);
+  color: var(--champagne);
+  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 4px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+.lock-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: var(--cadet);
+}
+.card-lock-overlay:hover .lock-tooltip {
+  opacity: 1;
+}
+@keyframes card-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(3px); }
+}
+.intervention-card.shake {
+  animation: card-shake 0.4s ease;
+}
+.intervention-card.unlocking .lock-icon {
+  transition: opacity 0.4s, transform 0.4s;
+  opacity: 0;
+  transform: scale(1.3);
+}
+.intervention-card.unlocking {
+  transition: opacity 0.4s;
+  opacity: 1;
 }
 .card-header {
   display: flex;
@@ -597,6 +706,45 @@ html, body {
 .pattern-btn-wrap {
   margin-top: 32px;
 }
+.insight-blocks {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  max-width: 800px;
+  width: 100%;
+  margin-top: 32px;
+}
+.insight-block {
+  background: var(--soft-card);
+  border: 1px solid var(--rule);
+  padding: 20px;
+  border-radius: 2px;
+}
+.insight-eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--sienna);
+  margin-bottom: 8px;
+}
+.insight-body {
+  font-size: 14px;
+  color: var(--cadet);
+  line-height: 1.6;
+}
+.calibration-note {
+  font-size: 12px;
+  color: var(--muted);
+  font-style: italic;
+  text-align: center;
+  max-width: 56ch;
+  margin-top: 20px;
+  line-height: 1.5;
+}
+@media (max-width: 640px) {
+  .insight-blocks { grid-template-columns: 1fr; }
+}
 
 /* -- screen: handoff -- */
 .screen-handoff {
@@ -773,12 +921,236 @@ html, body {
   top: 72px;
   left: 140px;
 }
+
+/* -- teacher's guide link -- */
+.tg-link {
+  position: fixed;
+  top: 28px;
+  right: 24px;
+  z-index: 100;
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--redwood);
+  text-decoration: none;
+  letter-spacing: 0;
+}
+.tg-link:hover { text-decoration: underline; }
+.tg-link:focus-visible { outline: 3px solid #3B82F6; outline-offset: 2px; }
+
+/* -- hypothesis textarea inside commit-confirm -- */
+.hypo-wrap { text-align: left; margin-bottom: 24px; }
+.hypo-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--cadet);
+  margin-bottom: 8px;
+  letter-spacing: 0.02em;
+}
+.hypo-textarea {
+  width: 100%;
+  min-height: 72px;
+  resize: vertical;
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--cadet);
+  background: var(--soft-card);
+  border: 1px solid var(--rule);
+  padding: 10px 12px;
+}
+.hypo-textarea:focus-visible {
+  outline: 3px solid #3B82F6;
+  outline-offset: 1px;
+}
+.hypo-textarea::placeholder {
+  color: var(--muted);
+  font-style: italic;
+}
+.hypo-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+.hypo-counter.over { color: var(--redwood); }
+
+/* -- surprise check -- */
+.surprise-wrap {
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: rgba(39, 50, 72, 0.04);
+  border-left: 2px solid var(--cadet);
+}
+.surprise-prompt {
+  font-size: 12px;
+  color: var(--cadet);
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.surprise-chips {
+  display: flex;
+  gap: 6px;
+}
+.surprise-chip {
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--cadet);
+  background: none;
+  border: 1.5px solid var(--cadet);
+  padding: 4px 12px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.surprise-chip:hover { background: var(--cadet); color: var(--champagne); }
+.surprise-chip:focus-visible { outline: 3px solid #3B82F6; outline-offset: 2px; }
+.surprise-chip[aria-pressed="true"] {
+  background: var(--cadet);
+  color: var(--champagne);
+}
+
+/* -- summary export -- */
+.export-wrap {
+  width: 100%;
+  max-width: 800px;
+  margin-top: 32px;
+  background: var(--soft-card);
+  border: 1px solid var(--rule);
+  padding: 24px;
+}
+.export-eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--sienna);
+  margin-bottom: 8px;
+}
+.export-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--cadet);
+  margin-bottom: 4px;
+}
+.export-mandate {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+.export-section {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--rule);
+}
+.export-section-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.export-section p { font-size: 13px; color: var(--cadet); line-height: 1.55; }
+.export-section em { color: var(--muted); font-style: italic; }
+.export-list { list-style: none; padding: 0; margin: 0; }
+.export-list li {
+  font-size: 12px;
+  color: var(--cadet);
+  padding: 6px 0;
+  border-bottom: 1px solid var(--rule);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: baseline;
+}
+.export-list li:last-child { border-bottom: none; }
+.export-li-num { font-weight: 700; min-width: 18px; }
+.export-li-title { flex: 1 1 200px; }
+.export-li-tier {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  background: rgba(203, 120, 88, 0.15);
+  color: var(--sienna);
+}
+.export-li-surprise { font-style: italic; color: var(--muted); }
+.export-li-value { font-variant-numeric: tabular-nums; color: var(--cadet); font-weight: 600; }
+.shifted-textarea {
+  width: 100%;
+  min-height: 56px;
+  resize: vertical;
+  font-family: var(--font);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--cadet);
+  background: var(--champagne);
+  border: 1px solid var(--rule);
+  padding: 8px 10px;
+  margin-top: 6px;
+}
+.shifted-textarea:focus-visible { outline: 3px solid #3B82F6; outline-offset: 1px; }
+.export-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+.export-toast {
+  display: inline-block;
+  font-size: 12px;
+  color: var(--sienna);
+  margin-left: 8px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.export-toast.visible { opacity: 1; }
+
+/* -- print: only summary export, fits A4 -- */
+@media print {
+  @page { size: A4; margin: 18mm; }
+  html, body {
+    background: #fff !important;
+    color: #000 !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+  body * { visibility: hidden !important; }
+  #reflection-export, #reflection-export * { visibility: visible !important; }
+  #reflection-export {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    max-width: none;
+    background: #fff !important;
+    border: none !important;
+    padding: 0 !important;
+    font-size: 11pt;
+    color: #000 !important;
+  }
+  #reflection-export .export-eyebrow,
+  #reflection-export .export-title,
+  #reflection-export .export-section-label { color: #273248 !important; }
+  #reflection-export .export-actions { display: none !important; }
+  #reflection-export .shifted-textarea {
+    background: #fff !important;
+    border: 1px solid #999 !important;
+  }
+}
 </style>
 </head>
 <body>
 
 <!-- wordmark -->
 <div class="wordmark" aria-hidden="true">w<span class="dot">.</span>v</div>
+<a class="tg-link" href="/portfolio/assets/systems-thinking/teacher-guides/lakeshore.html" target="_blank" rel="noopener" aria-label="open teacher's guide for lakeshore in a new tab">teacher's guide &rarr;</a>
 
 <!-- screen 1: mandate -->
 <div id="screen-mandate" class="screen screen-mandate active" role="region" aria-label="the mandate">
@@ -792,43 +1164,7 @@ html, body {
   <button class="committee-link" id="btn-committee" aria-label="see the committee composition">see the committee</button>
 </div>
 
-<!-- screen 2: roles -->
-<div id="screen-roles" class="screen screen-roles" role="region" aria-label="assign roles">
-  <div class="roles-title">assign one role per person</div>
-  <div class="roles-instruction">
-    each person argues from their role's interest. you must reach consensus before each intervention runs.
-  </div>
-  <div class="roles-grid">
-    <div class="role-card">
-      <span class="role-icon" aria-hidden="true">&#9670;</span>
-      <div class="role-name">chair</div>
-      <div class="role-interest">VP for operations. protects the budget.</div>
-    </div>
-    <div class="role-card">
-      <span class="role-icon" aria-hidden="true">&#9881;</span>
-      <div class="role-name">facilities rep</div>
-      <div class="role-interest">runs the buildings. knows what breaks.</div>
-    </div>
-    <div class="role-card">
-      <span class="role-icon" aria-hidden="true">&#9733;</span>
-      <div class="role-name">student rep</div>
-      <div class="role-interest">undergraduate senate. wants equity and speed.</div>
-    </div>
-    <div class="role-card">
-      <span class="role-icon" aria-hidden="true">&#9878;</span>
-      <div class="role-name">trustee liaison</div>
-      <div class="role-interest">investment committee. guards the endowment.</div>
-    </div>
-    <div class="role-card">
-      <span class="role-icon" aria-hidden="true">&#9752;</span>
-      <div class="role-name">town liaison</div>
-      <div class="role-interest">municipal sustainability. thinks in watersheds.</div>
-    </div>
-  </div>
-  <button class="btn" id="btn-roles-continue" aria-label="continue to baseline">continue</button>
-</div>
-
-<!-- screen 3: baseline -->
+<!-- screen 2: baseline -->
 <div id="screen-baseline" class="screen screen-baseline" role="region" aria-label="baseline trajectory">
   <div class="baseline-title">without intervention.</div>
   <div class="baseline-subtitle">the campus emits more in 2050 than it does today.</div>
@@ -843,12 +1179,19 @@ html, body {
 <!-- screen 3: decisions -->
 <div id="screen-decisions" class="screen screen-decisions" role="region" aria-label="intervention decisions">
   <div class="decisions-left">
+    <div class="explore-prompt" id="explore-prompt">
+      <strong>which intervention would you choose?</strong>
+      <div class="explore-sub">read all five. expand the details. when you're ready, click "this is my decision" on the one you think will reduce emissions the most. you won't see the data until you commit.</div>
+    </div>
     <div class="card-stack-title">interventions</div>
     <div id="card-stack"></div>
   </div>
   <div class="decisions-right">
     <div class="year-ticker" id="year-ticker" aria-live="polite">2025</div>
     <div class="decisions-chart-wrap">
+      <div class="chart-placeholder" id="chart-placeholder">
+        <span class="chart-placeholder-text">choose an intervention on the left, then hit "run this" to see its trajectory here.</span>
+      </div>
       <canvas id="chart-decisions" aria-label="emissions trajectories chart"></canvas>
       <div class="endpoint-labels" id="endpoint-labels"></div>
     </div>
@@ -917,7 +1260,7 @@ html, body {
     </div>
   </div>
   <div class="onboard-hint onboard-hint-cards" id="hint-cards" style="display:none">
-    <span class="onboard-hint-text">click "run this" on any card to see its 25-year trajectory.</span>
+    <span class="onboard-hint-text">now run each intervention to see what the system does over 25 years. start with your choice — then try the others.</span>
     <span class="onboard-hint-arrow">&#8595;</span>
   </div>
 </div>
@@ -931,6 +1274,56 @@ html, body {
   <div class="pattern-caption">
     the higher you push on the leverage ladder, the more the system bends. the bottom of the ladder produces a sag and a recovery. the top of the ladder produces a structural break.
   </div>
+  <div class="insight-blocks">
+    <div class="insight-block">
+      <div class="insight-eyebrow">what this system is like</div>
+      <div class="insight-body">a campus is a slow-growth system with long feedback delays. emissions rise not because of one bad decision, but because the default structure rewards expansion and defers consequences.</div>
+    </div>
+    <div class="insight-block">
+      <div class="insight-eyebrow">how to spot the pattern</div>
+      <div class="insight-body">parameter tweaks (pricing, efficiency) produce a dip, then a recovery — the system absorbs them. structural changes (governance, purpose) bend the curve permanently because they change which questions get asked.</div>
+    </div>
+    <div class="insight-block">
+      <div class="insight-eyebrow">which lever matters most</div>
+      <div class="insight-body">the highest-leverage intervention is not the most expensive one. it is the one that changes the rules under which every other decision is made. meadows called this "the power to transcend paradigms."</div>
+    </div>
+  </div>
+  <div class="calibration-note">
+    note: this model is calibrated to illustrate leverage-point dynamics, not to forecast actual emissions. the relative ordering of interventions — not the absolute numbers — is the lesson.
+  </div>
+
+  <section class="export-wrap" id="reflection-export" aria-label="take this with you">
+    <div class="export-eyebrow">take this with you</div>
+    <div class="export-title" id="export-scenario-name">lakeshore college sustainability committee</div>
+    <p class="export-mandate" id="export-mandate">bring institutional operations to net-zero greenhouse-gas emissions by 2050, without compromising educational quality, equity of access, or institutional solvency.</p>
+
+    <div class="export-section">
+      <div class="export-section-label">your committed decision</div>
+      <p id="export-committed-title"><em>none committed.</em></p>
+    </div>
+
+    <div class="export-section">
+      <div class="export-section-label">your hypothesis</div>
+      <p id="export-hypothesis"><em>none recorded.</em></p>
+    </div>
+
+    <div class="export-section">
+      <div class="export-section-label">interventions</div>
+      <ul class="export-list" id="export-interventions"></ul>
+    </div>
+
+    <div class="export-section">
+      <div class="export-section-label"><label for="shifted-textarea">one sentence — what shifted?</label></div>
+      <textarea id="shifted-textarea" class="shifted-textarea" maxlength="280" rows="2" placeholder="what changed in how you saw the system?"></textarea>
+    </div>
+
+    <div class="export-actions">
+      <button class="btn btn-small" id="btn-export-pdf" aria-label="download as pdf">download as pdf</button>
+      <button class="btn btn-small" id="btn-export-copy" style="background:none;color:var(--cadet);border:1.5px solid var(--cadet);" aria-label="copy summary to clipboard">copy to clipboard</button>
+      <span class="export-toast" id="export-toast" role="status" aria-live="polite"></span>
+    </div>
+  </section>
+
   <div class="pattern-btn-wrap">
     <button class="btn" id="btn-handoff" aria-label="what does this mean for us?">what does this mean for us?</button>
   </div>
@@ -986,12 +1379,33 @@ html, body {
   </div>
 </div>
 
+<div class="commit-confirm" id="commit-confirm" role="dialog" aria-label="confirm your decision">
+  <div class="commit-confirm-inner">
+    <div class="commit-confirm-title" id="commit-confirm-title"></div>
+    <div class="commit-confirm-body">you chose this before seeing the data. now let's see what the system does with each intervention — starting with yours.</div>
+    <div class="hypo-wrap">
+      <label class="hypo-label" for="hypo-textarea">one sentence — I chose this because I think the bottleneck is&hellip;</label>
+      <textarea id="hypo-textarea" class="hypo-textarea" maxlength="240" rows="3" placeholder="e.g., price, trust, how we measure success, who gets to decide&hellip;" aria-describedby="hypo-counter"></textarea>
+      <div class="hypo-meta">
+        <span><span id="hypo-counter">0</span>&thinsp;/&thinsp;240</span>
+        <span id="hypo-hint">at least 10 characters.</span>
+      </div>
+    </div>
+    <div class="commit-confirm-actions">
+      <button class="btn btn-small" id="btn-commit-back" style="background:none;color:var(--cadet);border:1.5px solid var(--cadet);">go back</button>
+      <button class="btn btn-small" id="btn-commit-confirm" disabled>lock it in</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ────────────────────────────────────────────
 // state
 // ────────────────────────────────────────────
 const state = {
   screen: 'mandate',
+  committed: false,
+  committedId: null,
   interventionsRun: [],
   trajectories: {},
   politicalCapital: 1.0,
@@ -1001,9 +1415,42 @@ const state = {
   rechartered: false,
   animating: false,
   currentAnimYear: 2025,
+  hypothesis: '',
+  surprise: {},
+  shifted: '',
 };
 
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// ────────────────────────────────────────────
+// session persistence (reflective prompts)
+// ────────────────────────────────────────────
+const REFLECT_KEY = 'st-lakeshore-reflect';
+
+function loadReflect() {
+  try {
+    const raw = sessionStorage.getItem(REFLECT_KEY);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    if (typeof data.hypothesis === 'string') state.hypothesis = data.hypothesis;
+    if (data.surprise && typeof data.surprise === 'object') state.surprise = data.surprise;
+    if (typeof data.shifted === 'string') state.shifted = data.shifted;
+  } catch (e) { /* ignore */ }
+}
+
+function saveReflect() {
+  try {
+    sessionStorage.setItem(REFLECT_KEY, JSON.stringify({
+      hypothesis: state.hypothesis,
+      surprise: state.surprise,
+      shifted: state.shifted,
+    }));
+  } catch (e) { /* ignore */ }
+}
+
+function clearReflect() {
+  try { sessionStorage.removeItem(REFLECT_KEY); } catch (e) { /* ignore */ }
+}
 
 function setState(patch) {
   Object.assign(state, patch);
@@ -1345,13 +1792,16 @@ function buildCards() {
     const reductionPct = lastVal !== null ? ((1 - lastVal / blLast) * 100).toFixed(0) : null;
 
     const card = document.createElement('div');
-    card.className = 'intervention-card' + (wasRun ? ' was-run' : '');
+    const isLocked = state.committed && d.id === 5 && state.interventionsRun.length < 2 && !wasRun;
+    const isCommitted = state.committedId === d.id;
+    card.className = 'intervention-card' + (wasRun ? ' was-run' : '') + (isLocked ? ' locked' : '') + (isCommitted ? ' committed' : '');
     const detailOpen = state.detailOpen && state.detailOpen[d.id];
     card.innerHTML = `
+      ${isLocked ? `<div class="card-lock-overlay"><span class="lock-icon" aria-hidden="true">&#x1F512;</span><span class="lock-tooltip">run at least 2 interventions first</span></div>` : ''}
       <div class="card-header">
         <span class="card-number">${d.id}.</span>
         <span class="card-title">${d.title}</span>
-        <span class="leverage-chip ${d.chipClass}">${d.chip}</span>
+        <span class="leverage-chip ${d.chipClass}">${d.chip}</span>${isCommitted ? '<span class="committed-badge">your choice</span>' : ''}
       </div>
       <div class="card-body">${d.body}</div>
       <button class="card-detail-toggle" data-detail-id="${d.id}" aria-expanded="${detailOpen ? 'true' : 'false'}">${detailOpen ? '− less detail' : '+ more detail'}</button>
@@ -1363,21 +1813,44 @@ function buildCards() {
           <dt>at the table</dt><dd>${d.detail.stakes}</dd>
         </dl>
       </div>
-      ${wasRun ? `<div class="card-why open">${d.why}</div>` : ''}
-      <div class="card-footer">
-        <span class="card-meta">25-year reduction: ${reductionPct !== null ? `<span class="result-value">~${reductionPct}%</span>` : '—'}</span>
-        <div class="card-btn-row">
-          ${d.id <= 3 ? `
-            <label class="voting-bloc-label ${state.interventionsRun.includes(4) && !state.rechartered ? 'visible' : ''}" aria-label="run with new voting bloc">
-              <input type="checkbox" ${state.withVotingBloc[d.id] ? 'checked' : ''} data-voting-id="${d.id}">
-              <span>with new voting bloc</span>
-            </label>
-          ` : ''}
-          <button class="btn btn-small" data-run-id="${d.id}" ${state.animating || (state.rechartered && d.id === 5) ? 'disabled' : ''} aria-label="run intervention ${d.id}">run this</button>
+      ${wasRun ? `
+        <div class="surprise-wrap" data-surprise-card="${d.id}">
+          <div class="surprise-prompt" id="surprise-prompt-${d.id}">did that match what you expected?</div>
+          <div class="surprise-chips" role="radiogroup" aria-labelledby="surprise-prompt-${d.id}">
+            ${['yes', 'sort of', 'no'].map((v, i) => {
+              const chosen = state.surprise[d.id];
+              const isChosen = chosen === v;
+              const isFirstFocusable = chosen ? isChosen : i === 0;
+              return `<button type="button" class="surprise-chip" data-surprise-id="${d.id}" data-surprise-val="${v}" role="radio" aria-pressed="${isChosen ? 'true' : 'false'}" tabindex="${isFirstFocusable ? '0' : '-1'}">${v}</button>`;
+            }).join('')}
+          </div>
         </div>
+      ` : ''}
+      ${wasRun && state.surprise[d.id] ? `<div class="card-why open">${d.why}</div>` : ''}
+      <div class="card-footer">
+        ${state.committed ? `
+          <span class="card-meta">25-year reduction: ${reductionPct !== null ? '<span class="result-value">~' + reductionPct + '%</span>' : '—'}</span>
+          <div class="card-btn-row">
+            ${d.id <= 3 ? '<label class="voting-bloc-label ' + (state.interventionsRun.includes(4) && !state.rechartered ? 'visible' : '') + '" aria-label="run with new voting bloc"><input type="checkbox" ' + (state.withVotingBloc[d.id] ? 'checked' : '') + ' data-voting-id="' + d.id + '"><span>with new voting bloc</span></label>' : ''}
+            <button class="btn btn-small" data-run-id="${d.id}" ${state.animating || (state.rechartered && d.id === 5) ? 'disabled' : ''} aria-label="run intervention ${d.id}">run this</button>
+          </div>
+        ` : `
+          <span class="card-meta"></span>
+          <button class="btn-choose" data-choose-id="${d.id}" aria-label="choose intervention ${d.id}">this is my decision</button>
+        `}
       </div>
     `;
     stack.appendChild(card);
+  });
+
+  // bind lock overlay shake
+  stack.querySelectorAll('.card-lock-overlay').forEach(overlay => {
+    overlay.addEventListener('click', () => {
+      const card = overlay.closest('.intervention-card');
+      card.classList.remove('shake');
+      void card.offsetWidth; // reflow to re-trigger
+      card.classList.add('shake');
+    });
   });
 
   // bind detail toggles
@@ -1393,13 +1866,54 @@ function buildCards() {
     });
   });
 
-  // bind events
+  // bind run buttons (analysis mode)
   stack.querySelectorAll('[data-run-id]').forEach(btn => {
     btn.addEventListener('click', () => {
       const id = parseInt(btn.dataset.runId);
       handleRunIntervention(id);
     });
   });
+
+  // bind choose buttons (explore mode)
+  stack.querySelectorAll('[data-choose-id]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = parseInt(btn.dataset.chooseId);
+      showCommitConfirm(id);
+    });
+  });
+  // bind surprise chips
+  stack.querySelectorAll('.surprise-chips').forEach(group => {
+    const chips = Array.from(group.querySelectorAll('.surprise-chip'));
+    chips.forEach((chip, idx) => {
+      chip.addEventListener('click', () => {
+        const id = parseInt(chip.dataset.surpriseId);
+        const val = chip.dataset.surpriseVal;
+        chips.forEach(c => c.setAttribute('aria-pressed', c === chip ? 'true' : 'false'));
+        const newSurprise = { ...state.surprise, [id]: val };
+        setState({ surprise: newSurprise });
+        saveReflect();
+      });
+      chip.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+          e.preventDefault();
+          const next = chips[(idx + 1) % chips.length];
+          chips.forEach(c => c.setAttribute('tabindex', '-1'));
+          next.setAttribute('tabindex', '0');
+          next.focus();
+        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+          e.preventDefault();
+          const prev = chips[(idx - 1 + chips.length) % chips.length];
+          chips.forEach(c => c.setAttribute('tabindex', '-1'));
+          prev.setAttribute('tabindex', '0');
+          prev.focus();
+        } else if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          chip.click();
+        }
+      });
+    });
+  });
+
   stack.querySelectorAll('[data-voting-id]').forEach(cb => {
     cb.addEventListener('change', (e) => {
       const id = parseInt(cb.dataset.votingId);
@@ -1436,9 +1950,11 @@ function highlightMapNodes(nodeIds) {
 function handleRunIntervention(id) {
   if (state.animating) return;
 
-  // dismiss onboarding hint
+  // dismiss onboarding hint & chart placeholder
   const hintCards = document.getElementById('hint-cards');
   if (hintCards) hintCards.style.display = 'none';
+  const placeholder = document.getElementById('chart-placeholder');
+  if (placeholder) placeholder.classList.add('hidden');
 
   // highlight systems map
   const intData = interventionData.find(x => x.id === id);
@@ -1678,28 +2194,128 @@ function showScreen(name) {
     setTimeout(initBaselineChart, 50);
   }
   if (name === 'decisions') {
+    updateExploreMode();
     buildCards();
-    if (!chartDecisions) setTimeout(() => updateDecisionsChart(), 50);
-    updatePcMeter(state.politicalCapital);
-    // show onboarding hint on first visit
-    const hintCards = document.getElementById('hint-cards');
-    if (hintCards && !hintCards.dataset.shown && state.interventionsRun.length === 0) {
-      hintCards.style.display = 'flex';
-      hintCards.dataset.shown = '1';
-      setTimeout(() => { hintCards.style.display = 'none'; }, 10000);
-    }
+    if (state.committed && !chartDecisions) setTimeout(() => updateDecisionsChart(), 50);
+    if (state.committed) updatePcMeter(state.politicalCapital);
   }
   if (name === 'pattern') {
     setTimeout(initPatternChart, 50);
+    renderExport();
+  }
+}
+
+function updateExploreMode() {
+  const screen = document.getElementById('screen-decisions');
+  const prompt = document.getElementById('explore-prompt');
+  if (!state.committed) {
+    screen.classList.add('decisions-explore');
+    if (prompt) prompt.style.display = '';
+  } else {
+    screen.classList.remove('decisions-explore');
+    if (prompt) prompt.style.display = 'none';
   }
 }
 
 function render() {
   if (state.screen === 'decisions') {
     if (!state.animating) buildCards();
-    updatePcMeter(state.politicalCapital);
+    updateExploreMode();
+    if (state.committed) updatePcMeter(state.politicalCapital);
     const patternBtn = document.getElementById('btn-see-pattern');
     if (patternBtn) patternBtn.classList.toggle('visible', state.rechartered);
+  }
+}
+
+// ────────────────────────────────────────────
+// commitment flow
+// ────────────────────────────────────────────
+let pendingCommitId = null;
+
+function showCommitConfirm(id) {
+  pendingCommitId = id;
+  const intv = interventionData.find(x => x.id === id);
+  document.getElementById('commit-confirm-title').textContent = 'your decision: "' + intv.title + '"';
+  const ta = document.getElementById('hypo-textarea');
+  if (ta) {
+    ta.value = state.hypothesis || '';
+    updateHypoUi();
+    setTimeout(() => ta.focus(), 50);
+  }
+  document.getElementById('commit-confirm').classList.add('visible');
+}
+
+function updateHypoUi() {
+  const ta = document.getElementById('hypo-textarea');
+  const counter = document.getElementById('hypo-counter');
+  const hint = document.getElementById('hypo-hint');
+  const btn = document.getElementById('btn-commit-confirm');
+  if (!ta || !btn) return;
+  const len = ta.value.length;
+  const trimmedLen = ta.value.trim().length;
+  if (counter) counter.textContent = String(len);
+  if (counter) counter.classList.toggle('over', len >= 240);
+  if (hint) hint.textContent = trimmedLen >= 10 ? '\u00A0' : 'at least 10 characters.';
+  btn.disabled = trimmedLen < 10;
+}
+
+// ────────────────────────────────────────────
+// summary export
+// ────────────────────────────────────────────
+function buildExportPlainText() {
+  const lines = [];
+  lines.push('LAKESHORE COLLEGE SUSTAINABILITY COMMITTEE');
+  lines.push('mandate: bring institutional operations to net-zero greenhouse-gas emissions by 2050, without compromising educational quality, equity of access, or institutional solvency.');
+  lines.push('');
+  const committed = state.committedId ? interventionData.find(x => x.id === state.committedId) : null;
+  lines.push('your committed decision: ' + (committed ? committed.title : '(none committed)'));
+  lines.push('your hypothesis: ' + (state.hypothesis || '(none recorded)'));
+  lines.push('');
+  lines.push('interventions:');
+  interventionData.forEach(d => {
+    const traj = state.trajectories[d.id];
+    const lastVal = traj ? traj[traj.length - 1] : null;
+    const surprise = state.surprise[d.id] || 'not run';
+    const valStr = lastVal !== null ? Math.round(lastVal).toLocaleString() + ' tCO2e' : '—';
+    lines.push('  ' + d.id + '. ' + d.title + ' [' + d.chip + '] — surprise: ' + surprise + ' — 25-year outcome: ' + valStr);
+  });
+  lines.push('');
+  lines.push('what shifted: ' + (state.shifted || '(blank)'));
+  return lines.join('\n');
+}
+
+function renderExport() {
+  const titleEl = document.getElementById('export-committed-title');
+  const hypoEl = document.getElementById('export-hypothesis');
+  const list = document.getElementById('export-interventions');
+  const shiftedTa = document.getElementById('shifted-textarea');
+  if (!list) return;
+
+  if (state.committedId) {
+    const c = interventionData.find(x => x.id === state.committedId);
+    titleEl.innerHTML = c ? c.title : '<em>none committed.</em>';
+  } else {
+    titleEl.innerHTML = '<em>none committed.</em>';
+  }
+  hypoEl.innerHTML = state.hypothesis ? state.hypothesis.replace(/&/g,'&amp;').replace(/</g,'&lt;') : '<em>none recorded.</em>';
+
+  list.innerHTML = '';
+  interventionData.forEach(d => {
+    const traj = state.trajectories[d.id];
+    const lastVal = traj ? traj[traj.length - 1] : null;
+    const surprise = state.surprise[d.id];
+    const valStr = lastVal !== null ? Math.round(lastVal).toLocaleString() + ' tCO\u2082e' : '—';
+    const li = document.createElement('li');
+    li.innerHTML = '<span class="export-li-num">' + d.id + '.</span>' +
+      '<span class="export-li-title">' + d.title.replace(/</g,'&lt;') + '</span>' +
+      '<span class="export-li-tier">' + d.chip + '</span>' +
+      '<span class="export-li-surprise">surprise: ' + (surprise || 'not run') + '</span>' +
+      '<span class="export-li-value">' + valStr + '</span>';
+    list.appendChild(li);
+  });
+
+  if (shiftedTa && shiftedTa.value !== state.shifted) {
+    shiftedTa.value = state.shifted || '';
   }
 }
 
@@ -1707,14 +2323,86 @@ function render() {
 // event bindings
 // ────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('btn-begin').addEventListener('click', () => showScreen('roles'));
-  document.getElementById('btn-roles-continue').addEventListener('click', () => showScreen('baseline'));
+  loadReflect();
+
+  const hypoTa = document.getElementById('hypo-textarea');
+  if (hypoTa) {
+    hypoTa.addEventListener('input', () => {
+      state.hypothesis = hypoTa.value;
+      updateHypoUi();
+      saveReflect();
+    });
+    updateHypoUi();
+  }
+
+  document.getElementById('btn-commit-back').addEventListener('click', () => {
+    document.getElementById('commit-confirm').classList.remove('visible');
+    pendingCommitId = null;
+  });
+
+  document.getElementById('btn-commit-confirm').addEventListener('click', () => {
+    if (state.hypothesis.trim().length < 10) return;
+    document.getElementById('commit-confirm').classList.remove('visible');
+    const id = pendingCommitId;
+    pendingCommitId = null;
+    setState({ committed: true, committedId: id });
+    setTimeout(() => handleRunIntervention(id), 400);
+  });
+
+  // shifted textarea (export)
+  const shiftedTa = document.getElementById('shifted-textarea');
+  if (shiftedTa) {
+    shiftedTa.value = state.shifted || '';
+    shiftedTa.addEventListener('input', () => {
+      state.shifted = shiftedTa.value;
+      saveReflect();
+    });
+  }
+
+  // export buttons
+  const btnPdf = document.getElementById('btn-export-pdf');
+  if (btnPdf) btnPdf.addEventListener('click', () => window.print());
+
+  const btnCopy = document.getElementById('btn-export-copy');
+  const toast = document.getElementById('export-toast');
+  if (btnCopy) {
+    btnCopy.addEventListener('click', async () => {
+      const txt = buildExportPlainText();
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(txt);
+        } else {
+          const tmp = document.createElement('textarea');
+          tmp.value = txt;
+          document.body.appendChild(tmp);
+          tmp.select();
+          document.execCommand('copy');
+          document.body.removeChild(tmp);
+        }
+        if (toast) {
+          toast.textContent = 'copied.';
+          toast.classList.add('visible');
+          setTimeout(() => toast.classList.remove('visible'), 1800);
+        }
+      } catch (e) {
+        if (toast) {
+          toast.textContent = 'copy failed.';
+          toast.classList.add('visible');
+          setTimeout(() => toast.classList.remove('visible'), 1800);
+        }
+      }
+    });
+  }
+
+  document.getElementById('btn-begin').addEventListener('click', () => showScreen('decisions'));
   document.getElementById('btn-decide').addEventListener('click', () => showScreen('decisions'));
   document.getElementById('btn-see-pattern').addEventListener('click', () => showScreen('pattern'));
   document.getElementById('btn-handoff').addEventListener('click', () => showScreen('handoff'));
   document.getElementById('btn-restart').addEventListener('click', () => {
     Object.assign(state, {
       screen: 'mandate',
+      committed: false,
+      committedId: null,
       interventionsRun: [],
       trajectories: {},
       politicalCapital: 1.0,
@@ -1724,11 +2412,23 @@ document.addEventListener('DOMContentLoaded', () => {
       rechartered: false,
       animating: false,
       currentAnimYear: 2025,
+      hypothesis: '',
+      surprise: {},
+      shifted: '',
     });
+    clearReflect();
+    const ta = document.getElementById('hypo-textarea');
+    if (ta) { ta.value = ''; updateHypoUi(); }
+    const sta = document.getElementById('shifted-textarea');
+    if (sta) sta.value = '';
     if (chartDecisions) { chartDecisions.destroy(); chartDecisions = null; }
     if (chartBaseline) { chartBaseline.destroy(); chartBaseline = null; }
     if (chartPattern) { chartPattern.destroy(); chartPattern = null; }
     document.getElementById('endpoint-labels').innerHTML = '';
+    const ph = document.getElementById('chart-placeholder');
+    if (ph) ph.classList.remove('hidden');
+    const hint = document.getElementById('hint-cards');
+    if (hint) { hint.style.display = ''; hint.dataset.shown = ''; }
     showScreen('mandate');
   });
 
