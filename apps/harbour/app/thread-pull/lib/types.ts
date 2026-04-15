@@ -14,7 +14,7 @@ export interface PCRRating {
   strength: number; // 0-4
 }
 
-export type Phase = "input" | "mapping" | "visualisation" | "focus";
+export type Phase = "intro" | "input" | "mapping" | "visualisation" | "focus";
 
 export interface MapSession {
   phase: Phase;

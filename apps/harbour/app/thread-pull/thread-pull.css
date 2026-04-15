@@ -1,29 +1,29 @@
-/* ── anxiety map — route-specific styles ──────────────────────── */
+/* ── thread pull — route-specific styles ──────────────────────── */
 
 :root {
-  --am-bg: var(--wv-cadet);
-  --am-surface: var(--color-surface-raised);
-  --am-text: var(--color-text-on-dark);
-  --am-text-muted: var(--color-text-on-dark-muted);
-  --am-accent: var(--wv-sienna);
-  --am-glow: var(--wv-champagne);
-  --am-glow-rgb: 255, 235, 210;
+  --tp-bg: var(--wv-cadet);
+  --tp-surface: var(--color-surface-raised);
+  --tp-text: var(--color-text-on-dark);
+  --tp-text-muted: var(--color-text-on-dark-muted);
+  --tp-accent: var(--wv-sienna);
+  --tp-glow: var(--wv-champagne);
+  --tp-glow-rgb: 255, 235, 210;
 }
 
 /* ── root layout ─────────────────────────────────────────────── */
 
-.am-root {
+.tp-root {
   position: fixed;
   inset: 0;
   overflow: hidden;
-  background: var(--am-bg);
-  color: var(--am-text);
+  background: var(--tp-bg);
+  color: var(--tp-text);
   font-family: var(--font-body);
   display: flex;
   flex-direction: column;
 }
 
-.am-phase {
+.tp-phase {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -31,10 +31,16 @@
   justify-content: safe center;
   padding: var(--space-3xl) var(--space-lg) var(--space-lg);
   overflow-y: auto;
-  animation: am-fade-in 0.6s ease both;
+  animation: tp-fade-in 0.6s ease both;
 }
 
-@keyframes am-fade-in {
+/* graph phase needs different padding so SVG fills the space */
+.tp-phase-graph {
+  padding-top: var(--space-lg);
+  justify-content: flex-start;
+}
+
+@keyframes tp-fade-in {
   from {
     opacity: 0;
     transform: translateY(1rem);
@@ -47,24 +53,24 @@
 
 /* ── back link ───────────────────────────────────────────────── */
 
-.am-back {
+.tp-back {
   position: absolute;
   top: var(--space-md);
   left: var(--space-md);
   z-index: 10;
   font-size: 0.8125rem;
-  color: var(--am-text-muted);
+  color: var(--tp-text-muted);
   text-decoration: none;
   transition: color 0.2s ease;
 }
 
-.am-back:hover {
-  color: var(--am-text);
+.tp-back:hover {
+  color: var(--tp-text);
 }
 
 /* ── headings ────────────────────────────────────────────────── */
 
-.am-title {
+.tp-title {
   font-size: clamp(1.25rem, 4vw, 1.75rem);
   font-weight: 600;
   text-align: center;
@@ -72,18 +78,39 @@
   line-height: 1.3;
 }
 
-.am-subtitle {
+.tp-subtitle {
   font-size: clamp(0.875rem, 2.5vw, 1rem);
-  color: var(--am-text-muted);
+  color: var(--tp-text-muted);
   text-align: center;
   max-width: 36ch;
   line-height: 1.5;
   margin-bottom: var(--space-xl);
 }
 
+/* ── intro phase ─────────────────────────────────────────────── */
+
+.tp-intro-icon {
+  font-size: 3rem;
+  margin-bottom: var(--space-md);
+  line-height: 1;
+}
+
+.tp-intro-note {
+  margin-top: var(--space-xl);
+  padding: var(--space-md) var(--space-lg);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  font-size: 0.8125rem;
+  color: var(--tp-text-muted);
+  line-height: 1.6;
+  max-width: 48ch;
+  text-align: left;
+}
+
 /* ── input field ─────────────────────────────────────────────── */
 
-.am-input-row {
+.tp-input-row {
   display: flex;
   gap: var(--space-sm);
   width: 100%;
@@ -91,31 +118,31 @@
   margin-bottom: var(--space-lg);
 }
 
-.am-input-row .am-input {
+.tp-input-row .tp-input {
   flex: 1;
 }
 
-.am-input {
+.tp-input {
   padding: 0.75rem 1rem;
   border: 2px solid rgba(255, 255, 255, 0.15);
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.06);
-  color: var(--am-text);
+  color: var(--tp-text);
   font-size: 1rem;
   font-family: var(--font-body);
   transition: border-color 0.2s ease;
 }
 
-.am-input::placeholder {
-  color: var(--am-text-muted);
+.tp-input::placeholder {
+  color: var(--tp-text-muted);
 }
 
-.am-input:focus {
+.tp-input:focus {
   outline: none;
-  border-color: var(--am-accent);
+  border-color: var(--tp-accent);
 }
 
-.am-name-input {
+.tp-name-input {
   max-width: 280px;
   text-align: center;
   margin-bottom: var(--space-lg);
@@ -124,7 +151,7 @@
 
 /* ── buttons ─────────────────────────────────────────────────── */
 
-.am-btn {
+.tp-btn {
   padding: 0.75rem 1.5rem;
   border: none;
   border-radius: 12px;
@@ -137,47 +164,47 @@
   min-width: 48px;
 }
 
-.am-btn:active {
+.tp-btn:active {
   transform: scale(0.97);
 }
 
-.am-btn:disabled {
+.tp-btn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
   transform: none;
 }
 
-.am-btn-primary {
-  background: var(--am-accent);
+.tp-btn-primary {
+  background: var(--tp-accent);
   color: var(--wv-white);
 }
 
-.am-btn-primary:hover:not(:disabled) {
+.tp-btn-primary:hover:not(:disabled) {
   opacity: 0.9;
 }
 
-.am-btn-secondary {
+.tp-btn-secondary {
   background: rgba(255, 255, 255, 0.1);
-  color: var(--am-text);
+  color: var(--tp-text);
 }
 
-.am-btn-secondary:hover:not(:disabled) {
+.tp-btn-secondary:hover:not(:disabled) {
   background: rgba(255, 255, 255, 0.15);
 }
 
-.am-btn-ghost {
+.tp-btn-ghost {
   background: none;
-  color: var(--am-text-muted);
+  color: var(--tp-text-muted);
   padding: 0.5rem 1rem;
 }
 
-.am-btn-ghost:hover:not(:disabled) {
-  color: var(--am-text);
+.tp-btn-ghost:hover:not(:disabled) {
+  color: var(--tp-text);
 }
 
 /* ── HCA chips ───────────────────────────────────────────────── */
 
-.am-chips {
+.tp-chips {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-sm);
@@ -186,7 +213,7 @@
   margin-bottom: var(--space-lg);
 }
 
-.am-chip {
+.tp-chip {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -195,37 +222,45 @@
   font-size: 0.875rem;
   border: 2px solid rgba(255, 255, 255, 0.12);
   background: rgba(255, 255, 255, 0.06);
-  color: var(--am-text);
+  color: var(--tp-text);
   cursor: pointer;
   transition: border-color 0.2s ease, background 0.2s ease;
   min-height: 44px;
 }
 
-.am-chip:hover {
+.tp-chip:hover {
   border-color: rgba(255, 255, 255, 0.25);
   background: rgba(255, 255, 255, 0.1);
 }
 
-.am-chip[data-selected="true"] {
-  border-color: var(--am-accent);
+.tp-chip[data-selected="true"],
+.tp-chip-added {
+  border-color: var(--tp-accent);
   background: rgba(203, 120, 88, 0.15);
+  opacity: 0.6;
 }
 
-.am-chip-dot {
+.tp-chip-dot {
   width: 10px;
   height: 10px;
   border-radius: 50%;
   flex-shrink: 0;
 }
 
-.am-chip-remove {
-  width: 20px;
-  height: 20px;
+.tp-chip-freq {
+  display: flex;
+  gap: 2px;
+  margin-left: 4px;
+}
+
+.tp-chip-remove {
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   border: none;
   background: rgba(255, 255, 255, 0.15);
-  color: var(--am-text-muted);
-  font-size: 0.75rem;
+  color: var(--tp-text-muted);
+  font-size: 1rem;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -233,31 +268,76 @@
   transition: background 0.15s ease;
   flex-shrink: 0;
   line-height: 1;
-  min-width: 20px;
-  min-height: 20px;
+  min-width: 44px;
+  min-height: 44px;
+  margin-left: 4px;
 }
 
-.am-chip-remove:hover {
+.tp-chip-remove:hover {
   background: rgba(255, 255, 255, 0.3);
 }
 
-/* ── frequency dots ──────────────────────────────────────────── */
+/* ── frequency selector (draft) ──────────────────────────────── */
 
-.am-freq {
+.tp-freq {
   display: flex;
   gap: var(--space-sm);
   align-items: center;
   justify-content: center;
   margin-bottom: var(--space-md);
+  flex-wrap: wrap;
 }
 
-.am-freq-label {
+.tp-freq-label {
   font-size: 0.8125rem;
-  color: var(--am-text-muted);
+  color: var(--tp-text-muted);
   margin-right: var(--space-sm);
 }
 
-.am-freq-dot {
+.tp-freq-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  padding: 6px 8px;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+  min-width: 48px;
+  min-height: 48px;
+}
+
+.tp-freq-item:hover {
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.tp-freq-item[data-active="true"] {
+  border-color: var(--tp-accent);
+}
+
+.tp-freq-dot {
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  background: none;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.tp-freq-item[data-active="true"] .tp-freq-dot {
+  background: var(--tp-accent);
+  border-color: var(--tp-accent);
+}
+
+.tp-freq-text {
+  font-size: 0.625rem;
+  color: var(--tp-text-muted);
+  font-family: var(--font-body);
+  text-transform: lowercase;
+}
+
+/* inline frequency dots on chips */
+.tp-freq-dot-inline {
   border: 2px solid rgba(255, 255, 255, 0.2);
   border-radius: 50%;
   background: none;
@@ -266,20 +346,20 @@
   padding: 0;
 }
 
-.am-freq-dot[data-active="true"] {
-  background: var(--am-accent);
-  border-color: var(--am-accent);
+.tp-freq-dot-inline[data-active="true"] {
+  background: var(--tp-accent);
+  border-color: var(--tp-accent);
 }
 
-.am-freq-dot:hover {
-  border-color: var(--am-accent);
+.tp-freq-dot-inline:hover {
+  border-color: var(--tp-accent);
 }
 
 /* ── preset library toggle ───────────────────────────────────── */
 
-.am-presets-toggle {
+.tp-presets-toggle {
   font-size: 0.8125rem;
-  color: var(--am-text-muted);
+  color: var(--tp-text-muted);
   background: none;
   border: none;
   cursor: pointer;
@@ -287,15 +367,18 @@
   text-underline-offset: 3px;
   margin-bottom: var(--space-md);
   font-family: var(--font-body);
+  min-height: 44px;
+  display: flex;
+  align-items: center;
 }
 
-.am-presets-toggle:hover {
-  color: var(--am-text);
+.tp-presets-toggle:hover {
+  color: var(--tp-text);
 }
 
 /* ── mapping phase ───────────────────────────────────────────── */
 
-.am-pair {
+.tp-pair {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -304,7 +387,7 @@
   width: 100%;
 }
 
-.am-pair-nodes {
+.tp-pair-nodes {
   display: flex;
   align-items: center;
   gap: var(--space-lg);
@@ -312,7 +395,7 @@
   justify-content: center;
 }
 
-.am-pair-node {
+.tp-pair-node {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -321,7 +404,7 @@
   text-align: center;
 }
 
-.am-pair-bubble {
+.tp-pair-bubble {
   width: 64px;
   height: 64px;
   border-radius: 50%;
@@ -332,19 +415,19 @@
   opacity: 0.85;
 }
 
-.am-pair-label {
+.tp-pair-label {
   font-size: 0.8125rem;
-  color: var(--am-text-muted);
+  color: var(--tp-text-muted);
   line-height: 1.3;
 }
 
-.am-pair-arrow {
+.tp-pair-arrow {
   font-size: 1.5rem;
-  color: var(--am-text-muted);
+  color: var(--tp-text-muted);
   flex-shrink: 0;
 }
 
-.am-pair-question {
+.tp-pair-question {
   font-size: 1rem;
   text-align: center;
   line-height: 1.5;
@@ -353,14 +436,14 @@
 
 /* ── strength selector ───────────────────────────────────────── */
 
-.am-strength {
+.tp-strength {
   display: flex;
   gap: var(--space-sm);
   justify-content: center;
   flex-wrap: wrap;
 }
 
-.am-strength-btn {
+.tp-strength-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -369,7 +452,7 @@
   border: 2px solid rgba(255, 255, 255, 0.12);
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.04);
-  color: var(--am-text);
+  color: var(--tp-text);
   cursor: pointer;
   transition: border-color 0.15s ease, background 0.15s ease;
   font-family: var(--font-body);
@@ -377,65 +460,77 @@
   min-height: 64px;
 }
 
-.am-strength-btn:hover {
+.tp-strength-btn:hover {
   border-color: rgba(255, 255, 255, 0.3);
   background: rgba(255, 255, 255, 0.08);
 }
 
-.am-strength-btn[data-selected="true"] {
-  border-color: var(--am-accent);
+.tp-strength-btn[data-selected="true"] {
+  border-color: var(--tp-accent);
   background: rgba(203, 120, 88, 0.15);
 }
 
-.am-strength-ring {
+.tp-strength-ring {
   border-radius: 50%;
   border: 2px solid currentColor;
 }
 
-.am-strength-label {
+.tp-strength-ring-empty {
+  border-style: dashed;
+  opacity: 0.4;
+}
+
+.tp-strength-label {
   font-size: 0.6875rem;
-  color: var(--am-text-muted);
+  color: var(--tp-text-muted);
 }
 
-/* ── progress dots ───────────────────────────────────────────── */
+/* ── progress bar ────────────────────────────────────────────── */
 
-.am-progress {
+.tp-progress-wrap {
   display: flex;
-  gap: 4px;
-  justify-content: center;
-  flex-wrap: wrap;
-  max-width: 300px;
+  align-items: center;
+  gap: var(--space-sm);
   margin-top: var(--space-lg);
+  width: 100%;
+  max-width: 300px;
 }
 
-.am-progress-dot {
-  width: 6px;
+.tp-progress-bar-wrap {
+  flex: 1;
   height: 6px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.15);
-  transition: background 0.2s ease;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
 }
 
-.am-progress-dot[data-done="true"] {
-  background: var(--am-accent);
+.tp-progress-bar {
+  height: 100%;
+  border-radius: 3px;
+  background: var(--tp-accent);
+  transition: width 0.3s ease;
 }
 
-.am-progress-dot[data-current="true"] {
-  background: var(--am-glow);
-  box-shadow: 0 0 4px rgba(var(--am-glow-rgb), 0.5);
+.tp-progress-text {
+  font-size: 0.75rem;
+  color: var(--tp-text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
-/* ── mapping controls ────────────────────────────────────────── */
+/* ── bottom controls (shared) ────────────────────────────────── */
 
-.am-map-controls {
+.tp-bottom-controls {
   display: flex;
   gap: var(--space-sm);
-  margin-top: var(--space-md);
+  padding: var(--space-md);
+  justify-content: center;
+  flex-wrap: wrap;
 }
 
 /* ── network graph ───────────────────────────────────────────── */
 
-.am-graph-wrap {
+.tp-graph-wrap {
   flex: 1;
   width: 100%;
   display: flex;
@@ -444,44 +539,67 @@
   min-height: 0;
 }
 
-.am-graph-svg {
+.tp-graph-svg {
   flex: 1;
   width: 100%;
   min-height: 0;
 }
 
-.am-graph-edge {
+.tp-graph-edge {
   fill: none;
   stroke-linecap: round;
   transition: opacity 0.3s ease;
 }
 
-.am-graph-node {
+.tp-graph-node {
   cursor: pointer;
   transition: opacity 0.3s ease;
 }
 
-.am-graph-node-label {
+.tp-graph-node-label {
   font-size: 10px;
-  fill: var(--am-text);
+  fill: var(--tp-text);
   text-anchor: middle;
   pointer-events: none;
   dominant-baseline: central;
 }
 
 /* glow pulse on central nodes */
-@keyframes am-glow-pulse {
+@keyframes tp-glow-pulse {
   0%, 100% { opacity: 0.3; }
   50% { opacity: 0.7; }
 }
 
-.am-glow-ring {
-  animation: am-glow-pulse 3s ease-in-out infinite;
+.tp-glow-ring {
+  animation: tp-glow-pulse 3s ease-in-out infinite;
+}
+
+/* ── node detail panel (on tap) ──────────────────────────────── */
+
+.tp-node-detail {
+  position: absolute;
+  top: var(--space-md);
+  right: var(--space-md);
+  padding: var(--space-sm) var(--space-md);
+  background: rgba(30, 39, 56, 0.9);
+  backdrop-filter: blur(8px);
+  border-radius: 10px;
+  font-size: 0.8125rem;
+  color: var(--tp-text);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-width: 200px;
+}
+
+.tp-node-detail span {
+  color: var(--tp-text-muted);
+  font-size: 0.75rem;
 }
 
 /* ── graph legend / overlay ──────────────────────────────────── */
 
-.am-legend {
+.tp-legend {
   position: absolute;
   bottom: var(--space-md);
   left: var(--space-md);
@@ -491,18 +609,18 @@
   backdrop-filter: blur(8px);
   border-radius: 12px;
   font-size: 0.8125rem;
-  color: var(--am-text-muted);
+  color: var(--tp-text-muted);
   line-height: 1.5;
   text-align: center;
   max-width: 400px;
   margin: 0 auto;
 }
 
-.am-legend-dismiss {
+.tp-legend-dismiss {
   display: inline;
   background: none;
   border: none;
-  color: var(--am-accent);
+  color: var(--tp-accent);
   cursor: pointer;
   font-family: var(--font-body);
   font-size: 0.8125rem;
@@ -514,7 +632,7 @@
 
 /* ── focus phase ─────────────────────────────────────────────── */
 
-.am-focus-wrap {
+.tp-focus-wrap {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -523,7 +641,7 @@
   flex: 1;
 }
 
-.am-focus-cards {
+.tp-focus-cards {
   display: flex;
   flex-direction: column;
   gap: var(--space-md);
@@ -532,14 +650,14 @@
   padding: 0 var(--space-md);
 }
 
-.am-focus-card {
+.tp-focus-card {
   padding: var(--space-lg);
   border-radius: 16px;
-  background: var(--am-surface);
+  background: var(--tp-surface);
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.am-focus-card-label {
+.tp-focus-card-label {
   font-size: 1.125rem;
   font-weight: 600;
   margin-bottom: var(--space-xs);
@@ -548,20 +666,20 @@
   gap: var(--space-sm);
 }
 
-.am-focus-card-stat {
+.tp-focus-card-stat {
   font-size: 0.875rem;
-  color: var(--am-text-muted);
+  color: var(--tp-text-muted);
   margin-bottom: var(--space-sm);
 }
 
-.am-focus-card-cascade {
+.tp-focus-card-cascade {
   font-size: 0.875rem;
-  color: var(--am-text-muted);
+  color: var(--tp-text-muted);
   font-style: italic;
   line-height: 1.5;
 }
 
-.am-focus-actions {
+.tp-focus-actions {
   display: flex;
   gap: var(--space-sm);
   flex-wrap: wrap;
@@ -571,34 +689,55 @@
 /* ── responsive ──────────────────────────────────────────────── */
 
 @media (max-width: 480px) {
-  .am-phase {
+  .tp-phase {
     padding: var(--space-md);
   }
 
-  .am-pair-nodes {
+  .tp-pair-nodes {
     gap: var(--space-md);
   }
 
-  .am-pair-bubble {
+  .tp-pair-bubble {
     width: 52px;
     height: 52px;
     font-size: 1.25rem;
   }
 
-  .am-strength {
+  .tp-strength {
     gap: 6px;
   }
 
-  .am-strength-btn {
+  .tp-strength-btn {
     padding: 0.5rem 0.75rem;
     min-width: 60px;
     min-height: 56px;
+  }
+
+  .tp-freq {
+    gap: 4px;
+  }
+}
+
+/* ── reduced motion ──────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .tp-phase {
+    animation: none;
+  }
+
+  .tp-glow-ring {
+    animation: none;
+    opacity: 0.5;
+  }
+
+  .tp-progress-bar {
+    transition: none;
   }
 }
 
 /* ── live region (screen reader announcements) ───────────────── */
 
-.am-sr-only {
+.tp-sr-only {
   position: absolute;
   width: 1px;
   height: 1px;

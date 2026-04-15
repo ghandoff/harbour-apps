@@ -8,7 +8,7 @@ import {
   useMemo,
   useRef,
 } from "react";
-import "./anxiety-map.css";
+import "./thread-pull.css";
 import type {
   HCA,
   PCRRating,
@@ -35,7 +35,7 @@ import { PRESET_HCAS } from "./lib/presets";
 
 /* ── constants ────────────────────────────────────────────────── */
 
-const SESSION_KEY = "am-session";
+const SESSION_KEY = "tp-session";
 const STRENGTH_OPTIONS = [
   { value: 0, label: "not at all", size: 0 },
   { value: 1, label: "a little", size: 10 },
@@ -44,7 +44,25 @@ const STRENGTH_OPTIONS = [
   { value: 4, label: "a lot", size: 28 },
 ] as const;
 
+const FREQ_LABELS = ["rarely", "sometimes", "often", "daily"] as const;
 const FREQ_SIZES = [16, 22, 28, 34] as const;
+
+/* ── CSS variable → hex resolver for SVG export ───────────────── */
+
+const COLOUR_MAP: Record<string, string> = {
+  "var(--wv-cornflower)": "#5872cb",
+  "var(--wv-seafoam)": "#58cbb2",
+  "var(--wv-sienna)": "#cb7858",
+  "var(--wv-periwinkle)": "#d5d2ff",
+  "var(--wv-redwood)": "#b15043",
+  "var(--wv-teal)": "#43b187",
+  "var(--wv-navy)": "#436db1",
+  "var(--wv-mint)": "#d2fdff",
+};
+
+function resolveColour(cssVar: string): string {
+  return COLOUR_MAP[cssVar] ?? cssVar;
+}
 
 /* ── reducer ─────────────────────────────────────────────────── */
 
@@ -56,7 +74,7 @@ function initialState(): MapSession {
     } catch {}
   }
   return {
-    phase: "input",
+    phase: "intro",
     childName: "",
     hcas: [],
     ratings: [],
@@ -124,7 +142,7 @@ function reducer(state: MapSession, action: MapAction): MapSession {
 
     case "RESET":
       return {
-        phase: "input",
+        phase: "intro",
         childName: "",
         hcas: [],
         ratings: [],
@@ -152,7 +170,7 @@ function useReducedMotion(): boolean {
 
 /* ── main component ──────────────────────────────────────────── */
 
-export function AnxietyMapClient() {
+export function ThreadPullClient() {
   const [state, dispatch] = useReducer(reducer, undefined, initialState);
   const reducedMotion = useReducedMotion();
 
@@ -170,7 +188,8 @@ export function AnxietyMapClient() {
     (phase: Phase) => {
       dispatch({ type: "SET_PHASE", phase });
       const labels: Record<Phase, string> = {
-        input: "name your worries",
+        intro: "welcome",
+        input: "name your threads",
         mapping: "how do they connect",
         visualisation: "the map",
         focus: "where to start",
@@ -181,11 +200,14 @@ export function AnxietyMapClient() {
   );
 
   return (
-    <div className="am-root">
-      <a href="/harbour" className="am-back" aria-label="back to the harbour">
+    <div className="tp-root">
+      <a href="/harbour" className="tp-back" aria-label="back to the harbour">
         ← harbour
       </a>
 
+      {state.phase === "intro" && (
+        <IntroPhase onBegin={() => setPhase("input")} />
+      )}
       {state.phase === "input" && (
         <InputPhase
           state={state}
@@ -220,7 +242,7 @@ export function AnxietyMapClient() {
       )}
 
       {/* screen reader announcements */}
-      <div aria-live="polite" aria-atomic="true" className="am-sr-only">
+      <div aria-live="polite" aria-atomic="true" className="tp-sr-only">
         {announcement}
       </div>
     </div>
@@ -228,7 +250,37 @@ export function AnxietyMapClient() {
 }
 
 /* ══════════════════════════════════════════════════════════════════
-   phase 1: input — "name your worries"
+   intro phase — warm on-ramp
+   ══════════════════════════════════════════════════════════════════ */
+
+function IntroPhase({ onBegin }: { onBegin: () => void }) {
+  return (
+    <div className="tp-phase" role="region" aria-label="welcome to thread pull">
+      <div className="tp-intro-icon" aria-hidden="true">
+        🧶
+      </div>
+      <div className="tp-title">thread pull</div>
+      <div className="tp-subtitle">
+        when everything feels tangled, it helps to find the threads that matter
+        most. this tool maps how hard things connect — so you know where to
+        start.
+      </div>
+      <button className="tp-btn tp-btn-primary" onClick={onBegin}>
+        let&apos;s begin
+      </button>
+      <div className="tp-intro-note">
+        <strong>for practitioners:</strong> this tool is based on network
+        analysis research (Galpin, UCL) that identifies central anxiety triggers.
+        the child names the things that feel hard, then rates how they connect.
+        the map reveals which threads, when eased, may create a cascade of
+        relief.
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   phase 1: input — "what feels hard?"
    ══════════════════════════════════════════════════════════════════ */
 
 function InputPhase({
@@ -266,23 +318,23 @@ function InputPhase({
   const canContinue = state.hcas.length >= 3;
 
   return (
-    <div className="am-phase" role="region" aria-label="name your worries">
-      <div className="am-title">
+    <div className="tp-phase" role="region" aria-label="name your threads">
+      <div className="tp-title">
         {state.childName
-          ? `what makes ${state.childName} anxious?`
-          : "what are the worries?"}
+          ? `what feels hard for ${state.childName}?`
+          : "what feels hard?"}
       </div>
-      <div className="am-subtitle">
-        add the things that cause anxiety — one at a time. you can pick from
+      <div className="tp-subtitle">
+        add the things that feel difficult — one at a time. you can pick from
         common ones or type your own.
       </div>
 
       {/* optional child name */}
       {!state.childName && state.hcas.length === 0 && (
         <input
-          className="am-input am-name-input"
+          className="tp-input tp-name-input"
           type="text"
-          placeholder="child's name (optional)"
+          placeholder="name (optional)"
           maxLength={40}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
@@ -300,42 +352,47 @@ function InputPhase({
 
       {/* frequency selector for draft */}
       {draft.trim() && (
-        <div className="am-freq">
-          <span className="am-freq-label">how often?</span>
+        <div className="tp-freq">
+          <span className="tp-freq-label">how often?</span>
           {FREQ_SIZES.map((size, i) => (
             <button
               key={i}
-              className="am-freq-dot"
+              className="tp-freq-item"
               data-active={draftFreq === i + 1}
-              style={{ width: size, height: size }}
               onClick={() => setDraftFreq(i + 1)}
-              aria-label={`frequency ${i + 1} of 4`}
+              aria-label={`${FREQ_LABELS[i]} — frequency ${i + 1} of 4`}
               aria-pressed={draftFreq === i + 1}
-            />
+            >
+              <span
+                className="tp-freq-dot"
+                style={{ width: size, height: size }}
+              />
+              <span className="tp-freq-text">{FREQ_LABELS[i]}</span>
+            </button>
           ))}
         </div>
       )}
 
       {/* input row */}
-      <div className="am-input-row">
+      <div className="tp-input-row">
         <input
           ref={inputRef}
-          className="am-input"
+          className="tp-input"
           type="text"
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter") addHCA();
           }}
-          placeholder="type a worry…"
+          placeholder="type something that feels hard…"
           maxLength={60}
-          aria-label="type a worry"
+          aria-label="type something that feels hard"
         />
         <button
-          className="am-btn am-btn-primary"
+          className="tp-btn tp-btn-primary"
           onClick={addHCA}
           disabled={!draft.trim()}
-          aria-label="add worry"
+          aria-label="add thread"
         >
           add
         </button>
@@ -343,15 +400,15 @@ function InputPhase({
 
       {/* preset library */}
       <button
-        className="am-presets-toggle"
+        className="tp-presets-toggle"
         onClick={() => setShowPresets(!showPresets)}
         aria-expanded={showPresets}
       >
-        {showPresets ? "hide common worries" : "show common worries"}
+        {showPresets ? "hide common threads" : "show common threads"}
       </button>
 
       {showPresets && (
-        <div className="am-chips" role="list" aria-label="common worries">
+        <div className="tp-chips" role="list" aria-label="common threads">
           {PRESET_HCAS.map((p) => {
             const added = state.hcas.some(
               (h) => h.label === p.label.toLowerCase(),
@@ -359,7 +416,7 @@ function InputPhase({
             return (
               <button
                 key={p.label}
-                className="am-chip"
+                className={`tp-chip${added ? " tp-chip-added" : ""}`}
                 data-selected={added}
                 onClick={() => !added && addPreset(p.label)}
                 disabled={added}
@@ -376,20 +433,20 @@ function InputPhase({
 
       {/* current HCAs */}
       {state.hcas.length > 0 && (
-        <div className="am-chips" role="list" aria-label="added worries">
+        <div className="tp-chips" role="list" aria-label="your threads">
           {state.hcas.map((hca) => (
-            <div key={hca.id} className="am-chip" role="listitem">
+            <div key={hca.id} className="tp-chip" role="listitem">
               <span
-                className="am-chip-dot"
+                className="tp-chip-dot"
                 style={{ background: hca.color }}
               />
               <span>{hca.label}</span>
-              {/* frequency dots inline */}
-              <span style={{ display: "flex", gap: 2, marginLeft: 4 }}>
+              {/* frequency dots inline with labels */}
+              <span className="tp-chip-freq">
                 {[1, 2, 3, 4].map((f) => (
                   <button
                     key={f}
-                    className="am-freq-dot"
+                    className="tp-freq-dot-inline"
                     data-active={hca.frequency >= f}
                     style={{ width: 8 + f * 3, height: 8 + f * 3 }}
                     onClick={() =>
@@ -399,12 +456,12 @@ function InputPhase({
                         frequency: f,
                       })
                     }
-                    aria-label={`set frequency of ${hca.label} to ${f}`}
+                    aria-label={`set ${hca.label} frequency to ${FREQ_LABELS[f - 1]}`}
                   />
                 ))}
               </span>
               <button
-                className="am-chip-remove"
+                className="tp-chip-remove"
                 onClick={() => dispatch({ type: "REMOVE_HCA", id: hca.id })}
                 aria-label={`remove ${hca.label}`}
               >
@@ -417,13 +474,13 @@ function InputPhase({
 
       {/* continue */}
       <button
-        className="am-btn am-btn-primary"
+        className="tp-btn tp-btn-primary"
         onClick={onContinue}
         disabled={!canContinue}
         aria-label={
           canContinue
-            ? "continue to connect worries"
-            : `add at least ${3 - state.hcas.length} more ${3 - state.hcas.length === 1 ? "worry" : "worries"}`
+            ? "continue to connect threads"
+            : `add at least ${3 - state.hcas.length} more ${3 - state.hcas.length === 1 ? "thread" : "threads"}`
         }
       >
         {canContinue
@@ -482,107 +539,115 @@ function MappingPhase({
     dispatch({ type: "NEXT_PAIR" });
   };
 
-  return (
-    <div className="am-phase" role="region" aria-label="connect worries">
-      <div className="am-title">how do they connect?</div>
+  const progressPct = totalPairs > 0 ? (currentIdx / totalPairs) * 100 : 0;
 
-      <div className="am-pair">
+  return (
+    <div className="tp-phase" role="region" aria-label="connect threads">
+      <div className="tp-title">how do they connect?</div>
+
+      <div className="tp-pair">
         {/* the two nodes */}
-        <div className="am-pair-nodes">
-          <div className="am-pair-node">
+        <div className="tp-pair-nodes">
+          <div className="tp-pair-node">
             <div
-              className="am-pair-bubble"
+              className="tp-pair-bubble"
               style={{ background: source.color }}
               aria-hidden="true"
             />
-            <span className="am-pair-label">{source.label}</span>
+            <span className="tp-pair-label">{source.label}</span>
           </div>
 
-          <span className="am-pair-arrow" aria-hidden="true">
+          <span className="tp-pair-arrow" aria-hidden="true">
             →
           </span>
 
-          <div className="am-pair-node">
+          <div className="tp-pair-node">
             <div
-              className="am-pair-bubble"
+              className="tp-pair-bubble"
               style={{ background: target.color }}
               aria-hidden="true"
             />
-            <span className="am-pair-label">{target.label}</span>
+            <span className="tp-pair-label">{target.label}</span>
           </div>
         </div>
 
-        {/* question */}
-        <p className="am-pair-question">
-          does worrying about{" "}
-          <strong>{source.label}</strong> make worrying about{" "}
-          <strong>{target.label}</strong> worse?
+        {/* question — simplified language */}
+        <p className="tp-pair-question">
+          when <strong>{source.label}</strong> is hard, does{" "}
+          <strong>{target.label}</strong> get harder too?
         </p>
 
         {/* strength selector */}
         <div
-          className="am-strength"
+          className="tp-strength"
           role="radiogroup"
-          aria-label="how much does this worry cause the other"
+          aria-label="how much does this thread pull on the other"
         >
           {STRENGTH_OPTIONS.map((opt) => (
             <button
               key={opt.value}
-              className="am-strength-btn"
+              className="tp-strength-btn"
               data-selected={existingRating?.strength === opt.value}
               onClick={() => ratePair(opt.value)}
               role="radio"
               aria-checked={existingRating?.strength === opt.value}
               aria-label={opt.label}
             >
-              {opt.size > 0 && (
+              {opt.size > 0 ? (
                 <span
-                  className="am-strength-ring"
+                  className="tp-strength-ring"
                   style={{ width: opt.size, height: opt.size }}
                   aria-hidden="true"
                 />
+              ) : (
+                <span
+                  className="tp-strength-ring tp-strength-ring-empty"
+                  style={{ width: 10, height: 10 }}
+                  aria-hidden="true"
+                />
               )}
-              <span className="am-strength-label">{opt.label}</span>
+              <span className="tp-strength-label">{opt.label}</span>
             </button>
           ))}
         </div>
 
         {/* controls */}
-        <div className="am-map-controls">
-          <button className="am-btn am-btn-ghost" onClick={onBack}>
+        <div className="tp-bottom-controls">
+          <button className="tp-btn tp-btn-ghost" onClick={onBack}>
             ← back
           </button>
           <button
-            className="am-btn am-btn-ghost"
+            className="tp-btn tp-btn-ghost"
             onClick={() => dispatch({ type: "SKIP_PAIR" })}
           >
             skip
           </button>
           {canExit && (
-            <button className="am-btn am-btn-secondary" onClick={onDone}>
+            <button className="tp-btn tp-btn-secondary" onClick={onDone}>
               show the map →
             </button>
           )}
         </div>
       </div>
 
-      {/* progress dots */}
-      <div
-        className="am-progress"
-        role="progressbar"
-        aria-valuenow={currentIdx}
-        aria-valuemin={0}
-        aria-valuemax={totalPairs}
-        aria-label={`${currentIdx} of ${totalPairs} connections rated`}
-      >
-        {pairs.map((_, i) => (
-          <span
-            key={i}
-            className="am-progress-dot"
-            data-done={i < currentIdx}
-            data-current={i === currentIdx}
+      {/* progress bar + fraction */}
+      <div className="tp-progress-wrap">
+        <div
+          className="tp-progress-bar-wrap"
+          role="progressbar"
+          aria-valuenow={currentIdx}
+          aria-valuemin={0}
+          aria-valuemax={totalPairs}
+          aria-label={`${currentIdx} of ${totalPairs} connections rated`}
+        >
+          <div
+            className="tp-progress-bar"
+            style={{ width: `${progressPct}%` }}
           />
-        ))}
+        </div>
+        <span className="tp-progress-text">
+          {currentIdx} of {totalPairs}
+        </span>
       </div>
     </div>
   );
@@ -638,16 +703,24 @@ function VisualisationPhase({
     return m;
   }, [nodes]);
 
+  // selected node detail
+  const selectedNode = selectedId
+    ? nodes.find((n) => n.hca.id === selectedId) ?? null
+    : null;
+
+  // smart label visibility: show all when ≤6 nodes, else only focused/selected
+  const showAllLabels = nodes.length <= 6;
+
   return (
-    <div className="am-phase" role="region" aria-label="anxiety map">
-      <div className="am-graph-wrap" ref={containerRef}>
+    <div className="tp-phase tp-phase-graph" role="region" aria-label="thread map">
+      <div className="tp-graph-wrap" ref={containerRef}>
         <svg
-          className="am-graph-svg"
+          className="tp-graph-svg"
           viewBox={`0 0 ${dims.w} ${dims.h}`}
           role="img"
-          aria-label={`anxiety map showing ${nodes.length} worries. ${
+          aria-label={`thread map showing ${nodes.length} threads. ${
             focusIds.length > 0
-              ? `the most central worry is ${nodes.find((n) => n.hca.id === focusIds[0])?.hca.label ?? "unknown"}`
+              ? `the most central thread is ${nodes.find((n) => n.hca.id === focusIds[0])?.hca.label ?? "unknown"}`
               : ""
           }`}
         >
@@ -668,8 +741,8 @@ function VisualisationPhase({
                   y2={tgt.y}
                   gradientUnits="userSpaceOnUse"
                 >
-                  <stop offset="0%" stopColor={srcNode?.hca.color ?? "#fff"} stopOpacity={0.6} />
-                  <stop offset="100%" stopColor={srcNode?.hca.color ?? "#fff"} stopOpacity={0.1} />
+                  <stop offset="0%" stopColor={resolveColour(srcNode?.hca.color ?? "#fff")} stopOpacity={0.6} />
+                  <stop offset="100%" stopColor={resolveColour(srcNode?.hca.color ?? "#fff")} stopOpacity={0.1} />
                 </linearGradient>
               );
             })}
@@ -687,7 +760,7 @@ function VisualisationPhase({
             return (
               <path
                 key={`e-${edge.sourceId}-${edge.targetId}`}
-                className="am-graph-edge"
+                className="tp-graph-edge"
                 d={edgePath(src.x, src.y, tgt.x, tgt.y)}
                 stroke={`url(#g-${edge.sourceId}-${edge.targetId})`}
                 strokeWidth={1 + edge.strength * 1.5}
@@ -700,32 +773,30 @@ function VisualisationPhase({
           {nodes.map((node) => {
             const r = nodeRadius(node.centrality);
             const isFocus = focusIds.includes(node.hca.id);
+            const isSelected = node.hca.id === selectedId;
             const dimmed =
-              selectedId !== null && node.hca.id !== selectedId &&
+              selectedId !== null && !isSelected &&
               !edges.some(
                 (e) =>
                   (e.sourceId === selectedId && e.targetId === node.hca.id) ||
                   (e.targetId === selectedId && e.sourceId === node.hca.id),
               );
+            const showLabel = showAllLabels || isFocus || isSelected;
             return (
               <g
                 key={node.hca.id}
-                className="am-graph-node"
+                className="tp-graph-node"
                 onClick={() =>
-                  setSelectedId(
-                    selectedId === node.hca.id ? null : node.hca.id,
-                  )
+                  setSelectedId(isSelected ? null : node.hca.id)
                 }
                 opacity={dimmed ? 0.2 : 1}
                 role="button"
                 tabIndex={0}
-                aria-label={`${node.hca.label}, causes ${node.outStrength} strength to other worries, caused by ${node.inStrength} from others`}
+                aria-label={`${node.hca.label}, pushes on ${node.outStrength} strength to other threads, receives ${node.inStrength} from others`}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
-                    setSelectedId(
-                      selectedId === node.hca.id ? null : node.hca.id,
-                    );
+                    setSelectedId(isSelected ? null : node.hca.id);
                   }
                 }}
               >
@@ -736,9 +807,9 @@ function VisualisationPhase({
                     cy={node.y}
                     r={r + 8}
                     fill="none"
-                    stroke={node.hca.color}
+                    stroke={resolveColour(node.hca.color)}
                     strokeWidth={3}
-                    className="am-glow-ring"
+                    className="tp-glow-ring"
                   />
                 )}
                 {isFocus && reducedMotion && (
@@ -747,7 +818,7 @@ function VisualisationPhase({
                     cy={node.y}
                     r={r + 8}
                     fill="none"
-                    stroke={node.hca.color}
+                    stroke={resolveColour(node.hca.color)}
                     strokeWidth={3}
                     opacity={0.5}
                   />
@@ -759,29 +830,42 @@ function VisualisationPhase({
                   x={node.x}
                   y={node.y}
                   r={r}
-                  fill={node.hca.color}
+                  fill={resolveColour(node.hca.color)}
                 />
 
                 {/* label */}
-                <text
-                  x={node.x}
-                  y={node.y + r + 14}
-                  className="am-graph-node-label"
-                >
-                  {truncate(node.hca.label, 18)}
-                </text>
+                {showLabel && (
+                  <text
+                    x={node.x}
+                    y={node.y + r + 14}
+                    className="tp-graph-node-label"
+                  >
+                    {truncate(node.hca.label, 18)}
+                  </text>
+                )}
               </g>
             );
           })}
         </svg>
 
+        {/* node detail panel (on tap) */}
+        {selectedNode && (
+          <div className="tp-node-detail" role="status">
+            <strong>{selectedNode.hca.label}</strong>
+            <span>
+              pushes on {selectedNode.outStrength} · receives{" "}
+              {selectedNode.inStrength}
+            </span>
+          </div>
+        )}
+
         {/* legend overlay */}
         {showLegend && (
-          <div className="am-legend">
-            the bigger a worry-bubble, the more it pushes on other worries. the
+          <div className="tp-legend">
+            the bigger a thread-bubble, the more it pulls on other threads. the
             glowing ones are where things start.
             <button
-              className="am-legend-dismiss"
+              className="tp-legend-dismiss"
               onClick={() => setShowLegend(false)}
             >
               got it
@@ -791,11 +875,11 @@ function VisualisationPhase({
       </div>
 
       {/* controls */}
-      <div style={{ display: "flex", gap: "var(--space-sm)", padding: "var(--space-md)" }}>
-        <button className="am-btn am-btn-ghost" onClick={onBack}>
+      <div className="tp-bottom-controls">
+        <button className="tp-btn tp-btn-ghost" onClick={onBack}>
           ← back
         </button>
-        <button className="am-btn am-btn-primary" onClick={onFocus}>
+        <button className="tp-btn tp-btn-primary" onClick={onFocus}>
           where to start →
         </button>
       </div>
@@ -937,7 +1021,7 @@ function FocusPhase({
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
       URL.revokeObjectURL(url);
       const a = document.createElement("a");
-      a.download = `anxiety-map${state.childName ? `-${state.childName}` : ""}.png`;
+      a.download = `thread-pull${state.childName ? `-${state.childName}` : ""}.png`;
       a.href = canvas.toDataURL("image/png");
       a.click();
     };
@@ -945,15 +1029,15 @@ function FocusPhase({
   }, [dims, state.childName]);
 
   return (
-    <div className="am-phase" role="region" aria-label="where to start">
-      <div className="am-title">where to start</div>
-      <div className="am-subtitle">
+    <div className="tp-phase" role="region" aria-label="where to start">
+      <div className="tp-title">where to start</div>
+      <div className="tp-subtitle">
         {focusNodes.length === 1
-          ? "this worry drives the most others. easing it may create a cascade of relief."
-          : `these ${focusNodes.length} worries drive the most others. start here.`}
+          ? "this thread pulls on the most others. easing it may create a cascade of relief."
+          : `these ${focusNodes.length} threads pull on the most others. start here.`}
       </div>
 
-      <div className="am-focus-wrap">
+      <div className="tp-focus-wrap">
         {/* mini graph with dimmed non-focus nodes */}
         <div
           ref={containerRef}
@@ -961,7 +1045,7 @@ function FocusPhase({
         >
           <svg
             ref={svgRef}
-            className="am-graph-svg"
+            className="tp-graph-svg"
             viewBox={`0 0 ${dims.w} ${dims.h}`}
             role="img"
             aria-label={`focus view: ${focusNodes.map((n) => n.hca.label).join(", ")}`}
@@ -982,8 +1066,8 @@ function FocusPhase({
                     y2={tgt.y}
                     gradientUnits="userSpaceOnUse"
                   >
-                    <stop offset="0%" stopColor={srcNode?.hca.color ?? "#fff"} stopOpacity={0.5} />
-                    <stop offset="100%" stopColor={srcNode?.hca.color ?? "#fff"} stopOpacity={0.05} />
+                    <stop offset="0%" stopColor={resolveColour(srcNode?.hca.color ?? "#fff")} stopOpacity={0.5} />
+                    <stop offset="100%" stopColor={resolveColour(srcNode?.hca.color ?? "#fff")} stopOpacity={0.05} />
                   </linearGradient>
                 );
               })}
@@ -1000,7 +1084,7 @@ function FocusPhase({
               return (
                 <path
                   key={`fe-${edge.sourceId}-${edge.targetId}`}
-                  className="am-graph-edge"
+                  className="tp-graph-edge"
                   d={edgePath(src.x, src.y, tgt.x, tgt.y)}
                   stroke={`url(#fg-${edge.sourceId}-${edge.targetId})`}
                   strokeWidth={1 + edge.strength * 1.5}
@@ -1021,9 +1105,9 @@ function FocusPhase({
                       cy={node.y}
                       r={r + 8}
                       fill="none"
-                      stroke={node.hca.color}
+                      stroke={resolveColour(node.hca.color)}
                       strokeWidth={3}
-                      className="am-glow-ring"
+                      className="tp-glow-ring"
                     />
                   )}
                   {isFocus && reducedMotion && (
@@ -1032,7 +1116,7 @@ function FocusPhase({
                       cy={node.y}
                       r={r + 8}
                       fill="none"
-                      stroke={node.hca.color}
+                      stroke={resolveColour(node.hca.color)}
                       strokeWidth={3}
                       opacity={0.5}
                     />
@@ -1042,12 +1126,12 @@ function FocusPhase({
                     x={node.x}
                     y={node.y}
                     r={r}
-                    fill={node.hca.color}
+                    fill={resolveColour(node.hca.color)}
                   />
                   <text
                     x={node.x}
                     y={node.y + r + 14}
-                    className="am-graph-node-label"
+                    className="tp-graph-node-label"
                     opacity={isFocus ? 1 : 0.3}
                   >
                     {truncate(node.hca.label, 18)}
@@ -1059,7 +1143,7 @@ function FocusPhase({
         </div>
 
         {/* focus cards */}
-        <div className="am-focus-cards">
+        <div className="tp-focus-cards">
           {focusNodes.map((node) => {
             const connected = getConnectedLabels(
               node.hca.id,
@@ -1067,20 +1151,20 @@ function FocusPhase({
               state.hcas,
             );
             return (
-              <div key={node.hca.id} className="am-focus-card">
-                <div className="am-focus-card-label">
+              <div key={node.hca.id} className="tp-focus-card">
+                <div className="tp-focus-card-label">
                   <span
-                    className="am-chip-dot"
-                    style={{ background: node.hca.color }}
+                    className="tp-chip-dot"
+                    style={{ background: resolveColour(node.hca.color) }}
                   />
                   {node.hca.label}
                 </div>
-                <div className="am-focus-card-stat">
-                  this worry pushes on {connected.length} other{" "}
-                  {connected.length === 1 ? "worry" : "worries"}
+                <div className="tp-focus-card-stat">
+                  this thread pulls on {connected.length} other{" "}
+                  {connected.length === 1 ? "thread" : "threads"}
                 </div>
                 {connected.length > 0 && (
-                  <div className="am-focus-card-cascade">
+                  <div className="tp-focus-card-cascade">
                     if we can ease this one, it may help with{" "}
                     {connected.slice(0, 4).join(", ")}
                     {connected.length > 4 && `, and ${connected.length - 4} more`}
@@ -1092,15 +1176,15 @@ function FocusPhase({
         </div>
 
         {/* actions */}
-        <div className="am-focus-actions">
-          <button className="am-btn am-btn-ghost" onClick={onBack}>
+        <div className="tp-focus-actions">
+          <button className="tp-btn tp-btn-ghost" onClick={onBack}>
             ← back to map
           </button>
-          <button className="am-btn am-btn-secondary" onClick={exportPNG}>
+          <button className="tp-btn tp-btn-secondary" onClick={exportPNG}>
             save as image
           </button>
           <button
-            className="am-btn am-btn-ghost"
+            className="tp-btn tp-btn-ghost"
             onClick={() => dispatch({ type: "RESET" })}
           >
             start fresh
