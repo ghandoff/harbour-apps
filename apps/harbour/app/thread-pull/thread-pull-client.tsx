@@ -967,61 +967,13 @@ function FocusPhase({
   onBack: () => void;
   reducedMotion: boolean;
 }) {
-  const svgRef = useRef<SVGSVGElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [dims, setDims] = useState({ w: 600, h: 280 });
-
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    const obs = new ResizeObserver(([entry]) => {
-      setDims({
-        w: entry.contentRect.width,
-        h: Math.min(300, entry.contentRect.height),
-      });
-    });
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
-
   const edges = useMemo(() => computeEdges(state.ratings), [state.ratings]);
   const nodes = useMemo(
-    () => computeNodes(state.hcas, edges, dims.w, dims.h),
-    [state.hcas, edges, dims.w, dims.h],
+    () => computeNodes(state.hcas, edges, 400, 400),
+    [state.hcas, edges],
   );
   const focusIds = useMemo(() => selectFocusNodes(nodes), [nodes]);
   const focusNodes = nodes.filter((n) => focusIds.includes(n.hca.id));
-
-  const posMap = useMemo(() => {
-    const m = new Map<string, { x: number; y: number }>();
-    for (const n of nodes) m.set(n.hca.id, { x: n.x, y: n.y });
-    return m;
-  }, [nodes]);
-
-  const exportPNG = useCallback(async () => {
-    const svg = svgRef.current;
-    if (!svg) return;
-    const serializer = new XMLSerializer();
-    const svgStr = serializer.serializeToString(svg);
-    const blob = new Blob([svgStr], { type: "image/svg+xml;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement("canvas");
-      canvas.width = dims.w * 2;
-      canvas.height = dims.h * 2;
-      const ctx = canvas.getContext("2d")!;
-      ctx.fillStyle = "#273248";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      URL.revokeObjectURL(url);
-      const a = document.createElement("a");
-      a.download = `thread-pull${state.childName ? `-${state.childName}` : ""}.png`;
-      a.href = canvas.toDataURL("image/png");
-      a.click();
-    };
-    img.src = url;
-  }, [dims, state.childName]);
 
   return (
     <div className="tp-phase" role="region" aria-label="where to start">
@@ -1033,111 +985,7 @@ function FocusPhase({
       </div>
 
       <div className="tp-focus-wrap">
-        {/* mini graph with dimmed non-focus nodes */}
-        <div
-          ref={containerRef}
-          style={{ width: "100%", maxWidth: 600, height: 280, flexShrink: 0 }}
-        >
-          <svg
-            ref={svgRef}
-            className="tp-graph-svg"
-            viewBox={`0 0 ${dims.w} ${dims.h}`}
-            role="img"
-            aria-label={`focus view: ${focusNodes.map((n) => n.hca.label).join(", ")}`}
-          >
-            <defs>
-              {edges.map((edge) => {
-                const src = posMap.get(edge.sourceId);
-                const tgt = posMap.get(edge.targetId);
-                if (!src || !tgt) return null;
-                const srcNode = nodes.find((n) => n.hca.id === edge.sourceId);
-                return (
-                  <linearGradient
-                    key={`fg-${edge.sourceId}-${edge.targetId}`}
-                    id={`fg-${edge.sourceId}-${edge.targetId}`}
-                    x1={src.x}
-                    y1={src.y}
-                    x2={tgt.x}
-                    y2={tgt.y}
-                    gradientUnits="userSpaceOnUse"
-                  >
-                    <stop offset="0%" stopColor={resolveColour(srcNode?.hca.color ?? "#fff")} stopOpacity={0.5} />
-                    <stop offset="100%" stopColor={resolveColour(srcNode?.hca.color ?? "#fff")} stopOpacity={0.05} />
-                  </linearGradient>
-                );
-              })}
-            </defs>
-
-            {/* edges — dimmed unless connected to focus */}
-            {edges.map((edge) => {
-              const src = posMap.get(edge.sourceId);
-              const tgt = posMap.get(edge.targetId);
-              if (!src || !tgt) return null;
-              const connected =
-                focusIds.includes(edge.sourceId) ||
-                focusIds.includes(edge.targetId);
-              return (
-                <path
-                  key={`fe-${edge.sourceId}-${edge.targetId}`}
-                  className="tp-graph-edge"
-                  d={edgePath(src.x, src.y, tgt.x, tgt.y)}
-                  stroke={`url(#fg-${edge.sourceId}-${edge.targetId})`}
-                  strokeWidth={1 + edge.strength * 1.5}
-                  opacity={connected ? 0.8 : 0.08}
-                />
-              );
-            })}
-
-            {/* nodes */}
-            {nodes.map((node) => {
-              const r = nodeRadius(node.centrality);
-              const isFocus = focusIds.includes(node.hca.id);
-              return (
-                <g key={node.hca.id} opacity={isFocus ? 1 : 0.15}>
-                  {isFocus && !reducedMotion && (
-                    <circle
-                      cx={node.x}
-                      cy={node.y}
-                      r={r + 8}
-                      fill="none"
-                      stroke={resolveColour(node.hca.color)}
-                      strokeWidth={3}
-                      className="tp-glow-ring"
-                    />
-                  )}
-                  {isFocus && reducedMotion && (
-                    <circle
-                      cx={node.x}
-                      cy={node.y}
-                      r={r + 8}
-                      fill="none"
-                      stroke={resolveColour(node.hca.color)}
-                      strokeWidth={3}
-                      opacity={0.5}
-                    />
-                  )}
-                  <NodeShape
-                    shape={node.hca.shape}
-                    x={node.x}
-                    y={node.y}
-                    r={r}
-                    fill={resolveColour(node.hca.color)}
-                  />
-                  <text
-                    x={node.x}
-                    y={node.y + r + 14}
-                    className="tp-graph-node-label"
-                    opacity={isFocus ? 1 : 0.3}
-                  >
-                    {truncate(node.hca.label, 18)}
-                  </text>
-                </g>
-              );
-            })}
-          </svg>
-        </div>
-
-        {/* focus cards */}
+        {/* focus cards — the primary interface */}
         <div className="tp-focus-cards">
           {focusNodes.map((node) => {
             const connected = getConnectedLabels(
@@ -1147,22 +995,34 @@ function FocusPhase({
             );
             return (
               <div key={node.hca.id} className="tp-focus-card">
-                <div className="tp-focus-card-label">
-                  <span
-                    className="tp-chip-dot"
+                <div className="tp-focus-card-header">
+                  <div
+                    className="tp-focus-card-node"
                     style={{ background: resolveColour(node.hca.color) }}
+                    aria-hidden="true"
                   />
-                  {node.hca.label}
-                </div>
-                <div className="tp-focus-card-stat">
-                  this thread pulls on {connected.length} other{" "}
-                  {connected.length === 1 ? "thread" : "threads"}
+                  <div>
+                    <div className="tp-focus-card-label">{node.hca.label}</div>
+                    <div className="tp-focus-card-stat">
+                      pulls on {connected.length}{" "}
+                      {connected.length === 1 ? "thread" : "threads"}
+                    </div>
+                  </div>
                 </div>
                 {connected.length > 0 && (
                   <div className="tp-focus-card-cascade">
                     if we can ease this one, it may help with{" "}
                     {connected.slice(0, 4).join(", ")}
                     {connected.length > 4 && `, and ${connected.length - 4} more`}
+                  </div>
+                )}
+                {connected.length > 0 && (
+                  <div className="tp-focus-card-threads">
+                    {connected.map((label) => (
+                      <span key={label} className="tp-focus-card-thread-chip">
+                        {label}
+                      </span>
+                    ))}
                   </div>
                 )}
               </div>
@@ -1174,9 +1034,6 @@ function FocusPhase({
         <div className="tp-focus-actions">
           <button className="tp-btn tp-btn-ghost" onClick={onBack}>
             ← back to map
-          </button>
-          <button className="tp-btn tp-btn-secondary" onClick={exportPNG}>
-            save as image
           </button>
           <button
             className="tp-btn tp-btn-ghost"
