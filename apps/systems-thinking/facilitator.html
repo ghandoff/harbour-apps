@@ -172,6 +172,17 @@ h1{font-size:28px;font-weight:700;letter-spacing:-.01em;color:var(--on-dark);mar
 <script>
 const API_BASE = '/api/session';
 let sessionState = { code: null, pin: null };
+let students = new Map(); // participantId -> { joinedAt, currentScenario, progress }
+let ws = null;
+let pollTimer = null;
+let realtimeHost = null; // discovered on first dashboard render; null = fallback to polling
+
+// prefill rejoin code from URL (?code=ABC123)
+const urlParams = new URLSearchParams(window.location.search);
+const codeFromUrl = (urlParams.get('code') || '').toUpperCase();
+if (/^[A-Z0-9]{6}$/.test(codeFromUrl)) {
+  document.getElementById('rejoin-code').value = codeFromUrl;
+}
 
 // ── auth ──
 document.getElementById('btn-create').addEventListener('click', async () => {
@@ -234,51 +245,145 @@ document.getElementById('btn-rejoin').addEventListener('click', async () => {
 });
 
 // ── dashboard ──
-function showDashboard() {
+async function showDashboard() {
   document.getElementById('auth-screen').classList.remove('active');
   document.getElementById('dashboard-screen').classList.add('active');
   document.getElementById('display-code').textContent = sessionState.code;
-  pollStatus();
+  // make the dashboard URL bookmarkable
+  const newUrl = window.location.pathname + '?code=' + sessionState.code;
+  window.history.replaceState({}, '', newUrl);
+
+  // initial snapshot from REST (always — same payload as before)
+  const snapshot = await fetchSnapshot();
+  if (snapshot) renderSnapshot(snapshot);
+
+  // try to upgrade to realtime; if unavailable, fall back to polling
+  await tryConnectRealtime();
 }
 
-let pollTimer = null;
-async function pollStatus() {
+async function fetchSnapshot() {
   try {
     const res = await fetch(API_BASE + '/status?code=' + sessionState.code + '&pin=' + sessionState.pin);
-    if (!res.ok) return;
-    const data = await res.json();
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (e) {
+    console.warn('snapshot fetch failed:', e);
+    return null;
+  }
+}
 
-    document.getElementById('display-meta').textContent =
-      'created ' + new Date(data.createdAt).toLocaleString() + ' · expires in ~24 hours';
-
-    document.getElementById('student-count').textContent =
-      data.studentCount + ' student' + (data.studentCount === 1 ? '' : 's');
-
-    const list = document.getElementById('student-list');
-    list.textContent = '';
-    data.students.forEach(s => {
-      const li = document.createElement('li');
-      li.className = 'student-item';
-      const scenarios = Object.keys(s.progress || {});
-      li.textContent = '';
-      const idSpan = document.createElement('span');
-      idSpan.className = 'student-id';
-      idSpan.textContent = s.participantId.slice(0, 8);
-      const scenSpan = document.createElement('span');
-      scenSpan.className = 'student-scenario';
-      scenSpan.textContent = s.currentScenario || 'lobby';
-      const progSpan = document.createElement('span');
-      progSpan.className = 'student-progress';
-      progSpan.textContent = scenarios.length + ' scenario' + (scenarios.length === 1 ? '' : 's') + ' touched';
-      li.appendChild(idSpan);
-      li.appendChild(scenSpan);
-      li.appendChild(progSpan);
-      list.appendChild(li);
+function renderSnapshot(data) {
+  document.getElementById('display-meta').textContent =
+    'created ' + new Date(data.createdAt).toLocaleString() + ' · expires in ~24 hours';
+  students = new Map();
+  (data.students || []).forEach(s => {
+    students.set(s.participantId, {
+      joinedAt: s.joinedAt,
+      currentScenario: s.currentScenario,
+      progress: s.progress || {},
     });
+  });
+  if (data.config) {
+    document.getElementById('toggle-reflections').checked = data.config.collectReflections !== false;
+  }
+  renderStudentList();
+}
 
-    // sync reflection toggle
-    const toggle = document.getElementById('toggle-reflections');
-    if (data.config) toggle.checked = data.config.collectReflections !== false;
+function renderStudentList() {
+  document.getElementById('student-count').textContent =
+    students.size + ' student' + (students.size === 1 ? '' : 's');
+  const list = document.getElementById('student-list');
+  list.textContent = '';
+  for (const [pid, s] of students) {
+    const li = document.createElement('li');
+    li.className = 'student-item';
+    const idSpan = document.createElement('span');
+    idSpan.className = 'student-id';
+    idSpan.textContent = pid.slice(0, 8);
+    const scenSpan = document.createElement('span');
+    scenSpan.className = 'student-scenario';
+    scenSpan.textContent = s.currentScenario || 'lobby';
+    const progSpan = document.createElement('span');
+    progSpan.className = 'student-progress';
+    const scenarioCount = Object.keys(s.progress || {}).length;
+    progSpan.textContent = scenarioCount + ' scenario' + (scenarioCount === 1 ? '' : 's') + ' touched';
+    li.appendChild(idSpan);
+    li.appendChild(scenSpan);
+    li.appendChild(progSpan);
+    list.appendChild(li);
+  }
+}
+
+async function tryConnectRealtime() {
+  try {
+    const res = await fetch(API_BASE + '/realtime-config');
+    const cfg = await res.json();
+    if (!cfg.available || !cfg.host) {
+      console.info('realtime not configured — using poll fallback');
+      pollStatus();
+      return;
+    }
+    realtimeHost = cfg.host;
+    openWebSocket();
+  } catch (e) {
+    console.warn('realtime config fetch failed, using poll fallback:', e);
+    pollStatus();
+  }
+}
+
+function openWebSocket() {
+  const protocol = realtimeHost.startsWith('localhost') ? 'ws' : 'wss';
+  const url = protocol + '://' + realtimeHost + '/parties/main/' + sessionState.code +
+    '?role=facilitator&pin=' + encodeURIComponent(sessionState.pin);
+  ws = new WebSocket(url);
+  ws.addEventListener('open', () => {
+    console.info('realtime connected');
+  });
+  ws.addEventListener('message', (event) => {
+    let msg;
+    try { msg = JSON.parse(event.data); } catch { return; }
+    handleRealtimeEvent(msg);
+  });
+  ws.addEventListener('close', (event) => {
+    console.warn('realtime closed (code=' + event.code + ') — falling back to polling');
+    ws = null;
+    if (!pollTimer) pollStatus();
+  });
+  ws.addEventListener('error', (e) => {
+    console.warn('realtime error:', e);
+  });
+}
+
+function handleRealtimeEvent(msg) {
+  if (msg.type === 'student-joined') {
+    if (!students.has(msg.participantId)) {
+      students.set(msg.participantId, {
+        joinedAt: msg.joinedAt,
+        currentScenario: null,
+        progress: {},
+      });
+      renderStudentList();
+    }
+  } else if (msg.type === 'student-progress') {
+    const existing = students.get(msg.participantId) || { joinedAt: null, progress: {} };
+    students.set(msg.participantId, {
+      ...existing,
+      currentScenario: msg.currentScenario,
+      progress: msg.progress || {},
+    });
+    renderStudentList();
+  } else if (msg.type === 'config-updated') {
+    if (msg.config) {
+      document.getElementById('toggle-reflections').checked = msg.config.collectReflections !== false;
+    }
+  }
+  // 'connected' is just a hello — no UI action needed
+}
+
+async function pollStatus() {
+  try {
+    const data = await fetchSnapshot();
+    if (data) renderSnapshot(data);
   } catch (e) {
     console.warn('poll failed:', e);
   }

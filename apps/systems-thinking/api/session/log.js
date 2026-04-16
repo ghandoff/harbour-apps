@@ -3,6 +3,22 @@ import { Redis } from '@upstash/redis';
 const redis = Redis.fromEnv();
 const TTL = 86400;
 
+async function broadcastToRoom(code, payload) {
+  const host = process.env.PARTYKIT_HOST;
+  const secret = process.env.PARTYKIT_INTERNAL_SECRET;
+  if (!host || !secret) return;
+  const protocol = host.startsWith('localhost') ? 'http' : 'https';
+  try {
+    await fetch(`${protocol}://${host}/parties/main/${code}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-internal-secret': secret },
+      body: JSON.stringify(payload),
+    });
+  } catch (err) {
+    console.warn('partykit broadcast failed:', err.message);
+  }
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'method not allowed' });
@@ -45,6 +61,7 @@ export default async function handler(req, res) {
     // update student progress
     const studentKey = `student:${sessionCode}:${participantId}`;
     const studentRaw = await redis.get(studentKey);
+    let updatedStudent = null;
     if (studentRaw) {
       const student = typeof studentRaw === 'string' ? JSON.parse(studentRaw) : studentRaw;
       if (data?.scenario) student.currentScenario = data.scenario;
@@ -56,6 +73,17 @@ export default async function handler(req, res) {
         student.progress[data.scenario].interacting = true;
       }
       await redis.set(studentKey, JSON.stringify(student), { ex: TTL });
+      updatedStudent = student;
+    }
+
+    if (updatedStudent) {
+      await broadcastToRoom(sessionCode, {
+        type: 'student-progress',
+        participantId,
+        eventType: type,
+        currentScenario: updatedStudent.currentScenario,
+        progress: updatedStudent.progress,
+      });
     }
 
     return res.status(200).json({ ok: true });

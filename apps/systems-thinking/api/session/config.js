@@ -3,6 +3,22 @@ import { Redis } from '@upstash/redis';
 const redis = Redis.fromEnv();
 const TTL = 86400;
 
+async function broadcastToRoom(code, payload) {
+  const host = process.env.PARTYKIT_HOST;
+  const secret = process.env.PARTYKIT_INTERNAL_SECRET;
+  if (!host || !secret) return;
+  const protocol = host.startsWith('localhost') ? 'http' : 'https';
+  try {
+    await fetch(`${protocol}://${host}/parties/main/${code}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-internal-secret': secret },
+      body: JSON.stringify(payload),
+    });
+  } catch (err) {
+    console.warn('partykit broadcast failed:', err.message);
+  }
+}
+
 async function hashPin(pin) {
   const encoder = new TextEncoder();
   const data = encoder.encode(pin + 'st-salt-2026');
@@ -40,6 +56,11 @@ export default async function handler(req, res) {
     // preserve remaining TTL
     const ttl = await redis.ttl(`session:${code}`);
     await redis.set(`session:${code}`, JSON.stringify(session), { ex: ttl > 0 ? ttl : TTL });
+
+    await broadcastToRoom(code, {
+      type: 'config-updated',
+      config: session.config,
+    });
 
     return res.status(200).json({ config: session.config });
   } catch (err) {
