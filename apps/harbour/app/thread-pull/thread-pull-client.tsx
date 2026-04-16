@@ -37,10 +37,9 @@ import { PRESET_HCAS } from "./lib/presets";
 
 const SESSION_KEY = "tp-session";
 const STRENGTH_OPTIONS = [
-  { value: 0, label: "not at all", size: 0 },
-  { value: 1, label: "a little", size: 10 },
-  { value: 2, label: "some", size: 16 },
-  { value: 3, label: "quite a lot", size: 22 },
+  { value: 0, label: "no", size: 0 },
+  { value: 1, label: "a little", size: 12 },
+  { value: 2, label: "some", size: 20 },
   { value: 4, label: "a lot", size: 28 },
 ] as const;
 
