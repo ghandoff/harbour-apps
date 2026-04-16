@@ -707,8 +707,7 @@ function VisualisationPhase({
     ? nodes.find((n) => n.hca.id === selectedId) ?? null
     : null;
 
-  // smart label visibility: show all when ≤6 nodes, else only focused/selected
-  const showAllLabels = nodes.length <= 6;
+  // always show labels — halo stroke makes them readable over nodes
 
   return (
     <div className="tp-phase tp-phase-graph" role="region" aria-label="thread map">
@@ -780,7 +779,6 @@ function VisualisationPhase({
                   (e.sourceId === selectedId && e.targetId === node.hca.id) ||
                   (e.targetId === selectedId && e.sourceId === node.hca.id),
               );
-            const showLabel = showAllLabels || isFocus || isSelected;
             return (
               <g
                 key={node.hca.id}
@@ -833,15 +831,13 @@ function VisualisationPhase({
                 />
 
                 {/* label */}
-                {showLabel && (
-                  <text
-                    x={node.x}
-                    y={node.y + r + 14}
-                    className="tp-graph-node-label"
-                  >
-                    {truncate(node.hca.label, 18)}
-                  </text>
-                )}
+                <text
+                  x={node.x}
+                  y={node.y + r + 16}
+                  className="tp-graph-node-label"
+                >
+                  {truncate(node.hca.label, 18)}
+                </text>
               </g>
             );
           })}

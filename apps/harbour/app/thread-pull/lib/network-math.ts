@@ -107,7 +107,7 @@ function forceLayout(
   edges: NetworkEdge[],
   width: number,
   height: number,
-  iterations = 200,
+  iterations = 300,
 ): NetworkNode[] {
   const n = nodes.length;
   if (n === 0) return nodes;
@@ -115,10 +115,10 @@ function forceLayout(
   const cx = width / 2;
   const cy = height / 2;
 
-  // initialise positions in a circle
+  // initialise positions in a wide circle to give repulsion a head start
   const result = nodes.map((node, i) => {
     const angle = (2 * Math.PI * i) / n;
-    const r = Math.min(width, height) * 0.3;
+    const r = Math.min(width, height) * 0.4;
     return { ...node, x: cx + r * Math.cos(angle), y: cy + r * Math.sin(angle) };
   });
 
@@ -126,10 +126,14 @@ function forceLayout(
   const idxMap = new Map<string, number>();
   result.forEach((n, i) => idxMap.set(n.hca.id, i));
 
-  const repulsion = 5000;
-  const attraction = 0.02;
-  const gravity = 0.01;
-  const damping = 0.9;
+  // ideal separation — nodes should stay at least this far apart
+  const idealSep = Math.min(width, height) / Math.max(2, n * 0.8);
+
+  const repulsion = 15000;
+  const attraction = 0.005;
+  const gravity = 0.003;
+  const damping = 0.85;
+  const minDist = 60; // prevent nodes from ever getting closer than this
 
   const vx = new Float64Array(n);
   const vy = new Float64Array(n);
@@ -140,9 +144,14 @@ function forceLayout(
     // repulsion between all pairs
     for (let i = 0; i < n; i++) {
       for (let j = i + 1; j < n; j++) {
-        const dx = result[i].x - result[j].x;
-        const dy = result[i].y - result[j].y;
-        const dist = Math.max(1, Math.sqrt(dx * dx + dy * dy));
+        let dx = result[i].x - result[j].x;
+        let dy = result[i].y - result[j].y;
+        const dist = Math.max(minDist, Math.sqrt(dx * dx + dy * dy));
+        // jitter coincident nodes
+        if (dx === 0 && dy === 0) {
+          dx = (Math.random() - 0.5) * 2;
+          dy = (Math.random() - 0.5) * 2;
+        }
         const force = (repulsion * temp) / (dist * dist);
         const fx = (dx / dist) * force;
         const fy = (dy / dist) * force;
@@ -153,7 +162,7 @@ function forceLayout(
       }
     }
 
-    // attraction along edges
+    // attraction along edges — only pull if beyond ideal separation
     for (const edge of edges) {
       const si = idxMap.get(edge.sourceId);
       const ti = idxMap.get(edge.targetId);
@@ -162,7 +171,9 @@ function forceLayout(
       const dx = result[ti].x - result[si].x;
       const dy = result[ti].y - result[si].y;
       const dist = Math.max(1, Math.sqrt(dx * dx + dy * dy));
-      const force = attraction * edge.strength * dist * temp;
+      // only attract if nodes are farther apart than ideal
+      const excess = Math.max(0, dist - idealSep);
+      const force = attraction * edge.strength * excess * temp;
       const fx = (dx / dist) * force;
       const fy = (dy / dist) * force;
       vx[si] += fx;
@@ -171,14 +182,14 @@ function forceLayout(
       vy[ti] -= fy;
     }
 
-    // gravity toward centre
+    // gentle gravity toward centre — just enough to prevent drift
     for (let i = 0; i < n; i++) {
       vx[i] += (cx - result[i].x) * gravity;
       vy[i] += (cy - result[i].y) * gravity;
     }
 
     // apply velocities with damping
-    const padding = 40;
+    const padding = 70; // room for labels below nodes
     for (let i = 0; i < n; i++) {
       vx[i] *= damping;
       vy[i] *= damping;
@@ -246,6 +257,6 @@ export function edgePath(
 }
 
 /** node radius based on centrality (for visualisation) */
-export function nodeRadius(centrality: number, base = 18, max = 42): number {
+export function nodeRadius(centrality: number, base = 14, max = 32): number {
   return base + centrality * (max - base);
 }
