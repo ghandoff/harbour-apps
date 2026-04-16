@@ -761,8 +761,8 @@ function VisualisationPhase({
                 className="tp-graph-edge"
                 d={edgePath(src.x, src.y, tgt.x, tgt.y)}
                 stroke={`url(#g-${edge.sourceId}-${edge.targetId})`}
-                strokeWidth={1 + edge.strength * 1.5}
-                opacity={dimmed ? 0.1 : 1}
+                strokeWidth={1 + edge.strength * 0.8}
+                opacity={dimmed ? 0.05 : 0.5}
               />
             );
           })}

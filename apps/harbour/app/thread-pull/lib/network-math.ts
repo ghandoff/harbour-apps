@@ -126,14 +126,14 @@ function forceLayout(
   const idxMap = new Map<string, number>();
   result.forEach((n, i) => idxMap.set(n.hca.id, i));
 
-  // ideal separation — nodes should stay at least this far apart
-  const idealSep = Math.min(width, height) / Math.max(2, n * 0.8);
+  // ideal separation — scale with viewport so nodes use the full space
+  const idealSep = Math.min(width, height) / Math.max(1.5, n * 0.6);
 
-  const repulsion = 15000;
-  const attraction = 0.005;
-  const gravity = 0.003;
+  const repulsion = 40000;
+  const attraction = 0.003;
+  const gravity = 0.002;
   const damping = 0.85;
-  const minDist = 60; // prevent nodes from ever getting closer than this
+  const minDist = 100; // prevent nodes from ever getting closer than this
 
   const vx = new Float64Array(n);
   const vy = new Float64Array(n);
@@ -257,6 +257,6 @@ export function edgePath(
 }
 
 /** node radius based on centrality (for visualisation) */
-export function nodeRadius(centrality: number, base = 14, max = 32): number {
+export function nodeRadius(centrality: number, base = 12, max = 26): number {
   return base + centrality * (max - base);
 }
