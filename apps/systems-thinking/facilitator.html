@@ -173,9 +173,23 @@ h1{font-size:28px;font-weight:700;letter-spacing:-.01em;color:var(--on-dark);mar
 const API_BASE = '/api/session';
 let sessionState = { code: null, pin: null };
 
+// strip anything that isn't a digit and cap at 4 chars, so paste/autofill
+// with spaces or hidden characters can't sneak past the /^\d{4}$/ check.
+const pinInput = document.getElementById('pin-input');
+pinInput.addEventListener('input', () => {
+  const cleaned = pinInput.value.replace(/\D/g, '').slice(0, 4);
+  if (cleaned !== pinInput.value) pinInput.value = cleaned;
+});
+
+const rejoinInput = document.getElementById('rejoin-code');
+rejoinInput.addEventListener('input', () => {
+  const cleaned = rejoinInput.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 6);
+  if (cleaned !== rejoinInput.value) rejoinInput.value = cleaned;
+});
+
 // ── auth ──
 document.getElementById('btn-create').addEventListener('click', async () => {
-  const pin = document.getElementById('pin-input').value;
+  const pin = document.getElementById('pin-input').value.trim();
   const err = document.getElementById('auth-error');
   err.textContent = '';
 
@@ -204,8 +218,8 @@ document.getElementById('btn-create').addEventListener('click', async () => {
 });
 
 document.getElementById('btn-rejoin').addEventListener('click', async () => {
-  const code = document.getElementById('rejoin-code').value.toUpperCase();
-  const pin = document.getElementById('pin-input').value;
+  const code = document.getElementById('rejoin-code').value.trim().toUpperCase();
+  const pin = document.getElementById('pin-input').value.trim();
   const err = document.getElementById('auth-error');
   err.textContent = '';
 
