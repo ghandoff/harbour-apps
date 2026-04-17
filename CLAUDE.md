@@ -4,6 +4,8 @@
 > full services audit: `docs/infrastructure-and-costs.md`
 > version management: `docs/version-management.md`
 > brand guidelines: `docs/brand-guidelines.md`
+>
+> **companion file: `.claude/evergreen.md`** — team-wide facts (brand voice, IP, accessibility, external API limits) that don't drift with Claude updates. read that for writing/brand rules; this file for current-state technical operations.
 
 ## monorepo structure
 

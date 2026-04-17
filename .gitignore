@@ -57,4 +57,5 @@ dist/
 web-build/
 
 # Claude Code
-.claude/
+.claude/*
+!.claude/evergreen.md
