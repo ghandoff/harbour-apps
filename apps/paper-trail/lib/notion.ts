@@ -5,7 +5,7 @@
  */
 
 import { Client } from "@notionhq/client";
-import type { Activity, ActivityStep } from "./types";
+import type { Activity, ActivityAudience, ActivityStep } from "./types";
 
 let _notion: Client | null = null;
 
@@ -115,6 +115,8 @@ function activityFromProps(props: Record<string, unknown>): Activity {
     }
   }
 
+  const audienceRaw = selectProp(props, "Audience");
+
   return {
     slug: textProp(props, "Slug"),
     title: titleProp(props, "Name"),
@@ -124,5 +126,6 @@ function activityFromProps(props: Record<string, unknown>): Activity {
     capturePrompts,
     skillSlugs: multiSelectProp(props, "Skills"),
     difficulty: (selectProp(props, "Difficulty") || "starter") as Activity["difficulty"],
+    audience: audienceRaw ? (audienceRaw as ActivityAudience) : undefined,
   };
 }

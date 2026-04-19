@@ -60,6 +60,7 @@ synced manually via `npm run sync` from the monorepo root, and automatically via
 | **outcomes** | `b8ff41d2d4ef41559e01c2d952a3a1da` | `package-builder-content.json` (merged) | `/do/` page |
 | **portfolio assets** | `5e27b792adbb4a958779900fb59dd631` | `portfolio-assets.json` | `/portfolio/` pages |
 | **vertigo vault** | `223e4ee74ba4805f8c92cda6e2b8ba00` | `vertigo-vault.json` + cover images | `/vertigo-vault/` (redirects to `/harbour/vertigo-vault/`) and runtime fetch in vertigo-vault app |
+| **paper.trail Activities** | `d3ba6381c52548d79b9b2b3f349811c9` | runtime fetch, no JSON sync | `/harbour/paper-trail/` home + activity detail pages |
 | **site content CMS** | `09a046a556c1455e80073546b8f83297` | `site-content-{page}.json` per page value | `/what/` (live), `/what-v2/` (dev); `/we/` and `/do/` planned |
 | **members** | `9d0e6ae1d7574503b611a5c289e44f5b` | member images + HTML fragments | `/we/` (currently hardcoded HTML) |
 | **services** | `28fe4ee74ba480869709d4d364d388e5` | services HTML | `/do/` (via standalone sync script) |
@@ -100,6 +101,28 @@ app code:     apps/vertigo-vault/ (Next.js, basePath: /harbour/vertigo-vault)
 ```
 
 the `/vertigo-vault` redirect ensures existing client links remain accessible. the vertigo vault app also fetches `vertigo-vault.json` at runtime for activity data.
+
+### paper.trail activities
+
+the paper.trail app at `/harbour/paper-trail/` queries its Notion database directly at runtime (1-hour ISR). no JSON sync layer. schema (data source `e5236c72-24ae-4034-98c8-07b8bcabecb7`):
+
+| property | type | notes |
+|---|---|---|
+| Name | title | activity title (lowercase, e.g. `fold. a fortune teller`) |
+| Slug | rich_text | kebab-case url slug |
+| Description | rich_text | 1–2 sentence pitch, includes audience tag |
+| Materials | rich_text | comma-separated list |
+| Steps | rich_text | JSON array of `{order, instruction, hint?}` |
+| Capture Prompts | rich_text | JSON array of prompt strings — each renders as a deep link into `/capture` |
+| Skills | multi_select | `observation`, `sequencing`, `iteration`, `attention`, `pattern-recognition`, `documentation`, `structure`, `reflection` (passed to mirror.log as `skillsExercised`) |
+| Difficulty | select | `starter` / `explorer` / `maker` |
+| Audience | select | `parent + kid` / `solo adult` / `facilitator` / `family` |
+| Status | select | `live` (shown) / `draft` / `archived` (hidden) |
+| Order | number | 1-based display order on the home grid |
+
+schema updates added April 2026: `Audience` select + harmonised `Skills` multi_select vocabulary.
+
+runtime fetch code: [apps/paper-trail/lib/notion.ts](../apps/paper-trail/lib/notion.ts) — filters on `Status = live`, sorts by `Order` ascending.
 
 ### sync scripts
 

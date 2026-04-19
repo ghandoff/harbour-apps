@@ -98,9 +98,16 @@ export default async function PaperTrailHome() {
                 href={`/activity/${a.slug}`}
                 className="p-5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all no-underline group"
               >
-                <span className="text-xs font-semibold text-[var(--wv-sienna)] uppercase tracking-wider">
-                  {a.difficulty}
-                </span>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-xs font-semibold text-[var(--wv-sienna)] uppercase tracking-wider">
+                    {a.difficulty}
+                  </span>
+                  {a.audience && (
+                    <span className="text-[10px] px-2 py-0.5 rounded-full border border-white/10 text-[var(--color-text-on-dark-muted)] lowercase">
+                      for {a.audience}
+                    </span>
+                  )}
+                </div>
                 <h3 className="text-lg font-bold mt-2 mb-2 group-hover:text-[var(--color-accent-on-dark)] transition-colors">
                   {a.title}
                 </h3>

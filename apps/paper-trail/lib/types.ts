@@ -7,6 +7,12 @@
 
 // ── Activity (from Notion) ─────────────────────────────────
 
+export type ActivityAudience =
+  | "parent + kid"
+  | "solo adult"
+  | "facilitator"
+  | "family";
+
 export interface Activity {
   slug: string;
   title: string;
@@ -16,6 +22,7 @@ export interface Activity {
   capturePrompts: string[];
   skillSlugs: string[];
   difficulty: "starter" | "explorer" | "maker";
+  audience?: ActivityAudience;
   coverImageUrl?: string;
 }
 

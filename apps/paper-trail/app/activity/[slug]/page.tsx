@@ -43,9 +43,14 @@ export default async function ActivityPage({
         <span className="text-xs font-semibold text-[var(--wv-sienna)] uppercase tracking-wider">
           {activity.difficulty}
         </span>
-        <h1 className="text-3xl sm:text-4xl font-extrabold mt-2 mb-4">
+        <h1 className="text-3xl sm:text-4xl font-extrabold mt-2 mb-2">
           {activity.title}
         </h1>
+        {activity.audience && (
+          <p className="text-sm text-[var(--color-text-on-dark-muted)] mb-4">
+            for {activity.audience}
+          </p>
+        )}
         <p className="text-lg text-[var(--color-text-on-dark-muted)] leading-relaxed mb-8">
           {activity.description}
         </p>
