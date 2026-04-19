@@ -14,32 +14,23 @@ export default async function PaperTrailHome() {
 
   return (
     <main id="main" className="min-h-screen flex flex-col">
-      {/* Header */}
-      <header className="wv-header">
-        <a href="/harbour" className="wv-header-brand">
-          ← the harbour
-        </a>
-        <nav className="wv-header-nav hidden sm:flex">
-          <Link href="/gallery" className="wv-header-nav-link" data-accent>
-            gallery
-          </Link>
-        </nav>
-      </header>
-
       {/* Hero */}
-      <section className="flex flex-col items-center justify-center text-center px-6 py-20">
+      <section className="flex flex-col items-center justify-center text-center px-6 pt-16 pb-14 sm:pt-20 sm:pb-16">
         <div className="max-w-2xl">
-          <p className="text-xs font-semibold tracking-[0.25em] text-[var(--color-accent-on-dark)] mb-6">
-            the harbour / paper.trail
-          </p>
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold leading-[1.1] tracking-tight mb-6">
+          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold leading-[1.1] tracking-tight mb-6 text-[var(--wv-white)]">
             paper.trail
           </h1>
-          <p className="text-lg sm:text-xl text-[var(--color-text-on-dark-muted)] leading-relaxed max-w-xl mx-auto mb-10">
+          <p className="text-lg sm:text-xl text-[var(--color-text-on-dark-muted)] leading-relaxed max-w-xl mx-auto mb-8">
             find, fold, unfold, find again. hands-on activities that bridge the
             physical and digital. make something real, then capture and annotate
             what you discover.
           </p>
+          <Link
+            href="/gallery"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--color-accent-on-dark)] hover:text-[var(--wv-champagne)] no-underline transition-colors"
+          >
+            view your gallery →
+          </Link>
         </div>
       </section>
 

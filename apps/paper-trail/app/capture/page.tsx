@@ -108,15 +108,6 @@ function CaptureInner() {
 
   return (
     <div className="h-screen flex flex-col">
-      <header className="wv-header shrink-0">
-        <Link href="/" className="wv-header-brand">
-          ← paper.trail
-        </Link>
-        <span className="text-xs text-[var(--color-text-on-dark-muted)]">
-          capture
-        </span>
-      </header>
-
       {/* Prompt banner */}
       {promptText && (
         <div className="shrink-0 px-4 pt-3">

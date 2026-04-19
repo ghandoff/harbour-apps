@@ -23,22 +23,7 @@ export default async function ActivityPage({
 
   return (
     <main id="main" className="min-h-screen flex flex-col">
-      <header className="wv-header">
-        <Link href="/" className="wv-header-brand">
-          ← paper.trail
-        </Link>
-        <nav className="wv-header-nav hidden sm:flex">
-          <Link
-            href={`/capture?activity=${activity.slug}`}
-            className="wv-header-nav-link"
-            data-accent
-          >
-            capture
-          </Link>
-        </nav>
-      </header>
-
-      <div className="flex-1 max-w-2xl mx-auto px-6 py-12 w-full">
+      <div className="flex-1 max-w-2xl mx-auto px-6 py-10 sm:py-12 w-full">
         {/* Header */}
         <span className="text-xs font-semibold text-[var(--wv-sienna)] uppercase tracking-wider">
           {activity.difficulty}

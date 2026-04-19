@@ -60,24 +60,17 @@ export default function GalleryPage() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="wv-header">
-        <Link href="/" className="wv-header-brand">
-          ← paper.trail
-        </Link>
-        <nav className="wv-header-nav hidden sm:flex">
-          <Link
-            href="/capture"
-            className="wv-header-nav-link"
-            data-accent
-          >
-            capture
-          </Link>
-        </nav>
-      </header>
-
-      <main id="main" className="flex-1 px-4 py-6">
+      <main id="main" className="flex-1 px-4 py-8 sm:py-10">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-2xl font-bold mb-6">your gallery</h1>
+          <div className="flex items-baseline justify-between gap-4 mb-6">
+            <h1 className="text-2xl font-bold">your gallery</h1>
+            <Link
+              href="/capture"
+              className="text-sm font-semibold text-[var(--color-accent-on-dark)] hover:text-[var(--wv-champagne)] no-underline transition-colors"
+            >
+              open camera →
+            </Link>
+          </div>
 
           {captures.length === 0 ? (
             <div className="text-center py-20">
