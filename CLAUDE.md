@@ -107,7 +107,12 @@ document answers in `docs/infrastructure-and-costs.md` before committing to a ne
 
 ## deployment & architecture
 
-- **static site proxies to other apps** via Vercel rewrites in `apps/site/vercel.json`. if a proxied app's URL changes, update the rewrites.
+> full deployment topology (Vercel vs Cloudflare split, who lives where, how to deploy each runtime, and why the split exists) is in `docs/deployment-topology.md`. **always read that before making a shared-package change** — changes to `packages/auth` or `packages/tokens` require redeploying every CF-routed harbour app manually (17 apps). a git push alone won't ship them.
+
+- **two deployment runtimes**: creaseworks + vertigo.vault + the harbour hub deploy to **Vercel**. every other harbour app (paper-trail, deep-deck, depth-chart, raft-house, tidal-pool, mirror-log, and the 11 threshold-concept apps) deploys to **Cloudflare Workers** via OpenNext. the split exists to keep the long tail of low-traffic apps off Vercel's per-function billing after the Feb 2026 $223 overage.
+- **CF deploy is manual per app**: `cd apps/<app> && npx opennextjs-cloudflare build && npx opennextjs-cloudflare deploy`. `deploy` alone reuses cached artifacts — always build first when source changed. a batch loop for sweeping all 17 CF apps lives in `docs/deployment-topology.md`.
+- **routing lives in a sibling repo**: `windedvertigo.com/harbour/*` is proxied by `ghandoff/windedvertigo` (the `site` project). its `next.config.ts` has the rewrites that pick Vercel vs Cloudflare per app. new harbour apps must add a rewrite there and redeploy that project.
+- **static site proxies to other apps** via Next.js rewrites in the sibling `ghandoff/windedvertigo` repo's `site/next.config.ts`. if a proxied app's URL changes, update the rewrites there.
 - **shared auth cookies**: creaseworks and vertigo-vault share session cookies on `.windedvertigo.com`. changes to `AUTH_SECRET` in one break sessions in the other. always change both together.
 - **next-auth pinned at 5.0.0-beta.30** — waiting for v5 stable. do NOT downgrade to v4. do NOT blindly bump beta.
 - **vertigo-vault local builds fail** — pre-rendering requires `NOTION_TOKEN` (only in Vercel). compilation succeeds; failure is at static generation. this is expected.
