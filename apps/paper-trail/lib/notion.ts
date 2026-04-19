@@ -2,24 +2,39 @@
  * paper.trail — Notion integration
  *
  * Fetches activities from the paper.trail Activities database.
+ * Uses fetch() directly (not @notionhq/client) so it runs on
+ * Cloudflare Workers where Node's https.request isn't polyfilled.
  */
 
-import { Client } from "@notionhq/client";
 import type { Activity, ActivityAudience, ActivityStep } from "./types";
 
-let _notion: Client | null = null;
-
-function getNotion(): Client {
-  if (!_notion) {
-    if (!process.env.NOTION_TOKEN) {
-      throw new Error("NOTION_TOKEN environment variable is required");
-    }
-    _notion = new Client({ auth: process.env.NOTION_TOKEN });
-  }
-  return _notion;
-}
-
 const ACTIVITIES_DB = process.env.NOTION_DB_PAPER_TRAIL_ACTIVITIES ?? "";
+const NOTION_VERSION = "2022-06-28";
+
+async function queryDatabase(
+  databaseId: string,
+  body: Record<string, unknown>,
+): Promise<{ results: { properties: Record<string, unknown> }[] }> {
+  if (!process.env.NOTION_TOKEN) {
+    throw new Error("NOTION_TOKEN environment variable is required");
+  }
+  const res = await fetch(
+    `https://api.notion.com/v1/databases/${databaseId}/query`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.NOTION_TOKEN}`,
+        "Notion-Version": NOTION_VERSION,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    },
+  );
+  if (!res.ok) {
+    throw new Error(`Notion query failed: ${res.status} ${await res.text()}`);
+  }
+  return res.json();
+}
 
 // ── Property extractors ────────────────────────────────────
 
@@ -48,25 +63,18 @@ function multiSelectProp(props: Record<string, unknown>, key: string): string[] 
 export async function fetchActivities(): Promise<Activity[]> {
   if (!ACTIVITIES_DB) return [];
 
-  const notion = getNotion();
-  const response = await notion.databases.query({
-    database_id: ACTIVITIES_DB,
+  const response = await queryDatabase(ACTIVITIES_DB, {
     filter: { property: "Status", select: { equals: "live" } },
     sorts: [{ property: "Order", direction: "ascending" }],
   });
 
-  return response.results.map((page) => {
-    const props = (page as { properties: Record<string, unknown> }).properties;
-    return activityFromProps(props);
-  });
+  return response.results.map((page) => activityFromProps(page.properties));
 }
 
 export async function fetchActivityBySlug(slug: string): Promise<Activity | null> {
   if (!ACTIVITIES_DB) return null;
 
-  const notion = getNotion();
-  const response = await notion.databases.query({
-    database_id: ACTIVITIES_DB,
+  const response = await queryDatabase(ACTIVITIES_DB, {
     filter: {
       and: [
         { property: "Slug", rich_text: { equals: slug } },
@@ -77,9 +85,7 @@ export async function fetchActivityBySlug(slug: string): Promise<Activity | null
   });
 
   if (response.results.length === 0) return null;
-
-  const props = (response.results[0] as { properties: Record<string, unknown> }).properties;
-  return activityFromProps(props);
+  return activityFromProps(response.results[0].properties);
 }
 
 function activityFromProps(props: Record<string, unknown>): Activity {
