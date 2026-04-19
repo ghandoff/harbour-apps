@@ -13,6 +13,31 @@ import { loadCaptures, deleteCapture } from "@/lib/storage";
 import { ReflectionPrompt } from "@windedvertigo/mirror-log";
 import type { Capture } from "@/lib/types";
 
+const FALLBACK_SKILLS = ["observation", "documentation", "reflection"];
+
+function deriveSkills(captures: Capture[]): string[] {
+  const seen = new Set<string>();
+  for (const c of captures) {
+    for (const s of c.activitySkills ?? []) seen.add(s);
+  }
+  return seen.size > 0 ? [...seen] : FALLBACK_SKILLS;
+}
+
+function summarise(captures: Capture[]): string {
+  const titles = [
+    ...new Set(
+      captures
+        .map((c) => c.activityTitle ?? c.activitySlug)
+        .filter(Boolean),
+    ),
+  ];
+  const list = titles.slice(0, 3).join(", ");
+  const extra = titles.length > 3 ? ` +${titles.length - 3} more` : "";
+  return `${captures.length} captures across ${titles.length} ${
+    titles.length === 1 ? "activity" : "activities"
+  }: ${list}${extra}`;
+}
+
 export default function GalleryPage() {
   const [captures, setCaptures] = useState<Capture[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -152,8 +177,8 @@ export default function GalleryPage() {
                 <div className="mt-4">
                   <ReflectionPrompt
                     sourceApp="paper-trail"
-                    skillsExercised={["observation", "documentation", "reflection"]}
-                    sessionSummary={`gallery review — ${captures.length} captures across ${new Set(captures.map((c) => c.activitySlug)).size} activities`}
+                    skillsExercised={deriveSkills(captures)}
+                    sessionSummary={summarise(captures)}
                     onComplete={() => setShowReflection(false)}
                     onSkip={() => setShowReflection(false)}
                   />

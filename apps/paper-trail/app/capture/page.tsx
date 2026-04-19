@@ -7,13 +7,15 @@
  * Can be opened standalone or from an activity.
  */
 
-import { Suspense, useState, useCallback } from "react";
+import { Suspense, useState, useCallback, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useCamera } from "@/hooks/use-camera";
 import { AnnotationOverlay } from "@/components/annotation-overlay";
 import { saveCapture, generateCaptureId } from "@/lib/storage";
 import type { Annotation, Capture } from "@/lib/types";
+
+type ActivityMeta = { title: string; skillSlugs: string[] };
 
 type Phase = "viewfinder" | "annotate" | "saved";
 
@@ -36,6 +38,25 @@ function CaptureInner() {
   const [annotations, setAnnotations] = useState<Annotation[]>([]);
   const [notes, setNotes] = useState("");
   const [started, setStarted] = useState(false);
+  const [activityMeta, setActivityMeta] = useState<ActivityMeta | null>(null);
+
+  // Snapshot activity metadata so the saved capture carries its real
+  // title + skills into the gallery (feeds mirror.log's skill tallies).
+  useEffect(() => {
+    if (activitySlug === "freeform") return;
+    let cancelled = false;
+    fetch(`/harbour/paper-trail/api/activity/${activitySlug}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (!cancelled && data?.title) {
+          setActivityMeta({ title: data.title, skillSlugs: data.skillSlugs ?? [] });
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [activitySlug]);
 
   const handleStart = useCallback(async () => {
     await start();
@@ -69,11 +90,13 @@ function CaptureInner() {
       annotations,
       promptUsed: promptText || undefined,
       notes: notes || undefined,
+      activityTitle: activityMeta?.title,
+      activitySkills: activityMeta?.skillSlugs,
     };
 
     saveCapture(captureData);
     setPhase("saved");
-  }, [imageDataUrl, activitySlug, annotations, promptText, notes]);
+  }, [imageDataUrl, activitySlug, annotations, promptText, notes, activityMeta]);
 
   const handleAddAnnotation = useCallback((ann: Annotation) => {
     setAnnotations((prev) => [...prev, ann]);

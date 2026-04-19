@@ -42,6 +42,10 @@ export interface Capture {
   annotations: Annotation[];
   promptUsed?: string;
   notes?: string;
+  // Activity metadata snapshot (fetched at capture time so the gallery
+  // can surface real skills + titles without re-hitting Notion).
+  activityTitle?: string;
+  activitySkills?: string[];
 }
 
 export type Annotation =
