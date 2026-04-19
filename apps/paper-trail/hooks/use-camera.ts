@@ -36,11 +36,9 @@ export function useCamera() {
       }
       setStream(mediaStream);
       setError(null);
-
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream;
-        videoRef.current.onloadedmetadata = () => setReady(true);
-      }
+      // srcObject is wired in the effect below — the <video> element
+      // isn't mounted yet on the first click (it only renders after
+      // `started` flips), so assigning here would no-op.
     } catch (err) {
       let message: string;
       if (err instanceof DOMException) {
@@ -88,6 +86,22 @@ export function useCamera() {
     ctx.drawImage(video, 0, 0);
     return canvas.toDataURL("image/jpeg", 0.85);
   }, [ready]);
+
+  // Wire the stream into the <video> once both the stream and the
+  // element exist. Starts playback and flips `ready` on loadedmetadata.
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !stream) return;
+    video.srcObject = stream;
+    const onReady = () => setReady(true);
+    if (video.readyState >= 1) onReady();
+    else video.addEventListener("loadedmetadata", onReady, { once: true });
+    // Safari sometimes needs an explicit play() on first attach.
+    video.play().catch(() => {});
+    return () => {
+      video.removeEventListener("loadedmetadata", onReady);
+    };
+  }, [stream]);
 
   // Cleanup on unmount
   useEffect(() => {
