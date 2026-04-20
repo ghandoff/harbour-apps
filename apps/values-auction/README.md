@@ -65,9 +65,35 @@ three views of the same session state, all reachable via hash routes:
 
 the facilitator client owns state. participants dispatch *intents* (e.g., "place bid"), the facilitator validates and broadcasts the resulting state. swap the transport to supabase or similar in phase 2 without touching reducers.
 
-## hosted preview
+## hosted deploy (cloudflare workers)
 
-pushed commits to `main` (or the active feature branch) trigger `.github/workflows/deploy-values-auction.yml`, which builds with `VA_BASE=/<repo>/values-auction/` and publishes to github pages. zero cost on public repos. for private repos, uses the free pages + actions allotment. real-time sync on the hosted version falls back to `BroadcastChannel` (same-browser, multi-tab); cross-device sessions still need the local ws server.
+matches the rest of the harbour tail (same account_id as paper-trail, deep-deck, etc.). free on the cloudflare worker plan: 1M requests/day + durable-objects usage included. cross-device real-time sync is handled by a durable object per session code (`worker/session-room.ts`) — no external backend.
+
+**one-time setup**
+
+1. `cd apps/values-auction`
+2. `npx wrangler login` — opens a browser tab, signs into the `ghandoffs` cloudflare account
+3. `npm run deploy` — builds the vite app with `VA_BASE=/harbour/values-auction/`, then `wrangler deploy` uploads the static assets + worker + durable object. URL: `https://wv-harbour-values-auction.windedvertigo.workers.dev/harbour/values-auction/`
+
+**CI-driven deploys (optional, recommended)**
+
+add a repo secret at https://github.com/ghandoff/harbour-apps/settings/secrets/actions/new:
+- `CLOUDFLARE_API_TOKEN` — create at https://dash.cloudflare.com/profile/api-tokens using the "Edit Cloudflare Workers" template. no other secret is needed (the account_id is committed in `wrangler.jsonc` and the workflow).
+
+after that, every push that touches `apps/values-auction/` auto-deploys via `.github/workflows/deploy-values-auction.yml`.
+
+**final URL on windedvertigo.com**
+
+add a rewrite to the sibling `ghandoff/windedvertigo` repo's `site/next.config.ts`:
+
+```ts
+{ source: '/harbour/values-auction',
+  destination: 'https://wv-harbour-values-auction.windedvertigo.workers.dev/harbour/values-auction' },
+{ source: '/harbour/values-auction/:path*',
+  destination: 'https://wv-harbour-values-auction.windedvertigo.workers.dev/harbour/values-auction/:path*' },
+```
+
+then redeploy the `site` project. after that: https://windedvertigo.com/harbour/values-auction/ proxies to the worker; same-origin websockets (`wss://windedvertigo.com/harbour/values-auction/ws?session=...`) land in the durable object.
 
 ## known limits
 

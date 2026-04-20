@@ -1,12 +1,20 @@
-# build values-auction and publish to github pages.
-# zero cost on public repos; uses the free pages + actions allotment on private.
-# serves at https://<owner>.github.io/<repo>/values-auction/.
+# deploy values-auction to cloudflare workers.
 #
-# the app is a vite spa using hash routing, so the static host is enough —
-# real-time sync falls back to BroadcastChannel (same-browser multi-tab).
-# for cross-device sessions, run the ws server locally (see apps/values-auction/README.md).
+# matches the harbour-tail pattern (same account_id as paper-trail,
+# deep-deck, etc.). zero-cost on cloudflare's free tier (1M requests +
+# durable-objects usage included). real-time cross-device sync is handled
+# by the worker's durable object (see apps/values-auction/worker/).
+#
+# one-time setup (per repo):
+#   1. create a cloudflare api token with scope:
+#      - account: workers scripts:edit, workers r2 storage:edit (optional)
+#        at https://dash.cloudflare.com/profile/api-tokens → "Edit workers"
+#   2. add it as a repo secret named CLOUDFLARE_API_TOKEN:
+#      https://github.com/ghandoff/harbour-apps/settings/secrets/actions/new
+#
+# after that, every push that touches apps/values-auction/ auto-deploys.
 
-name: deploy values-auction to github pages
+name: deploy values-auction (cloudflare workers)
 
 on:
   push:
@@ -18,17 +26,12 @@ on:
       - '.github/workflows/deploy-values-auction.yml'
   workflow_dispatch:
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
 concurrency:
-  group: pages-values-auction
+  group: deploy-values-auction
   cancel-in-progress: true
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -50,40 +53,15 @@ jobs:
         working-directory: apps/values-auction
         run: npm test
 
-      - name: build
+      - name: build vite app for /harbour/values-auction
         working-directory: apps/values-auction
         env:
-          # build for the final public URL. the app is proxied from
-          # windedvertigo.com/harbour/values-auction/* by the sibling
-          # `ghandoff/windedvertigo` repo's site rewrites. assets must
-          # reference that path so the proxy catches them on first hit.
           VA_BASE: /harbour/values-auction/
         run: npx vite build
 
-      - name: assemble pages artifact
-        run: |
-          mkdir -p _site/values-auction
-          cp -r apps/values-auction/dist/* _site/values-auction/
-          # landing redirect so the repo root points at the app
-          cat > _site/index.html <<'HTML'
-          <!doctype html>
-          <meta charset="utf-8">
-          <title>harbour-apps</title>
-          <meta http-equiv="refresh" content="0; url=./values-auction/">
-          <link rel="canonical" href="./values-auction/">
-          <p>redirecting to <a href="./values-auction/">values-auction</a>...</p>
-          HTML
-
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: _site
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+      - name: deploy worker
+        working-directory: apps/values-auction
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: 097c92553b268f8360b74f625f6d980a
+        run: npx wrangler deploy

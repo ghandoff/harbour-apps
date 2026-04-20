@@ -20,6 +20,15 @@ export class SocketTransport implements Transport {
 
   private defaultUrl(): string {
     const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+    // production: same-origin WS endpoint at `<base>ws`. the cloudflare
+    // worker upgrades this to a durable object per session code.
+    if ((import.meta as any).env?.PROD) {
+      const base = (import.meta as any).env?.BASE_URL ?? '/';
+      const host = location.host;
+      const path = `${base}ws`.replace(/\/+/g, '/');
+      return `${proto}://${host}${path}`;
+    }
+    // dev: local ws hub on :8787 (see `server/index.ts`).
     return `${proto}://${location.hostname}:8787`;
   }
 

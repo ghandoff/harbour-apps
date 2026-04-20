@@ -3,6 +3,7 @@ dist
 .turbo
 .vite
 .vercel
+.wrangler
 server/events.log
 playwright-report
 test-results

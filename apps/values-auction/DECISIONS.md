@@ -9,6 +9,13 @@ one-line-per-decision log of non-obvious calls made while building the phase 1 m
 - kept the reactive store homegrown (≤100 loc, as specified). no redux, zustand, or pinia.
 - authority model: the facilitator client is authoritative. participants send action *intents*; facilitator reduces and re-broadcasts `state`. this matches the brief's §9 and makes a future supabase transport a drop-in swap.
 
+## hosting
+
+- deploys as a cloudflare worker (`wv-harbour-values-auction`) with a static-assets binding for the vite `dist` and a durable object for session websockets. this is the same pattern paper-trail, deep-deck, and the other harbour-tail apps use (same `account_id`). free tier only.
+- `worker/session-room.ts` is a per-session durable object: it fans out websocket messages and persists the last `state` snapshot in durable storage so late joiners catch up after a cold start.
+- rejected github pages: the sibling `windedvertigo` repo only wants to proxy to `*.workers.dev` or `*.vercel.app` (see `docs/deployment-topology.md`); shoehorning pages in would need an extra hop.
+- rejected vercel: root `CLAUDE.md` forbids new vercel projects without cost analysis ($223 overage incident).
+
 ## transport
 
 - `BroadcastTransport` (default) uses the native `BroadcastChannel` per session id — zero infra, works across tabs on the same machine.

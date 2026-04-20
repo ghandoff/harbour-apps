@@ -1,0 +1,24 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "wv-harbour-values-auction",
+  "main": "worker/index.ts",
+  "account_id": "097c92553b268f8360b74f625f6d980a",
+  "compatibility_date": "2025-04-01",
+  "compatibility_flags": ["nodejs_compat"],
+
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application"
+  },
+
+  "durable_objects": {
+    "bindings": [
+      { "name": "SESSION_ROOM", "class_name": "SessionRoom" }
+    ]
+  },
+
+  "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["SessionRoom"] }
+  ]
+}
