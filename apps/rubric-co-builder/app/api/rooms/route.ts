@@ -1,7 +1,8 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { getStore } from "@/lib/store";
 import { generateRoomCode } from "@/lib/room-code";
 import { SEED_CRITERIA } from "@/lib/types";
+import { generateArtefact } from "@/lib/generate-artefact";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -97,6 +98,29 @@ export async function POST(req: Request) {
       position: i,
     });
   }
+
+  // fire-and-forget: generate a tailored sample artefact in the background.
+  // the class won't hit the calibrate step for ~20 min, so we have time.
+  // if ANTHROPIC_API_KEY is unset, generateArtefact returns null and we
+  // fall back to the stock sample. no error surfaces to the user.
+  after(async () => {
+    try {
+      const generated = await generateArtefact(
+        data.learning_outcome,
+        data.project_description,
+      );
+      if (generated) {
+        await store.setSampleArtefact(
+          room.code,
+          generated.title,
+          generated.content,
+        );
+      }
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error("[rubric-co-builder] artefact generation failed:", err);
+    }
+  });
 
   return NextResponse.json({ code: room.code }, { status: 201 });
 }
