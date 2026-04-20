@@ -1,0 +1,8 @@
+node_modules
+dist
+.turbo
+.vite
+.vercel
+server/events.log
+playwright-report
+test-results

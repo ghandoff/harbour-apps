@@ -1,0 +1,49 @@
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font: var(--type-body);
+  letter-spacing: 0.01em;
+}
+
+:focus-visible,
+*:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+  border-radius: var(--radius-sm);
+}
+
+a {
+  color: var(--fg);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+h1 { font: var(--type-h1); }
+h2 { font: var(--type-h2); }
+h3 { font: var(--type-h2); font-size: 18px; }
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.wv-wordmark {
+  display: inline-block;
+  color: var(--fg);
+  font: var(--type-h2);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  transform: skewX(-8deg);
+  font-style: italic;
+}
+
+@media (prefers-contrast: more) {
+  body { color: #000; }
+}
