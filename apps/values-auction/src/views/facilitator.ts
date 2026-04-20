@@ -14,6 +14,7 @@ import '@/components/credos-stack';
 import '@/components/countdown';
 import '@/components/act-timeline';
 import '@/components/value-card';
+import '@/components/onboarding-flow';
 
 @customElement('va-facilitator')
 export class VaFacilitator extends LitElement {
@@ -25,12 +26,19 @@ export class VaFacilitator extends LitElement {
   @state() private nextValueId: string | null = null;
   @state() private tickNow = Date.now();
   @state() private pendingJump: string | null = null;
+  @state() private onboarded = false;
 
   private unsub?: () => void;
   private ticker: { stop(): void } | null = null;
 
+  private completeOnboarding = () => {
+    localStorage.setItem('va:onboarded:facilitator', '1');
+    this.onboarded = true;
+  };
+
   connectedCallback() {
     super.connectedCallback();
+    this.onboarded = localStorage.getItem('va:onboarded:facilitator') === '1';
     if (this.controller) {
       this.unsub = this.controller.store.subscribe((s) => (this.session = s));
       this.session = this.controller.store.getState();
@@ -255,6 +263,19 @@ export class VaFacilitator extends LitElement {
 
   render() {
     if (!this.session) return html`<p>connecting…</p>`;
+    if (!this.onboarded) {
+      const c = COPY.onboarding.facilitator;
+      return html`
+        <va-onboarding
+          .title=${c.title}
+          .steps=${c.steps as any}
+          .enterLabel=${c.enter}
+          .skipLabel=${c.skip}
+          @va-onboarding-done=${() => this.completeOnboarding()}
+          @va-onboarding-skip=${() => this.completeOnboarding()}
+        ></va-onboarding>
+      `;
+    }
     const s = this.session;
     const currentActDef = ACTS.find((a) => a.id === s.currentAct);
     const participants = s.participants.filter((p) => p.role === 'participant');

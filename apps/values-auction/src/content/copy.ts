@@ -1,7 +1,85 @@
 export const COPY = {
+  landing: {
+    eyebrow: 'a winded.vertigo game',
+    heading: 'values auction',
+    sub: 'a 35-minute live game that makes strategy trade-offs visible. play for what matters.',
+    whatHeading: 'what this is',
+    whatBody: [
+      'participants form teams, each running a fictional startup with 150 credos to spend. twenty value cards go up for live bidding. winners lock in. losses are final.',
+      'there is no theory up front. the auction does the teaching — the room watches its own priorities emerge under scarcity, and has to live with what it bought.',
+    ],
+    whoHeading: 'who it’s for',
+    whoBody: [
+      'faculty and programme leads teaching strategy, leadership, or purpose.',
+      'corporate learning teams running values or culture workshops.',
+      'conference sessions that need a live room activity, not another slide deck.',
+      '15 to 60 participants. 4 to 12 teams. one facilitator. one screen for the wall.',
+    ],
+    arcHeading: 'the 35-minute arc',
+    arcItems: [
+      { name: 'arrival', duration: '3 min', note: 'participants join and settle in.' },
+      { name: 'grouping', duration: '3 min', note: 'archetype sort, teams form.' },
+      { name: 'set the scene', duration: '4 min', note: 'each team meets their startup.' },
+      { name: 'team strategy', duration: '5 min', note: 'must-have, would-be-nice, won’t-fight-for.' },
+      { name: 'auction', duration: '10 min', note: 'live bidding. losses are final.' },
+      { name: 'reflection', duration: '5 min', note: 'four prompts. one purpose statement.' },
+      { name: 'regather', duration: '5 min', note: 'identity cards, debrief, patterns.' },
+    ],
+    joinHeading: 'join a session',
+    joinHint: 'your facilitator will share a code.',
+    joinPlaceholder: 'e.g. VA-3HJK42',
+    joinCta: 'enter session',
+    runHeading: 'run a session',
+    runHint: 'generate a code, share it with the room, go.',
+    runNew: 'start a new session',
+    runDemo: 'open the demo',
+    or: 'or',
+    attribution: 'built by winded.vertigo.',
+  },
+  onboarding: {
+    participant: {
+      title: 'before we begin',
+      steps: [
+        {
+          heading: 'you’re about to play a live game.',
+          body: 'you’ll join a team running a fictional startup. together, you’ll decide what your company stands for — but you’ll have to buy those values at auction against every other team in the room.',
+        },
+        {
+          heading: 'you’ll have 150 credos. one budget. twenty rounds.',
+          body: 'your team agrees upfront which values matter most and sets soft ceilings. the auction will test them. you can’t top up, trade, or save credos between sessions.',
+        },
+        {
+          heading: 'losses are final.',
+          body: 'no refunds, no replays. values you lose are gone; values you buy, you own. the point of the friction is that your company ends up shaped by what you actually fought for — not what you meant to.',
+        },
+      ],
+      enter: 'i’m ready',
+      skip: 'skip intro',
+    },
+    facilitator: {
+      title: 'before you open the room',
+      steps: [
+        {
+          heading: 'what you’ll need.',
+          body: 'block 35-45 minutes. 15 to 60 participants in 4 to 12 teams of roughly 4-5. one screen for the wall view (projector, shared display, or second monitor). a session code to share with the room — the app generates one, or you can use the demo code.',
+        },
+        {
+          heading: 'your seven cues.',
+          body: 'arrival → grouping → set the scene → team strategy → auction → reflection → regather. you advance the room by pressing "next act". the auction is the only act you drive card by card from the deck.',
+        },
+        {
+          heading: 'your controls.',
+          body: 'the timeline lets you jump acts (guarded — it will ask). broadcast pushes one sentence to every participant; use it sparingly. the tools drawer has reset-bid, mute-team, and credos-refund — overrides, logged, but yours if the room needs them.',
+        },
+      ],
+      enter: 'i’m set',
+      skip: 'skip prep',
+    },
+    returnLink: 'show intro again',
+  },
   arrival: {
-    heading: 'welcome. you’re about to play for what matters.',
-    subheading: 'enter your name to join the session.',
+    heading: 'enter your name to join.',
+    subheading: 'your facilitator will start the room when everyone’s in.',
     nameLabel: 'your name',
     joinButton: 'join',
     waitingForFacilitator: 'we’re waiting for the facilitator to start. stretch a little.',

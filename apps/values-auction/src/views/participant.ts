@@ -15,6 +15,7 @@ import '@/components/strategy-board';
 import '@/components/value-card';
 import '@/components/bid-button';
 import '@/components/identity-card';
+import '@/components/onboarding-flow';
 import { getValue } from '@/content/values';
 
 @customElement('va-participant')
@@ -27,12 +28,14 @@ export class VaParticipant extends LitElement {
   @state() private name = '';
   @state() private joined = false;
   @state() private currentPrompt = 0;
+  @state() private onboarded = false;
   private unsub?: () => void;
   private lastBidSeen = 0;
 
   connectedCallback() {
     super.connectedCallback();
     this.participantId = this.restoreOrCreateId();
+    this.onboarded = localStorage.getItem('va:onboarded:participant') === '1';
     this.unsub = this.controller?.store.subscribe((s) => {
       this.session = s;
       this.reactToSession(s);
@@ -44,6 +47,11 @@ export class VaParticipant extends LitElement {
       this.joined = this.session?.participants.some((p) => p.id === this.participantId) ?? false;
     }
   }
+
+  private completeOnboarding = () => {
+    localStorage.setItem('va:onboarded:participant', '1');
+    this.onboarded = true;
+  };
 
   disconnectedCallback() {
     super.disconnectedCallback();
@@ -496,6 +504,19 @@ export class VaParticipant extends LitElement {
 
   render() {
     if (!this.session) return html`<p>loading…</p>`;
+    if (!this.onboarded) {
+      const c = COPY.onboarding.participant;
+      return html`
+        <va-onboarding
+          .title=${c.title}
+          .steps=${c.steps as any}
+          .enterLabel=${c.enter}
+          .skipLabel=${c.skip}
+          @va-onboarding-done=${() => this.completeOnboarding()}
+          @va-onboarding-skip=${() => this.completeOnboarding()}
+        ></va-onboarding>
+      `;
+    }
     const act = this.session.currentAct;
     let body;
     if (act === 'arrival') body = this.renderArrival();
