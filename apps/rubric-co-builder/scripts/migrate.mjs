@@ -1,7 +1,8 @@
 #!/usr/bin/env node
-// runs every migrations/*.sql file against POSTGRES_URL_NON_POOLING using
-// the pg-compatible Pool from @neondatabase/serverless (supports raw multi-
-// statement executes). comments are stripped before splitting on `;`.
+// runs every migrations/*.sql file against POSTGRES_URL_NON_POOLING.
+// uses Pool (pg-compatible) so we can call pool.query() per statement.
+// neon serverless driver only accepts one statement per request, so we split on `;`
+// after stripping sql comments (which can contain semicolons).
 
 import { readFileSync, readdirSync } from "node:fs";
 import { join, dirname } from "node:path";
@@ -32,16 +33,14 @@ const files = readdirSync(migrationsDir)
   .filter((f) => f.endsWith(".sql"))
   .sort();
 
-try {
-  for (const file of files) {
-    const raw = readFileSync(join(migrationsDir, file), "utf8");
-    const statements = stripCommentsAndSplit(raw);
-    console.log(`running ${file} (${statements.length} statements)`);
-    for (const stmt of statements) {
-      await pool.query(stmt);
-    }
+for (const file of files) {
+  const raw = readFileSync(join(migrationsDir, file), "utf8");
+  const statements = stripCommentsAndSplit(raw);
+  console.log(`running ${file} (${statements.length} statements)`);
+  for (const stmt of statements) {
+    await pool.query(stmt);
   }
-  console.log("migrations complete.");
-} finally {
-  await pool.end();
 }
+
+await pool.end();
+console.log("migrations complete.");

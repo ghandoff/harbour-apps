@@ -99,26 +99,17 @@ export async function POST(req: Request) {
     });
   }
 
-  // fire-and-forget: generate a tailored sample artefact in the background.
-  // the class won't hit the calibrate step for ~20 min, so we have time.
-  // if ANTHROPIC_API_KEY is unset, generateArtefact returns null and we
-  // fall back to the stock sample. no error surfaces to the user.
+  // fire-and-forget: generate a sample artefact in the background so the
+  // calibrate step can show something tailored to the teacher's brief.
+  // after() keeps the connection alive past the response without blocking it.
   after(async () => {
     try {
-      const generated = await generateArtefact(
-        data.learning_outcome,
-        data.project_description,
-      );
+      const generated = await generateArtefact(data.learning_outcome, data.project_description);
       if (generated) {
-        await store.setSampleArtefact(
-          room.code,
-          generated.title,
-          generated.content,
-        );
+        await store.setSampleArtefact(room.code, generated.title, generated.content);
       }
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.error("[rubric-co-builder] artefact generation failed:", err);
+    } catch {
+      // non-fatal — calibrate step falls back to the stock sample artefact
     }
   });
 
