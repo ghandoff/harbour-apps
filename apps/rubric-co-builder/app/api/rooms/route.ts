@@ -1,7 +1,8 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { getStore } from "@/lib/store";
 import { generateRoomCode } from "@/lib/room-code";
 import { SEED_CRITERIA } from "@/lib/types";
+import { generateArtefact } from "@/lib/generate-artefact";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -97,6 +98,20 @@ export async function POST(req: Request) {
       position: i,
     });
   }
+
+  // fire-and-forget: generate a sample artefact in the background so the
+  // calibrate step can show something tailored to the teacher's brief.
+  // after() keeps the connection alive past the response without blocking it.
+  after(async () => {
+    try {
+      const generated = await generateArtefact(data.learning_outcome, data.project_description);
+      if (generated) {
+        await store.setSampleArtefact(room.code, generated.title, generated.content);
+      }
+    } catch {
+      // non-fatal — calibrate step falls back to the stock sample artefact
+    }
+  });
 
   return NextResponse.json({ code: room.code }, { status: 201 });
 }
