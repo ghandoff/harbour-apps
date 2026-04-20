@@ -65,6 +65,10 @@ three views of the same session state, all reachable via hash routes:
 
 the facilitator client owns state. participants dispatch *intents* (e.g., "place bid"), the facilitator validates and broadcasts the resulting state. swap the transport to supabase or similar in phase 2 without touching reducers.
 
+## hosted preview
+
+pushed commits to `main` (or the active feature branch) trigger `.github/workflows/deploy-values-auction.yml`, which builds with `VA_BASE=/<repo>/values-auction/` and publishes to github pages. zero cost on public repos. for private repos, uses the free pages + actions allotment. real-time sync on the hosted version falls back to `BroadcastChannel` (same-browser, multi-tab); cross-device sessions still need the local ws server.
+
 ## known limits
 
 - single session; no user auth, no persistence beyond the current browser session

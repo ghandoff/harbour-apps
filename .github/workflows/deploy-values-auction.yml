@@ -1,0 +1,85 @@
+# build values-auction and publish to github pages.
+# zero cost on public repos; uses the free pages + actions allotment on private.
+# serves at https://<owner>.github.io/<repo>/values-auction/.
+#
+# the app is a vite spa using hash routing, so the static host is enough —
+# real-time sync falls back to BroadcastChannel (same-browser multi-tab).
+# for cross-device sessions, run the ws server locally (see apps/values-auction/README.md).
+
+name: deploy values-auction to github pages
+
+on:
+  push:
+    branches:
+      - main
+      - claude/values-auction-mvp-XdDOh
+    paths:
+      - 'apps/values-auction/**'
+      - '.github/workflows/deploy-values-auction.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages-values-auction
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: install dependencies
+        run: npm ci
+
+      - name: typecheck
+        working-directory: apps/values-auction
+        run: npx tsc --noEmit
+
+      - name: unit tests
+        working-directory: apps/values-auction
+        run: npm test
+
+      - name: build
+        working-directory: apps/values-auction
+        env:
+          VA_BASE: /${{ github.event.repository.name }}/values-auction/
+        run: npx vite build
+
+      - name: assemble pages artifact
+        run: |
+          mkdir -p _site/values-auction
+          cp -r apps/values-auction/dist/* _site/values-auction/
+          # landing redirect so the repo root points at the app
+          cat > _site/index.html <<'HTML'
+          <!doctype html>
+          <meta charset="utf-8">
+          <title>harbour-apps</title>
+          <meta http-equiv="refresh" content="0; url=./values-auction/">
+          <link rel="canonical" href="./values-auction/">
+          <p>redirecting to <a href="./values-auction/">values-auction</a>...</p>
+          HTML
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

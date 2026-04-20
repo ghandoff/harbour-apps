@@ -2,6 +2,7 @@ import { LitElement, css, html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { getStartup } from '../content/startups.js';
 import { getValue } from '../content/values.js';
+import { asset } from '../utils/assets.js';
 
 @customElement('va-company-card')
 export class VaCompanyCard extends LitElement {
@@ -63,7 +64,7 @@ export class VaCompanyCard extends LitElement {
     return html`
       <div class="wrap">
         <header>
-          <div class="logo"><img src="/logos/${s.logoKey}.svg" alt="" /></div>
+          <div class="logo"><img src=${asset(`logos/${s.logoKey}.svg`)} alt="" /></div>
           <div>
             <div class="team-label">${this.teamName}</div>
             <h2>${s.name}</h2>

@@ -3,6 +3,7 @@ import { customElement, property, query } from 'lit/decorators.js';
 import { getStartup } from '../content/startups.js';
 import { getValue } from '../content/values.js';
 import { renderIdentityPng } from '../identity-card/render.js';
+import { asset } from '../utils/assets.js';
 
 @customElement('va-identity-card')
 export class VaIdentityCard extends LitElement {
@@ -86,7 +87,7 @@ export class VaIdentityCard extends LitElement {
       <div class="frame">
         <div class="card" role="img" aria-label="company identity card for ${s?.name ?? 'your company'}">
           <header>
-            <div class="logo"><img src="/logos/${s?.logoKey ?? 'ethos'}.svg" alt="" /></div>
+            <div class="logo"><img src=${asset(`logos/${s?.logoKey ?? 'ethos'}.svg`)} alt="" /></div>
             <div>
               <div class="team">${this.teamName}</div>
               <h3>${s?.name}</h3>
