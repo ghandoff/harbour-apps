@@ -1,0 +1,8 @@
+dist/
+node_modules/
+.vite/
+server/events.log
+coverage/
+.DS_Store
+playwright-report/
+test-results/
