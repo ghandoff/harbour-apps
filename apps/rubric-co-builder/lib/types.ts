@@ -24,6 +24,9 @@ export type Room = {
   state: RoomState;
   step_started_at: string;
   created_at: string;
+  facilitator_nudge: string | null;
+  sample_artefact_title: string | null;
+  sample_artefact_content: string | null;
 };
 
 export type Criterion = {

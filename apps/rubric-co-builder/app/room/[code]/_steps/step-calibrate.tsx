@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { CalibrationScore, Criterion, Scale } from "@/lib/types";
+import type { CalibrationScore, Criterion, Room, Scale } from "@/lib/types";
 import { SCALE_LEVELS } from "@/lib/types";
 import { apiPath } from "@/lib/paths";
 import {
@@ -11,6 +11,7 @@ import {
 
 type Props = {
   code: string;
+  room: Room;
   criteria: Criterion[];
   scales: Scale[];
   scores: CalibrationScore[];
@@ -32,7 +33,7 @@ function convergence(distribution: Map<number, number>, total: number): Converge
   return "divergent";
 }
 
-export function StepCalibrate({ code, criteria, scales, scores, participantId }: Props) {
+export function StepCalibrate({ code, room, criteria, scales, scores, participantId }: Props) {
   const selected = useMemo(
     () =>
       criteria
@@ -40,6 +41,10 @@ export function StepCalibrate({ code, criteria, scales, scores, participantId }:
         .sort((a, b) => a.position - b.position),
     [criteria],
   );
+  // prefer per-room generated artefact; fall back to the stock student-consulting
+  // proposal so older rooms still work. the stock one is intentionally uneven.
+  const artefactTitle = room.sample_artefact_title ?? SAMPLE_ARTEFACT_TITLE;
+  const artefactContent = room.sample_artefact_content ?? SAMPLE_ARTEFACT_CONTENT;
 
   async function score(criterionId: string, level: 1 | 2 | 3 | 4) {
     if (!participantId) return;
@@ -56,9 +61,9 @@ export function StepCalibrate({ code, criteria, scales, scores, participantId }:
         <p className="text-xs tracking-widest text-[color:var(--color-cadet)]/70">
           sample artefact
         </p>
-        <h1 className="text-2xl font-bold">{SAMPLE_ARTEFACT_TITLE}</h1>
+        <h1 className="text-2xl font-bold">{artefactTitle}</h1>
         <div className="rounded-lg bg-white border border-[color:var(--color-cadet)]/15 p-5 max-h-[70vh] overflow-y-auto prose-artefact">
-          {SAMPLE_ARTEFACT_CONTENT.split("\n\n").map((para, i) => {
+          {artefactContent.split("\n\n").map((para, i) => {
             if (para.startsWith("## ")) {
               return (
                 <h3 key={i} className="text-base font-bold text-[color:var(--color-cadet)] mt-4 first:mt-0">

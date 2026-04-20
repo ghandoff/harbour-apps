@@ -4,7 +4,11 @@ import { useMemo } from "react";
 import type { Criterion, Vote } from "@/lib/types";
 import { apiPath } from "@/lib/paths";
 
-const MAX_VOTES = 3;
+// must match the server: 2 crit → 1 dot, 3 → 2, 4+ → 3.
+function maxVotesFor(criteriaOnBallot: number): number {
+  if (criteriaOnBallot <= 1) return 1;
+  return Math.min(3, Math.max(1, criteriaOnBallot - 1));
+}
 
 type Props = {
   code: string;
@@ -21,12 +25,14 @@ export function StepVote({
   participantId,
   participantsCount,
 }: Props) {
+  const maxVotes = maxVotesFor(criteria.length);
+
   const myVotes = useMemo(
     () => (participantId ? votes.filter((v) => v.participant_id === participantId) : []),
     [votes, participantId],
   );
   const myCast = new Set(myVotes.map((v) => v.criterion_id));
-  const dotsLeft = MAX_VOTES - myVotes.length;
+  const dotsLeft = Math.max(0, maxVotes - myVotes.length);
 
   const counts = useMemo(() => {
     const m = new Map<string, number>();
@@ -34,7 +40,7 @@ export function StepVote({
     return m;
   }, [votes]);
 
-  const totalPossible = Math.max(1, participantsCount * MAX_VOTES);
+  const totalPossible = Math.max(1, participantsCount * maxVotes);
   const threshold = Math.max(1, Math.ceil(totalPossible * 0.3));
 
   async function toggle(criterion: Criterion) {
@@ -63,11 +69,14 @@ export function StepVote({
   return (
     <div className="space-y-8">
       <header className="max-w-3xl space-y-3">
-        <h1 className="text-3xl font-bold">which three matter most?</h1>
+        <h1 className="text-3xl font-bold">
+          which {maxVotes === 1 ? "one" : maxVotes === 2 ? "two" : "three"} matter{maxVotes === 1 ? "s" : ""} most?
+        </h1>
         <p className="text-[color:var(--color-cadet)]/85 leading-relaxed">
-          you have <strong>three dots</strong>. drop them on the criteria that should
-          end up on the rubric. tap a card to add a dot, tap again to take it back.
-          required criteria are locked in regardless of the vote.
+          you have <strong>{maxVotes} dot{maxVotes === 1 ? "" : "s"}</strong>. drop{" "}
+          {maxVotes === 1 ? "it" : "them"} on the criteria that should end up on the
+          rubric. tap a card to add a dot, tap again to take it back. required
+          criteria are locked in regardless of the vote.
         </p>
         {participantId ? (
           <p className="text-sm">

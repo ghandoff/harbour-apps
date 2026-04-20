@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import { useRoom } from "@/lib/use-room";
 import { Wordmark } from "@/app/_components/wordmark";
 import { apiPath } from "@/lib/paths";
@@ -22,6 +23,8 @@ import { StepCalibrate } from "../_steps/step-calibrate";
 import { StepAiLadder } from "../_steps/step-ai-ladder";
 import { StepPledge } from "../_steps/step-pledge";
 import { StepCommit } from "../_steps/step-commit";
+import { JoinQR } from "@/app/_components/join-qr";
+import { FacilitatorNudgeEditor } from "@/app/_components/nudge";
 
 const STATE_ORDER: RoomState[] = [
   "lobby",
@@ -108,6 +111,8 @@ export function HostRoom({ code }: { code: string }) {
           onAiTally={aiTally}
         />
 
+        <FacilitatorNudgeEditor code={code} currentNudge={room.facilitator_nudge} />
+
         <div className="pointer-events-none opacity-95">
           <HostBody
             code={code}
@@ -136,13 +141,35 @@ function HostControls({
   code: string;
   current: RoomState;
   onAdvance: (s: RoomState) => void;
-  onTally: () => void;
-  onAiTally: () => void;
+  onTally: () => Promise<void>;
+  onAiTally: () => Promise<void>;
 }) {
+  const [pending, setPending] = useState<string | null>(null);
+  // clear pending when the server-reported state matches the action's target.
+  // the parent re-renders on poll; this effect notices the transition.
+  const lastCurrent = useRef(current);
+  useEffect(() => {
+    if (lastCurrent.current !== current) {
+      setPending(null);
+      lastCurrent.current = current;
+    }
+  }, [current]);
+
   const next = (() => {
     const i = STATE_ORDER.indexOf(current);
     return i < STATE_ORDER.length - 1 ? STATE_ORDER[i + 1] : null;
   })();
+
+  async function wrap(action: () => Promise<void>, label: string) {
+    setPending(label);
+    try {
+      await action();
+    } finally {
+      // keep it pending for a moment; the effect clears on state change.
+      // if the state doesn't change within 3s, give up and re-enable.
+      setTimeout(() => setPending((p) => (p === label ? null : p)), 3000);
+    }
+  }
 
   return (
     <div className="rounded-lg bg-[color:var(--color-cadet)] text-white p-4 pointer-events-auto">
@@ -154,24 +181,31 @@ function HostControls({
         <div className="flex flex-wrap gap-2 items-center">
           {current === "vote" ? (
             <button
-              onClick={onTally}
-              className="bg-[color:var(--color-sienna)] text-white px-4 py-2 rounded text-sm font-medium hover:opacity-90"
+              onClick={() => wrap(onTally, "tally")}
+              disabled={pending !== null}
+              className="bg-[color:var(--color-sienna)] text-white px-4 py-2 rounded text-sm font-medium hover:opacity-90 disabled:opacity-60 disabled:cursor-wait"
             >
-              tally &amp; move to scale
+              {pending === "tally" ? "tallying…" : "tally & move to scale"}
             </button>
           ) : current === "ai_ladder" ? (
             <button
-              onClick={onAiTally}
-              className="bg-[color:var(--color-sienna)] text-white px-4 py-2 rounded text-sm font-medium hover:opacity-90"
+              onClick={() => wrap(onAiTally, "ai-tally")}
+              disabled={pending !== null}
+              className="bg-[color:var(--color-sienna)] text-white px-4 py-2 rounded text-sm font-medium hover:opacity-90 disabled:opacity-60 disabled:cursor-wait"
             >
-              lock ceiling &amp; move to pledge
+              {pending === "ai-tally" ? "locking ceiling…" : "lock ceiling & move to pledge"}
             </button>
           ) : next ? (
             <button
-              onClick={() => onAdvance(next)}
-              className="bg-white text-[color:var(--color-cadet)] px-4 py-2 rounded text-sm font-medium hover:opacity-90"
+              onClick={async () => {
+                setPending("advance");
+                onAdvance(next);
+                setTimeout(() => setPending((p) => (p === "advance" ? null : p)), 3000);
+              }}
+              disabled={pending !== null}
+              className="bg-white text-[color:var(--color-cadet)] px-4 py-2 rounded text-sm font-medium hover:opacity-90 disabled:opacity-60 disabled:cursor-wait"
             >
-              move to {next.replace("_", " ")} →
+              {pending === "advance" ? "moving…" : `move to ${next.replace("_", " ")} →`}
             </button>
           ) : null}
           <div className="flex items-center gap-1 text-xs flex-wrap">
@@ -221,12 +255,13 @@ function HostBody({
   switch (room.state) {
     case "lobby":
       return (
-        <div className="flex flex-col items-center text-center gap-3 py-10">
+        <div className="flex flex-col items-center text-center gap-5 py-10">
           <h2 className="text-2xl font-bold">share the join link.</h2>
-          <p className="text-[color:var(--color-cadet)]/80">
-            students visit{" "}
-            <span className="font-mono">/room/{room.code}/join</span> or scan the code on the screen.
+          <p className="text-[color:var(--color-cadet)]/80 max-w-md">
+            students scan the code below, or visit{" "}
+            <span className="font-mono text-sm">/room/{room.code}/join</span> directly.
           </p>
+          <JoinQR code={room.code} size={200} />
           <p className="text-sm text-[color:var(--color-cadet)]/70">
             {participants_count} in the room so far.
           </p>
@@ -252,6 +287,7 @@ function HostBody({
       return (
         <StepCalibrate
           code={code}
+          room={room}
           criteria={criteria}
           scales={scales}
           scores={calibration_scores}

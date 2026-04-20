@@ -12,7 +12,10 @@ import { StepCalibrate } from "./_steps/step-calibrate";
 import { StepAiLadder } from "./_steps/step-ai-ladder";
 import { StepPledge } from "./_steps/step-pledge";
 import { StepCommit } from "./_steps/step-commit";
+import { GuidingQuestions } from "./_steps/guiding-questions";
 import { Wordmark } from "@/app/_components/wordmark";
+import { FacilitatorNudgeBanner } from "@/app/_components/nudge";
+import type { RoomState } from "@/lib/types";
 
 export function StudentRoom({ code }: { code: string }) {
   const state = useRoom(code);
@@ -64,15 +67,12 @@ export function StudentRoom({ code }: { code: string }) {
   } = snapshot;
 
   const canEdit = participantId !== null;
+  const nudge = <FacilitatorNudgeBanner text={room.facilitator_nudge} />;
+  const guide = <GuidingQuestions state={room.state as RoomState} />;
 
-  if (room.state === "lobby") {
-    return (
-      <StepShell
-        state={room.state}
-        role="student"
-        participantsCount={participants_count}
-        surface="champagne"
-      >
+  const body = (() => {
+    if (room.state === "lobby") {
+      return (
         <div className="flex flex-col items-center justify-center text-center gap-4 min-h-[50vh]">
           <h1 className="text-3xl sm:text-4xl font-bold">you&apos;re in.</h1>
           <p className="text-[color:var(--color-cadet)]/80 max-w-md">
@@ -82,35 +82,15 @@ export function StudentRoom({ code }: { code: string }) {
             room · {room.code}
           </p>
         </div>
-      </StepShell>
-    );
-  }
-
-  if (room.state === "frame") {
-    return (
-      <StepShell
-        state={room.state}
-        role="student"
-        participantsCount={participants_count}
-        surface="champagne"
-      >
-        <StepFrame room={room} />
-      </StepShell>
-    );
-  }
-
-  if (room.state === "propose") {
-    return (
-      <StepShell state={room.state} role="student" participantsCount={participants_count}>
-        <StepPropose code={code} criteria={criteria} canEdit={canEdit} />
-      </StepShell>
-    );
-  }
-
-  if (room.state === "vote") {
-    const ballot = criteria.filter((c) => c.status !== "rejected");
-    return (
-      <StepShell state={room.state} role="student" participantsCount={participants_count}>
+      );
+    }
+    if (room.state === "frame") return <StepFrame room={room} />;
+    if (room.state === "propose") {
+      return <StepPropose code={code} criteria={criteria} canEdit={canEdit} />;
+    }
+    if (room.state === "vote") {
+      const ballot = criteria.filter((c) => c.status !== "rejected");
+      return (
         <StepVote
           code={code}
           criteria={ballot}
@@ -118,60 +98,39 @@ export function StudentRoom({ code }: { code: string }) {
           participantId={participantId}
           participantsCount={participants_count}
         />
-      </StepShell>
-    );
-  }
-
-  if (room.state === "scale") {
-    return (
-      <StepShell state={room.state} role="student" participantsCount={participants_count}>
-        <StepScale code={code} criteria={criteria} scales={scales} canEdit={canEdit} />
-      </StepShell>
-    );
-  }
-
-  if (room.state === "calibrate") {
-    return (
-      <StepShell state={room.state} role="student" participantsCount={participants_count}>
+      );
+    }
+    if (room.state === "scale") {
+      return <StepScale code={code} criteria={criteria} scales={scales} canEdit={canEdit} />;
+    }
+    if (room.state === "calibrate") {
+      return (
         <StepCalibrate
           code={code}
+          room={room}
           criteria={criteria}
           scales={scales}
           scores={calibration_scores}
           participantId={participantId}
         />
-      </StepShell>
-    );
-  }
-
-  if (room.state === "ai_ladder") {
-    return (
-      <StepShell state={room.state} role="student" participantsCount={participants_count}>
+      );
+    }
+    if (room.state === "ai_ladder") {
+      return (
         <StepAiLadder
           code={code}
           votes={ai_use_votes}
           participantId={participantId}
           participantsCount={participants_count}
         />
-      </StepShell>
-    );
-  }
-
-  if (room.state === "pledge") {
-    return (
-      <StepShell state={room.state} role="student" participantsCount={participants_count}>
+      );
+    }
+    if (room.state === "pledge") {
+      return (
         <StepPledge code={code} slots={pledge_slots} votes={ai_use_votes} canEdit={canEdit} />
-      </StepShell>
-    );
-  }
-
-  return (
-    <StepShell
-      state="commit"
-      role="student"
-      participantsCount={participants_count}
-      surface="champagne"
-    >
+      );
+    }
+    return (
       <StepCommit
         room={room}
         criteria={criteria}
@@ -179,6 +138,26 @@ export function StudentRoom({ code }: { code: string }) {
         votes={ai_use_votes}
         slots={pledge_slots}
       />
+    );
+  })();
+
+  const surface =
+    room.state === "lobby" ||
+    room.state === "frame" ||
+    room.state === "commit"
+      ? "champagne"
+      : undefined;
+
+  return (
+    <StepShell
+      state={room.state as RoomState}
+      role="student"
+      participantsCount={participants_count}
+      surface={surface}
+    >
+      {nudge}
+      {guide}
+      {body}
     </StepShell>
   );
 }

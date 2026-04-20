@@ -5,7 +5,12 @@ import { isValidRoomCode } from "@/lib/room-code";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const MAX_VOTES = 3;
+// dot budget scales to the size of the ballot so small rooms aren't forced to vote
+// for everything. at 2 criteria → 1 dot; 3 → 2 dots; 4+ → 3 dots.
+function maxVotesFor(criteriaOnBallot: number): number {
+  if (criteriaOnBallot <= 1) return 1;
+  return Math.min(3, Math.max(1, criteriaOnBallot - 1));
+}
 
 export async function POST(
   req: Request,
@@ -34,10 +39,14 @@ export async function POST(
   if (!snapshot) {
     return NextResponse.json({ error: "room not found" }, { status: 404 });
   }
+  const ballotSize = snapshot.criteria.filter((c) => c.status !== "rejected").length;
+  const maxVotes = maxVotesFor(ballotSize);
   const count = await store.countVotesForParticipant(participantId, snapshot.room.id);
-  if (count >= MAX_VOTES) {
+  if (count >= maxVotes) {
     return NextResponse.json(
-      { error: `you've used all ${MAX_VOTES} dots. remove one first.` },
+      {
+        error: `you've used all ${maxVotes} dot${maxVotes === 1 ? "" : "s"}. remove one first.`,
+      },
       { status: 409 },
     );
   }

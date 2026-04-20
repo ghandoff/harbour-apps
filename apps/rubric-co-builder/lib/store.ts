@@ -86,6 +86,14 @@ export type Store = {
     slotIndex: PledgeSlotIndex,
     content: string,
   ): Promise<PledgeSlot | null>;
+
+  setFacilitatorNudge(code: string, text: string | null): Promise<Room | null>;
+
+  setSampleArtefact(
+    code: string,
+    title: string,
+    content: string,
+  ): Promise<Room | null>;
 };
 
 function uuid(): string {
@@ -149,6 +157,9 @@ function memoryStore(): Store {
         state: "lobby",
         step_started_at: now,
         created_at: now,
+        facilitator_nudge: null,
+        sample_artefact_title: null,
+        sample_artefact_content: null,
       };
       db.rooms.set(room.id, room);
       // pre-seed the four pledge slots
@@ -485,6 +496,26 @@ function memoryStore(): Store {
       db.pledgeSlots.set(key, slot);
       return slot;
     },
+
+    async setFacilitatorNudge(code, text) {
+      const room = findByCode(code);
+      if (!room) return null;
+      const updated: Room = { ...room, facilitator_nudge: text };
+      db.rooms.set(updated.id, updated);
+      return updated;
+    },
+
+    async setSampleArtefact(code, title, content) {
+      const room = findByCode(code);
+      if (!room) return null;
+      const updated: Room = {
+        ...room,
+        sample_artefact_title: title,
+        sample_artefact_content: content,
+      };
+      db.rooms.set(updated.id, updated);
+      return updated;
+    },
   };
 }
 
@@ -506,7 +537,8 @@ function neonStore(url: string): Store {
         insert into rubric_cobuilder.rooms (code, learning_outcome, project_description)
         values (${input.code}, ${input.learning_outcome}, ${input.project_description})
         returning id, code, learning_outcome, project_description, state,
-                  step_started_at, created_at
+                  step_started_at, created_at,
+                  facilitator_nudge, sample_artefact_title, sample_artefact_content
       `;
       // pre-seed pledge slots
       for (const slot of PLEDGE_SLOTS) {
@@ -559,7 +591,8 @@ function neonStore(url: string): Store {
     async getSnapshot(code) {
       const rooms = await sql`
         select id, code, learning_outcome, project_description, state,
-               step_started_at, created_at
+               step_started_at, created_at,
+               facilitator_nudge, sample_artefact_title, sample_artefact_content
         from rubric_cobuilder.rooms
         where code = ${code}
         limit 1
@@ -626,7 +659,8 @@ function neonStore(url: string): Store {
         set state = ${state}, step_started_at = now()
         where code = ${code}
         returning id, code, learning_outcome, project_description, state,
-                  step_started_at, created_at
+                  step_started_at, created_at,
+                  facilitator_nudge, sample_artefact_title, sample_artefact_content
       `;
       return (rows[0] as Room | undefined) ?? null;
     },
@@ -857,6 +891,30 @@ function neonStore(url: string): Store {
         returning id, room_id, slot_index, content, updated_at
       `;
       return row as PledgeSlot;
+    },
+
+    async setFacilitatorNudge(code, text) {
+      const rows = await sql`
+        update rubric_cobuilder.rooms
+        set facilitator_nudge = ${text}
+        where code = ${code}
+        returning id, code, learning_outcome, project_description, state,
+                  step_started_at, created_at,
+                  facilitator_nudge, sample_artefact_title, sample_artefact_content
+      `;
+      return (rows[0] as Room | undefined) ?? null;
+    },
+
+    async setSampleArtefact(code, title, content) {
+      const rows = await sql`
+        update rubric_cobuilder.rooms
+        set sample_artefact_title = ${title}, sample_artefact_content = ${content}
+        where code = ${code}
+        returning id, code, learning_outcome, project_description, state,
+                  step_started_at, created_at,
+                  facilitator_nudge, sample_artefact_title, sample_artefact_content
+      `;
+      return (rows[0] as Room | undefined) ?? null;
     },
   };
 }
