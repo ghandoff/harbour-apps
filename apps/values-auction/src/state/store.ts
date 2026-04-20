@@ -66,7 +66,12 @@ export class Store {
       return;
     }
     if (msg.type === 'action' && this.authoritative) {
-      const next = reduce(this.state, msg.payload as Action);
+      const action = msg.payload as { type: string };
+      if (action.type === 'syncRequest') {
+        this.transport?.send({ type: 'state', payload: this.state, at: Date.now(), sender: this.senderId });
+        return;
+      }
+      const next = reduce(this.state, action as Action);
       this.setState(next);
       this.transport?.send({ type: 'state', payload: next, at: Date.now(), sender: this.senderId });
     }

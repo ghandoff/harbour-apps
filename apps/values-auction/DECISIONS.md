@@ -19,8 +19,9 @@ one-line-per-decision log of non-obvious calls made while building the phase 1 m
 ## grouping algorithm
 
 - the brief left the exact team-assignment rule open (see maria's note).
-- mvp behaviour: "the facilitator clicks auto-assign. participants are sorted by archetype then round-robined into `N` teams of 3–5, capped at 8 teams (the number of startup profiles). each team is assigned the next startup profile in order." deterministic given a fixed participant list; no randomness.
-- if a session has more than 40 participants the last team gets slightly more than 5 members. flagged as a known edge case; facilitator can override via the broadcast + override tools.
+- mvp behaviour: team count = `clamp(ceil(n/4), 1, 8)` (target 4 people per team, max 8 teams = 8 startup profiles). participants are ordered by archetype (rebel → diplomat → builder → steward → undeclared) then round-robined into buckets. each bucket gets the next startup in the `STARTUPS` list. deterministic; no randomness.
+- result: every team gets a mix of archetypes rather than clumping rebels together. this is deliberate — the pedagogy rewards intra-team strategic tension, and you get that by spreading the rebels across teams.
+- if a session has more than 32 participants the last team gets 5+ members. flagged as a known edge case; facilitator can override via the broadcast + override tools.
 
 ## auction rules (implicit in the reducer)
 

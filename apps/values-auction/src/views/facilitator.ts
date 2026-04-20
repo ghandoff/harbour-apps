@@ -131,12 +131,22 @@ export class VaFacilitator extends LitElement {
   }
 
   private autoAssignTeams() {
-    const archetypes = this.state.participants.filter((p) => p.archetype);
-    if (archetypes.length === 0) return;
-    const perTeam = Math.max(1, Math.min(5, Math.ceil(archetypes.length / Math.min(8, Math.ceil(archetypes.length / 3)))));
-    const teamCount = Math.min(8, Math.ceil(archetypes.length / perTeam));
+    const all = this.state.participants;
+    if (all.length === 0) return;
+    // target team size = 4. team count = clamp(ceil(n/4), 1, 8).
+    const teamCount = Math.max(1, Math.min(8, Math.ceil(all.length / 4)));
+    // group by archetype so teams inherit a strategy bias; then round-robin across teams.
+    const byArch: Record<string, string[]> = { builder: [], diplomat: [], rebel: [], steward: [], none: [] };
+    for (const p of all) byArch[p.archetype ?? 'none'].push(p.id);
+    const ordered: string[] = [
+      ...byArch.rebel,
+      ...byArch.diplomat,
+      ...byArch.builder,
+      ...byArch.steward,
+      ...byArch.none,
+    ];
     const buckets: string[][] = Array.from({ length: teamCount }, () => []);
-    archetypes.forEach((p, i) => buckets[i % teamCount].push(p.id));
+    ordered.forEach((pid, i) => buckets[i % teamCount].push(pid));
     const assignments = buckets.map((ids, i) => ({
       teamId: `team-${shortId()}`,
       name: teamNameFor(teamColour(i)),

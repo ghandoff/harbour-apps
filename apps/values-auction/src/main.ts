@@ -38,24 +38,31 @@ async function main() {
   let store: Store | undefined;
   let currentCode = '';
   let currentPath: 'join' | 'facilitate' | 'wall' = 'join';
+  let mountedEl: HTMLElement | null = null;
+  let mountedPath: 'join' | 'facilitate' | 'wall' | null = null;
 
-  const mount = (path: 'join' | 'facilitate' | 'wall', code: string, state: Session) => {
+  const ensureMount = (path: 'join' | 'facilitate' | 'wall', code: string) => {
+    if (mountedPath === path && mountedEl) return mountedEl;
     app.innerHTML = '';
     let el: HTMLElement;
-    if (path === 'facilitate') {
-      el = document.createElement('va-facilitator');
-    } else if (path === 'wall') {
-      el = document.createElement('va-wall');
-    } else {
-      el = document.createElement('va-participant');
-    }
-    (el as any).state = state;
+    if (path === 'facilitate') el = document.createElement('va-facilitator');
+    else if (path === 'wall') el = document.createElement('va-wall');
+    else el = document.createElement('va-participant');
     (el as any).sessionCode = code;
     app.appendChild(el);
     el.addEventListener('va-action', (e) => {
       const action = (e as CustomEvent).detail as Action;
       store?.dispatch(action);
     });
+    mountedEl = el;
+    mountedPath = path;
+    return el;
+  };
+
+  const update = (state: Session) => {
+    const el = ensureMount(currentPath, currentCode);
+    (el as any).state = state;
+    (el as any).sessionCode = currentCode;
   };
 
   const announceLastEvent = (prev: Session | undefined, next: Session) => {
@@ -68,16 +75,29 @@ async function main() {
     if (last.type === 'valueLocked') {
       announce('locked in.', 'assertive');
     }
+    if (last.type === 'facilitatorBroadcast') {
+      announce(`broadcast: ${(last.payload as any).message}`, 'polite');
+    }
+  };
+
+  const teardownMount = () => {
+    app.innerHTML = '';
+    mountedEl = null;
+    mountedPath = null;
   };
 
   const setup = async (path: 'join' | 'facilitate' | 'wall', code: string) => {
     const sameSession = code === currentCode && currentTransport;
     if (sameSession) {
-      currentPath = path;
-      mount(path, code, store!.getState());
+      if (path !== currentPath) {
+        teardownMount();
+        currentPath = path;
+        update(store!.getState());
+      }
       return;
     }
     if (currentTransport) currentTransport.disconnect();
+    teardownMount();
     currentCode = code;
     currentPath = path;
 
@@ -87,7 +107,7 @@ async function main() {
 
     let prev: Session | undefined;
     store.subscribe((s) => {
-      mount(currentPath, code, s);
+      update(s);
       announceLastEvent(prev, s);
       prev = s;
     });
@@ -97,10 +117,10 @@ async function main() {
     store.attachTransport(currentTransport);
 
     if (!authoritative) {
-      // ask the facilitator for a full state snapshot
+      // ask for a state snapshot. the facilitator listens for sync-request and replies with state.
       currentTransport.send({
         type: 'action',
-        payload: { type: 'noop', at: Date.now() } as any,
+        payload: { type: 'syncRequest', at: Date.now() } as any,
         at: Date.now(),
         sender: senderId,
       });
@@ -113,15 +133,16 @@ async function main() {
   subscribeRoute(({ path, code }) => {
     setup(path, code).catch((err) => {
       console.error('transport connect failed', err);
-      // still mount with local-only store
       if (!store) {
-        store = new Store(initialSession(code, senderId, Date.now()), { senderId, authoritative: path === 'facilitate' });
-        store.subscribe((s) => mount(path, code, s));
+        store = new Store(initialSession(code, senderId, Date.now()), {
+          senderId,
+          authoritative: path === 'facilitate',
+        });
+        store.subscribe((s) => update(s));
       }
     });
   });
 
-  // log urls once
   setTimeout(() => {
     const base = `${location.origin}${location.pathname}`;
     console.info('%cvalues auction', 'font-weight:700; color:#273248');
