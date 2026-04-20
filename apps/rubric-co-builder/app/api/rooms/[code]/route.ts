@@ -1,0 +1,65 @@
+import { NextResponse } from "next/server";
+import { getStore } from "@/lib/store";
+import { isValidRoomCode } from "@/lib/room-code";
+import type { RoomState } from "@/lib/types";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+const VALID_STATES: RoomState[] = [
+  "lobby",
+  "frame",
+  "propose",
+  "vote",
+  "scale",
+  "calibrate",
+  "ai_ladder",
+  "pledge",
+  "commit",
+];
+
+export async function GET(
+  _req: Request,
+  { params }: { params: Promise<{ code: string }> },
+) {
+  const { code } = await params;
+  const normalised = code.toUpperCase();
+  if (!isValidRoomCode(normalised)) {
+    return NextResponse.json({ error: "invalid code" }, { status: 400 });
+  }
+
+  const snapshot = await getStore().getSnapshot(normalised);
+  if (!snapshot) {
+    return NextResponse.json({ error: "room not found" }, { status: 404 });
+  }
+  return NextResponse.json(snapshot);
+}
+
+export async function PATCH(
+  req: Request,
+  { params }: { params: Promise<{ code: string }> },
+) {
+  const { code } = await params;
+  const normalised = code.toUpperCase();
+  if (!isValidRoomCode(normalised)) {
+    return NextResponse.json({ error: "invalid code" }, { status: 400 });
+  }
+
+  let body: unknown;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "invalid json body" }, { status: 400 });
+  }
+
+  const { state } = (body ?? {}) as { state?: string };
+  if (!state || !VALID_STATES.includes(state as RoomState)) {
+    return NextResponse.json({ error: "invalid state" }, { status: 400 });
+  }
+
+  const updated = await getStore().updateRoomState(normalised, state as RoomState);
+  if (!updated) {
+    return NextResponse.json({ error: "room not found" }, { status: 404 });
+  }
+  return NextResponse.json({ code: updated.code, state: updated.state });
+}
