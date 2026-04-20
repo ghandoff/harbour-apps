@@ -53,7 +53,11 @@ jobs:
       - name: build
         working-directory: apps/values-auction
         env:
-          VA_BASE: /${{ github.event.repository.name }}/values-auction/
+          # build for the final public URL. the app is proxied from
+          # windedvertigo.com/harbour/values-auction/* by the sibling
+          # `ghandoff/windedvertigo` repo's site rewrites. assets must
+          # reference that path so the proxy catches them on first hit.
+          VA_BASE: /harbour/values-auction/
         run: npx vite build
 
       - name: assemble pages artifact
