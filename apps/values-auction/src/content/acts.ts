@@ -87,3 +87,14 @@ export function nextAct(id: ActId): ActId | null {
   const next = ACTS[current.index + 1];
   return next ? next.id : null;
 }
+
+export function actPosition(id: ActId): { index: number; total: number; current: ActDefinition; next?: ActDefinition } {
+  const current = getAct(id);
+  const next = ACTS[current.index + 1];
+  return {
+    index: current.index + 1,
+    total: ACTS.length,
+    current,
+    next,
+  };
+}

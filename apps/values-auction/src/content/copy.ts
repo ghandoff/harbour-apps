@@ -7,6 +7,13 @@ export const COPY = {
     waitingForFacilitator: 'we’re waiting for the facilitator to start. stretch a little.',
     codeLabel: 'session code',
   },
+  timeline: {
+    status: (index: number, total: number, name: string) =>
+      `act ${index} of ${total} · ${name}`,
+    next: (name: string) => `next: ${name}`,
+    lastAct: 'final act',
+    entering: (name: string) => `entering: ${name}`,
+  },
   grouping: {
     heading: 'pick the strategy archetype that feels least like you.',
     options: [

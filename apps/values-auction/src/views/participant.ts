@@ -1,8 +1,9 @@
 import { LitElement, css, html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import type { Controller } from '@/state/controller';
-import type { Session, Team } from '@/state/types';
+import type { ActId, Session, Team } from '@/state/types';
 import { COPY } from '@/content/copy';
+import { actPosition } from '@/content/acts';
 import { teamForParticipant } from '@/state/selectors';
 import { uid } from '@/utils/id';
 import { announce } from '@/utils/a11y';
@@ -28,8 +29,11 @@ export class VaParticipant extends LitElement {
   @state() private joined = false;
   @state() private welcomed = false;
   @state() private currentPrompt = 0;
+  @state() private enteringActName?: string;
   private unsub?: () => void;
   private lastBidSeen = 0;
+  private lastAct?: ActId;
+  private enteringTimer?: number;
 
   connectedCallback() {
     super.connectedCallback();
@@ -49,6 +53,7 @@ export class VaParticipant extends LitElement {
   disconnectedCallback() {
     super.disconnectedCallback();
     this.unsub?.();
+    if (this.enteringTimer) window.clearTimeout(this.enteringTimer);
   }
 
   private restoreOrCreateId(): string {
@@ -67,6 +72,17 @@ export class VaParticipant extends LitElement {
       const team = s.teams.find((t) => t.id === auction.highBid?.teamId);
       if (team) announce(`high bid: ${auction.highBid.amount} credos, ${team.name}.`, 'assertive');
     }
+    if (this.lastAct && this.lastAct !== s.currentAct) {
+      const { current } = actPosition(s.currentAct);
+      this.enteringActName = current.name;
+      announce(COPY.timeline.entering(current.name), 'polite');
+      if (this.enteringTimer) window.clearTimeout(this.enteringTimer);
+      this.enteringTimer = window.setTimeout(() => {
+        this.enteringActName = undefined;
+        this.enteringTimer = undefined;
+      }, 3000);
+    }
+    this.lastAct = s.currentAct;
   }
 
   private get team(): Team | undefined {
@@ -299,6 +315,52 @@ export class VaParticipant extends LitElement {
     }
     va-countdown {
       display: inline-block;
+    }
+    .chrome {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: var(--space-4);
+      padding: var(--space-2) 0 var(--space-3);
+      margin-bottom: var(--space-5);
+      border-bottom: 1px solid rgba(39, 50, 72, 0.12);
+      font: var(--type-small);
+      color: var(--fg-muted);
+      flex-wrap: wrap;
+    }
+    .chrome .status strong {
+      color: var(--fg);
+    }
+    .chrome .next {
+      color: var(--fg-muted);
+    }
+    .entering {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(39, 50, 72, 0.92);
+      color: var(--fg-inverse);
+      z-index: 50;
+      pointer-events: none;
+      animation: va-entering 3s var(--ease-in-out) both;
+    }
+    .entering span {
+      font: var(--type-display);
+      letter-spacing: 0.01em;
+      max-width: 80ch;
+      text-align: center;
+      padding: 0 var(--space-5);
+    }
+    @keyframes va-entering {
+      0% { opacity: 0; }
+      15% { opacity: 1; }
+      75% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .entering { animation: none; opacity: 1; }
     }
   `;
 
@@ -549,6 +611,21 @@ export class VaParticipant extends LitElement {
     `;
   }
 
+  private renderChrome() {
+    if (!this.session) return html``;
+    if (!this.welcomed && !this.joined) return html``;
+    const { index, total, current, next } = actPosition(this.session.currentAct);
+    const nextLabel = next ? COPY.timeline.next(next.name) : COPY.timeline.lastAct;
+    return html`
+      <div class="chrome" role="status" aria-live="polite">
+        <span class="status">
+          <strong>${COPY.timeline.status(index, total, current.name)}</strong>
+        </span>
+        <span class="next">${nextLabel}</span>
+      </div>
+    `;
+  }
+
   render() {
     if (!this.session) return html`<p>loading…</p>`;
     const act = this.session.currentAct;
@@ -566,7 +643,13 @@ export class VaParticipant extends LitElement {
         <img class="wordmark" src="/wordmark.svg" alt="winded.vertigo" />
         <span class="code">${COPY.arrival.codeLabel}: ${this.code}</span>
       </header>
+      ${this.renderChrome()}
       <div class="stage">${body}</div>
+      ${this.enteringActName
+        ? html`<div class="entering" role="status" aria-live="polite">
+            <span>${COPY.timeline.entering(this.enteringActName)}</span>
+          </div>`
+        : ''}
     `;
   }
 }
