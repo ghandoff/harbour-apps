@@ -193,12 +193,17 @@ export class VaFacilitator extends LitElement {
     }
     .session-share {
       display: flex;
-      align-items: center;
-      gap: var(--space-3);
+      flex-direction: column;
+      gap: var(--space-1);
       background: var(--bg-card);
       padding: var(--space-2) var(--space-3) var(--space-2) var(--space-4);
-      border-radius: var(--radius-pill);
+      border-radius: var(--radius-md);
       box-shadow: var(--shadow-card);
+    }
+    .session-share .row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
     }
     .session-share .label {
       font: var(--type-small);
@@ -216,6 +221,10 @@ export class VaFacilitator extends LitElement {
     .session-share .share-actions {
       display: flex;
       gap: var(--space-2);
+    }
+    .session-share .hint {
+      font: var(--type-small);
+      color: var(--fg-muted);
     }
     .copied-toast {
       font: var(--type-small);
@@ -334,26 +343,29 @@ export class VaFacilitator extends LitElement {
       <header>
         <img class="wordmark" src="/wordmark.svg" alt="winded.vertigo" />
         <div class="session-share" aria-label=${`session code ${this.code}`}>
-          <span class="label">session</span>
-          <span class="code-value">${this.code}</span>
-          <div class="share-actions">
-            <va-button
-              size="sm"
-              variant="ghost"
-              aria-label="copy participant join link"
-              @va-click=${() => this.copyLink('join')}
-            >
-              ${this.copied === 'join' ? 'copied' : 'copy join link'}
-            </va-button>
-            <va-button
-              size="sm"
-              variant="ghost"
-              aria-label="copy wall display link"
-              @va-click=${() => this.copyLink('wall')}
-            >
-              ${this.copied === 'wall' ? 'copied' : 'copy wall link'}
-            </va-button>
+          <div class="row">
+            <span class="label">session</span>
+            <span class="code-value">${this.code}</span>
+            <div class="share-actions">
+              <va-button
+                size="sm"
+                variant="ghost"
+                aria-label="copy participant join link"
+                @va-click=${() => this.copyLink('join')}
+              >
+                ${this.copied === 'join' ? 'copied' : 'copy join link'}
+              </va-button>
+              <va-button
+                size="sm"
+                variant="ghost"
+                aria-label="copy wall display link"
+                @va-click=${() => this.copyLink('wall')}
+              >
+                ${this.copied === 'wall' ? 'copied' : 'copy wall link'}
+              </va-button>
+            </div>
           </div>
+          <span class="hint">share this code with your group — they join from the landing page, or open the join link directly.</span>
         </div>
       </header>
 
