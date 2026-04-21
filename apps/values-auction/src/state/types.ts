@@ -3,6 +3,7 @@ export type ActId =
   | 'grouping'
   | 'scene'
   | 'strategy'
+  | 'company'
   | 'auction'
   | 'reflection'
   | 'regather';
@@ -99,6 +100,7 @@ export type Action =
   | { type: 'PARTICIPANT_SEEN'; participantId: string; at: number }
   | { type: 'ARCHETYPE_SELECT'; participantId: string; archetype: Archetype }
   | { type: 'TEAMS_FORM'; teams: Team[]; assignments: Record<string, string> }
+  | { type: 'TEAM_RENAME'; teamId: string; name: string }
   | { type: 'ACT_ADVANCE'; to: ActId; at: number }
   | { type: 'ACT_EXTEND'; addMs: number }
   | { type: 'INTENTION_SET'; teamId: string; valueId: string; zone: IntentionZone }

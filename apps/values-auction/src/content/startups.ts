@@ -5,6 +5,7 @@ export interface Startup {
   profile: string;
   challenge: string;
   logoKey: string;
+  seedValues: [string, string];
 }
 
 export const STARTUPS: Startup[] = [
@@ -17,6 +18,7 @@ export const STARTUPS: Startup[] = [
     challenge:
       'your team must grow quickly to meet demand, but every shortcut you take could compromise your brand’s ethical standards and environmental commitments.',
     logoKey: 'ethos',
+    seedValues: ['design-for-dignity', 'accountability'],
   },
   {
     id: 'opened',
@@ -27,6 +29,7 @@ export const STARTUPS: Startup[] = [
     challenge:
       'investors want rapid user growth, but how do you ensure access and inclusion for the most marginalised students?',
     logoKey: 'opened',
+    seedValues: ['affordable-access', 'equity-inclusion'],
   },
   {
     id: 'growup',
@@ -37,6 +40,7 @@ export const STARTUPS: Startup[] = [
     challenge:
       'maintain ecological integrity while scaling rapidly and satisfying impatient investors.',
     logoKey: 'growup',
+    seedValues: ['climate-action-priority', 'resilience-culture'],
   },
   {
     id: 'care-ai',
@@ -47,6 +51,7 @@ export const STARTUPS: Startup[] = [
     challenge:
       'every decision about speed, personalisation, and partnerships has implications for trust, equity, and health outcomes.',
     logoKey: 'care-ai',
+    seedValues: ['responsible-ai-tech-ethics', 'psychological-safety'],
   },
   {
     id: 'bluecircuits',
@@ -57,6 +62,7 @@ export const STARTUPS: Startup[] = [
     challenge:
       'you must convince consumers and suppliers that ethical design and circular economy thinking are worth the cost and disruption.',
     logoKey: 'bluecircuits',
+    seedValues: ['design-excellence', 'futures-thinking'],
   },
   {
     id: 'coact',
@@ -67,6 +73,7 @@ export const STARTUPS: Startup[] = [
     challenge:
       'can you uphold integrity and push for transformation while keeping large clients happy and contracts flowing?',
     logoKey: 'coact',
+    seedValues: ['radical-transparency', 'trust-as-currency'],
   },
   {
     id: 'homehatch',
@@ -77,6 +84,7 @@ export const STARTUPS: Startup[] = [
     challenge:
       'you’re caught between innovation, neighbourhood resistance, and rising construction costs. can you stay mission-aligned?',
     logoKey: 'homehatch',
+    seedValues: ['community', 'culture-of-reflection'],
   },
   {
     id: 'ripple',
@@ -87,6 +95,7 @@ export const STARTUPS: Startup[] = [
     challenge:
       'your business depends on trust and accessibility, but navigating compliance and risk aversion is slowing down your innovation.',
     logoKey: 'ripple',
+    seedValues: ['customer-commitment', 'empathic-leadership'],
   },
 ];
 

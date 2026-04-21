@@ -8,7 +8,7 @@ import type {
 import { getAct, nextAct } from '@/content/acts';
 import { VALUES } from '@/content/values';
 import { STARTUPS } from '@/content/startups';
-import { TEAM_COLOURS, teamDisplayName, uid } from '@/utils/id';
+import { TEAM_COLOURS, uid } from '@/utils/id';
 
 export const STARTING_CREDOS = 150;
 export const DEFAULT_AUCTION_MS = 30_000;
@@ -105,6 +105,8 @@ export function reduce(session: Session, action: Action): Session {
       );
 
     case 'TEAMS_FORM': {
+      const seeded = new Set<string>();
+      action.teams.forEach((t) => t.wonValues.forEach((v) => seeded.add(v)));
       return pushEvent(
         {
           ...session,
@@ -113,8 +115,27 @@ export function reduce(session: Session, action: Action): Session {
             const teamId = action.assignments[p.id];
             return teamId ? { ...p, teamId } : p;
           }),
+          valueDeck: session.valueDeck.filter((id) => !seeded.has(id)),
         },
         event('teamJoined', { teams: action.teams.map((t) => t.id) }),
+      );
+    }
+
+    case 'TEAM_RENAME': {
+      const trimmed = action.name.trim();
+      if (!trimmed) return session;
+      return pushEvent(
+        {
+          ...session,
+          teams: session.teams.map((t) =>
+            t.id === action.teamId ? { ...t, name: trimmed } : t,
+          ),
+        },
+        event('facilitatorOverride', {
+          action: 'team-rename',
+          teamId: action.teamId,
+          name: trimmed,
+        }),
       );
     }
 
@@ -395,13 +416,13 @@ export function assignTeams(
     const teamId = uid('team');
     teams.push({
       id: teamId,
-      name: teamDisplayName(colour),
+      name: startup.name,
       colour,
       startupId: startup.id,
       credos: STARTING_CREDOS,
       intentions: {},
       softCeilings: {},
-      wonValues: [],
+      wonValues: [...startup.seedValues],
       reflectionAnswers: [],
     });
   }

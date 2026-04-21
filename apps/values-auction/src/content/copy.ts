@@ -31,6 +31,22 @@ export const COPY = {
     sectorLabel: 'sector',
     budgetLabel: 'your budget',
   },
+  company: {
+    heading: 'meet your company.',
+    intro: (credos: number) =>
+      `you have ${credos} credos to spend. two values are already yours. here’s who you’re bidding against.`,
+    renameLabel: 'company name',
+    renameEdit: 'rename',
+    renameSave: 'save',
+    renameCancel: 'cancel',
+    seedHeading: 'you start with',
+    seedHint: 'these are yours. no bid needed.',
+    credosLabel: 'credos to invest',
+    rivalsHeading: 'your rivals',
+    noRivals: 'no other teams this round.',
+    ready: 'we’re ready.',
+    waiting: 'waiting for other teams to ready up.',
+  },
   strategy: {
     prompt: 'drag each value into a zone. your team must agree before the auction.',
     zones: {

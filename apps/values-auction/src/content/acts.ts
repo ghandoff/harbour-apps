@@ -48,8 +48,17 @@ export const ACTS: ActDefinition[] = [
     description: 'agree on must-have / nice / won’t-fight-for and soft ceilings.',
   },
   {
-    id: 'auction',
+    id: 'company',
     index: 4,
+    name: 'meet your company',
+    durationMs: 3 * 60_000,
+    mode: 'team',
+    tempo: 'calm',
+    description: 'confirm your company, your seed values, and see your rivals before the auction.',
+  },
+  {
+    id: 'auction',
+    index: 5,
     name: 'auction',
     durationMs: 10 * 60_000,
     mode: 'plenary',
@@ -58,7 +67,7 @@ export const ACTS: ActDefinition[] = [
   },
   {
     id: 'reflection',
-    index: 5,
+    index: 6,
     name: 'reflection',
     durationMs: 5 * 60_000,
     mode: 'team',
@@ -67,7 +76,7 @@ export const ACTS: ActDefinition[] = [
   },
   {
     id: 'regather',
-    index: 6,
+    index: 7,
     name: 'regather',
     durationMs: 5 * 60_000,
     mode: 'plenary',

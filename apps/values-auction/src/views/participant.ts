@@ -17,6 +17,7 @@ import '@/components/value-card';
 import '@/components/bid-button';
 import '@/components/identity-card';
 import { getValue } from '@/content/values';
+import { getStartup } from '@/content/startups';
 
 @customElement('va-participant')
 export class VaParticipant extends LitElement {
@@ -30,6 +31,9 @@ export class VaParticipant extends LitElement {
   @state() private welcomed = false;
   @state() private currentPrompt = 0;
   @state() private enteringActName?: string;
+  @state() private renaming = false;
+  @state() private renameDraft = '';
+  @state() private companyReady = false;
   private unsub?: () => void;
   private lastBidSeen = 0;
   private lastAct?: ActId;
@@ -81,6 +85,10 @@ export class VaParticipant extends LitElement {
         this.enteringActName = undefined;
         this.enteringTimer = undefined;
       }, 3000);
+      if (s.currentAct !== 'company') {
+        this.companyReady = false;
+        this.renaming = false;
+      }
     }
     this.lastAct = s.currentAct;
   }
@@ -362,6 +370,95 @@ export class VaParticipant extends LitElement {
     @media (prefers-reduced-motion: reduce) {
       .entering { animation: none; opacity: 1; }
     }
+    .company-intro {
+      color: var(--fg-muted);
+      margin-bottom: var(--space-5);
+    }
+    .company-name-row {
+      display: flex;
+      align-items: baseline;
+      gap: var(--space-3);
+      flex-wrap: wrap;
+      margin-bottom: var(--space-4);
+    }
+    .company-name-row input {
+      padding: var(--space-2) var(--space-3);
+      border-radius: var(--radius-sm);
+      border: 2px solid var(--wv-cadet-blue);
+      background: var(--bg-card);
+      font: var(--type-body);
+      min-width: 220px;
+    }
+    .company-name-row .rename-actions {
+      display: inline-flex;
+      gap: var(--space-2);
+    }
+    .company-name-row button {
+      font: var(--type-small);
+      padding: var(--space-1) var(--space-3);
+      border-radius: var(--radius-pill);
+      border: 2px solid var(--wv-cadet-blue);
+      background: transparent;
+      cursor: pointer;
+    }
+    .company-name-row button:focus-visible {
+      outline: var(--focus-ring);
+      outline-offset: var(--focus-ring-offset);
+    }
+    .credos-line {
+      font-weight: 700;
+      margin-bottom: var(--space-5);
+    }
+    .seed-block, .rivals-block {
+      margin-top: var(--space-5);
+      padding-top: var(--space-4);
+      border-top: 1px solid rgba(39, 50, 72, 0.15);
+    }
+    .seed-block h3, .rivals-block h3 {
+      font: var(--type-h2);
+      margin-bottom: var(--space-2);
+    }
+    .seed-hint {
+      color: var(--fg-muted);
+      margin-bottom: var(--space-3);
+    }
+    .seed-list, .rivals-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+      list-style: none;
+    }
+    .seed-chip {
+      background: var(--wv-champagne);
+      border: 1.5px solid var(--wv-cadet-blue);
+      padding: var(--space-1) var(--space-3);
+      border-radius: var(--radius-sm);
+      font-weight: 700;
+      font-size: 14px;
+    }
+    .rival-chip {
+      background: var(--bg-card);
+      border: 1.5px solid var(--wv-cadet-blue);
+      padding: var(--space-1) var(--space-3);
+      border-radius: var(--radius-sm);
+      font-weight: 700;
+      font-size: 14px;
+    }
+    .rival-chip small {
+      display: block;
+      font-weight: 400;
+      color: var(--fg-muted);
+      font-size: 12px;
+    }
+    .ready-row {
+      margin-top: var(--space-5);
+      padding-top: var(--space-4);
+      border-top: 1px solid rgba(39, 50, 72, 0.15);
+    }
+    .ready-waiting {
+      color: var(--fg-muted);
+      margin-top: var(--space-3);
+    }
   `;
 
   private renderArrival() {
@@ -470,6 +567,130 @@ export class VaParticipant extends LitElement {
           <va-button variant="primary" @va-click=${() => this.markReady()}>
             ${COPY.scene.ready}
           </va-button>
+        </div>
+      </section>
+    `;
+  }
+
+  private startRename() {
+    if (!this.team) return;
+    this.renameDraft = this.team.name;
+    this.renaming = true;
+  }
+
+  private saveRename() {
+    if (!this.team || !this.controller) return;
+    const name = this.renameDraft.trim();
+    if (name && name !== this.team.name) {
+      this.controller.dispatch({
+        type: 'TEAM_RENAME',
+        teamId: this.team.id,
+        name,
+      });
+    }
+    this.renaming = false;
+  }
+
+  private cancelRename() {
+    this.renaming = false;
+    this.renameDraft = '';
+  }
+
+  private renderCompany() {
+    if (!this.team || !this.session) {
+      return html`<p>finding your team…</p>`;
+    }
+    const team = this.team;
+    const startup = getStartup(team.startupId);
+    if (!startup) return html`<p>your company profile is missing — tell your facilitator.</p>`;
+
+    const rivals = this.session.teams.filter((t) => t.id !== team.id);
+    const seeds = team.wonValues
+      .map((id) => getValue(id))
+      .filter((v): v is NonNullable<typeof v> => Boolean(v));
+
+    return html`
+      <section class="fade-in">
+        ${this.renderCountdown()}
+        <h1>${COPY.company.heading}</h1>
+        <p class="company-intro">${COPY.company.intro(team.credos)}</p>
+
+        <div class="company-name-row">
+          ${this.renaming
+            ? html`
+                <input
+                  type="text"
+                  aria-label=${COPY.company.renameLabel}
+                  .value=${this.renameDraft}
+                  @input=${(e: Event) =>
+                    (this.renameDraft = (e.target as HTMLInputElement).value)}
+                  @keydown=${(e: KeyboardEvent) => {
+                    if (e.key === 'Enter') this.saveRename();
+                    else if (e.key === 'Escape') this.cancelRename();
+                  }}
+                />
+                <span class="rename-actions">
+                  <button type="button" @click=${() => this.saveRename()}>
+                    ${COPY.company.renameSave}
+                  </button>
+                  <button type="button" @click=${() => this.cancelRename()}>
+                    ${COPY.company.renameCancel}
+                  </button>
+                </span>
+              `
+            : html`
+                <h2>${team.name}</h2>
+                <button type="button" @click=${() => this.startRename()}>
+                  ${COPY.company.renameEdit}
+                </button>
+              `}
+        </div>
+
+        <p class="credos-line">
+          ${team.credos} ${COPY.company.credosLabel}.
+        </p>
+        <p style="color: var(--fg-muted); margin-top: calc(-1 * var(--space-4));">
+          ${startup.profile}
+        </p>
+
+        <div class="seed-block">
+          <h3>${COPY.company.seedHeading}</h3>
+          <p class="seed-hint">${COPY.company.seedHint}</p>
+          <ul class="seed-list">
+            ${seeds.map((v) => html`<li class="seed-chip">${v.name}</li>`)}
+          </ul>
+        </div>
+
+        <div class="rivals-block">
+          <h3>${COPY.company.rivalsHeading}</h3>
+          ${rivals.length === 0
+            ? html`<p class="seed-hint">${COPY.company.noRivals}</p>`
+            : html`
+                <ul class="rivals-list">
+                  ${rivals.map((t) => {
+                    const s = getStartup(t.startupId);
+                    return html`<li class="rival-chip">
+                      ${t.name}${s && s.name !== t.name
+                        ? html`<small>${s.sector}</small>`
+                        : ''}
+                    </li>`;
+                  })}
+                </ul>
+              `}
+        </div>
+
+        <div class="ready-row">
+          ${this.companyReady
+            ? html`<p class="ready-waiting">${COPY.company.waiting}</p>`
+            : html`
+                <va-button
+                  variant="primary"
+                  size="lg"
+                  @va-click=${() => (this.companyReady = true)}
+                >
+                  ${COPY.company.ready}
+                </va-button>
+              `}
         </div>
       </section>
     `;
@@ -634,6 +855,7 @@ export class VaParticipant extends LitElement {
     else if (act === 'grouping') body = this.renderGrouping();
     else if (act === 'scene') body = this.renderScene();
     else if (act === 'strategy') body = this.renderStrategy();
+    else if (act === 'company') body = this.renderCompany();
     else if (act === 'auction') body = this.renderAuction();
     else if (act === 'reflection') body = this.renderReflection();
     else body = this.renderRegather();
