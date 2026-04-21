@@ -4,7 +4,8 @@ export const COPY = {
     subheading: 'enter your name to join the session.',
     nameLabel: 'your name',
     joinButton: 'join',
-    waitingForFacilitator: 'we’re waiting for the facilitator to start. stretch a little.',
+    waitingForFacilitator: (nextName: string, seconds?: number) =>
+      seconds !== undefined ? `next: ${nextName} — ${seconds}s` : `next: ${nextName}`,
     codeLabel: 'session code',
   },
   timeline: {

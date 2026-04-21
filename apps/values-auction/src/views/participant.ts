@@ -545,10 +545,14 @@ export class VaParticipant extends LitElement {
         </section>
       `;
     }
+    const { next } = actPosition(this.session?.currentAct ?? 'arrival');
+    const preview = next
+      ? COPY.arrival.waitingForFacilitator(next.name, Math.round(next.durationMs / 1000))
+      : COPY.timeline.lastAct;
     return html`
       <section class="arrival fade-in">
         <h1>you’re in, ${this.name}.</h1>
-        <p>${COPY.arrival.waitingForFacilitator}</p>
+        <p>${preview}</p>
         <div class="waiting" aria-hidden="true">
           <span class="dot"></span><span class="dot"></span><span class="dot"></span>
         </div>
