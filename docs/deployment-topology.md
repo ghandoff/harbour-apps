@@ -61,6 +61,7 @@ repairs pier (threshold concepts):
 
 ### Vercel-but-not-routed-through-windedvertigo.com
 - harbour (the hub landing page) → `reservoir-tau.vercel.app` — deployed from monorepo root via `scripts/deploy-harbour.sh`
+- values-auction → its own Vercel project with Root Directory `apps/values-auction` (Vite SPA). proxied through windedvertigo.com via a rewrite in the sibling `ghandoff/windedvertigo` repo. deploy with `./scripts/deploy-values-auction.sh` after running `cd apps/values-auction && vercel link` once.
 
 ## how to deploy
 

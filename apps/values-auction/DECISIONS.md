@@ -17,7 +17,7 @@ decisions at the bottom.
 - **the ws server logs every inbound message to `server/events.log` (jsonl)** so post-session analysis works without spinning up analytics infra. `.gitignore` excludes the log so we never commit session data.
 - **no `AUTH_SECRET`, no neon, no stripe** — this mvp is entirely in-browser. the top-level CLAUDE.md rules about database connections and shared auth don't apply here; they would apply when wiring a future supabase transport.
 - **lowercase copy throughout, british english, oxford comma** — per the project-wide writing conventions. value card *names* retain their title case because they're the in-game proper nouns (see §6.3 of the prompt).
-- **kept the app off turbo-ignore / vercel.json for now** — a deploy target hasn't been chosen. the brief explicitly says no cloud deploy in phase 1 and the CLAUDE.md cost rules forbid adding a new vercel project without updating the cost analysis.
+- **vercel deploy target** — as of april 2026 the app ships via a new Vercel project with `apps/values-auction` as the Root Directory. framework preset: Vite, build: `npm run build`, output: `dist`. `vercel.json` holds `turbo-ignore @harbour/values-auction` so unrelated pushes don't trigger a build. manual deploy path is `./scripts/deploy-values-auction.sh` once `cd apps/values-auction && vercel link` has been run. the `$10/mo` cap in CLAUDE.md still applies — static assets only, no serverless functions, so the cost impact is minimal.
 
 ## open questions deferred to maria
 
