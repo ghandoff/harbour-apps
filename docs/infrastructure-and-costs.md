@@ -94,6 +94,7 @@ additionally, the GitHub Actions `sync-notion.yml` bot pushed daily commits that
 | **tidal-pool** | **disconnected** | no | Next.js + Notion (elements/scenarios DBs), deploy via `scripts/deploy-tidal-pool.sh` |
 | **paper-trail** | **disconnected** | no | Next.js + Notion (activities DB) + camera API, deploy via `scripts/deploy-paper-trail.sh` |
 | **mirror-log** | **disconnected** | no | Next.js client-only (shared localStorage), deploy via `scripts/deploy-mirror-log.sh` |
+| **values-auction** | **disconnected** | no | Vite SPA (Lit 3 + ws), deploy via `scripts/deploy-values-auction.sh`. static assets only, no serverless functions — negligible cost impact. |
 | conference-experience | never connected | no | CLI-deployed once |
 | automations | separate branch | manual | weekly summary serverless function |
 
