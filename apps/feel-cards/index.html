@@ -406,6 +406,118 @@
     .role-banner .muted { color: var(--ink-soft); }
     .reflection-card .tiny { color: rgba(38,36,40,0.6); }
     .solution-card { color: var(--ink); }
+    .welcome-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .btn-secondary {
+      background: transparent;
+      color: var(--cream);
+      border: 1.5px solid rgba(250,247,241,0.35);
+      padding: 14px 26px;
+      border-radius: 999px;
+      font-family: inherit;
+      font-weight: 500;
+      font-size: 15px;
+      cursor: pointer;
+      transition: border-color 180ms ease, background 180ms ease, transform 180ms ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-secondary:hover { border-color: var(--cream); background: rgba(250,247,241,0.06); }
+    .btn-secondary:active { transform: scale(0.97); }
+    .room-code {
+      font-family: 'Inter', sans-serif;
+      font-weight: 300;
+      font-size: 72px;
+      letter-spacing: 0.18em;
+      text-align: center;
+      color: var(--cream);
+      padding: 32px 22px;
+      margin: 24px 0 10px;
+      background: rgba(250,247,241,0.08);
+      border-radius: 22px;
+      user-select: all;
+      line-height: 1;
+    }
+    .copy-status {
+      font-size: 13px;
+      color: rgba(250,247,241,0.6);
+      min-height: 18px;
+      text-align: center;
+      margin-top: 4px;
+    }
+    .code-input {
+      width: 100%;
+      margin-top: 22px;
+      padding: 22px 18px;
+      border: 1.5px solid var(--line);
+      border-radius: 18px;
+      font-family: 'Inter', sans-serif;
+      font-size: 36px;
+      font-weight: 400;
+      letter-spacing: 0.18em;
+      text-align: center;
+      text-transform: uppercase;
+      color: var(--ink);
+      background: #FFFCF5;
+      -webkit-appearance: none;
+      box-sizing: border-box;
+      transition: border-color 180ms ease, background 180ms ease;
+    }
+    .code-input:focus { outline: none; border-color: var(--ink); background: #FFFFFF; }
+    .code-error {
+      margin-top: 10px;
+      font-size: 14px;
+      color: var(--rose);
+      min-height: 20px;
+      text-align: center;
+    }
+    .unpicked-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 16px;
+      opacity: 0.62;
+    }
+    .unpicked-row .card {
+      aspect-ratio: 2/3;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+      cursor: default;
+    }
+    .unpicked-row .card:hover { transform: none; box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
+    .unpicked-row .card-label { font-size: 10px; padding: 12px 6px 6px; line-height: 1.15; }
+    .unpicked-caption {
+      text-align: center;
+      margin-top: 24px;
+    }
+    .reveal-reflection {
+      margin-top: 24px;
+      padding: 22px 20px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, var(--rose) 0%, var(--sand) 100%);
+    }
+    .reveal-reflection .prompt {
+      font-size: 20px;
+      line-height: 1.3;
+      margin-top: 8px;
+    }
+    .reveal-reflection .tiny { color: rgba(38,36,40,0.6); }
+    .room-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(250,247,241,0.1);
+      color: rgba(250,247,241,0.72);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      margin-left: 8px;
+    }
     @media (min-width: 500px) {
       .card-grid { grid-template-columns: repeat(4, 1fr); }
       h1 { font-size: 52px; }
@@ -699,7 +811,11 @@
     // ---------- STATE ----------
     const state = {
       screen: 'welcome',
-      position: null,        // 1, 2, or 3 — which student in the trio
+      roomCode: null,        // 4-letter session code; syncs scenarios + deals across devices
+      roundRng: null,        // seeded PRNG for the current round when roomCode is set
+      joinInput: '',         // transient — what the user is typing on the join screen
+      joinError: '',         // transient — error message on the join screen
+      position: null,        // 1, 2, or 3 — which person in the trio
       difficulty: null,      // 'light' | 'real' | 'tender' — chosen at setup, session-wide
       round: 0,              // 0, 1, 2
       hand: [],              // 4 cards drawn this round
@@ -710,17 +826,90 @@
     };
 
     // ---------- UTILS ----------
-    function shuffle(arr) {
+    // Seeded PRNG (mulberry32). When a trio shares a room code, deriving the
+    // round RNG from that code means all three phones deal the same hand and
+    // pick the same scenario for each round — the "lobby" actually syncs
+    // something instead of just being decorative.
+    function mulberry32(seed) {
+      let s = seed >>> 0;
+      return function() {
+        s = (s + 0x6D2B79F5) | 0;
+        let t = s;
+        t = Math.imul(t ^ (t >>> 15), t | 1);
+        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      };
+    }
+
+    // 4-letter room code. Skips I/O/L/1/0 so codes are unambiguous spoken aloud.
+    const ROOM_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ';
+    function makeRoomCode() {
+      let code = '';
+      for (let i = 0; i < 4; i++) {
+        code += ROOM_ALPHABET[Math.floor(Math.random() * ROOM_ALPHABET.length)];
+      }
+      return code;
+    }
+
+    function seedFromCode(code) {
+      let h = 2166136261;
+      for (let i = 0; i < code.length; i++) {
+        h ^= code.charCodeAt(i);
+        h = Math.imul(h, 16777619);
+      }
+      return h >>> 0;
+    }
+
+    function isValidCode(code) {
+      if (!code || code.length !== 4) return false;
+      for (let i = 0; i < 4; i++) {
+        if (ROOM_ALPHABET.indexOf(code[i]) === -1) return false;
+      }
+      return true;
+    }
+
+    function buildShareUrl(code) {
+      const { origin, pathname } = window.location;
+      return `${origin}${pathname}#room=${code}`;
+    }
+
+    function readRoomFromUrl() {
+      const hash = window.location.hash || '';
+      const match = hash.match(/room=([A-Z]{4})/i);
+      return match ? match[1].toUpperCase() : null;
+    }
+
+    function writeRoomToUrl(code) {
+      if (code) {
+        history.replaceState(null, '', `#room=${code}`);
+      } else {
+        // clear the fragment without reloading
+        history.replaceState(null, '', window.location.pathname + window.location.search);
+      }
+    }
+
+    function ensureRoundRng() {
+      if (state.roomCode) {
+        // per-round seed keeps devices in sync even if one is slightly behind
+        const seed = seedFromCode(state.roomCode) ^ ((state.round + 1) * 0x9E3779B9);
+        state.roundRng = mulberry32(seed);
+      } else {
+        state.roundRng = null;
+      }
+    }
+
+    function shuffle(arr, rng) {
+      const r = rng || Math.random;
       const a = [...arr];
       for (let i = a.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
+        const j = Math.floor(r() * (i + 1));
         [a[i], a[j]] = [a[j], a[i]];
       }
       return a;
     }
 
     function dealHand(size = 4) {
-      return shuffle(DECK).slice(0, size);
+      return shuffle(DECK, state.roundRng || Math.random).slice(0, size);
     }
 
     function pickPrompt() {
@@ -730,7 +919,8 @@
         : PROMPTS.map((_, i) => i);
       const unused = allowed.filter(i => !state.usedPrompts.includes(i));
       const pool = unused.length ? unused : allowed;
-      const idx = pool[Math.floor(Math.random() * pool.length)];
+      const rng = state.roundRng || Math.random;
+      const idx = pool[Math.floor(rng() * pool.length)];
       state.usedPrompts.push(idx);
       state.currentPromptIdx = idx;
       return PROMPTS[idx];
@@ -771,9 +961,58 @@
           </div>
           <div class="spacer"></div>
           <div style="margin-top: 40px;">
-            <button class="btn-primary" data-go="setup" style="width: 100%;">Begin</button>
+            <div class="welcome-actions">
+              <button class="btn-primary" data-action="create-session" style="width: 100%;">Create a session</button>
+              <button class="btn-secondary" data-go="joinSession" style="width: 100%;">Join a session</button>
+            </div>
             <div class="muted tiny" style="text-align: center; margin-top: 18px;">~12 minutes · three rounds · no wrong answers</div>
           </div>
+        </div>`,
+
+      createSession: () => {
+        const shareUrl = buildShareUrl(state.roomCode);
+        return `
+        <div class="screen fade-in">
+          <div class="tiny">your session</div>
+          <h2 class="serif" style="margin-top: 10px;">Your room is ready.</h2>
+          <p class="muted" style="margin-top: 14px;">
+            Share this four-letter code with your trio. They'll type it on their own phones to land in the same session — same scenarios, same cards to pick from.
+          </p>
+          <div class="room-code" aria-label="room code">${state.roomCode}</div>
+          <div class="welcome-actions" style="margin-top: 12px;">
+            <button class="btn-secondary" data-action="copy-link" data-url="${shareUrl}">Copy link</button>
+          </div>
+          <div class="copy-status" id="copy-status"></div>
+          <div class="spacer"></div>
+          <button class="btn-primary" data-go="setup" style="width: 100%;">Everyone's in → continue</button>
+          <button class="btn-ghost" data-action="leave-session" style="width: 100%; margin-top: 6px;">Back</button>
+        </div>`;
+      },
+
+      joinSession: () => `
+        <div class="screen fade-in">
+          <div class="tiny">join</div>
+          <h2 class="serif" style="margin-top: 10px;">Join your trio.</h2>
+          <p class="muted" style="margin-top: 14px;">
+            Type the four-letter code your holder shared.
+          </p>
+          <input
+            id="code-input"
+            class="code-input"
+            type="text"
+            inputmode="latin"
+            autocomplete="off"
+            autocapitalize="characters"
+            spellcheck="false"
+            maxlength="4"
+            placeholder="BEAM"
+            value="${state.joinInput || ''}"
+            aria-label="four-letter room code"
+          />
+          <div class="code-error" id="code-error">${state.joinError || ''}</div>
+          <div class="spacer"></div>
+          <button class="btn-primary" data-action="submit-code" id="join-continue" style="width: 100%;" ${((state.joinInput || '').length === 4) ? '' : 'disabled'}>Join</button>
+          <button class="btn-ghost" data-go="welcome" style="width: 100%; margin-top: 6px;">Back</button>
         </div>`,
 
       setup: () => `
@@ -835,6 +1074,7 @@
 
       prompt: () => {
         if (state.currentPromptIdx === null || !state.hand.length) {
+          ensureRoundRng();
           pickPrompt();
           state.hand = dealHand(4);
           state.selectedCardId = null;
@@ -882,40 +1122,37 @@
 
       reveal: () => {
         const card = state.hand.find(c => c.id === state.selectedCardId);
+        const iAmHolder = isHolder();
+        const unpicked = state.hand.filter(c => c.id !== state.selectedCardId);
         return `
           <div class="screen fade-in-slow">
-            <div class="tiny">round ${state.round + 1} · reveal</div>
+            <div class="tiny">round ${state.round + 1} · card #${card.id + 1} of ${DECK.length}</div>
             <p class="muted serif" style="font-size: 18px; margin-top: 14px; font-style: italic;">"${PROMPTS[state.currentPromptIdx]}"</p>
-            <div style="margin-top: 26px;" class="scale-in">
+            <div style="margin-top: 22px;" class="scale-in">
               <div class="card-xl">
                 <div class="card-art">${card.svg}</div>
                 <div class="card-label">${card.label}</div>
               </div>
             </div>
-            <div class="reveal-hint fade-in-slow">
-              Turn your phone so your trio can see. Take a moment to notice how the three cards sit together.
+            ${iAmHolder ? `
+              <div class="tiny unpicked-caption">the three you didn't pick</div>
+              <div class="unpicked-row">
+                ${unpicked.map(c => `
+                  <div class="card" aria-hidden="true">
+                    <div class="card-art">${c.svg}</div>
+                    <div class="card-label">${c.label}</div>
+                  </div>
+                `).join('')}
+              </div>
+            ` : ''}
+            <div class="reveal-reflection scale-in">
+              <div class="tiny">for your trio · round ${state.round + 1}</div>
+              <div class="prompt serif">${REFLECTIONS[state.round]}</div>
             </div>
             <div class="spacer"></div>
-            <button class="btn-primary" data-go="reflect" style="width: 100%;">Open reflection →</button>
+            <button class="btn-primary" data-go="solve" style="width: 100%;">We've talked it through → write our move</button>
           </div>`;
       },
-
-      reflect: () => `
-        <div class="screen fade-in">
-          <div class="progress-dots">
-            ${[0,1,2].map(i => `<div class="dot ${i < state.round ? 'done' : ''} ${i === state.round ? 'active' : ''}"></div>`).join('')}
-          </div>
-          <div class="tiny" style="text-align: center; margin-top: 20px;">round ${state.round + 1} · reflection</div>
-          <div class="reflection-card scale-in">
-            <div class="tiny">for your trio</div>
-            <div class="prompt serif">${REFLECTIONS[state.round]}</div>
-          </div>
-          <p class="muted" style="margin-top: 22px; font-size: 14px;">
-            Take a minute each to answer. Read the question aloud if it helps.
-          </p>
-          <div class="spacer"></div>
-          <button class="btn-primary" data-go="solve" style="width: 100%;">We've shared → write our move</button>
-        </div>`,
 
       solve: () => {
         const existing = state.solutions[state.round] || '';
@@ -930,7 +1167,7 @@
               <div class="prompt serif" style="font-size: 18px; line-height: 1.35;">${SOLVE_PROMPTS[state.round]}</div>
             </div>
             <textarea id="solution-input" class="solution-input" placeholder="One or two concrete sentences…" rows="5">${existing}</textarea>
-            <p class="muted tiny" style="margin-top: 10px;">Everyone writes their own version on their own device. This stays with you.</p>
+            <p class="muted tiny" style="margin-top: 10px;">One move, written together. This stays with your trio.</p>
             <div class="spacer"></div>
             <button class="btn-primary" data-go="${nextTarget}" ${ready ? '' : 'disabled'} id="solve-continue" style="width: 100%;">
               ${ready ? nextLabel : 'Write to continue'}
@@ -986,6 +1223,22 @@
     };
 
     // ---------- EVENT WIRING ----------
+    function resetSession() {
+      state.position = null;
+      state.difficulty = null;
+      state.round = 0;
+      state.hand = [];
+      state.selectedCardId = null;
+      state.usedPrompts = [];
+      state.currentPromptIdx = null;
+      state.solutions = ['', '', ''];
+      state.roundRng = null;
+      state.roomCode = null;
+      state.joinInput = '';
+      state.joinError = '';
+      writeRoomToUrl(null);
+    }
+
     function wireEvents() {
       // Navigation buttons
       document.querySelectorAll('[data-go]').forEach(btn => {
@@ -997,21 +1250,53 @@
             state.hand = [];
             state.selectedCardId = null;
             state.currentPromptIdx = null;
+            state.roundRng = null;
             // solutions array is preserved intentionally
             go('roundIntro');
           } else if (target === 'welcome') {
-            // Full reset
-            state.position = null;
-            state.difficulty = null;
-            state.round = 0;
-            state.hand = [];
-            state.selectedCardId = null;
-            state.usedPrompts = [];
-            state.currentPromptIdx = null;
-            state.solutions = ['', '', ''];
+            resetSession();
             go('welcome');
           } else {
             go(target);
+          }
+        });
+      });
+
+      // Action buttons (create session, copy link, submit code, leave session)
+      document.querySelectorAll('[data-action]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const action = btn.getAttribute('data-action');
+          if (action === 'create-session') {
+            state.roomCode = makeRoomCode();
+            writeRoomToUrl(state.roomCode);
+            go('createSession');
+          } else if (action === 'copy-link') {
+            const url = btn.getAttribute('data-url') || buildShareUrl(state.roomCode);
+            const statusEl = document.getElementById('copy-status');
+            const done = () => { if (statusEl) statusEl.textContent = 'link copied'; };
+            const fail = () => { if (statusEl) statusEl.textContent = `copy this link: ${url}`; };
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(url).then(done).catch(fail);
+            } else {
+              fail();
+            }
+          } else if (action === 'submit-code') {
+            const input = document.getElementById('code-input');
+            const raw = (input ? input.value : state.joinInput || '').toUpperCase().trim();
+            if (!isValidCode(raw)) {
+              state.joinError = 'That code doesn\'t look right. Four letters, no I/O/L.';
+              state.joinInput = raw;
+              render();
+              return;
+            }
+            state.roomCode = raw;
+            state.joinInput = '';
+            state.joinError = '';
+            writeRoomToUrl(raw);
+            go('setup');
+          } else if (action === 'leave-session') {
+            resetSession();
+            go('welcome');
           }
         });
       });
@@ -1023,6 +1308,30 @@
           go(target);
         });
       });
+
+      // Room-code input (live enable/disable + enter-to-submit)
+      const codeInput = document.getElementById('code-input');
+      if (codeInput) {
+        codeInput.focus();
+        codeInput.addEventListener('input', () => {
+          const cleaned = codeInput.value.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4);
+          if (cleaned !== codeInput.value) codeInput.value = cleaned;
+          state.joinInput = cleaned;
+          const joinBtn = document.getElementById('join-continue');
+          if (joinBtn) {
+            if (cleaned.length === 4) joinBtn.removeAttribute('disabled');
+            else joinBtn.setAttribute('disabled', '');
+          }
+          const err = document.getElementById('code-error');
+          if (err && state.joinError) { err.textContent = ''; state.joinError = ''; }
+        });
+        codeInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            const joinBtn = document.getElementById('join-continue');
+            if (joinBtn && !joinBtn.hasAttribute('disabled')) joinBtn.click();
+          }
+        });
+      }
 
       // Position picker
       document.querySelectorAll('[data-pos]').forEach(btn => {
@@ -1070,6 +1379,16 @@
     }
 
     // ---------- INIT ----------
+    // If the user arrived via a shared link (e.g. /#room=BEAM), prefill the
+    // join screen so they only have to confirm.
+    (function initFromUrl() {
+      const incoming = readRoomFromUrl();
+      if (incoming && isValidCode(incoming)) {
+        state.joinInput = incoming;
+        state.screen = 'joinSession';
+      }
+    })();
+
     render();
   </script>
 </body>
