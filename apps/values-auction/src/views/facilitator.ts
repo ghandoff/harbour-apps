@@ -25,9 +25,47 @@ export class VaFacilitator extends LitElement {
   @state() private nextValueId: string | null = null;
   @state() private tickNow = Date.now();
   @state() private pendingJump: string | null = null;
+  @state() private copied: 'join' | 'wall' | null = null;
 
   private unsub?: () => void;
   private ticker: { stop(): void } | null = null;
+  private copyResetTimer: ReturnType<typeof setTimeout> | null = null;
+
+  private joinUrl(): string {
+    const { origin, pathname } = window.location;
+    return `${origin}${pathname}#/join?code=${encodeURIComponent(this.code)}`;
+  }
+
+  private wallUrl(): string {
+    const { origin, pathname } = window.location;
+    return `${origin}${pathname}#/wall?code=${encodeURIComponent(this.code)}`;
+  }
+
+  private async copyLink(which: 'join' | 'wall') {
+    const url = which === 'join' ? this.joinUrl() : this.wallUrl();
+    try {
+      await navigator.clipboard.writeText(url);
+    } catch {
+      // clipboard unavailable (insecure context, permissions) — fall back to selection
+      const ta = document.createElement('textarea');
+      ta.value = url;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand('copy');
+      } catch {
+        // last resort: leave url on clipboard attempt; user can retry
+      }
+      document.body.removeChild(ta);
+    }
+    this.copied = which;
+    if (this.copyResetTimer) clearTimeout(this.copyResetTimer);
+    this.copyResetTimer = setTimeout(() => {
+      this.copied = null;
+    }, 1800);
+  }
 
   connectedCallback() {
     super.connectedCallback();
@@ -49,6 +87,7 @@ export class VaFacilitator extends LitElement {
     super.disconnectedCallback();
     this.unsub?.();
     this.ticker?.stop();
+    if (this.copyResetTimer) clearTimeout(this.copyResetTimer);
   }
 
   private startSession() {
@@ -152,8 +191,36 @@ export class VaFacilitator extends LitElement {
     .wordmark {
       height: 32px;
     }
-    .code {
+    .session-share {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      background: var(--bg-card);
+      padding: var(--space-2) var(--space-3) var(--space-2) var(--space-4);
+      border-radius: var(--radius-pill);
+      box-shadow: var(--shadow-card);
+    }
+    .session-share .label {
+      font: var(--type-small);
+      color: var(--fg-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .session-share .code-value {
       font: var(--type-mono);
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      color: var(--wv-cadet-blue);
+    }
+    .session-share .share-actions {
+      display: flex;
+      gap: var(--space-2);
+    }
+    .copied-toast {
+      font: var(--type-small);
+      color: var(--fg-muted);
+      margin-left: var(--space-2);
     }
     .panel {
       background: var(--bg-card);
@@ -266,7 +333,28 @@ export class VaFacilitator extends LitElement {
     return html`
       <header>
         <img class="wordmark" src="/wordmark.svg" alt="winded.vertigo" />
-        <span class="code">session ${this.code}</span>
+        <div class="session-share" aria-label=${`session code ${this.code}`}>
+          <span class="label">session</span>
+          <span class="code-value">${this.code}</span>
+          <div class="share-actions">
+            <va-button
+              size="sm"
+              variant="ghost"
+              aria-label="copy participant join link"
+              @va-click=${() => this.copyLink('join')}
+            >
+              ${this.copied === 'join' ? 'copied' : 'copy join link'}
+            </va-button>
+            <va-button
+              size="sm"
+              variant="ghost"
+              aria-label="copy wall display link"
+              @va-click=${() => this.copyLink('wall')}
+            >
+              ${this.copied === 'wall' ? 'copied' : 'copy wall link'}
+            </va-button>
+          </div>
+        </div>
       </header>
 
       <!-- left pane: timeline + act controls -->
