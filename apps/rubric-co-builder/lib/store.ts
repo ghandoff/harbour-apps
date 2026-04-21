@@ -105,6 +105,8 @@ export type Store = {
     title: string,
     content: string,
   ): Promise<Room | null>;
+
+  setTimer(code: string, durationSeconds: number | null): Promise<Room | null>;
 };
 
 function uuid(): string {
@@ -177,6 +179,8 @@ function memoryStore(): Store {
         facilitator_nudge: null,
         sample_artefact_title: null,
         sample_artefact_content: null,
+        timer_end: null,
+        timer_duration: null,
       };
       db.rooms.set(room.id, room);
       for (const slot of PLEDGE_SLOTS) {
@@ -293,6 +297,8 @@ function memoryStore(): Store {
         ...room,
         state,
         step_started_at: new Date().toISOString(),
+        timer_end: null,
+        timer_duration: null,
       };
       db.rooms.set(updated.id, updated);
       return updated;
@@ -574,6 +580,20 @@ function memoryStore(): Store {
       db.rooms.set(updated.id, updated);
       return updated;
     },
+
+    async setTimer(code, durationSeconds) {
+      const room = findByCode(code);
+      if (!room) return null;
+      const updated: Room = {
+        ...room,
+        timer_end: durationSeconds !== null
+          ? new Date(Date.now() + durationSeconds * 1000).toISOString()
+          : null,
+        timer_duration: durationSeconds,
+      };
+      db.rooms.set(updated.id, updated);
+      return updated;
+    },
   };
 }
 
@@ -660,7 +680,8 @@ function neonStore(url: string): Store {
       const rooms = await sql`
         select id, code, learning_outcome, project_description, state,
                step_started_at, created_at,
-               facilitator_nudge, sample_artefact_title, sample_artefact_content
+               facilitator_nudge, sample_artefact_title, sample_artefact_content,
+               timer_end, timer_duration
         from rubric_cobuilder.rooms
         where code = ${code}
         limit 1
@@ -733,11 +754,13 @@ function neonStore(url: string): Store {
     async updateRoomState(code, state) {
       const rows = await sql`
         update rubric_cobuilder.rooms
-        set state = ${state}, step_started_at = now()
+        set state = ${state}, step_started_at = now(),
+            timer_end = null, timer_duration = null
         where code = ${code}
         returning id, code, learning_outcome, project_description, state,
                   step_started_at, created_at,
-                  facilitator_nudge, sample_artefact_title, sample_artefact_content
+                  facilitator_nudge, sample_artefact_title, sample_artefact_content,
+                  timer_end, timer_duration
       `;
       return (rows[0] as Room | undefined) ?? null;
     },
@@ -1034,8 +1057,33 @@ function neonStore(url: string): Store {
         where code = ${code}
         returning id, code, learning_outcome, project_description, state,
                   step_started_at, created_at,
-                  facilitator_nudge, sample_artefact_title, sample_artefact_content
+                  facilitator_nudge, sample_artefact_title, sample_artefact_content,
+                  timer_end, timer_duration
       `;
+      return (rows[0] as Room | undefined) ?? null;
+    },
+
+    async setTimer(code, durationSeconds) {
+      const rows = durationSeconds !== null
+        ? await sql`
+            update rubric_cobuilder.rooms
+            set timer_end = now() + (${durationSeconds} * interval '1 second'),
+                timer_duration = ${durationSeconds}
+            where code = ${code}
+            returning id, code, learning_outcome, project_description, state,
+                      step_started_at, created_at,
+                      facilitator_nudge, sample_artefact_title, sample_artefact_content,
+                      timer_end, timer_duration
+          `
+        : await sql`
+            update rubric_cobuilder.rooms
+            set timer_end = null, timer_duration = null
+            where code = ${code}
+            returning id, code, learning_outcome, project_description, state,
+                      step_started_at, created_at,
+                      facilitator_nudge, sample_artefact_title, sample_artefact_content,
+                      timer_end, timer_duration
+          `;
       return (rows[0] as Room | undefined) ?? null;
     },
   };

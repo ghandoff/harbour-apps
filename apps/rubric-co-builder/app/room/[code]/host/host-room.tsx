@@ -16,6 +16,27 @@ import type {
   Vote,
 } from "@/lib/types";
 import { roundForState } from "@/lib/types";
+
+function useCountdown(timerEnd: string | null): number | null {
+  const [remaining, setRemaining] = useState<number | null>(null);
+  useEffect(() => {
+    if (!timerEnd) { setRemaining(null); return; }
+    function tick() {
+      const secs = Math.max(0, Math.round((new Date(timerEnd!).getTime() - Date.now()) / 1000));
+      setRemaining(secs);
+    }
+    tick();
+    const id = setInterval(tick, 500);
+    return () => clearInterval(id);
+  }, [timerEnd]);
+  return remaining;
+}
+
+function fmt(secs: number): string {
+  const m = Math.floor(secs / 60).toString().padStart(2, "0");
+  const s = (secs % 60).toString().padStart(2, "0");
+  return `${m}:${s}`;
+}
 import { StepShell } from "../_steps/shell";
 import { StepFrame } from "../_steps/step-frame";
 import { StepPropose } from "../_steps/step-propose";
@@ -78,11 +99,27 @@ export function HostRoom({ code }: { code: string }) {
     pledge_slots,
   } = snapshot;
 
-  async function advance(to: RoomState) {
+  async function advance(to: RoomState, fromState?: RoomState) {
     await fetch(apiPath(`/api/rooms/${code}`), {
       method: "PATCH",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ state: to }),
+      body: JSON.stringify({ state: to, ...(fromState ? { from_state: fromState } : {}) }),
+    });
+  }
+
+  async function startTimer(durationSeconds: number) {
+    await fetch(apiPath(`/api/rooms/${code}/timer`), {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ duration: durationSeconds }),
+    });
+  }
+
+  async function cancelTimer() {
+    await fetch(apiPath(`/api/rooms/${code}/timer`), {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ duration: null }),
     });
   }
 
@@ -120,9 +157,13 @@ export function HostRoom({ code }: { code: string }) {
         <HostControls
           code={code}
           current={room.state}
+          timerEnd={room.timer_end}
+          timerDuration={room.timer_duration}
           onAdvance={advance}
           onTally={tally}
           onAiTally={aiTally}
+          onStartTimer={startTimer}
+          onCancelTimer={cancelTimer}
         />
 
         <FacilitatorNudgeEditor code={code} currentNudge={room.facilitator_nudge} />
@@ -147,27 +188,57 @@ export function HostRoom({ code }: { code: string }) {
   );
 }
 
+const TIMER_OPTIONS = [
+  { label: "3", seconds: 180 },
+  { label: "5", seconds: 300 },
+  { label: "10", seconds: 600 },
+] as const;
+
 function HostControls({
   code,
   current,
+  timerEnd,
+  timerDuration,
   onAdvance,
   onTally,
   onAiTally,
+  onStartTimer,
+  onCancelTimer,
 }: {
   code: string;
   current: RoomState;
-  onAdvance: (s: RoomState) => void;
+  timerEnd: string | null;
+  timerDuration: number | null;
+  onAdvance: (s: RoomState, fromState?: RoomState) => void;
   onTally: (round: 1 | 2 | 3) => Promise<void>;
   onAiTally: () => Promise<void>;
+  onStartTimer: (seconds: number) => Promise<void>;
+  onCancelTimer: () => Promise<void>;
 }) {
   const [pending, setPending] = useState<string | null>(null);
   const lastCurrent = useRef(current);
+  const timerFiredFor = useRef<RoomState | null>(null);
+  const remaining = useCountdown(timerEnd);
+
   useEffect(() => {
     if (lastCurrent.current !== current) {
       setPending(null);
+      timerFiredFor.current = null;
       lastCurrent.current = current;
     }
   }, [current]);
+
+  // auto-advance when timer reaches zero
+  useEffect(() => {
+    if (remaining === 0 && timerEnd && timerFiredFor.current !== current) {
+      const i = STATE_ORDER.indexOf(current);
+      const next = i >= 0 && i < STATE_ORDER.length - 1 ? STATE_ORDER[i + 1] : null;
+      if (next) {
+        timerFiredFor.current = current;
+        onAdvance(next, current);
+      }
+    }
+  }, [remaining, timerEnd, current, onAdvance]);
 
   const next = (() => {
     const i = STATE_ORDER.indexOf(current);
@@ -192,8 +263,11 @@ function HostControls({
     3: { idle: "tally & move to AI ladder", busy: "tallying…" },
   };
 
+  const timerActive = timerEnd !== null && remaining !== null && remaining > 0;
+  const isUrgent = remaining !== null && remaining <= 30 && remaining > 0;
+
   return (
-    <div className="rounded-lg bg-[color:var(--color-cadet)] text-white p-4 pointer-events-auto">
+    <div className="rounded-lg bg-[color:var(--color-cadet)] text-white p-4 pointer-events-auto space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <p className="text-[10px] tracking-widest opacity-70">room code</p>
@@ -247,6 +321,45 @@ function HostControls({
             ))}
           </div>
         </div>
+      </div>
+
+      {/* timer controls */}
+      <div className="flex flex-wrap items-center gap-3 pt-1 border-t border-white/20">
+        <span className="text-[10px] tracking-widest opacity-70 shrink-0">timer</span>
+
+        {timerActive ? (
+          <>
+            <span className={`font-mono text-2xl font-bold tabular-nums ${isUrgent ? "text-[color:var(--color-sienna)]" : "text-white"}`}>
+              {fmt(remaining!)}
+            </span>
+            <span className="text-xs opacity-60">auto-advancing on zero</span>
+            <button
+              onClick={() => wrap(onCancelTimer, "cancel-timer")}
+              disabled={pending !== null}
+              className="ml-auto text-xs px-3 py-1.5 rounded border border-white/40 hover:bg-white/10 disabled:opacity-50"
+            >
+              cancel timer
+            </button>
+          </>
+        ) : (
+          <>
+            <span className="text-xs opacity-60">set:</span>
+            {TIMER_OPTIONS.map(({ label, seconds }) => (
+              <button
+                key={seconds}
+                onClick={() => wrap(() => onStartTimer(seconds), `timer-${seconds}`)}
+                disabled={pending !== null}
+                className={`px-3 py-1.5 rounded text-sm font-medium border transition-colors disabled:opacity-50 ${
+                  timerDuration === seconds && remaining === 0
+                    ? "bg-white text-[color:var(--color-cadet)] border-white"
+                    : "border-white/40 hover:bg-white/10"
+                }`}
+              >
+                {label} min
+              </button>
+            ))}
+          </>
+        )}
       </div>
     </div>
   );

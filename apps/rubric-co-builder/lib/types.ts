@@ -29,6 +29,8 @@ export type Room = {
   facilitator_nudge: string | null;
   sample_artefact_title: string | null;
   sample_artefact_content: string | null;
+  timer_end: string | null;
+  timer_duration: number | null;
 };
 
 export type Criterion = {

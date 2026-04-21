@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRoom } from "@/lib/use-room";
 import { ensureJoined } from "@/lib/participant";
 import { StepShell } from "./_steps/shell";
@@ -17,6 +17,83 @@ import { Wordmark } from "@/app/_components/wordmark";
 import { FacilitatorNudgeBanner } from "@/app/_components/nudge";
 import { roundForState } from "@/lib/types";
 import type { RoomState } from "@/lib/types";
+import { apiPath } from "@/lib/paths";
+
+const STATE_ORDER: RoomState[] = [
+  "lobby", "frame", "propose", "vote", "scale",
+  "vote2", "vote3", "ai_ladder", "pledge", "commit",
+];
+
+function useCountdown(timerEnd: string | null): number | null {
+  const [remaining, setRemaining] = useState<number | null>(null);
+  useEffect(() => {
+    if (!timerEnd) { setRemaining(null); return; }
+    function tick() {
+      const secs = Math.max(0, Math.round((new Date(timerEnd!).getTime() - Date.now()) / 1000));
+      setRemaining(secs);
+    }
+    tick();
+    const id = setInterval(tick, 500);
+    return () => clearInterval(id);
+  }, [timerEnd]);
+  return remaining;
+}
+
+function fmt(secs: number): string {
+  const m = Math.floor(secs / 60).toString().padStart(2, "0");
+  const s = (secs % 60).toString().padStart(2, "0");
+  return `${m}:${s}`;
+}
+
+function TimerBanner({ timerEnd, currentState, code }: {
+  timerEnd: string | null;
+  currentState: RoomState;
+  code: string;
+}) {
+  const remaining = useCountdown(timerEnd);
+  const firedFor = useRef<RoomState | null>(null);
+
+  useEffect(() => {
+    if (remaining === 0 && timerEnd && firedFor.current !== currentState) {
+      const i = STATE_ORDER.indexOf(currentState);
+      const next = i >= 0 && i < STATE_ORDER.length - 1 ? STATE_ORDER[i + 1] : null;
+      if (next) {
+        firedFor.current = currentState;
+        fetch(apiPath(`/api/rooms/${code}`), {
+          method: "PATCH",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ state: next, from_state: currentState }),
+        });
+      }
+    }
+  }, [remaining, timerEnd, currentState, code]);
+
+  useEffect(() => {
+    firedFor.current = null;
+  }, [currentState]);
+
+  if (!timerEnd || remaining === null) return null;
+
+  const isUrgent = remaining <= 30 && remaining > 0;
+  const isDone = remaining === 0;
+
+  return (
+    <div className={`flex items-center justify-center gap-3 rounded-lg px-4 py-3 mb-4 ${
+      isDone
+        ? "bg-[color:var(--color-sienna)]/20 border border-[color:var(--color-sienna)]/40"
+        : isUrgent
+        ? "bg-[color:var(--color-sienna)]/10 border border-[color:var(--color-sienna)]/30"
+        : "bg-[color:var(--color-cadet)]/8 border border-[color:var(--color-cadet)]/15"
+    }`}>
+      <span className="text-xs tracking-widest opacity-60 uppercase">time left</span>
+      <span className={`font-mono text-4xl font-bold tabular-nums leading-none ${
+        isDone ? "text-[color:var(--color-sienna)]" : isUrgent ? "text-[color:var(--color-sienna)]" : "text-[color:var(--color-cadet)]"
+      }`}>
+        {isDone ? "moving…" : fmt(remaining)}
+      </span>
+    </div>
+  );
+}
 
 export function StudentRoom({ code }: { code: string }) {
   const state = useRoom(code);
@@ -71,6 +148,7 @@ export function StudentRoom({ code }: { code: string }) {
   const canEdit = participantId !== null;
   const nudge = <FacilitatorNudgeBanner text={room.facilitator_nudge} />;
   const guide = <GuidingQuestions state={room.state as RoomState} />;
+  const timer = <TimerBanner timerEnd={room.timer_end} currentState={room.state as RoomState} code={code} />;
 
   const body = (() => {
     if (room.state === "lobby") {
@@ -169,6 +247,7 @@ export function StudentRoom({ code }: { code: string }) {
       participantsCount={participants_count}
       surface={surface}
     >
+      {timer}
       {nudge}
       {guide}
       {body}
