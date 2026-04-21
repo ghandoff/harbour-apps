@@ -199,6 +199,91 @@ if anything here reads wrong in light of the other changes, edit in place.
 
 ---
 
+## table 8 — scenarios (50 prompts, tagged by difficulty)
+
+each scenario is drawn at random from the pool filtered by the trio's chosen
+pace (`light` / `real` / `tender`). edit any scenario in place; leave blank to
+keep. change the difficulty tag by editing the "difficulty" column.
+
+add rows at the bottom to propose new scenarios — the app will pick them up
+automatically as long as each has a difficulty tag.
+
+| # | category | difficulty | current scenario | your edit |
+|---|---|---|---|---|
+| 1 | meetings & visibility | real | Your manager gives you critical feedback in front of the team during a stand-up. Your face feels hot before you've processed the words. | |
+| 2 | meetings & visibility | real | In a meeting, you propose an idea. It gets passed over. Ten minutes later, a senior colleague says the same thing — and the room nods. | |
+| 3 | meetings & visibility | light | You're on a video call with colleagues across three time zones. You start to speak and two people talk over you. You pause. No one notices. | |
+| 4 | meetings & visibility | light | You're facilitating a meeting. A senior person interrupts you and takes over. The agenda you prepared never gets finished. | |
+| 5 | meetings & visibility | real | A colleague calls you 'the creative one' in front of the CEO. It's said warmly. You leave feeling smaller. | |
+| 6 | meetings & visibility | light | In a brainstorm, you share an idea. The room goes quiet. Someone else moves on. You can't tell if it was a bad idea or just a quiet room. | |
+| 7 | meetings & visibility | real | You raise a concern in a Town Hall Q&A. Leadership thanks you warmly, then pivots to the next question. No follow-up arrives. | |
+| 8 | feedback & performance | real | You give a direct report honest feedback in a 1:1. They cry. You weren't expecting that. | |
+| 9 | feedback & performance | real | Your manager writes feedback that feels harsh. When you bring it up in person, they soften it and say it 'wasn't a big deal.' | |
+| 10 | feedback & performance | real | A 360 review comes back with one comment that stings for days. You think you know who wrote it — but you're not sure. | |
+| 11 | feedback & performance | real | You're asked to give upward feedback on a manager everyone is quietly afraid of. | |
+| 12 | feedback & performance | light | A friend at work asks for your feedback on their presentation. It wasn't good. | |
+| 13 | feedback & performance | tender | In your performance review, your manager tells you to be 'more assertive.' In your culture, that word is not a compliment. | |
+| 14 | feedback & performance | real | A promotion cycle closes. Your peer is promoted. You weren't told you'd been under consideration. | |
+| 15 | cross-border & remote | light | You're negotiating with a client whose communication style is so indirect you genuinely can't tell whether they've agreed, declined, or just asked another question. | |
+| 16 | cross-border & remote | real | Your team is reorganizing. The decision affects you most. You find out about it in a Slack announcement on a Friday afternoon. | |
+| 17 | cross-border & remote | light | A colleague keeps scheduling 7am meetings in your time zone — then asks, as she books them, if that works for you. | |
+| 18 | cross-border & remote | real | You're asked to lead a client launch in a country you've never worked in. Two weeks to prepare, no cultural briefing, and the stakeholder is 'too busy for a call.' | |
+| 19 | cross-border & remote | light | A colleague from another region sends you a message at midnight your time, marked URGENT. It could have waited. | |
+| 20 | cross-border & remote | light | You're in a meeting where half the room is switching into a language that's your second. You follow the words but keep missing the jokes. | |
+| 21 | cross-border & remote | light | Your team adopted a new Slack norm you didn't pick up on. You've been active in the wrong channel for three weeks. | |
+| 22 | cross-border & remote | light | A vendor greets everyone with formality levels that feel over-the-top to your team. After the call, your colleagues laugh about it. | |
+| 23 | cross-border & remote | light | A new client sends you a personal gift that's above your company's policy limit. Refusing feels like an insult to them. | |
+| 24 | cross-border & remote | light | You're the only remote person in a 'hybrid' meeting. Everyone is laughing at something on the whiteboard. You can't see it. | |
+| 25 | identity & belonging | tender | A teammate jokes about how 'people from [your country] always do things a certain way.' Everyone laughs. You're from there. | |
+| 26 | identity & belonging | tender | You're the only person from your background on the leadership team. In a meeting with the CEO, a peer turns to you and asks what your community 'thinks about this.' | |
+| 27 | identity & belonging | tender | A senior executive mixes up your name with another colleague from your ethnic background — for the third time. No one corrects them. | |
+| 28 | identity & belonging | real | Your colleagues are planning a team dinner at a restaurant that doesn't accommodate your dietary needs. You haven't said anything yet. | |
+| 29 | identity & belonging | tender | A colleague asks where you're 'really from' — for the third time this year. They mean it kindly. | |
+| 30 | identity & belonging | tender | A leadership off-site includes an activity that's inaccessible to one of your teammates. No one notices until the bus is leaving. | |
+| 31 | identity & belonging | tender | In a company photo, you're placed at the front. It's explained, quietly, as 'for diversity.' You weren't asked. | |
+| 32 | identity & belonging | real | You're invited to a diversity panel as the representative of your group. You're asked to open with your personal story. | |
+| 33 | identity & belonging | tender | A pregnant colleague is being left out of a high-visibility project 'because of her situation.' She hasn't been asked. | |
+| 34 | identity & belonging | tender | A senior leader refers to you by the wrong pronouns in a public presentation. You've corrected this before. | |
+| 35 | identity & belonging | tender | At lunch, a colleague asks you to 'say something in [your language]' for the rest of the table. It's meant as a compliment. | |
+| 36 | hierarchy & authority | real | Your skip-level asks you — confidentially — for candid feedback on your manager. You have a 1:1 with your manager tomorrow morning. | |
+| 37 | hierarchy & authority | real | A founder overrides your team's decision in a casual Slack message. Your manager is not in the thread. | |
+| 38 | hierarchy & authority | tender | A senior executive places a reassuring hand on your shoulder during a tense moment. You freeze. They don't notice. | |
+| 39 | hierarchy & authority | real | You're asked to translate live for a client meeting. The client is focused on your executive. You're the conduit. | |
+| 40 | conflict & emotional weather | real | A colleague posts a passive-aggressive message in a public Slack channel. Others react with thumbs-up emojis. You're the target. | |
+| 41 | conflict & emotional weather | real | Your direct report pushes back on your decision in front of the team. Mid-sentence, you realize they're right. | |
+| 42 | conflict & emotional weather | real | Two senior peers are in a power struggle. Both expect you to quietly take their side. Neither has asked. | |
+| 43 | conflict & emotional weather | light | A colleague's baby cries in the background of every video call for two weeks. No one says anything. You're the only other parent on the team. | |
+| 44 | conflict & emotional weather | real | Someone you respect has started avoiding eye contact with you after a difficult project. You don't know what happened. | |
+| 45 | onboarding, exits, transitions | light | A new hire from your team won't make eye contact when you speak. It's their first week. | |
+| 46 | onboarding, exits, transitions | real | A colleague you mentored leaves for a better job. Their farewell email thanks everyone by name — except you. | |
+| 47 | onboarding, exits, transitions | real | A new teammate from a culture where seniority matters more than in yours defers to you on everything. It feels wrong. | |
+| 48 | money & power | tender | You discover a newer colleague, doing less senior work, is paid more than you. | |
+| 49 | money & power | tender | Your company sends a celebratory internal email about a donation to a cause your community is deeply divided on. | |
+| 50 | money & power | tender | In a salary negotiation, the hiring manager says 'we don't typically see that range from candidates with your background.' | |
+
+### proposed additions (blank rows — fill in to expand the pool)
+
+| # | category | difficulty | new scenario | |
+|---|---|---|---|---|
+| 51 | | | | |
+| 52 | | | | |
+| 53 | | | | |
+| 54 | | | | |
+| 55 | | | | |
+
+### current difficulty distribution
+
+| difficulty | count | share |
+|---|---|---|
+| light | 14 | 28% |
+| real | 22 | 44% |
+| tender | 14 | 28% |
+
+flag if you want the balance shifted (e.g. more `tender` for advanced
+facilitator cohorts, or more `light` for warm-up sessions).
+
+---
+
 ## palette/shape sign-off for new archetypes (table 1, rows 37–54)
 
 before SVG work begins, confirm the shape language for each new positive
