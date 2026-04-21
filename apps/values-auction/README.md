@@ -68,6 +68,39 @@ npm run build
 npm run preview
 ```
 
+## deploy (disconnected vercel)
+
+values-auction follows the same pattern as `harbour`, `deep-deck`, and
+`nordic-sqr-rct` — disconnected from git, deployed manually via the vercel
+cli. this avoids adding a new git-connected project (which would multiply
+builds across the monorepo and count against the free-tier quota).
+
+one-time setup (first deploy only):
+
+```bash
+cd apps/values-auction
+vercel login             # if you aren't already logged in
+vercel link              # pick "create a new project", name it "values-auction"
+```
+
+every deploy after that:
+
+```bash
+cd apps/values-auction
+vercel --prod
+```
+
+vercel builds the vite static output locally and uploads it. output is
+`dist/` (configured in `vercel.json`). the first `vercel --prod` prints
+the production url — that's the link you share.
+
+**known limit:** the deployed build uses the `broadcastchannel` transport,
+which only syncs across tabs on the *same browser*. for cross-device play
+(someone on another laptop, someone on their phone) we'd need to host the
+`ws` hub from `server/index.ts` — currently not deployed. for solo demos
+(opening facilitator + participant + wall tabs on your own mac) the
+broadcastchannel path works perfectly.
+
 ## environment variables
 
 | variable          | default                | notes                                       |
