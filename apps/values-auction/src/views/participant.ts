@@ -26,6 +26,7 @@ export class VaParticipant extends LitElement {
   @state() private participantId = '';
   @state() private name = '';
   @state() private joined = false;
+  @state() private welcomed = false;
   @state() private currentPrompt = 0;
   private unsub?: () => void;
   private lastBidSeen = 0;
@@ -168,6 +169,36 @@ export class VaParticipant extends LitElement {
       margin: 0 auto var(--space-5);
       color: var(--fg-muted);
     }
+    .welcome-steps {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+      max-width: 360px;
+      margin: 0 auto var(--space-5);
+      text-align: left;
+    }
+    .welcome-steps li {
+      display: flex;
+      gap: var(--space-2);
+      color: var(--fg-muted);
+    }
+    .welcome-steps li::before {
+      content: '—';
+      color: var(--accent-warm);
+      flex-shrink: 0;
+    }
+    .session-tag {
+      display: inline-block;
+      font: var(--type-mono);
+      color: var(--fg-muted);
+      margin-bottom: var(--space-5);
+    }
+    .session-tag strong {
+      color: var(--fg);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
     form.join {
       display: flex;
       flex-direction: column;
@@ -272,6 +303,30 @@ export class VaParticipant extends LitElement {
   `;
 
   private renderArrival() {
+    if (!this.welcomed && !this.joined) {
+      return html`
+        <section class="arrival fade-in">
+          <h1>values auction.</h1>
+          <p>
+            you and your team will compete in a live auction for organisational values. every bid
+            shapes the company you become.
+          </p>
+          <ul class="welcome-steps">
+            <li>form a company and set your strategy</li>
+            <li>bid for values in real time</li>
+            <li>write your company’s purpose</li>
+          </ul>
+          <p class="session-tag">session <strong>${this.code}</strong></p>
+          <va-button
+            variant="primary"
+            size="lg"
+            @va-click=${() => (this.welcomed = true)}
+          >
+            enter the room
+          </va-button>
+        </section>
+      `;
+    }
     if (!this.joined) {
       return html`
         <section class="arrival fade-in">
