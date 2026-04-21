@@ -57,3 +57,17 @@ export function totalParticipants(session: Session): number {
 export function teamMembers(session: Session, teamId: string) {
   return session.participants.filter((p) => p.teamId === teamId);
 }
+
+export function topValueIds(session: Session, teamId: string, limit = 3): string[] {
+  const team = session.teams.find((t) => t.id === teamId);
+  if (!team) return [];
+  const spend = new Map<string, number>();
+  for (const a of session.completedAuctions) {
+    if (a.winnerTeamId === teamId && a.highBid) {
+      spend.set(a.valueId, a.highBid.amount);
+    }
+  }
+  return [...team.wonValues]
+    .sort((a, b) => (spend.get(b) ?? 0) - (spend.get(a) ?? 0))
+    .slice(0, limit);
+}

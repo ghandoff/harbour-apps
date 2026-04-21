@@ -16,6 +16,8 @@ export const COPY = {
   },
   grouping: {
     heading: 'pick the strategy archetype that feels least like you.',
+    caption:
+      'we’re stretching you on purpose. pick the archetype you’d normally avoid — the auction is more honest when you can’t play safe.',
     options: [
       { key: 'builder', label: 'the builder — ship, measure, ship again.' },
       { key: 'diplomat', label: 'the diplomat — align everyone before a single move.' },
@@ -80,8 +82,13 @@ export const COPY = {
       'what did this force you to trade off?',
       'what kind of company have you just become?',
     ],
-    purpose: 'in one sentence, what does your company exist to do?',
+    purpose:
+      'write your company’s purpose in one sentence. it must honour three of the values you won — name them explicitly.',
     placeholder: 'we exist to...',
+    starter: (v1: string, v2: string, v3: string) =>
+      `we exist to ___, by championing ${v1}, ${v2}, and ${v3}.`,
+    starterHelp: 'starter — edit to make it yours.',
+    useStarter: 'start from this',
     next: 'next',
     submit: 'submit',
     ready: 'your identity card is ready. open it, share it, screenshot it.',

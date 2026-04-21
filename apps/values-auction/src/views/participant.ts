@@ -4,7 +4,7 @@ import type { Controller } from '@/state/controller';
 import type { ActId, Session, Team } from '@/state/types';
 import { COPY } from '@/content/copy';
 import { actPosition } from '@/content/acts';
-import { teamForParticipant } from '@/state/selectors';
+import { teamForParticipant, topValueIds } from '@/state/selectors';
 import { uid } from '@/utils/id';
 import { announce } from '@/utils/a11y';
 import '@/components/va-card';
@@ -207,10 +207,10 @@ export class VaParticipant extends LitElement {
       gap: var(--space-2);
       color: var(--fg-muted);
     }
-    .welcome-steps li::before {
-      content: '—';
+    .welcome-steps li span {
       color: var(--accent-warm);
       flex-shrink: 0;
+      font-weight: 700;
     }
     .session-tag {
       display: inline-block;
@@ -255,6 +255,11 @@ export class VaParticipant extends LitElement {
     }
     .waiting .dot:nth-child(3) {
       animation-delay: 0.8s;
+    }
+    .archetype-caption {
+      color: var(--fg-muted);
+      max-width: 56ch;
+      margin-bottom: var(--space-5);
     }
     .archetypes {
       display: grid;
@@ -459,6 +464,34 @@ export class VaParticipant extends LitElement {
       color: var(--fg-muted);
       margin-top: var(--space-3);
     }
+    .starter {
+      margin-top: var(--space-3);
+      padding: var(--space-3) var(--space-4);
+      background: var(--bg-card);
+      border-left: 3px solid var(--wv-sienna);
+      border-radius: var(--radius-sm);
+    }
+    .starter-text {
+      margin-bottom: var(--space-1);
+    }
+    .starter-help {
+      font: var(--type-small);
+      color: var(--fg-muted);
+      margin-bottom: var(--space-2);
+    }
+    .starter-button {
+      font: var(--type-small);
+      font-weight: 700;
+      padding: var(--space-1) var(--space-3);
+      border-radius: var(--radius-pill);
+      border: 2px solid var(--wv-cadet-blue);
+      background: transparent;
+      cursor: pointer;
+    }
+    .starter-button:focus-visible {
+      outline: var(--focus-ring);
+      outline-offset: var(--focus-ring-offset);
+    }
   `;
 
   private renderArrival() {
@@ -467,14 +500,16 @@ export class VaParticipant extends LitElement {
         <section class="arrival fade-in">
           <h1>values auction.</h1>
           <p>
-            you and your team will compete in a live auction for organisational values. every bid
-            shapes the company you become.
+            you’re about to run a company with a team you haven’t met yet. every value you care
+            about has a price tag — and you only have 150 credos to spend.
           </p>
+          <p>over the next ~45 minutes:</p>
           <ul class="welcome-steps">
-            <li>form a company and set your strategy</li>
-            <li>bid for values in real time</li>
-            <li>write your company’s purpose</li>
+            <li><span aria-hidden="true">①</span> meet your team and your company</li>
+            <li><span aria-hidden="true">②</span> bid for the values that will define you</li>
+            <li><span aria-hidden="true">③</span> write a purpose you can live with</li>
           </ul>
+          <p>come ready to argue for one thing out loud.</p>
           <p class="session-tag">session <strong>${this.code}</strong></p>
           <va-button
             variant="primary"
@@ -526,6 +561,7 @@ export class VaParticipant extends LitElement {
     return html`
       <section class="fade-in">
         <h1>${COPY.grouping.heading}</h1>
+        <p class="archetype-caption">${COPY.grouping.caption}</p>
         <div class="archetypes" role="radiogroup" aria-label="archetype choice">
           ${COPY.grouping.options.map(
             (opt) => html`
@@ -755,11 +791,28 @@ export class VaParticipant extends LitElement {
     `;
   }
 
+  private useStarter(starter: string) {
+    if (!this.team || !this.controller) return;
+    this.controller.dispatch({
+      type: 'PURPOSE_WRITE',
+      teamId: this.team.id,
+      statement: starter,
+    });
+  }
+
   private renderReflection() {
-    if (!this.team) return html``;
+    if (!this.team || !this.session) return html``;
     const prompts = COPY.reflection.prompts;
     const current = prompts[this.currentPrompt];
     const isLast = this.currentPrompt >= prompts.length - 1;
+    const topIds = topValueIds(this.session, this.team.id, 3);
+    const topNames = topIds
+      .map((id) => getValue(id)?.name)
+      .filter((n): n is string => Boolean(n));
+    const starter =
+      topNames.length === 3
+        ? COPY.reflection.starter(topNames[0]!, topNames[1]!, topNames[2]!)
+        : null;
     return html`
       <section class="reflection fade-in">
         <va-company-card .team=${this.team} showWon></va-company-card>
@@ -774,6 +827,21 @@ export class VaParticipant extends LitElement {
                   .value=${this.team.purposeStatement ?? ''}
                   @input=${(e: Event) => this.writePurpose(e)}
                 ></textarea>
+                ${starter
+                  ? html`
+                      <div class="starter">
+                        <p class="starter-text"><em>${starter}</em></p>
+                        <p class="starter-help">${COPY.reflection.starterHelp}</p>
+                        <button
+                          type="button"
+                          class="starter-button"
+                          @click=${() => this.useStarter(starter)}
+                        >
+                          ${COPY.reflection.useStarter}
+                        </button>
+                      </div>
+                    `
+                  : ''}
                 <va-button
                   variant="primary"
                   @va-click=${() =>
