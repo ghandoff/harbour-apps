@@ -28,15 +28,15 @@ export const TEAM_COLOURS: TeamColour[] = [
 export function teamColourHex(colour: TeamColour): string {
   switch (colour) {
     case 'cadet':
-      return '#273248';
+      return '#5f9ea0';
     case 'redwood':
-      return '#b15043';
+      return '#a45a52';
     case 'sienna':
-      return '#cb7858';
+      return '#e97451';
     case 'champagne':
-      return '#ffebd2';
+      return '#f7e7ce';
     case 'deep':
-      return '#141c2c';
+      return '#1a2438';
     case 'sand':
       return '#e9d0a8';
   }
