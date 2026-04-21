@@ -12,6 +12,7 @@ import type {
   RoomSnapshot,
   RoomState,
   Scale,
+  ScaleResponse,
   Vote,
 } from "./types";
 import { DEFAULT_DESCRIPTORS, PLEDGE_SLOTS, SCALE_LEVELS } from "./types";
@@ -31,6 +32,7 @@ type CreateCriterionInput = {
   required: boolean;
   position: number;
   status?: "proposed" | "selected";
+  version_of?: string | null;
 };
 
 type UpdateCriterionInput = {
@@ -45,25 +47,34 @@ export type Store = {
   createCriterion(input: CreateCriterionInput): Promise<Criterion>;
   updateCriterion(id: string, patch: UpdateCriterionInput): Promise<Criterion | null>;
   deleteCriterion(id: string): Promise<boolean>;
+  setCriterionStatus(id: string, status: "selected" | "rejected"): Promise<Criterion | null>;
   getSnapshot(code: string): Promise<RoomSnapshot | null>;
   updateRoomState(code: string, state: RoomState): Promise<Room | null>;
   joinRoom(code: string): Promise<Participant | null>;
   participantExists(id: string, roomCode: string): Promise<boolean>;
 
-  castVote(participantId: string, criterionId: string): Promise<Vote | null>;
-  removeVote(participantId: string, criterionId: string): Promise<boolean>;
-  countVotesForParticipant(participantId: string, roomId: string): Promise<number>;
+  castVote(participantId: string, criterionId: string, round: 1 | 2 | 3): Promise<Vote | null>;
+  removeVote(participantId: string, criterionId: string, round: 1 | 2 | 3): Promise<boolean>;
+  countVotesForParticipant(participantId: string, roomId: string, round: 1 | 2 | 3): Promise<number>;
 
   tallySelection(
     code: string,
-    topN?: number,
-  ): Promise<{ selected: Criterion[]; scales: Scale[] } | null>;
+    round: 1 | 2 | 3,
+    nextState: RoomState,
+  ): Promise<{ selected: Criterion[]; scales: Scale[]; tied: boolean } | null>;
 
   upsertScaleDescriptor(
     criterionId: string,
     level: 1 | 2 | 3 | 4,
     descriptor: string,
   ): Promise<Scale | null>;
+
+  upsertScaleResponse(
+    participantId: string,
+    criterionId: string,
+    level: 1 | 2 | 3 | 4,
+    descriptor: string,
+  ): Promise<ScaleResponse | null>;
 
   submitCalibrationScore(
     participantId: string,
@@ -108,6 +119,7 @@ type MemoryDb = {
   participants: Map<string, Participant>;
   votes: Map<string, Vote>;
   scales: Map<string, Scale>;
+  scaleResponses: Map<string, ScaleResponse>;
   calibration: Map<string, CalibrationScore>;
   aiVotes: Map<string, AiUseVote>;
   pledgeSlots: Map<string, PledgeSlot>;
@@ -120,6 +132,7 @@ function memoryStore(): Store {
     participants: new Map(),
     votes: new Map(),
     scales: new Map(),
+    scaleResponses: new Map(),
     calibration: new Map(),
     aiVotes: new Map(),
     pledgeSlots: new Map(),
@@ -130,12 +143,16 @@ function memoryStore(): Store {
     return null;
   }
 
-  function voteKey(participantId: string, criterionId: string): string {
-    return `${participantId}:${criterionId}`;
+  function voteKey(participantId: string, criterionId: string, round: number): string {
+    return `${participantId}:${criterionId}:${round}`;
   }
 
   function scaleKey(criterionId: string, level: number): string {
     return `${criterionId}:${level}`;
+  }
+
+  function scaleResponseKey(participantId: string, criterionId: string, level: number): string {
+    return `${participantId}:${criterionId}:${level}`;
   }
 
   function calibrationKey(participantId: string, criterionId: string): string {
@@ -162,7 +179,6 @@ function memoryStore(): Store {
         sample_artefact_content: null,
       };
       db.rooms.set(room.id, room);
-      // pre-seed the four pledge slots
       for (const slot of PLEDGE_SLOTS) {
         const s: PledgeSlot = {
           id: uuid(),
@@ -188,6 +204,7 @@ function memoryStore(): Store {
         status: input.status ?? (input.source === "seed" ? "selected" : "proposed"),
         position: input.position,
         created_at: new Date().toISOString(),
+        version_of: input.version_of ?? null,
       };
       db.criteria.set(criterion.id, criterion);
       return criterion;
@@ -214,12 +231,20 @@ function memoryStore(): Store {
       const existing = db.criteria.get(id);
       if (!existing) return false;
       db.criteria.delete(id);
-      // cascade: votes + scales + calibration referencing this criterion
       for (const [k, v] of db.votes) if (v.criterion_id === id) db.votes.delete(k);
       for (const [k, s] of db.scales) if (s.criterion_id === id) db.scales.delete(k);
+      for (const [k, sr] of db.scaleResponses) if (sr.criterion_id === id) db.scaleResponses.delete(k);
       for (const [k, c] of db.calibration)
         if (c.criterion_id === id) db.calibration.delete(k);
       return true;
+    },
+
+    async setCriterionStatus(id, status) {
+      const existing = db.criteria.get(id);
+      if (!existing) return null;
+      const updated: Criterion = { ...existing, status };
+      db.criteria.set(id, updated);
+      return updated;
     },
 
     async getSnapshot(code) {
@@ -238,6 +263,9 @@ function memoryStore(): Store {
       ).length;
       const votes = [...db.votes.values()].filter((v) => criterionIds.has(v.criterion_id));
       const scales = [...db.scales.values()].filter((s) => criterionIds.has(s.criterion_id));
+      const scale_responses = [...db.scaleResponses.values()].filter((sr) =>
+        criterionIds.has(sr.criterion_id),
+      );
       const calibration_scores = [...db.calibration.values()].filter((c) =>
         criterionIds.has(c.criterion_id),
       );
@@ -251,6 +279,7 @@ function memoryStore(): Store {
         participants_count,
         votes,
         scales,
+        scale_responses,
         calibration_scores,
         ai_use_votes,
         pledge_slots,
@@ -288,8 +317,8 @@ function memoryStore(): Store {
       return !!p && p.room_id === room.id;
     },
 
-    async castVote(participantId, criterionId) {
-      const key = voteKey(participantId, criterionId);
+    async castVote(participantId, criterionId, round) {
+      const key = voteKey(participantId, criterionId, round);
       if (db.votes.has(key)) return db.votes.get(key)!;
       const participant = db.participants.get(participantId);
       const criterion = db.criteria.get(criterionId);
@@ -298,66 +327,67 @@ function memoryStore(): Store {
         id: uuid(),
         participant_id: participantId,
         criterion_id: criterionId,
+        round,
         created_at: new Date().toISOString(),
       };
       db.votes.set(key, vote);
       return vote;
     },
 
-    async removeVote(participantId, criterionId) {
-      return db.votes.delete(voteKey(participantId, criterionId));
+    async removeVote(participantId, criterionId, round) {
+      return db.votes.delete(voteKey(participantId, criterionId, round));
     },
 
-    async countVotesForParticipant(participantId, roomId) {
+    async countVotesForParticipant(participantId, roomId, round) {
       const roomCriteriaIds = new Set(
         [...db.criteria.values()].filter((c) => c.room_id === roomId).map((c) => c.id),
       );
       return [...db.votes.values()].filter(
-        (v) => v.participant_id === participantId && roomCriteriaIds.has(v.criterion_id),
+        (v) =>
+          v.participant_id === participantId &&
+          roomCriteriaIds.has(v.criterion_id) &&
+          v.round === round,
       ).length;
     },
 
-    async tallySelection(code, topN = 5) {
+    async tallySelection(code, round, nextState) {
       const room = findByCode(code);
       if (!room) return null;
       const roomCriteria = [...db.criteria.values()].filter((c) => c.room_id === room.id);
+
+      // count votes for this specific round only
       const counts = new Map<string, number>();
       for (const v of db.votes.values()) {
-        if (roomCriteria.some((c) => c.id === v.criterion_id)) {
+        if (v.round === round && roomCriteria.some((c) => c.id === v.criterion_id)) {
           counts.set(v.criterion_id, (counts.get(v.criterion_id) ?? 0) + 1);
         }
       }
-      const participants = [...db.participants.values()].filter(
-        (p) => p.room_id === room.id,
-      );
-      const totalPossible = participants.length * 3;
-      const threshold = Math.max(1, Math.ceil(totalPossible * 0.3));
 
-      // pick: all required + top N by vote count meeting threshold, capped at topN
+      // select ALL criteria with ≥1 vote + any required ones
       const requiredIds = new Set(
         roomCriteria.filter((c) => c.required).map((c) => c.id),
       );
-      const nonRequiredSorted = roomCriteria
-        .filter((c) => !c.required)
-        .sort(
-          (a, b) =>
-            (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0) ||
-            a.position - b.position,
-        );
-
       const picked = new Set<string>(requiredIds);
-      for (const c of nonRequiredSorted) {
-        if (picked.size >= topN) break;
-        if ((counts.get(c.id) ?? 0) >= threshold) picked.add(c.id);
+      for (const c of roomCriteria) {
+        if ((counts.get(c.id) ?? 0) >= 1) picked.add(c.id);
       }
-      // if nobody made the threshold, keep the top 3 anyway so the class has something
-      if (picked.size === requiredIds.size) {
-        for (const c of nonRequiredSorted.slice(0, Math.min(3, topN - picked.size))) {
-          picked.add(c.id);
-        }
+      // fallback: if nothing picked beyond required, keep top 3
+      if (picked.size === requiredIds.size && roomCriteria.length > 0) {
+        const sorted = roomCriteria
+          .filter((c) => !c.required)
+          .sort((a, b) => (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0));
+        for (const c of sorted.slice(0, 3)) picked.add(c.id);
       }
 
-      // update statuses and reset positions for the selected rubric order
+      // detect ties: are there criteria at the exact same vote count at the boundary?
+      const voteCounts = [...picked].map((id) => counts.get(id) ?? 0);
+      const minPicked = Math.min(...voteCounts);
+      const notPickedWithSameCount = roomCriteria.filter(
+        (c) => !picked.has(c.id) && (counts.get(c.id) ?? 0) === minPicked && minPicked > 0,
+      );
+      const tied = notPickedWithSameCount.length > 0;
+
+      // update statuses and positions
       let position = 0;
       const selected: Criterion[] = [];
       for (const c of roomCriteria) {
@@ -371,7 +401,7 @@ function memoryStore(): Store {
       }
       selected.sort((a, b) => a.position - b.position);
 
-      // seed scale descriptors for every selected criterion (idempotent)
+      // seed scale descriptors for selected criteria (idempotent)
       const scales: Scale[] = [];
       for (const c of selected) {
         for (const { level } of SCALE_LEVELS) {
@@ -392,7 +422,15 @@ function memoryStore(): Store {
         }
       }
 
-      return { selected, scales };
+      // advance state
+      const updatedRoom: Room = {
+        ...room,
+        state: nextState,
+        step_started_at: new Date().toISOString(),
+      };
+      db.rooms.set(updatedRoom.id, updatedRoom);
+
+      return { selected, scales, tied };
     },
 
     async upsertScaleDescriptor(criterionId, level, descriptor) {
@@ -413,6 +451,27 @@ function memoryStore(): Store {
       };
       db.scales.set(key, scale);
       return scale;
+    },
+
+    async upsertScaleResponse(participantId, criterionId, level, descriptor) {
+      const key = scaleResponseKey(participantId, criterionId, level);
+      const existing = db.scaleResponses.get(key);
+      const now = new Date().toISOString();
+      if (existing) {
+        const updated: ScaleResponse = { ...existing, descriptor, updated_at: now };
+        db.scaleResponses.set(key, updated);
+        return updated;
+      }
+      const sr: ScaleResponse = {
+        id: uuid(),
+        participant_id: participantId,
+        criterion_id: criterionId,
+        level,
+        descriptor,
+        updated_at: now,
+      };
+      db.scaleResponses.set(key, sr);
+      return sr;
     },
 
     async submitCalibrationScore(participantId, criterionId, level) {
@@ -469,7 +528,6 @@ function memoryStore(): Store {
       let ceiling: AiUseLevel = 0;
       let bestCount = -1;
       for (const lvl of [0, 1, 2, 3, 4] as AiUseLevel[]) {
-        // tie-break: favour lower-numbered rung (more conservative)
         if (counts[lvl] > bestCount) {
           bestCount = counts[lvl];
           ceiling = lvl;
@@ -540,7 +598,6 @@ function neonStore(url: string): Store {
                   step_started_at, created_at,
                   facilitator_nudge, sample_artefact_title, sample_artefact_content
       `;
-      // pre-seed pledge slots
       for (const slot of PLEDGE_SLOTS) {
         await sql`
           insert into rubric_cobuilder.pledge_slots (room_id, slot_index, content)
@@ -555,14 +612,14 @@ function neonStore(url: string): Store {
       const [row] = await sql`
         insert into rubric_cobuilder.criteria
           (room_id, name, good_description, failure_description, source,
-           required, status, position)
+           required, status, position, version_of)
         values
           (${input.room_id}, ${input.name}, ${input.good_description},
            ${input.failure_description ?? null}, ${input.source},
            ${input.required}, ${input.status ?? (input.source === "seed" ? "selected" : "proposed")},
-           ${input.position})
+           ${input.position}, ${input.version_of ?? null})
         returning id, room_id, name, good_description, failure_description,
-                  source, required, status, position, created_at
+                  source, required, status, position, created_at, version_of
       `;
       return row as Criterion;
     },
@@ -576,7 +633,7 @@ function neonStore(url: string): Store {
           failure_description = coalesce(${patch.failure_description ?? null}, failure_description)
         where id = ${id}
         returning id, room_id, name, good_description, failure_description,
-                  source, required, status, position, created_at
+                  source, required, status, position, created_at, version_of
       `;
       return (rows[0] as Criterion | undefined) ?? null;
     },
@@ -586,6 +643,17 @@ function neonStore(url: string): Store {
         delete from rubric_cobuilder.criteria where id = ${id} returning id
       `;
       return rows.length > 0;
+    },
+
+    async setCriterionStatus(id, status) {
+      const rows = await sql`
+        update rubric_cobuilder.criteria
+        set status = ${status}
+        where id = ${id}
+        returning id, room_id, name, good_description, failure_description,
+                  source, required, status, position, created_at, version_of
+      `;
+      return (rows[0] as Criterion | undefined) ?? null;
     },
 
     async getSnapshot(code) {
@@ -601,7 +669,8 @@ function neonStore(url: string): Store {
       const room = rooms[0] as Room;
       const criteria = (await sql`
         select id, room_id, name, good_description, failure_description,
-               source, required, status, position, created_at
+               source, required, status, position, created_at,
+               coalesce(version_of::text, null) as version_of
         from rubric_cobuilder.criteria
         where room_id = ${room.id}
         order by position asc, created_at asc
@@ -612,7 +681,8 @@ function neonStore(url: string): Store {
         where room_id = ${room.id}
       `;
       const votes = (await sql`
-        select v.id, v.participant_id, v.criterion_id, v.created_at
+        select v.id, v.participant_id, v.criterion_id,
+               coalesce(v.round, 1)::int as round, v.created_at
         from rubric_cobuilder.votes v
         join rubric_cobuilder.criteria c on c.id = v.criterion_id
         where c.room_id = ${room.id}
@@ -623,6 +693,12 @@ function neonStore(url: string): Store {
         join rubric_cobuilder.criteria c on c.id = s.criterion_id
         where c.room_id = ${room.id}
       `) as Scale[];
+      const scale_responses: ScaleResponse[] = await (sql`
+        select sr.id, sr.participant_id, sr.criterion_id, sr.level, sr.descriptor, sr.updated_at
+        from rubric_cobuilder.scale_responses sr
+        join rubric_cobuilder.criteria c on c.id = sr.criterion_id
+        where c.room_id = ${room.id}
+      ` as unknown as Promise<ScaleResponse[]>).catch(() => []);
       const calibration_scores = (await sql`
         select cs.id, cs.participant_id, cs.criterion_id, cs.level, cs.created_at
         from rubric_cobuilder.calibration_scores cs
@@ -647,6 +723,7 @@ function neonStore(url: string): Store {
         participants_count: count as number,
         votes,
         scales,
+        scale_responses,
         calibration_scores,
         ai_use_votes,
         pledge_slots,
@@ -689,47 +766,58 @@ function neonStore(url: string): Store {
       return rows.length > 0;
     },
 
-    async castVote(participantId, criterionId) {
+    async castVote(participantId, criterionId, round) {
       const rows = await sql`
-        insert into rubric_cobuilder.votes (participant_id, criterion_id)
-        values (${participantId}, ${criterionId})
-        on conflict (participant_id, criterion_id) do nothing
-        returning id, participant_id, criterion_id, created_at
-      `;
+        insert into rubric_cobuilder.votes (participant_id, criterion_id, round)
+        values (${participantId}, ${criterionId}, ${round})
+        on conflict (participant_id, criterion_id, round) do nothing
+        returning id, participant_id, criterion_id, round, created_at
+      `.catch(async () => {
+        // fallback for tables without the round column yet (old schema)
+        return sql`
+          insert into rubric_cobuilder.votes (participant_id, criterion_id)
+          values (${participantId}, ${criterionId})
+          on conflict (participant_id, criterion_id) do nothing
+          returning id, participant_id, criterion_id, created_at
+        `;
+      });
       if (rows.length === 0) {
         const [existing] = await sql`
-          select id, participant_id, criterion_id, created_at
+          select id, participant_id, criterion_id,
+                 coalesce(round, 1)::int as round, created_at
           from rubric_cobuilder.votes
           where participant_id = ${participantId} and criterion_id = ${criterionId}
+            and coalesce(round, 1) = ${round}
           limit 1
         `;
         return (existing as Vote | undefined) ?? null;
       }
-      return rows[0] as Vote;
+      const row = rows[0] as Record<string, unknown>;
+      return { ...row, round: (row.round as number) ?? round } as Vote;
     },
 
-    async removeVote(participantId, criterionId) {
+    async removeVote(participantId, criterionId, round) {
       const rows = await sql`
         delete from rubric_cobuilder.votes
         where participant_id = ${participantId} and criterion_id = ${criterionId}
+          and coalesce(round, 1) = ${round}
         returning id
       `;
       return rows.length > 0;
     },
 
-    async countVotesForParticipant(participantId, roomId) {
+    async countVotesForParticipant(participantId, roomId, round) {
       const [{ count }] = await sql`
         select count(*)::int as count
         from rubric_cobuilder.votes v
         join rubric_cobuilder.criteria c on c.id = v.criterion_id
         where v.participant_id = ${participantId} and c.room_id = ${roomId}
+          and coalesce(v.round, 1) = ${round}
       `;
       return count as number;
     },
 
-    async tallySelection(code, topN = 5) {
-      // this runs in a single transaction-ish block via sequential sql calls;
-      // it's a best-effort — neon serverless doesn't expose txns on HTTP.
+    async tallySelection(code, round, nextState) {
       const [room] = await sql`
         select id from rubric_cobuilder.rooms where code = ${code} limit 1
       `;
@@ -741,50 +829,64 @@ function neonStore(url: string): Store {
         where room_id = ${roomId} and required = true
       `) as Array<{ id: string }>;
 
-      const totalPossibleRow = await sql`
-        select count(*)::int * 3 as total
-        from rubric_cobuilder.participants
-        where room_id = ${roomId}
-      `;
-      const totalPossible = (totalPossibleRow[0]?.total as number) ?? 0;
-      const threshold = Math.max(1, Math.ceil(totalPossible * 0.3));
-
-      const ranked = (await sql`
-        select c.id, count(v.id)::int as vote_count
+      // select ALL criteria with ≥1 vote in this round
+      const voted = (await sql`
+        select c.id
         from rubric_cobuilder.criteria c
-        left join rubric_cobuilder.votes v on v.criterion_id = c.id
-        where c.room_id = ${roomId} and c.required = false
+        join rubric_cobuilder.votes v on v.criterion_id = c.id
+        where c.room_id = ${roomId}
+          and coalesce(v.round, 1) = ${round}
         group by c.id
-        order by vote_count desc, c.position asc
-      `) as Array<{ id: string; vote_count: number }>;
+        having count(v.id) >= 1
+      `) as Array<{ id: string }>;
 
       const picked = new Set<string>(requiredRows.map((r) => r.id));
-      for (const r of ranked) {
-        if (picked.size >= topN) break;
-        if (r.vote_count >= threshold) picked.add(r.id);
-      }
+      for (const r of voted) picked.add(r.id);
+
+      // fallback: if nothing picked, keep top 3 by votes
       if (picked.size === requiredRows.length) {
-        for (const r of ranked.slice(0, Math.min(3, topN - picked.size))) {
-          picked.add(r.id);
-        }
+        const top3 = (await sql`
+          select c.id
+          from rubric_cobuilder.criteria c
+          left join rubric_cobuilder.votes v
+            on v.criterion_id = c.id and coalesce(v.round, 1) = ${round}
+          where c.room_id = ${roomId} and c.required = false
+          group by c.id
+          order by count(v.id) desc, c.position asc
+          limit 3
+        `) as Array<{ id: string }>;
+        for (const r of top3) picked.add(r.id);
       }
 
+      // detect ties at the boundary
       const pickedArr = [...picked];
+      const tieCheck = (await sql`
+        select c.id, count(v.id)::int as vote_count
+        from rubric_cobuilder.criteria c
+        left join rubric_cobuilder.votes v
+          on v.criterion_id = c.id and coalesce(v.round, 1) = ${round}
+        where c.room_id = ${roomId} and c.required = false
+        group by c.id
+      `) as Array<{ id: string; vote_count: number }>;
+
+      const pickedCounts = tieCheck.filter((r) => picked.has(r.id)).map((r) => r.vote_count);
+      const minPicked = pickedCounts.length > 0 ? Math.min(...pickedCounts) : 0;
+      const tied =
+        minPicked > 0 &&
+        tieCheck.some((r) => !picked.has(r.id) && r.vote_count === minPicked);
+
       // mark selected + rejected
       await sql`
         update rubric_cobuilder.criteria
         set status = 'rejected'
         where room_id = ${roomId}
       `;
-      if (pickedArr.length > 0) {
-        // assign position by current order, then mark selected
-        for (let i = 0; i < pickedArr.length; i++) {
-          await sql`
-            update rubric_cobuilder.criteria
-            set status = 'selected', position = ${i}
-            where id = ${pickedArr[i]}
-          `;
-        }
+      for (let i = 0; i < pickedArr.length; i++) {
+        await sql`
+          update rubric_cobuilder.criteria
+          set status = 'selected', position = ${i}
+          where id = ${pickedArr[i]}
+        `;
       }
 
       // seed scale descriptors
@@ -798,9 +900,17 @@ function neonStore(url: string): Store {
         }
       }
 
+      // advance state
+      await sql`
+        update rubric_cobuilder.rooms
+        set state = ${nextState}, step_started_at = now()
+        where id = ${roomId}
+      `;
+
       const selected = (await sql`
         select id, room_id, name, good_description, failure_description,
-               source, required, status, position, created_at
+               source, required, status, position, created_at,
+               coalesce(version_of::text, null) as version_of
         from rubric_cobuilder.criteria
         where room_id = ${roomId} and status = 'selected'
         order by position asc
@@ -813,7 +923,7 @@ function neonStore(url: string): Store {
         order by s.level asc
       `) as Scale[];
 
-      return { selected, scales };
+      return { selected, scales, tied };
     },
 
     async upsertScaleDescriptor(criterionId, level, descriptor) {
@@ -825,6 +935,18 @@ function neonStore(url: string): Store {
         returning id, criterion_id, level, descriptor, updated_at
       `;
       return row as Scale;
+    },
+
+    async upsertScaleResponse(participantId, criterionId, level, descriptor) {
+      const [row] = await sql`
+        insert into rubric_cobuilder.scale_responses
+          (participant_id, criterion_id, level, descriptor)
+        values (${participantId}, ${criterionId}, ${level}, ${descriptor})
+        on conflict (participant_id, criterion_id, level) do update
+          set descriptor = excluded.descriptor, updated_at = now()
+        returning id, participant_id, criterion_id, level, descriptor, updated_at
+      `;
+      return row as ScaleResponse;
     },
 
     async submitCalibrationScore(participantId, criterionId, level) {
@@ -943,4 +1065,3 @@ export function getStore(): Store {
   }
   return cached;
 }
-

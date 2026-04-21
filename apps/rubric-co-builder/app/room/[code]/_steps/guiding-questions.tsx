@@ -21,6 +21,16 @@ const QUESTIONS: Record<RoomState, string[]> = {
     "which one is hardest to fake with polish?",
     "which one would you most want to be graded on?",
   ],
+  vote2: [
+    "now that you've seen how each criterion gets scaled — does your ranking change?",
+    "which criterion will actually change how you work on the artefact?",
+    "which descriptor still feels vague? vote for the ones where the language landed.",
+  ],
+  vote3: [
+    "which criteria are doing real work — not just sounding good?",
+    "which ones would survive a hard conversation with the marker?",
+    "if you could only keep three, which three?",
+  ],
   scale: [
     "what does this look like when it only barely passes?",
     "what’s the leap from emerging to proficient — in one concrete sentence?",

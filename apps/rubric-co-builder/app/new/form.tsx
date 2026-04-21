@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { apiPath } from "@/lib/paths";
+import { ARTIFACT_EXAMPLES } from "@/lib/types";
 
 type SeedInput = {
   name: string;
@@ -44,7 +45,7 @@ export function NewRoomForm({ seeds }: Props) {
     e.preventDefault();
     setError(null);
     if (!outcome.trim() || !description.trim()) {
-      setError("learning outcome and project description are both required.");
+      setError("learning outcome and artifact description are both required.");
       return;
     }
     const cleanSeeds = seedState
@@ -107,19 +108,28 @@ export function NewRoomForm({ seeds }: Props) {
           htmlFor="description"
           className="block text-sm font-medium text-[color:var(--color-cadet)]"
         >
-          project description
+          artifact
         </label>
+        <p className="text-xs text-[color:var(--color-cadet)]/60">
+          the deliverable students create to demonstrate learning.
+        </p>
         <input
           id="description"
           name="description"
           type="text"
+          list="artifact-examples"
           required
           maxLength={1000}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="a short phrase, e.g. ‘group pitch for a campus consulting practice’"
+          placeholder="e.g. presentation, essay, prototype…"
           className="w-full rounded-lg border border-[color:var(--color-cadet)]/20 bg-white px-4 py-3 text-base placeholder:text-[color:var(--color-cadet)]/40 focus:border-[color:var(--color-cadet)] focus:outline-none"
         />
+        <datalist id="artifact-examples">
+          {ARTIFACT_EXAMPLES.map((ex) => (
+            <option key={ex} value={ex} />
+          ))}
+        </datalist>
       </div>
 
       <div className="space-y-4">
@@ -145,7 +155,10 @@ export function NewRoomForm({ seeds }: Props) {
                   placeholder="criterion name"
                   className="flex-1 rounded border border-transparent bg-[color:var(--color-champagne)]/40 px-3 py-2 font-medium focus:border-[color:var(--color-cadet)] focus:outline-none focus:bg-white"
                 />
-                <label className="flex items-center gap-2 text-xs text-[color:var(--color-cadet)]/70 cursor-pointer">
+                <label
+                  className="flex items-center gap-2 text-xs text-[color:var(--color-cadet)]/70 cursor-pointer relative group"
+                  title="Students cannot remove this criterion."
+                >
                   <input
                     type="checkbox"
                     checked={seed.required}
@@ -153,6 +166,9 @@ export function NewRoomForm({ seeds }: Props) {
                     className="h-4 w-4 accent-[color:var(--color-sienna)]"
                   />
                   required
+                  <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-52 rounded bg-[color:var(--color-cadet)] px-2 py-1 text-center text-[11px] leading-tight text-white opacity-0 transition-opacity group-hover:opacity-100">
+                    students cannot remove this criterion.
+                  </span>
                 </label>
                 <button
                   type="button"

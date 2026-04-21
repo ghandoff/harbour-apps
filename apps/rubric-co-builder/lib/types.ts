@@ -4,7 +4,9 @@ export type RoomState =
   | "propose"
   | "vote"
   | "scale"
-  | "calibrate"
+  | "vote2"
+  | "vote3"
+  | "calibrate"  // kept for backward compat with rooms created before the rework
   | "ai_ladder"
   | "pledge"
   | "commit";
@@ -40,6 +42,7 @@ export type Criterion = {
   status: CriterionStatus;
   position: number;
   created_at: string;
+  version_of: string | null;
 };
 
 export type Participant = {
@@ -52,11 +55,21 @@ export type Vote = {
   id: string;
   participant_id: string;
   criterion_id: string;
+  round: 1 | 2 | 3;
   created_at: string;
 };
 
 export type Scale = {
   id: string;
+  criterion_id: string;
+  level: 1 | 2 | 3 | 4;
+  descriptor: string;
+  updated_at: string;
+};
+
+export type ScaleResponse = {
+  id: string;
+  participant_id: string;
   criterion_id: string;
   level: 1 | 2 | 3 | 4;
   descriptor: string;
@@ -93,6 +106,7 @@ export type RoomSnapshot = {
   participants_count: number;
   votes: Vote[];
   scales: Scale[];
+  scale_responses: ScaleResponse[];
   calibration_scores: CalibrationScore[];
   ai_use_votes: AiUseVote[];
   pledge_slots: PledgeSlot[];
@@ -115,6 +129,18 @@ export const SEED_CRITERIA: Array<Pick<Criterion, "name" | "good_description">> 
     name: "execution",
     good_description: "the thing works, end to end, on the day it is due.",
   },
+];
+
+export const ARTIFACT_EXAMPLES = [
+  "presentation",
+  "essay",
+  "prototype",
+  "portfolio",
+  "case study",
+  "code project",
+  "research paper",
+  "design mockup",
+  "video",
 ];
 
 export const SCALE_LEVELS: Array<{ level: 1 | 2 | 3 | 4; label: string }> = [
@@ -197,3 +223,9 @@ export const PLEDGE_SLOTS: Array<{
       "e.g., flag it to the facilitator, rewrite the crossed section, note it in our final submission",
   },
 ];
+
+export function roundForState(state: RoomState): 1 | 2 | 3 {
+  if (state === "vote2") return 2;
+  if (state === "vote3") return 3;
+  return 1;
+}

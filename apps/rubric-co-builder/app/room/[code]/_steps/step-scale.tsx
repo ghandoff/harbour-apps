@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { Criterion, Scale } from "@/lib/types";
+import type { Criterion, Scale, ScaleResponse } from "@/lib/types";
 import { SCALE_LEVELS } from "@/lib/types";
 import { apiPath } from "@/lib/paths";
 
@@ -9,33 +9,45 @@ type Props = {
   code: string;
   criteria: Criterion[];
   scales: Scale[];
+  scaleResponses: ScaleResponse[];
+  participantId: string | null;
   canEdit: boolean;
 };
 
-export function StepScale({ code, criteria, scales, canEdit }: Props) {
+export function StepScale({ code, criteria, scales, scaleResponses, participantId, canEdit }: Props) {
   const selected = useMemo(
     () => criteria.filter((c) => c.status === "selected").sort((a, b) => a.position - b.position),
     [criteria],
   );
+
+  // derive unique participant ids from scale responses for column display (host view)
+  const participantIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const sr of scaleResponses) ids.add(sr.participant_id);
+    return [...ids];
+  }, [scaleResponses]);
 
   return (
     <div className="space-y-8">
       <header className="max-w-3xl space-y-3">
         <h1 className="text-3xl font-bold">write the scale.</h1>
         <p className="text-[color:var(--color-cadet)]/85 leading-relaxed">
-          four levels for each criterion — novice, emerging, proficient, advanced. the
-          placeholders are deliberately weak. tighten them in your own words. edits
-          auto-save.
+          four levels for each criterion — novice, emerging, proficient, advanced. write
+          your own version of what each level looks like. your input appears in your column.
+          {!participantId ? " the facilitator sees all responses side by side." : ""}
         </p>
       </header>
 
-      <div className="space-y-6">
+      <div className="space-y-8">
         {selected.map((c) => (
           <ScaleBlock
             key={c.id}
             code={code}
             criterion={c}
             scales={scales.filter((s) => s.criterion_id === c.id)}
+            scaleResponses={scaleResponses.filter((sr) => sr.criterion_id === c.id)}
+            participantId={participantId}
+            participantIds={participantIds}
             canEdit={canEdit}
           />
         ))}
@@ -54,13 +66,21 @@ function ScaleBlock({
   code,
   criterion,
   scales,
+  scaleResponses,
+  participantId,
+  participantIds,
   canEdit,
 }: {
   code: string;
   criterion: Criterion;
   scales: Scale[];
+  scaleResponses: ScaleResponse[];
+  participantId: string | null;
+  participantIds: string[];
   canEdit: boolean;
 }) {
+  const isHost = participantId === null;
+
   return (
     <section className="rounded-lg border border-[color:var(--color-cadet)]/15 bg-white p-5">
       <div className="mb-4">
@@ -73,22 +93,83 @@ function ScaleBlock({
           </p>
         ) : null}
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-        {SCALE_LEVELS.map(({ level, label }) => {
-          const scale = scales.find((s) => s.level === level);
-          return (
-            <ScaleCell
-              key={level}
-              code={code}
-              criterionId={criterion.id}
-              level={level}
-              label={label}
-              initial={scale?.descriptor ?? ""}
-              canEdit={canEdit}
-            />
-          );
-        })}
-      </div>
+
+      {isHost && participantIds.length > 0 ? (
+        // host sees all student columns side by side
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm border-collapse">
+            <thead>
+              <tr>
+                <th className="text-left text-[10px] tracking-wider text-[color:var(--color-cadet)]/60 pb-2 pr-4 w-24">
+                  level
+                </th>
+                {participantIds.map((pid, i) => (
+                  <th
+                    key={pid}
+                    className="text-left text-[10px] tracking-wider text-[color:var(--color-cadet)]/60 pb-2 px-2"
+                  >
+                    student {i + 1}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {SCALE_LEVELS.map(({ level, label }) => (
+                <tr key={level} className="border-t border-[color:var(--color-cadet)]/10">
+                  <td className="py-2 pr-4 text-[10px] tracking-wider text-[color:var(--color-cadet)]/60 align-top">
+                    {level} · {label}
+                  </td>
+                  {participantIds.map((pid) => {
+                    const sr = scaleResponses.find(
+                      (r) => r.participant_id === pid && r.level === level,
+                    );
+                    return (
+                      <td
+                        key={pid}
+                        className="py-2 px-2 align-top text-xs leading-relaxed text-[color:var(--color-cadet)]/85 max-w-xs"
+                      >
+                        {sr?.descriptor ? (
+                          <span className="whitespace-pre-wrap">{sr.descriptor}</span>
+                        ) : (
+                          <span className="opacity-30">—</span>
+                        )}
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : isHost ? (
+        // host view, no student responses yet
+        <p className="text-xs text-[color:var(--color-cadet)]/50 italic">
+          waiting for student responses…
+        </p>
+      ) : (
+        // student view: canonical scale cells they can edit
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+          {SCALE_LEVELS.map(({ level, label }) => {
+            const scale = scales.find((s) => s.level === level);
+            const myResponse = scaleResponses.find(
+              (sr) => sr.level === level && sr.participant_id === participantId,
+            );
+            return (
+              <ScaleCell
+                key={level}
+                code={code}
+                criterionId={criterion.id}
+                level={level}
+                label={label}
+                canonicalDescriptor={scale?.descriptor ?? ""}
+                myDescriptor={myResponse?.descriptor ?? ""}
+                participantId={participantId}
+                canEdit={canEdit}
+              />
+            );
+          })}
+        </div>
+      )}
     </section>
   );
 }
@@ -98,28 +179,33 @@ function ScaleCell({
   criterionId,
   level,
   label,
-  initial,
+  canonicalDescriptor,
+  myDescriptor,
+  participantId,
   canEdit,
 }: {
   code: string;
   criterionId: string;
   level: 1 | 2 | 3 | 4;
   label: string;
-  initial: string;
+  canonicalDescriptor: string;
+  myDescriptor: string;
+  participantId: string | null;
   canEdit: boolean;
 }) {
-  const [value, setValue] = useState(initial);
+  const [value, setValue] = useState(myDescriptor || canonicalDescriptor);
   const [saving, setSaving] = useState(false);
 
   async function save() {
-    if (!canEdit) return;
-    if (value === initial) return;
+    if (!canEdit || !participantId) return;
     setSaving(true);
     try {
-      await fetch(apiPath(`/api/rooms/${code}/scales`), {
+      // save to per-student scale_responses
+      await fetch(apiPath(`/api/rooms/${code}/scale-responses`), {
         method: "PATCH",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
+          participant_id: participantId,
           criterion_id: criterionId,
           level,
           descriptor: value,

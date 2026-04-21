@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server";
 import { getStore } from "@/lib/store";
 import { isValidRoomCode } from "@/lib/room-code";
+import { roundForState } from "@/lib/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// dot budget scales to the size of the ballot so small rooms aren't forced to vote
-// for everything. at 2 criteria → 1 dot; 3 → 2 dots; 4+ → 3 dots.
 function maxVotesFor(criteriaOnBallot: number): number {
   if (criteriaOnBallot <= 1) return 1;
   return Math.min(3, Math.max(1, criteriaOnBallot - 1));
@@ -39,9 +38,16 @@ export async function POST(
   if (!snapshot) {
     return NextResponse.json({ error: "room not found" }, { status: 404 });
   }
+
+  // determine round from room state (client also sends it as a hint, but server is authoritative)
+  const round: 1 | 2 | 3 =
+    typeof o.round === "number" && [1, 2, 3].includes(o.round)
+      ? (o.round as 1 | 2 | 3)
+      : roundForState(snapshot.room.state);
+
   const ballotSize = snapshot.criteria.filter((c) => c.status !== "rejected").length;
   const maxVotes = maxVotesFor(ballotSize);
-  const count = await store.countVotesForParticipant(participantId, snapshot.room.id);
+  const count = await store.countVotesForParticipant(participantId, snapshot.room.id, round);
   if (count >= maxVotes) {
     return NextResponse.json(
       {
@@ -50,7 +56,7 @@ export async function POST(
       { status: 409 },
     );
   }
-  const vote = await store.castVote(participantId, criterionId);
+  const vote = await store.castVote(participantId, criterionId, round);
   if (!vote) {
     return NextResponse.json({ error: "couldn't cast vote" }, { status: 400 });
   }
@@ -69,9 +75,22 @@ export async function DELETE(
   const url = new URL(req.url);
   const participantId = url.searchParams.get("participant_id") ?? "";
   const criterionId = url.searchParams.get("criterion_id") ?? "";
+  const roundParam = url.searchParams.get("round");
+
   if (!participantId || !criterionId) {
     return NextResponse.json({ error: "missing ids" }, { status: 400 });
   }
-  await getStore().removeVote(participantId, criterionId);
+
+  const store = getStore();
+  // determine round
+  let round: 1 | 2 | 3 = 1;
+  if (roundParam && ["1", "2", "3"].includes(roundParam)) {
+    round = Number(roundParam) as 1 | 2 | 3;
+  } else {
+    const snapshot = await store.getSnapshot(normalised);
+    if (snapshot) round = roundForState(snapshot.room.state);
+  }
+
+  await store.removeVote(participantId, criterionId, round);
   return NextResponse.json({ ok: true });
 }

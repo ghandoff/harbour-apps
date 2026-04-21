@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import type { Criterion, Vote } from "@/lib/types";
 import { apiPath } from "@/lib/paths";
 
-// must match the server: 2 crit → 1 dot, 3 → 2, 4+ → 3.
+// dot budget scales to the size of the ballot
 function maxVotesFor(criteriaOnBallot: number): number {
   if (criteriaOnBallot <= 1) return 1;
   return Math.min(3, Math.max(1, criteriaOnBallot - 1));
@@ -16,6 +16,7 @@ type Props = {
   votes: Vote[];
   participantId: string | null;
   participantsCount: number;
+  round: 1 | 2 | 3;
 };
 
 export function StepVote({
@@ -24,24 +25,36 @@ export function StepVote({
   votes,
   participantId,
   participantsCount,
+  round,
 }: Props) {
   const maxVotes = maxVotesFor(criteria.length);
 
+  // only look at votes for the current round
+  const roundVotes = useMemo(() => votes.filter((v) => (v.round ?? 1) === round), [votes, round]);
+
   const myVotes = useMemo(
-    () => (participantId ? votes.filter((v) => v.participant_id === participantId) : []),
-    [votes, participantId],
+    () => (participantId ? roundVotes.filter((v) => v.participant_id === participantId) : []),
+    [roundVotes, participantId],
   );
   const myCast = new Set(myVotes.map((v) => v.criterion_id));
   const dotsLeft = Math.max(0, maxVotes - myVotes.length);
 
   const counts = useMemo(() => {
     const m = new Map<string, number>();
-    for (const v of votes) m.set(v.criterion_id, (m.get(v.criterion_id) ?? 0) + 1);
+    for (const v of roundVotes) m.set(v.criterion_id, (m.get(v.criterion_id) ?? 0) + 1);
     return m;
-  }, [votes]);
+  }, [roundVotes]);
 
-  const totalPossible = Math.max(1, participantsCount * maxVotes);
-  const threshold = Math.max(1, Math.ceil(totalPossible * 0.3));
+  // all criteria with ≥1 vote are shown as "making the cut" — no threshold
+  const totalParticipants = Math.max(1, participantsCount);
+  const totalVotesCast = roundVotes.length;
+
+  const roundLabel =
+    round === 1
+      ? "round 1 — after proposals"
+      : round === 2
+      ? "round 2 — after scaling"
+      : "round 3 — final vote";
 
   async function toggle(criterion: Criterion) {
     if (!participantId) return;
@@ -49,7 +62,7 @@ export function StepVote({
     if (already) {
       await fetch(
         apiPath(
-          `/api/rooms/${code}/votes?participant_id=${participantId}&criterion_id=${criterion.id}`,
+          `/api/rooms/${code}/votes?participant_id=${participantId}&criterion_id=${criterion.id}&round=${round}`,
         ),
         { method: "DELETE" },
       );
@@ -61,6 +74,7 @@ export function StepVote({
         body: JSON.stringify({
           participant_id: participantId,
           criterion_id: criterion.id,
+          round,
         }),
       });
     }
@@ -69,6 +83,9 @@ export function StepVote({
   return (
     <div className="space-y-8">
       <header className="max-w-3xl space-y-3">
+        <p className="text-xs tracking-widest text-[color:var(--color-cadet)]/60 uppercase">
+          {roundLabel}
+        </p>
         <h1 className="text-3xl font-bold">
           which {maxVotes === 1 ? "one" : maxVotes === 2 ? "two" : "three"} matter{maxVotes === 1 ? "s" : ""} most?
         </h1>
@@ -83,7 +100,7 @@ export function StepVote({
             <span className="font-semibold text-[color:var(--color-sienna)]">
               {dotsLeft}
             </span>{" "}
-            dot{dotsLeft === 1 ? "" : "s"} left.
+            dot{dotsLeft === 1 ? "" : "s"} left · {totalVotesCast} dot{totalVotesCast === 1 ? "" : "s"} cast across {totalParticipants} participant{totalParticipants === 1 ? "" : "s"}
           </p>
         ) : (
           <p className="text-sm text-[color:var(--color-cadet)]/60">
@@ -96,7 +113,7 @@ export function StepVote({
         {criteria.map((c) => {
           const count = counts.get(c.id) ?? 0;
           const mine = myCast.has(c.id);
-          const survives = c.required || count >= threshold;
+          const hasVotes = c.required || count >= 1;
           return (
             <button
               key={c.id}
@@ -108,7 +125,7 @@ export function StepVote({
                 mine
                   ? "ring-2 ring-[color:var(--color-sienna)] shadow-sm"
                   : "border border-[color:var(--color-cadet)]/15 hover:border-[color:var(--color-cadet)]/40",
-                survives ? "bg-gradient-to-br from-white to-[color:var(--color-champagne)]/60" : "",
+                hasVotes ? "bg-gradient-to-br from-white to-[color:var(--color-champagne)]/60" : "",
                 !participantId ? "cursor-default" : "cursor-pointer",
               ].join(" ")}
             >
@@ -119,6 +136,11 @@ export function StepVote({
                 {c.required ? (
                   <span className="text-[10px] uppercase tracking-wider bg-[color:var(--color-cadet)] text-white rounded px-2 py-0.5">
                     required
+                  </span>
+                ) : null}
+                {c.version_of ? (
+                  <span className="text-[10px] uppercase tracking-wider bg-[color:var(--color-sienna)]/15 text-[color:var(--color-sienna)] rounded px-2 py-0.5">
+                    variation
                   </span>
                 ) : null}
               </div>
@@ -143,7 +165,7 @@ export function StepVote({
                 ) : null}
               </div>
 
-              {survives ? (
+              {hasVotes && !c.required ? (
                 <p className="text-[10px] uppercase tracking-wider mt-2 text-[color:var(--color-cadet)] font-semibold">
                   making the cut
                 </p>
@@ -154,9 +176,8 @@ export function StepVote({
       </div>
 
       <p className="text-xs text-[color:var(--color-cadet)]/55 max-w-xl">
-        when the host taps <em>tally</em>, any criterion past <strong>{threshold}</strong>{" "}
-        dot{threshold === 1 ? "" : "s"} (30% of the room&apos;s max) or marked required
-        moves to the scale step. top five, whichever come first.
+        when the host taps <em>tally</em>, every criterion with at least one dot moves forward.
+        required criteria are always included.
       </p>
     </div>
   );

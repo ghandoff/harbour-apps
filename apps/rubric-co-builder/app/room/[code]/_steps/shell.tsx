@@ -7,12 +7,14 @@ const STATE_LABELS: Record<RoomState, string> = {
   lobby: "0.5 arrivals",
   frame: "1 frame",
   propose: "2 propose",
-  vote: "3 vote",
+  vote: "3 vote — round 1",
   scale: "4 scale",
-  calibrate: "5 calibrate",
-  ai_ladder: "5.5a AI ladder",
-  pledge: "5.5b pledge",
-  commit: "6 commit",
+  vote2: "5 vote — round 2",
+  vote3: "6 vote — round 3",
+  calibrate: "6 calibrate",   // legacy
+  ai_ladder: "7 AI ladder",
+  pledge: "8 pledge",
+  commit: "9 commit",
 };
 
 export function StepShell({
@@ -34,7 +36,7 @@ export function StepShell({
       <Wordmark />
       <header className="max-w-6xl mx-auto mb-8 flex items-center justify-between gap-4">
         <p className="text-xs tracking-widest text-[color:var(--color-cadet)]/70">
-          {role} view · step {STATE_LABELS[state]}
+          {role} view · step {STATE_LABELS[state] ?? state}
         </p>
         {typeof participantsCount === "number" ? (
           <p className="text-xs text-[color:var(--color-cadet)]/70">

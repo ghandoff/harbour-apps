@@ -15,6 +15,7 @@ import { StepCommit } from "./_steps/step-commit";
 import { GuidingQuestions } from "./_steps/guiding-questions";
 import { Wordmark } from "@/app/_components/wordmark";
 import { FacilitatorNudgeBanner } from "@/app/_components/nudge";
+import { roundForState } from "@/lib/types";
 import type { RoomState } from "@/lib/types";
 
 export function StudentRoom({ code }: { code: string }) {
@@ -61,6 +62,7 @@ export function StudentRoom({ code }: { code: string }) {
     participants_count,
     votes,
     scales,
+    scale_responses,
     calibration_scores,
     ai_use_votes,
     pledge_slots,
@@ -88,8 +90,9 @@ export function StudentRoom({ code }: { code: string }) {
     if (room.state === "propose") {
       return <StepPropose code={code} criteria={criteria} canEdit={canEdit} />;
     }
-    if (room.state === "vote") {
+    if (room.state === "vote" || room.state === "vote2" || room.state === "vote3") {
       const ballot = criteria.filter((c) => c.status !== "rejected");
+      const round = roundForState(room.state);
       return (
         <StepVote
           code={code}
@@ -97,13 +100,24 @@ export function StudentRoom({ code }: { code: string }) {
           votes={votes}
           participantId={participantId}
           participantsCount={participants_count}
+          round={round}
         />
       );
     }
     if (room.state === "scale") {
-      return <StepScale code={code} criteria={criteria} scales={scales} canEdit={canEdit} />;
+      return (
+        <StepScale
+          code={code}
+          criteria={criteria}
+          scales={scales}
+          scaleResponses={scale_responses ?? []}
+          participantId={participantId}
+          canEdit={canEdit}
+        />
+      );
     }
     if (room.state === "calibrate") {
+      // legacy state: rooms created before the rework land here
       return (
         <StepCalibrate
           code={code}

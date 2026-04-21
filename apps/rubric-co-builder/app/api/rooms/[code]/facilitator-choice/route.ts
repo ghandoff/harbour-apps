@@ -5,6 +5,7 @@ import { isValidRoomCode } from "@/lib/room-code";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+// facilitator tiebreaker: set which criteria remain selected vs rejected
 export async function POST(
   req: Request,
   { params }: { params: Promise<{ code: string }> },
@@ -14,7 +15,6 @@ export async function POST(
   if (!isValidRoomCode(normalised)) {
     return NextResponse.json({ error: "invalid code" }, { status: 400 });
   }
-
   let body: unknown;
   try {
     body = await req.json();
@@ -22,13 +22,11 @@ export async function POST(
     return NextResponse.json({ error: "invalid json body" }, { status: 400 });
   }
   const o = (body ?? {}) as Record<string, unknown>;
-  const name = typeof o.name === "string" ? o.name.trim() : "";
-  const good = typeof o.good_description === "string" ? o.good_description.trim() : "";
-  const versionOf = typeof o.version_of === "string" ? o.version_of : null;
-
-  if (!name || name.length > 120) {
-    return NextResponse.json({ error: "criterion needs a short name" }, { status: 400 });
+  if (!Array.isArray(o.selected_ids)) {
+    return NextResponse.json({ error: "selected_ids must be an array" }, { status: 400 });
   }
+  const selectedIds = (o.selected_ids as unknown[])
+    .filter((id): id is string => typeof id === "string");
 
   const store = getStore();
   const snapshot = await store.getSnapshot(normalised);
@@ -36,15 +34,15 @@ export async function POST(
     return NextResponse.json({ error: "room not found" }, { status: 404 });
   }
 
-  const criterion = await store.createCriterion({
-    room_id: snapshot.room.id,
-    name,
-    good_description: good || null,
-    source: "proposed",
-    required: false,
-    position: snapshot.criteria.length,
-    status: "proposed",
-    version_of: versionOf,
-  });
-  return NextResponse.json(criterion, { status: 201 });
+  // update statuses: keep selected_ids as "selected", reject everything else
+  const selectedSet = new Set(selectedIds);
+  const updates = await Promise.all(
+    snapshot.criteria
+      .filter((c) => !c.required) // never reject required criteria
+      .map((c) =>
+        store.setCriterionStatus(c.id, selectedSet.has(c.id) ? "selected" : "rejected"),
+      ),
+  );
+
+  return NextResponse.json({ updated: updates.filter(Boolean).length });
 }

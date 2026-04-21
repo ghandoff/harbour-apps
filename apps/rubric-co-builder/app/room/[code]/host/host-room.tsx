@@ -12,8 +12,10 @@ import type {
   Room,
   RoomState,
   Scale,
+  ScaleResponse,
   Vote,
 } from "@/lib/types";
+import { roundForState } from "@/lib/types";
 import { StepShell } from "../_steps/shell";
 import { StepFrame } from "../_steps/step-frame";
 import { StepPropose } from "../_steps/step-propose";
@@ -32,7 +34,8 @@ const STATE_ORDER: RoomState[] = [
   "propose",
   "vote",
   "scale",
-  "calibrate",
+  "vote2",
+  "vote3",
   "ai_ladder",
   "pledge",
   "commit",
@@ -69,6 +72,7 @@ export function HostRoom({ code }: { code: string }) {
     participants_count,
     votes,
     scales,
+    scale_responses,
     calibration_scores,
     ai_use_votes,
     pledge_slots,
@@ -82,12 +86,22 @@ export function HostRoom({ code }: { code: string }) {
     });
   }
 
-  async function tally() {
-    await fetch(apiPath(`/api/rooms/${code}/tally`), { method: "POST" });
+  async function tally(round: 1 | 2 | 3) {
+    const endpoint =
+      round === 1 ? "tally" : round === 2 ? "tally2" : "tally3";
+    await fetch(apiPath(`/api/rooms/${code}/${endpoint}`), { method: "POST" });
   }
 
   async function aiTally() {
     await fetch(apiPath(`/api/rooms/${code}/ai-tally`), { method: "POST" });
+  }
+
+  async function resolveChoice(selectedIds: string[]) {
+    await fetch(apiPath(`/api/rooms/${code}/facilitator-choice`), {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ selected_ids: selectedIds }),
+    });
   }
 
   const surface: "white" | "champagne" =
@@ -120,10 +134,12 @@ export function HostRoom({ code }: { code: string }) {
             criteria={criteria}
             votes={votes}
             scales={scales}
+            scale_responses={scale_responses ?? []}
             calibration_scores={calibration_scores}
             ai_use_votes={ai_use_votes}
             pledge_slots={pledge_slots}
             participants_count={participants_count}
+            onResolveChoice={resolveChoice}
           />
         </div>
       </div>
@@ -141,12 +157,10 @@ function HostControls({
   code: string;
   current: RoomState;
   onAdvance: (s: RoomState) => void;
-  onTally: () => Promise<void>;
+  onTally: (round: 1 | 2 | 3) => Promise<void>;
   onAiTally: () => Promise<void>;
 }) {
   const [pending, setPending] = useState<string | null>(null);
-  // clear pending when the server-reported state matches the action's target.
-  // the parent re-renders on poll; this effect notices the transition.
   const lastCurrent = useRef(current);
   useEffect(() => {
     if (lastCurrent.current !== current) {
@@ -157,19 +171,26 @@ function HostControls({
 
   const next = (() => {
     const i = STATE_ORDER.indexOf(current);
-    return i < STATE_ORDER.length - 1 ? STATE_ORDER[i + 1] : null;
+    return i >= 0 && i < STATE_ORDER.length - 1 ? STATE_ORDER[i + 1] : null;
   })();
+
+  const isTallyState = current === "vote" || current === "vote2" || current === "vote3";
+  const tallyRound = current === "vote" ? 1 : current === "vote2" ? 2 : 3;
 
   async function wrap(action: () => Promise<void>, label: string) {
     setPending(label);
     try {
       await action();
     } finally {
-      // keep it pending for a moment; the effect clears on state change.
-      // if the state doesn't change within 3s, give up and re-enable.
       setTimeout(() => setPending((p) => (p === label ? null : p)), 3000);
     }
   }
+
+  const tallyLabels: Record<1 | 2 | 3, { idle: string; busy: string }> = {
+    1: { idle: "tally & move to scale", busy: "tallying…" },
+    2: { idle: "tally & move to round 3", busy: "tallying…" },
+    3: { idle: "tally & move to AI ladder", busy: "tallying…" },
+  };
 
   return (
     <div className="rounded-lg bg-[color:var(--color-cadet)] text-white p-4 pointer-events-auto">
@@ -179,13 +200,15 @@ function HostControls({
           <p className="text-2xl font-bold tracking-[0.3em]">{code}</p>
         </div>
         <div className="flex flex-wrap gap-2 items-center">
-          {current === "vote" ? (
+          {isTallyState ? (
             <button
-              onClick={() => wrap(onTally, "tally")}
+              onClick={() => wrap(() => onTally(tallyRound as 1 | 2 | 3), "tally")}
               disabled={pending !== null}
               className="bg-[color:var(--color-sienna)] text-white px-4 py-2 rounded text-sm font-medium hover:opacity-90 disabled:opacity-60 disabled:cursor-wait"
             >
-              {pending === "tally" ? "tallying…" : "tally & move to scale"}
+              {pending === "tally"
+                ? tallyLabels[tallyRound as 1 | 2 | 3].busy
+                : tallyLabels[tallyRound as 1 | 2 | 3].idle}
             </button>
           ) : current === "ai_ladder" ? (
             <button
@@ -205,7 +228,7 @@ function HostControls({
               disabled={pending !== null}
               className="bg-white text-[color:var(--color-cadet)] px-4 py-2 rounded text-sm font-medium hover:opacity-90 disabled:opacity-60 disabled:cursor-wait"
             >
-              {pending === "advance" ? "moving…" : `move to ${next.replace("_", " ")} →`}
+              {pending === "advance" ? "moving…" : `move to ${next.replace(/_/g, " ")} →`}
             </button>
           ) : null}
           <div className="flex items-center gap-1 text-xs flex-wrap">
@@ -219,7 +242,7 @@ function HostControls({
                     : "opacity-60 hover:opacity-100"
                 }`}
               >
-                {s.replace("_", " ")}
+                {s.replace(/_/g, " ")}
               </button>
             ))}
           </div>
@@ -235,10 +258,12 @@ type HostBodyProps = {
   criteria: Criterion[];
   votes: Vote[];
   scales: Scale[];
+  scale_responses: ScaleResponse[];
   calibration_scores: CalibrationScore[];
   ai_use_votes: AiUseVote[];
   pledge_slots: PledgeSlot[];
   participants_count: number;
+  onResolveChoice: (selectedIds: string[]) => void;
 };
 
 function HostBody({
@@ -247,80 +272,260 @@ function HostBody({
   criteria,
   votes,
   scales,
+  scale_responses,
   calibration_scores,
   ai_use_votes,
   pledge_slots,
   participants_count,
+  onResolveChoice,
 }: HostBodyProps) {
+  const isVoteState = room.state === "vote" || room.state === "vote2" || room.state === "vote3";
+  const voteRound = roundForState(room.state);
+
   switch (room.state) {
     case "lobby":
       return (
-        <div className="flex flex-col items-center text-center gap-5 py-10">
-          <h2 className="text-2xl font-bold">share the join link.</h2>
-          <p className="text-[color:var(--color-cadet)]/80 max-w-md">
-            students scan the code below, or visit{" "}
-            <span className="font-mono text-sm">/room/{room.code}/join</span> directly.
-          </p>
-          <JoinQR code={room.code} size={200} />
-          <p className="text-sm text-[color:var(--color-cadet)]/70">
-            {participants_count} in the room so far.
-          </p>
-        </div>
+        <Collapsible label="lobby — join link" defaultOpen>
+          <div className="flex flex-col items-center text-center gap-5 py-10">
+            <h2 className="text-2xl font-bold">share the join link.</h2>
+            <p className="text-[color:var(--color-cadet)]/80 max-w-md">
+              students scan the code below, or visit{" "}
+              <span className="font-mono text-sm">/room/{room.code}/join</span> directly.
+            </p>
+            <JoinQR code={room.code} size={200} />
+            <p className="text-sm text-[color:var(--color-cadet)]/70">
+              {participants_count} in the room so far.
+            </p>
+          </div>
+        </Collapsible>
       );
     case "frame":
-      return <StepFrame room={room} />;
-    case "propose":
-      return <StepPropose code={code} criteria={criteria} canEdit={false} />;
-    case "vote":
       return (
-        <StepVote
-          code={code}
-          criteria={criteria.filter((c) => c.status !== "rejected")}
-          votes={votes}
-          participantId={null}
-          participantsCount={participants_count}
-        />
+        <Collapsible label="frame — learning outcome + artifact">
+          <StepFrame room={room} />
+        </Collapsible>
+      );
+    case "propose":
+      return (
+        <Collapsible label={`proposals — ${criteria.length} criteri${criteria.length === 1 ? "on" : "a"}`} autoExpand={criteria.length}>
+          <StepPropose code={code} criteria={criteria} canEdit={false} />
+        </Collapsible>
+      );
+    case "vote":
+    case "vote2":
+    case "vote3":
+      return (
+        <Collapsible
+          label={`vote round ${voteRound} — ${votes.filter((v) => (v.round ?? 1) === voteRound).length} dots cast`}
+          autoExpand={votes.filter((v) => (v.round ?? 1) === voteRound).length}
+        >
+          <>
+            <StepVote
+              code={code}
+              criteria={criteria.filter((c) => c.status !== "rejected")}
+              votes={votes}
+              participantId={null}
+              participantsCount={participants_count}
+              round={voteRound}
+            />
+            <TiebreakerPanel
+              criteria={criteria}
+              votes={votes}
+              round={voteRound}
+              onResolve={onResolveChoice}
+            />
+          </>
+        </Collapsible>
       );
     case "scale":
-      return <StepScale code={code} criteria={criteria} scales={scales} canEdit={false} />;
+      return (
+        <Collapsible
+          label={`scale — ${scale_responses.length} student response${scale_responses.length === 1 ? "" : "s"}`}
+          autoExpand={scale_responses.length}
+        >
+          <StepScale
+            code={code}
+            criteria={criteria}
+            scales={scales}
+            scaleResponses={scale_responses}
+            participantId={null}
+            canEdit={false}
+          />
+        </Collapsible>
+      );
     case "calibrate":
       return (
-        <StepCalibrate
-          code={code}
-          room={room}
-          criteria={criteria}
-          scales={scales}
-          scores={calibration_scores}
-          participantId={null}
-        />
+        <Collapsible label="calibrate (legacy)">
+          <StepCalibrate
+            code={code}
+            room={room}
+            criteria={criteria}
+            scales={scales}
+            scores={calibration_scores}
+            participantId={null}
+          />
+        </Collapsible>
       );
     case "ai_ladder":
       return (
-        <StepAiLadder
-          code={code}
-          votes={ai_use_votes}
-          participantId={null}
-          participantsCount={participants_count}
-        />
+        <Collapsible label={`AI ladder — ${ai_use_votes.length} vote${ai_use_votes.length === 1 ? "" : "s"}`} autoExpand={ai_use_votes.length}>
+          <StepAiLadder
+            code={code}
+            votes={ai_use_votes}
+            participantId={null}
+            participantsCount={participants_count}
+          />
+        </Collapsible>
       );
     case "pledge":
       return (
-        <StepPledge
-          code={code}
-          slots={pledge_slots}
-          votes={ai_use_votes}
-          canEdit={false}
-        />
+        <Collapsible label="pledge">
+          <StepPledge
+            code={code}
+            slots={pledge_slots}
+            votes={ai_use_votes}
+            canEdit={false}
+          />
+        </Collapsible>
       );
     case "commit":
       return (
-        <StepCommit
-          room={room}
-          criteria={criteria}
-          scales={scales}
-          votes={ai_use_votes}
-          slots={pledge_slots}
-        />
+        <Collapsible label="commit — final rubric">
+          <StepCommit
+            room={room}
+            criteria={criteria}
+            scales={scales}
+            votes={ai_use_votes}
+            slots={pledge_slots}
+          />
+        </Collapsible>
       );
   }
+}
+
+// ---------- Collapsible wrapper ----------
+
+function Collapsible({
+  label,
+  children,
+  defaultOpen = false,
+  autoExpand,
+}: {
+  label: string;
+  children: React.ReactNode;
+  defaultOpen?: boolean;
+  autoExpand?: number;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  const prev = useRef(autoExpand ?? 0);
+
+  // auto-expand when content count increases (fan-out pattern)
+  useEffect(() => {
+    if (
+      typeof autoExpand === "number" &&
+      autoExpand > 0 &&
+      autoExpand !== prev.current
+    ) {
+      setOpen(true);
+      prev.current = autoExpand;
+    }
+  }, [autoExpand]);
+
+  return (
+    <div className="rounded-lg border border-[color:var(--color-cadet)]/15 overflow-hidden">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center justify-between px-4 py-3 bg-[color:var(--color-champagne)]/40 hover:bg-[color:var(--color-champagne)]/70 transition-colors text-left"
+      >
+        <span className="text-sm font-medium text-[color:var(--color-cadet)]">{label}</span>
+        <span className="text-[color:var(--color-cadet)]/50 text-xs ml-4">{open ? "▲" : "▼"}</span>
+      </button>
+      {open ? (
+        <div className="p-4">
+          {children}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+// ---------- Tiebreaker panel ----------
+
+function TiebreakerPanel({
+  criteria,
+  votes,
+  round,
+  onResolve,
+}: {
+  criteria: Criterion[];
+  votes: Vote[];
+  round: 1 | 2 | 3;
+  onResolve: (selectedIds: string[]) => void;
+}) {
+  const [resolving, setResolving] = useState(false);
+  const [picks, setPicks] = useState<Set<string>>(new Set());
+
+  const roundVotes = votes.filter((v) => (v.round ?? 1) === round);
+  const counts = new Map<string, number>();
+  for (const v of roundVotes) counts.set(v.criterion_id, (counts.get(v.criterion_id) ?? 0) + 1);
+
+  // find tied groups: criteria with the same vote count > 0
+  const countValues = [...new Set(counts.values())].sort((a, b) => b - a);
+  const tiedCriteria: Criterion[] = [];
+  for (const count of countValues) {
+    const group = criteria.filter((c) => (counts.get(c.id) ?? 0) === count);
+    if (group.length > 1 && count > 0) {
+      tiedCriteria.push(...group);
+    }
+  }
+
+  if (tiedCriteria.length === 0) return null;
+
+  async function resolve() {
+    setResolving(true);
+    await onResolve([...picks]);
+    setResolving(false);
+    setPicks(new Set());
+  }
+
+  return (
+    <div className="mt-6 rounded-lg border-2 border-[color:var(--color-sienna)]/40 bg-[color:var(--color-sienna)]/5 p-4 space-y-3 pointer-events-auto">
+      <div className="flex items-center gap-2">
+        <span className="text-[color:var(--color-sienna)] text-lg">⚖</span>
+        <h3 className="font-semibold text-[color:var(--color-cadet)]">facilitator decides</h3>
+      </div>
+      <p className="text-sm text-[color:var(--color-cadet)]/80">
+        these criteria are tied. tick the ones to keep — unticked ones will be set to rejected.
+      </p>
+      <div className="space-y-2">
+        {tiedCriteria.map((c) => (
+          <label key={c.id} className="flex items-center gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={picks.has(c.id)}
+              onChange={(e) =>
+                setPicks((p) => {
+                  const next = new Set(p);
+                  e.target.checked ? next.add(c.id) : next.delete(c.id);
+                  return next;
+                })
+              }
+              className="h-4 w-4 accent-[color:var(--color-sienna)]"
+            />
+            <span className="text-sm font-medium">{c.name}</span>
+            <span className="text-xs text-[color:var(--color-cadet)]/60">
+              {counts.get(c.id) ?? 0} vote{counts.get(c.id) === 1 ? "" : "s"}
+            </span>
+          </label>
+        ))}
+      </div>
+      <button
+        onClick={resolve}
+        disabled={picks.size === 0 || resolving}
+        className="text-sm px-4 py-2 rounded bg-[color:var(--color-sienna)] text-white disabled:opacity-60 disabled:cursor-not-allowed hover:opacity-90"
+      >
+        {resolving ? "applying…" : `keep ${picks.size} selected`}
+      </button>
+    </div>
+  );
 }
