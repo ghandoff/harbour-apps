@@ -65,6 +65,19 @@ export class VaLanding extends LitElement {
       max-width: 540px;
       margin: 0 auto;
     }
+    .hero-guide {
+      max-width: 640px;
+      margin: var(--space-5) auto 0;
+      padding: var(--space-3) var(--space-4);
+      border-radius: var(--radius-md);
+      background: var(--bg-card);
+      box-shadow: var(--shadow-card);
+      font: var(--type-small);
+      color: var(--fg);
+    }
+    .hero-guide strong {
+      color: var(--wv-redwood);
+    }
     .roles {
       max-width: 960px;
       margin: 0 auto;
@@ -97,6 +110,24 @@ export class VaLanding extends LitElement {
     }
     .role-card:focus-within {
       box-shadow: var(--shadow-card-lifted);
+    }
+    .role-card--primary {
+      border: 2px solid var(--wv-redwood);
+      position: relative;
+    }
+    .role-card--primary::before {
+      content: 'start here';
+      position: absolute;
+      top: calc(var(--space-3) * -1);
+      left: var(--space-4);
+      padding: 2px var(--space-3);
+      background: var(--wv-redwood);
+      color: var(--fg-inverse);
+      border-radius: var(--radius-pill);
+      font: var(--type-small);
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
     }
     .role-label {
       font: var(--type-mono);
@@ -174,13 +205,35 @@ export class VaLanding extends LitElement {
           a team-based activity exploring personal and organisational values through a simulated
           auction. every bid shapes the company you become.
         </p>
+        <p class="hero-guide">
+          running this with a group? <strong>create a session below</strong> and share the code.
+          joining someone else's session? enter their code in the join card.
+        </p>
       </section>
 
       <div class="roles">
+        <div class="role-card role-card--primary">
+          <span class="role-label">host / facilitator</span>
+          <h2>create a session</h2>
+          <p>
+            start a new auction. you'll get a session code to share with your group, plus
+            controls for the clock, teams, and value deck.
+          </p>
+          <va-button variant="primary" size="lg" @va-click=${() => this.startNewSession()}>
+            create new session
+          </va-button>
+          <p class="demo-hint">
+            just looking around?
+            <button type="button" @click=${() => navigate('facilitate', 'DEMO')}>open demo panel</button>
+          </p>
+        </div>
+
         <div class="role-card">
           <span class="role-label">participant</span>
           <h2>join a session</h2>
-          <p>enter your session code and bid for what your team stands for. every credo counts.</p>
+          <p>
+            got a code from your facilitator? enter it here to bid for what your team stands for.
+          </p>
           <form class="code-form" @submit=${(e: Event) => this.joinWithCode(e)}>
             <input
               id="session-code"
@@ -218,27 +271,11 @@ export class VaLanding extends LitElement {
         </div>
 
         <div class="role-card">
-          <span class="role-label">facilitator</span>
-          <h2>run a session</h2>
-          <p>
-            control the auction pace, broadcast messages, and guide reflection. you hold the
-            clock.
-          </p>
-          <va-button variant="primary" size="lg" @va-click=${() => this.startNewSession()}>
-            start new session
-          </va-button>
-          <p class="demo-hint">
-            returning?
-            <button type="button" @click=${() => navigate('facilitate', 'DEMO')}>open demo panel</button>
-          </p>
-        </div>
-
-        <div class="role-card">
           <span class="role-label">wall display</span>
           <h2>project the room</h2>
           <p>
-            the shared screen for the whole group. shows live auction state, team bids, and
-            closing results.
+            the shared screen for the whole group. enter the facilitator's code to show live
+            bids, teams, and closing results.
           </p>
           <form class="code-form" @submit=${(e: Event) => this.openWallWithCode(e)}>
             <input
