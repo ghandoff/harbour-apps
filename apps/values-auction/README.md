@@ -70,28 +70,34 @@ npm run preview
 
 ## deploy (disconnected vercel)
 
-values-auction follows the same pattern as `harbour`, `deep-deck`, and
-`nordic-sqr-rct` — disconnected from git, deployed manually via the vercel
-cli. this avoids adding a new git-connected project (which would multiply
-builds across the monorepo and count against the free-tier quota).
+matches the pattern used by harbour, deep-deck, paper-trail, tidal-pool,
+mirror-log, and the other 17 harbour apps — one script per app under
+`scripts/`, deployed manually via the vercel cli. disconnected from git
+so monorepo pushes don't multiply builds across apps.
 
-one-time setup (first deploy only):
+**first deploy — one-time project creation:**
 
 ```bash
+# from monorepo root
 cd apps/values-auction
-vercel login             # if you aren't already logged in
-vercel link              # pick "create a new project", name it "values-auction"
+vercel login            # skip if already logged in
+vercel link             # pick winded.vertigo team → new project → name "values-auction"
 ```
 
-every deploy after that:
+vercel writes `apps/values-auction/.vercel/project.json`. open that file,
+copy the `projectId` value (starts `prj_...`), and paste it into
+`scripts/deploy-values-auction.sh` where it says `REPLACE_ME`.
+
+**every deploy after that:**
 
 ```bash
-cd apps/values-auction
-vercel --prod
+# from monorepo root
+./scripts/deploy-values-auction.sh             # production
+./scripts/deploy-values-auction.sh --preview   # preview url
 ```
 
 vercel builds the vite static output locally and uploads it. output is
-`dist/` (configured in `vercel.json`). the first `vercel --prod` prints
+`dist/` (configured in `vercel.json`). the first production deploy prints
 the production url (something like `values-auction-xxxx.vercel.app`).
 
 ## serving under `windedvertigo.com/harbour/values-auction/`
