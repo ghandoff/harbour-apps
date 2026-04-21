@@ -1,0 +1,75 @@
+# Deploy values-auction to Vercel on every push to main.
+#
+# Unlike the other harbour apps, values-auction was not git-connected to a
+# Vercel project when it was scaffolded — so merges to main did not reach
+# production. This workflow builds the static Vite bundle and ships it via
+# the Vercel CLI, using project credentials stored as repo secrets.
+#
+# One-time setup required before this workflow can run successfully:
+#   1. From a local checkout: cd apps/values-auction && npx vercel link
+#      (pick/create the "values-auction" project).
+#   2. Copy the resulting apps/values-auction/.vercel/project.json values
+#      into repo secrets:
+#        VERCEL_PROJECT_ID_VALUES_AUCTION  ← projectId
+#        VERCEL_ORG_ID                     ← orgId (shared with other apps)
+#        VERCEL_TOKEN                      ← token from vercel.com/account/tokens
+#
+# Monorepo: triggers only when values-auction sources change.
+
+name: deploy values-auction
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/values-auction/**'
+      - '.github/workflows/deploy-values-auction.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-values-auction
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/values-auction
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_VALUES_AUCTION }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install workspace dependencies
+        run: npm install --workspace @harbour/values-auction
+        working-directory: .
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Test
+        run: npm test
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+
+      - name: Pull Vercel environment
+        run: vercel pull --yes --environment=production --token=$VERCEL_TOKEN
+
+      - name: Build
+        run: vercel build --prod --token=$VERCEL_TOKEN
+
+      - name: Deploy
+        run: vercel deploy --prebuilt --prod --token=$VERCEL_TOKEN
