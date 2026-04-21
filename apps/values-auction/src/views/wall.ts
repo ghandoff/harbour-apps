@@ -8,6 +8,7 @@ import { totalParticipants } from '@/state/selectors';
 import '@/components/countdown';
 import '@/components/value-card';
 import '@/components/identity-card';
+import { asset } from '@/utils/asset';
 
 @customElement('va-wall')
 export class VaWall extends LitElement {
@@ -95,7 +96,7 @@ export class VaWall extends LitElement {
   private renderIdle() {
     return html`
       <div class="centre">
-        <img class="wordmark" src="/wordmark.svg" alt="winded.vertigo" />
+        <img class="wordmark" src=${asset('wordmark.svg')} alt="winded.vertigo" />
         <div class="code" aria-label=${COPY.wall.joinAt(this.code)}>${this.code}</div>
         <div class="count">${totalParticipants(this.session!)} joined</div>
       </div>

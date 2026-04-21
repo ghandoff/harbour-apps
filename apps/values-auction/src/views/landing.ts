@@ -4,6 +4,7 @@ import { COPY } from '@/content/copy';
 import { randomCode } from '@/utils/id';
 import '@/components/va-button';
 import '@/components/va-card';
+import { asset } from '@/utils/asset';
 
 @customElement('va-landing')
 export class VaLanding extends LitElement {
@@ -255,7 +256,7 @@ export class VaLanding extends LitElement {
     return html`
       <main>
         <header>
-          <img class="wordmark" src="/wordmark.svg" alt="winded.vertigo" />
+          <img class="wordmark" src=${asset('wordmark.svg')} alt="winded.vertigo" />
           <span class="attribution">${c.attribution}</span>
         </header>
 

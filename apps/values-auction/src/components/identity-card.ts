@@ -3,6 +3,7 @@ import { customElement, property } from 'lit/decorators.js';
 import type { Team } from '@/state/types';
 import { getStartup } from '@/content/startups';
 import { getValue } from '@/content/values';
+import { asset } from '@/utils/asset';
 
 @customElement('va-identity-card')
 export class VaIdentityCard extends LitElement {
@@ -90,7 +91,7 @@ export class VaIdentityCard extends LitElement {
         <div class="logo-box">
           <img
             class="logo"
-            src=${`/logos/${startup.logoKey}.svg`}
+            src=${asset(`logos/${startup.logoKey}.svg`)}
             alt=${`${startup.name} logo`}
           />
         </div>

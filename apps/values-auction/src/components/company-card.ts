@@ -5,6 +5,7 @@ import { getStartup } from '@/content/startups';
 import { getValue } from '@/content/values';
 import { COPY } from '@/content/copy';
 import './credos-stack';
+import { asset } from '@/utils/asset';
 
 @customElement('va-company-card')
 export class VaCompanyCard extends LitElement {
@@ -87,7 +88,7 @@ export class VaCompanyCard extends LitElement {
       <div class="header">
         <img
           class="logo"
-          src=${`/logos/${startup.logoKey}.svg`}
+          src=${asset(`logos/${startup.logoKey}.svg`)}
           alt=${`${startup.name} logo`}
         />
         <div>

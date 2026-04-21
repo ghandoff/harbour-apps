@@ -92,7 +92,33 @@ vercel --prod
 
 vercel builds the vite static output locally and uploads it. output is
 `dist/` (configured in `vercel.json`). the first `vercel --prod` prints
-the production url — that's the link you share.
+the production url (something like `values-auction-xxxx.vercel.app`).
+
+## serving under `windedvertigo.com/harbour/values-auction/`
+
+the app builds with base path `/harbour/values-auction/` in production
+(set via `.env.production` → `VITE_BASE_PATH`). in local dev the base
+stays at `/` so `npm run dev` just works.
+
+to wire the public url you add a rewrite in the sibling `ghandoff/windedvertigo`
+repo, which owns routing for `windedvertigo.com/harbour/*`. open that repo,
+edit `site/next.config.ts`, and add this to the `rewrites()` array:
+
+```ts
+{
+  source: '/harbour/values-auction/:path*',
+  destination: 'https://values-auction.vercel.app/harbour/values-auction/:path*',
+},
+```
+
+(replace the destination with whatever production url vercel prints on your
+first `vercel --prod`.) redeploy the `site` project. `windedvertigo.com/harbour/values-auction/`
+is now live.
+
+**important:** hitting the raw vercel url at its root (e.g.
+`values-auction-xxxx.vercel.app/`) will 404 — the basePath moves everything
+under `/harbour/values-auction/`. always share the `windedvertigo.com/harbour/values-auction/`
+url, not the vercel url directly.
 
 **known limit:** the deployed build uses the `broadcastchannel` transport,
 which only syncs across tabs on the *same browser*. for cross-device play

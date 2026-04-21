@@ -1,6 +1,7 @@
 import { LitElement, css, html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import './va-button';
+import { asset } from '@/utils/asset';
 
 export interface OnboardingStep {
   heading: string;
@@ -147,7 +148,7 @@ export class VaOnboarding extends LitElement {
     return html`
       <div class="shell" tabindex="0" aria-label=${this.title}>
         <header>
-          <img class="wordmark" src="/wordmark.svg" alt="winded.vertigo" />
+          <img class="wordmark" src=${asset('wordmark.svg')} alt="winded.vertigo" />
           <button type="button" class="skip" @click=${() => this.skip()}>
             ${this.skipLabel}
           </button>

@@ -15,6 +15,7 @@ import '@/components/countdown';
 import '@/components/act-timeline';
 import '@/components/value-card';
 import '@/components/onboarding-flow';
+import { asset } from '@/utils/asset';
 
 @customElement('va-facilitator')
 export class VaFacilitator extends LitElement {
@@ -286,7 +287,7 @@ export class VaFacilitator extends LitElement {
 
     return html`
       <header>
-        <img class="wordmark" src="/wordmark.svg" alt="winded.vertigo" />
+        <img class="wordmark" src=${asset('wordmark.svg')} alt="winded.vertigo" />
         <span class="code">session ${this.code}</span>
       </header>
 

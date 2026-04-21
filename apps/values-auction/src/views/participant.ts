@@ -17,6 +17,7 @@ import '@/components/bid-button';
 import '@/components/identity-card';
 import '@/components/onboarding-flow';
 import { getValue } from '@/content/values';
+import { asset } from '@/utils/asset';
 
 @customElement('va-participant')
 export class VaParticipant extends LitElement {
@@ -529,7 +530,7 @@ export class VaParticipant extends LitElement {
 
     return html`
       <header>
-        <img class="wordmark" src="/wordmark.svg" alt="winded.vertigo" />
+        <img class="wordmark" src=${asset('wordmark.svg')} alt="winded.vertigo" />
         <span class="code">${COPY.arrival.codeLabel}: ${this.code}</span>
       </header>
       <div class="stage">${body}</div>
