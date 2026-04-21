@@ -1,12 +1,15 @@
 import { LitElement, css, html } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { navigate } from '@/router';
+import { randomCode } from '@/utils/id';
 import '@/components/va-button';
 
 @customElement('va-landing')
 export class VaLanding extends LitElement {
   @state() private code = '';
   @state() private codeError = false;
+  @state() private wallCode = '';
+  @state() private wallCodeError = false;
 
   private joinWithCode(e: Event) {
     e.preventDefault();
@@ -16,6 +19,20 @@ export class VaLanding extends LitElement {
       return;
     }
     navigate('join', trimmed);
+  }
+
+  private startNewSession() {
+    navigate('facilitate', randomCode());
+  }
+
+  private openWallWithCode(e: Event) {
+    e.preventDefault();
+    const trimmed = this.wallCode.trim().toUpperCase();
+    if (!trimmed) {
+      this.wallCodeError = true;
+      return;
+    }
+    navigate('wall', trimmed);
   }
 
   static styles = css`
@@ -207,9 +224,13 @@ export class VaLanding extends LitElement {
             control the auction pace, broadcast messages, and guide reflection. you hold the
             clock.
           </p>
-          <va-button variant="ghost" @va-click=${() => navigate('facilitate', 'DEMO')}>
-            open facilitator panel
+          <va-button variant="primary" size="lg" @va-click=${() => this.startNewSession()}>
+            start new session
           </va-button>
+          <p class="demo-hint">
+            returning?
+            <button type="button" @click=${() => navigate('facilitate', 'DEMO')}>open demo panel</button>
+          </p>
         </div>
 
         <div class="role-card">
@@ -219,9 +240,39 @@ export class VaLanding extends LitElement {
             the shared screen for the whole group. shows live auction state, team bids, and
             closing results.
           </p>
-          <va-button variant="ghost" @va-click=${() => navigate('wall', 'DEMO')}>
-            open wall display
-          </va-button>
+          <form class="code-form" @submit=${(e: Event) => this.openWallWithCode(e)}>
+            <input
+              id="wall-code"
+              type="text"
+              aria-label="wall session code"
+              placeholder="session code"
+              maxlength="16"
+              autocomplete="off"
+              spellcheck="false"
+              .value=${this.wallCode}
+              aria-invalid=${this.wallCodeError ? 'true' : 'false'}
+              aria-describedby=${this.wallCodeError ? 'wall-code-error' : ''}
+              @input=${(e: Event) => {
+                this.wallCode = (e.target as HTMLInputElement).value;
+                this.wallCodeError = false;
+              }}
+            />
+            ${this.wallCodeError
+              ? html`<span id="wall-code-error" class="field-error" role="alert"
+                    >enter the facilitator's session code.</span
+                  >`
+              : ''}
+            <va-button
+              variant="ghost"
+              @va-click=${(e: Event) => this.openWallWithCode(e)}
+            >
+              open wall display
+            </va-button>
+          </form>
+          <p class="demo-hint">
+            no code?
+            <button type="button" @click=${() => navigate('wall', 'DEMO')}>open demo wall</button>
+          </p>
         </div>
       </div>
     `;
