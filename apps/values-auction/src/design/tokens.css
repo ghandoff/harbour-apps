@@ -5,14 +5,14 @@
   --wv-champagne: #ffebd2;
   --wv-white: #ffffff;
 
-  --bg: var(--wv-champagne);
-  --bg-card: var(--wv-white);
+  --bg: var(--wv-burnt-sienna);
+  --bg-card: var(--wv-champagne);
   --bg-deep: var(--wv-cadet-blue);
   --fg: var(--wv-cadet-blue);
   --fg-inverse: var(--wv-white);
-  --fg-muted: rgba(39, 50, 72, 0.65);
+  --fg-muted: rgba(39, 50, 72, 0.8);
   --accent-urgent: var(--wv-redwood);
-  --accent-warm: var(--wv-burnt-sienna);
+  --accent-warm: var(--wv-cadet-blue);
 
   --focus-ring: 3px solid var(--wv-cadet-blue);
   --focus-ring-offset: 2px;
