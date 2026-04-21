@@ -50,7 +50,7 @@ export class VaCompanyCard extends LitElement {
       line-height: 1.5;
     }
     .challenge {
-      color: var(--wv-burnt-sienna);
+      color: var(--wv-redwood);
       font-weight: 700;
       font-size: 16px;
       line-height: 1.5;
