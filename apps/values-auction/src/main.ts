@@ -10,6 +10,7 @@ import { exportIdentityCard } from '@/identity-card/render';
 import '@/views/participant';
 import '@/views/facilitator';
 import '@/views/wall';
+import '@/views/landing';
 
 const app = document.getElementById('app');
 if (!app) throw new Error('missing #app mount point');
@@ -18,6 +19,15 @@ let controller: Controller | null = null;
 
 async function render() {
   const route = currentRoute();
+
+  if (route.route === 'landing') {
+    controller?.destroy();
+    controller = null;
+    app!.innerHTML = '';
+    app!.appendChild(document.createElement('va-landing'));
+    return;
+  }
+
   if (!controller || controller.store.getState().id !== route.code) {
     controller?.destroy();
     const role =
@@ -27,22 +37,6 @@ async function render() {
           ? 'wall'
           : 'participant';
     controller = await createController(route.code, role);
-  }
-
-  if (route.route === 'landing') {
-    app!.innerHTML = `
-      <main style="padding: var(--space-6); max-width: 640px; margin: 0 auto;">
-        <img src="/wordmark.svg" alt="winded.vertigo" style="height: 48px; margin-bottom: var(--space-5);" />
-        <h1 style="font: var(--type-display); margin-bottom: var(--space-5);">values auction</h1>
-        <p style="margin-bottom: var(--space-5);">a live, facilitator-driven classroom game. play for what matters.</p>
-        <div style="display: flex; flex-direction: column; gap: var(--space-3);">
-          <a href="#/facilitate?code=DEMO">open facilitator · demo</a>
-          <a href="#/join?code=DEMO">join as participant · demo</a>
-          <a href="#/wall?code=DEMO">open wall · demo</a>
-        </div>
-      </main>
-    `;
-    return;
   }
 
   app!.innerHTML = '';
