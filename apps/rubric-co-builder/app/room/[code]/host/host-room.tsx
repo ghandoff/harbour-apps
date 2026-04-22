@@ -464,6 +464,7 @@ function HostBody({
               participantId={null}
               participantsCount={participants_count}
               round={voteRound}
+              scales={voteRound > 1 ? scales : undefined}
             />
             <TiebreakerPanel
               criteria={criteria}

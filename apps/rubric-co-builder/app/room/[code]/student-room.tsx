@@ -193,6 +193,7 @@ export function StudentRoom({ code }: { code: string }) {
           participantId={participantId}
           participantsCount={participants_count}
           round={round}
+          scales={round > 1 ? scales : undefined}
         />
       );
     }

@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo } from "react";
-import type { Criterion, Vote } from "@/lib/types";
+import type { Criterion, Scale, Vote } from "@/lib/types";
+import { SCALE_LEVELS } from "@/lib/types";
 import { apiPath } from "@/lib/paths";
 
 // dot budget scales to the size of the ballot
@@ -17,6 +18,7 @@ type Props = {
   participantId: string | null;
   participantsCount: number;
   round: 1 | 2 | 3;
+  scales?: Scale[];
 };
 
 export function StepVote({
@@ -26,6 +28,7 @@ export function StepVote({
   participantId,
   participantsCount,
   round,
+  scales,
 }: Props) {
   const maxVotes = maxVotesFor(criteria.length);
 
@@ -114,6 +117,12 @@ export function StepVote({
           const count = counts.get(c.id) ?? 0;
           const mine = myCast.has(c.id);
           const hasVotes = c.required || count >= 1;
+          const criterionScales = scales
+            ? SCALE_LEVELS.flatMap(({ level, label }) => {
+                const s = scales.find((sc) => sc.criterion_id === c.id && sc.level === level);
+                return s ? [{ level, label, descriptor: s.descriptor }] : [];
+              })
+            : [];
           return (
             <button
               key={c.id}
@@ -148,6 +157,21 @@ export function StepVote({
                 <p className="text-xs text-[color:var(--color-cadet)]/70 mt-1 leading-relaxed">
                   {c.good_description}
                 </p>
+              ) : null}
+
+              {criterionScales.length > 0 ? (
+                <div className="mt-3 pt-3 border-t border-[color:var(--color-cadet)]/10 space-y-2">
+                  {criterionScales.map(({ level, label, descriptor }) => (
+                    <div key={level} className="flex gap-2 text-xs leading-relaxed">
+                      <span className="shrink-0 text-[10px] uppercase tracking-wider text-[color:var(--color-cadet)]/50 w-20 pt-0.5">
+                        {level} · {label}
+                      </span>
+                      <span className="text-[color:var(--color-cadet)]/75">
+                        {descriptor}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               ) : null}
 
               <div className="flex items-center gap-1 mt-4 flex-wrap">
