@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getStore } from "@/lib/store";
 import { isValidRoomCode } from "@/lib/room-code";
+import { DEFAULT_DESCRIPTORS, SCALE_LEVELS } from "@/lib/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -42,6 +43,20 @@ export async function POST(
       .map((c) =>
         store.setCriterionStatus(c.id, selectedSet.has(c.id) ? "selected" : "rejected"),
       ),
+  );
+
+  // seed default scale descriptors for any newly-selected criteria that don't have them yet
+  // (tallySelection only seeds scales for what it picks; facilitator-choice can add more)
+  const existingScaleCriterionIds = new Set(snapshot.scales.map((s) => s.criterion_id));
+  const needsSeeding = snapshot.criteria.filter(
+    (c) => selectedSet.has(c.id) && !existingScaleCriterionIds.has(c.id),
+  );
+  await Promise.all(
+    needsSeeding.flatMap((c) =>
+      SCALE_LEVELS.map(({ level }) =>
+        store.upsertScaleDescriptor(c.id, level, DEFAULT_DESCRIPTORS[level]),
+      ),
+    ),
   );
 
   return NextResponse.json({ updated: updates.filter(Boolean).length });
