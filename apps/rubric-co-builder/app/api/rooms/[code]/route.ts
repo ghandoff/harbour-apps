@@ -11,6 +11,7 @@ const VALID_STATES: RoomState[] = [
   "frame",
   "propose",
   "vote",
+  "criteria_gate",
   "scale",
   "vote2",
   "vote3",

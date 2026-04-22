@@ -3,6 +3,7 @@ export type RoomState =
   | "frame"
   | "propose"
   | "vote"
+  | "criteria_gate"  // facilitator reviews vote-1 results and picks which criteria advance
   | "scale"
   | "vote2"
   | "vote3"

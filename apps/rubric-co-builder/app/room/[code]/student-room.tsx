@@ -20,7 +20,7 @@ import type { RoomState } from "@/lib/types";
 import { apiPath } from "@/lib/paths";
 
 const STATE_ORDER: RoomState[] = [
-  "lobby", "frame", "propose", "vote", "scale",
+  "lobby", "frame", "propose", "vote", "criteria_gate", "scale",
   "vote2", "vote3", "ai_ladder", "pledge", "commit",
 ];
 
@@ -165,6 +165,20 @@ export function StudentRoom({ code }: { code: string }) {
       );
     }
     if (room.state === "frame") return <StepFrame room={room} />;
+    if (room.state === "criteria_gate") {
+      return (
+        <div className="flex flex-col items-center justify-center text-center gap-4 min-h-[50vh]">
+          <h1 className="text-2xl font-bold">votes are in.</h1>
+          <p className="text-[color:var(--color-cadet)]/80 max-w-md">
+            the facilitator is reviewing the results and selecting which criteria move to scaling.
+            hang tight — it&apos;ll move on in a moment.
+          </p>
+          <p className="text-xs tracking-widest text-[color:var(--color-cadet)]/50 mt-4">
+            room · {room.code}
+          </p>
+        </div>
+      );
+    }
     if (room.state === "propose") {
       return <StepPropose code={code} criteria={criteria} canEdit={canEdit} />;
     }

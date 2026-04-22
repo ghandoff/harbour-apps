@@ -5,7 +5,7 @@ import { isValidRoomCode } from "@/lib/room-code";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// tally round 1 votes and advance to scale
+// tally round 1 votes and advance to criteria_gate for facilitator review
 export async function POST(
   _req: Request,
   { params }: { params: Promise<{ code: string }> },
@@ -15,7 +15,7 @@ export async function POST(
   if (!isValidRoomCode(normalised)) {
     return NextResponse.json({ error: "invalid code" }, { status: 400 });
   }
-  const result = await getStore().tallySelection(normalised, 1, "scale");
+  const result = await getStore().tallySelection(normalised, 1, "criteria_gate");
   if (!result) {
     return NextResponse.json({ error: "room not found" }, { status: 404 });
   }

@@ -54,6 +54,7 @@ const STATE_ORDER: RoomState[] = [
   "frame",
   "propose",
   "vote",
+  "criteria_gate",
   "scale",
   "vote2",
   "vote3",
@@ -141,6 +142,15 @@ export function HostRoom({ code }: { code: string }) {
     });
   }
 
+  async function confirmGate(selectedIds: string[]) {
+    await fetch(apiPath(`/api/rooms/${code}/facilitator-choice`), {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ selected_ids: selectedIds }),
+    });
+    await advance("scale");
+  }
+
   const surface: "white" | "champagne" =
     room.state === "lobby" || room.state === "frame" || room.state === "commit"
       ? "champagne"
@@ -181,6 +191,7 @@ export function HostRoom({ code }: { code: string }) {
             pledge_slots={pledge_slots}
             participants_count={participants_count}
             onResolveChoice={resolveChoice}
+            onConfirmGate={confirmGate}
           />
         </div>
       </div>
@@ -246,6 +257,7 @@ function HostControls({
   })();
 
   const isTallyState = current === "vote" || current === "vote2" || current === "vote3";
+  const isGateState = current === "criteria_gate";
   const tallyRound = current === "vote" ? 1 : current === "vote2" ? 2 : 3;
 
   async function wrap(action: () => Promise<void>, label: string) {
@@ -258,7 +270,7 @@ function HostControls({
   }
 
   const tallyLabels: Record<1 | 2 | 3, { idle: string; busy: string }> = {
-    1: { idle: "tally & move to scale", busy: "tallying…" },
+    1: { idle: "tally votes & review criteria", busy: "tallying…" },
     2: { idle: "tally & move to round 3", busy: "tallying…" },
     3: { idle: "tally & move to AI ladder", busy: "tallying…" },
   };
@@ -292,7 +304,7 @@ function HostControls({
             >
               {pending === "ai-tally" ? "locking ceiling…" : "lock ceiling & move to pledge"}
             </button>
-          ) : next ? (
+          ) : isGateState ? null : next ? (
             <button
               onClick={async () => {
                 setPending("advance");
@@ -377,6 +389,7 @@ type HostBodyProps = {
   pledge_slots: PledgeSlot[];
   participants_count: number;
   onResolveChoice: (selectedIds: string[]) => void;
+  onConfirmGate: (selectedIds: string[]) => void;
 };
 
 function HostBody({
@@ -391,6 +404,7 @@ function HostBody({
   pledge_slots,
   participants_count,
   onResolveChoice,
+  onConfirmGate,
 }: HostBodyProps) {
   const isVoteState = room.state === "vote" || room.state === "vote2" || room.state === "vote3";
   const voteRound = roundForState(room.state);
@@ -422,6 +436,16 @@ function HostBody({
       return (
         <Collapsible label={`proposals — ${criteria.length} criteri${criteria.length === 1 ? "on" : "a"}`} autoExpand={criteria.length}>
           <StepPropose code={code} criteria={criteria} canEdit={false} />
+        </Collapsible>
+      );
+    case "criteria_gate":
+      return (
+        <Collapsible label="facilitator review — select criteria for scaling" defaultOpen>
+          <CriteriaGatePanel
+            criteria={criteria}
+            votes={votes}
+            onConfirm={onConfirmGate}
+          />
         </Collapsible>
       );
     case "vote":
@@ -638,6 +662,112 @@ function TiebreakerPanel({
         className="text-sm px-4 py-2 rounded bg-[color:var(--color-sienna)] text-white disabled:opacity-60 disabled:cursor-not-allowed hover:opacity-90"
       >
         {resolving ? "applying…" : `keep ${picks.size} selected`}
+      </button>
+    </div>
+  );
+}
+
+// ---------- Criteria Gate panel ----------
+
+function CriteriaGatePanel({
+  criteria,
+  votes,
+  onConfirm,
+}: {
+  criteria: Criterion[];
+  votes: Vote[];
+  onConfirm: (selectedIds: string[]) => void;
+}) {
+  const round1Votes = votes.filter((v) => (v.round ?? 1) === 1);
+  const counts = new Map<string, number>();
+  for (const v of round1Votes) counts.set(v.criterion_id, (counts.get(v.criterion_id) ?? 0) + 1);
+
+  const votedCriteria = criteria.filter((c) => !c.required);
+
+  const [picks, setPicks] = useState<Set<string>>(
+    () => new Set(criteria.filter((c) => c.status === "selected" && !c.required).map((c) => c.id)),
+  );
+  const [confirming, setConfirming] = useState(false);
+
+  const requiredCriteria = criteria.filter((c) => c.required);
+
+  async function confirm() {
+    setConfirming(true);
+    const allSelected = [
+      ...requiredCriteria.map((c) => c.id),
+      ...[...picks],
+    ];
+    await onConfirm(allSelected);
+    setConfirming(false);
+  }
+
+  const totalSelected = requiredCriteria.length + picks.size;
+
+  return (
+    <div className="space-y-4 pointer-events-auto">
+      <p className="text-sm text-[color:var(--color-cadet)]/80">
+        round 1 voting is complete. tick the criteria that should move to the scaling step.
+        required criteria always proceed.
+      </p>
+
+      {requiredCriteria.length > 0 && (
+        <div className="space-y-1">
+          <p className="text-xs font-medium tracking-widest text-[color:var(--color-cadet)]/50 uppercase">required (always included)</p>
+          {requiredCriteria.map((c) => (
+            <div key={c.id} className="flex items-center gap-3 px-3 py-2 rounded bg-[color:var(--color-cadet)]/5">
+              <input type="checkbox" checked readOnly className="h-4 w-4 opacity-50" />
+              <span className="text-sm font-medium">{c.name}</span>
+              <span className="text-xs text-[color:var(--color-cadet)]/50 ml-auto">
+                {counts.get(c.id) ?? 0} vote{(counts.get(c.id) ?? 0) === 1 ? "" : "s"}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {votedCriteria.length > 0 && (
+        <div className="space-y-1">
+          <p className="text-xs font-medium tracking-widest text-[color:var(--color-cadet)]/50 uppercase">
+            proposed — {picks.size} of {votedCriteria.length} selected
+          </p>
+          {votedCriteria
+            .sort((a, b) => (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0))
+            .map((c) => (
+              <label
+                key={c.id}
+                className={`flex items-center gap-3 px-3 py-2 rounded cursor-pointer transition-colors ${
+                  picks.has(c.id)
+                    ? "bg-[color:var(--color-cadet)]/8"
+                    : "bg-transparent opacity-60 hover:opacity-80"
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={picks.has(c.id)}
+                  onChange={(e) =>
+                    setPicks((p) => {
+                      const next = new Set(p);
+                      e.target.checked ? next.add(c.id) : next.delete(c.id);
+                      return next;
+                    })
+                  }
+                  className="h-4 w-4 accent-[color:var(--color-cadet)]"
+                />
+                <span className="text-sm font-medium flex-1">{c.name}</span>
+                <span className="text-xs text-[color:var(--color-cadet)]/60 tabular-nums">
+                  {counts.get(c.id) ?? 0} vote{(counts.get(c.id) ?? 0) === 1 ? "" : "s"}
+                </span>
+              </label>
+            ))}
+        </div>
+      )}
+
+      <button
+        onClick={confirm}
+        disabled={totalSelected === 0 || confirming}
+        className="w-full text-sm px-4 py-2.5 rounded bg-[color:var(--color-cadet)] text-white font-medium hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed"
+      >
+        {confirming ? "confirming…" : `confirm ${totalSelected} criteri${totalSelected === 1 ? "on" : "a"} & move to scale`}
       </button>
     </div>
   );

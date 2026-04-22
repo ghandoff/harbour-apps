@@ -8,6 +8,7 @@ const STATE_LABELS: Record<RoomState, string> = {
   frame: "1 frame",
   propose: "2 propose",
   vote: "3 vote — round 1",
+  criteria_gate: "3.5 facilitator review",
   scale: "4 scale",
   vote2: "5 vote — round 2",
   vote3: "6 vote — round 3",

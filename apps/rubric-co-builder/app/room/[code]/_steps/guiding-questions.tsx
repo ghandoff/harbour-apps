@@ -5,6 +5,7 @@ import type { RoomState } from "@/lib/types";
 
 const QUESTIONS: Record<RoomState, string[]> = {
   lobby: [],
+  criteria_gate: [],
   frame: [
     "what would it mean to have really nailed this outcome?",
     "what does this outcome look like in a week that went well, versus a week that didn’t?",
