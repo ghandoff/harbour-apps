@@ -72,10 +72,20 @@ export class VaCompanyCard extends LitElement {
     .won li {
       background: var(--wv-champagne);
       border: 1.5px solid var(--wv-cadet-blue);
-      padding: var(--space-1) var(--space-3);
+      padding: var(--space-2) var(--space-3);
       border-radius: var(--radius-sm);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .won .v-name {
       font-weight: 700;
       font-size: 14px;
+    }
+    .won .v-desc {
+      font-size: 12px;
+      color: var(--fg-muted);
+      line-height: 1.4;
     }
   `;
 
@@ -110,7 +120,12 @@ export class VaCompanyCard extends LitElement {
                 <ul>
                   ${this.team.wonValues.map((id) => {
                     const v = getValue(id);
-                    return v ? html`<li>${v.name}</li>` : '';
+                    return v
+                      ? html`<li>
+                          <span class="v-name">${v.name}</span>
+                          <span class="v-desc">${v.description}</span>
+                        </li>`
+                      : '';
                   })}
                 </ul>
               </div>

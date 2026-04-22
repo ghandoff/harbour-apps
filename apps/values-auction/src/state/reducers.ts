@@ -11,7 +11,7 @@ import { STARTUPS } from '@/content/startups';
 import { TEAM_COLOURS, teamDisplayName, uid } from '@/utils/id';
 
 export const STARTING_CREDOS = 150;
-export const DEFAULT_AUCTION_MS = 30_000;
+export const DEFAULT_AUCTION_MS = 60_000;
 export const BID_INCREMENT = 1;
 
 export function initialSession(sessionId: string, facilitatorId: string): Session {

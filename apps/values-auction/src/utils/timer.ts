@@ -6,11 +6,11 @@ export function startTicker(onTick: (now: number) => void, intervalMs = 250): Ti
   let stopped = false;
   let raf = 0;
   let last = 0;
-  const loop = (now: number) => {
+  const loop = (rafNow: number) => {
     if (stopped) return;
-    if (now - last >= intervalMs) {
-      last = now;
-      onTick(now);
+    if (rafNow - last >= intervalMs) {
+      last = rafNow;
+      onTick(Date.now()); // RAF timestamp is relative to page load; callers need Unix ms
     }
     raf = requestAnimationFrame(loop);
   };

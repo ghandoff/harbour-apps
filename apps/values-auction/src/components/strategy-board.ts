@@ -12,6 +12,8 @@ export class VaStrategyBoard extends LitElement {
   @property({ type: Object }) team?: Team;
 
   @state() private focusedValueId: string | null = null;
+  @state() private dragValueId: string | null = null;
+  @state() private dragOverZone: Zone | null = null;
 
   static styles = css`
     :host {
@@ -37,6 +39,11 @@ export class VaStrategyBoard extends LitElement {
       border-radius: var(--radius-md);
       padding: var(--space-4);
       min-height: 240px;
+      transition: background var(--dur-fast) var(--ease-in-out), border-color var(--dur-fast) var(--ease-in-out);
+    }
+    .zone[data-drag-over='true'] {
+      background: rgba(255, 255, 255, 0.9);
+      border-style: solid;
     }
     .zone h3 {
       font: var(--type-h2);
@@ -53,6 +60,15 @@ export class VaStrategyBoard extends LitElement {
       display: flex;
       flex-direction: column;
       gap: var(--space-3);
+    }
+    li[data-dragging='true'] {
+      opacity: 0.4;
+    }
+    li {
+      cursor: grab;
+    }
+    li:active {
+      cursor: grabbing;
     }
     .ceiling-input {
       margin-top: var(--space-2);
@@ -113,6 +129,40 @@ export class VaStrategyBoard extends LitElement {
     e.preventDefault();
   }
 
+  private onDragStart(e: DragEvent, valueId: string) {
+    if (!e.dataTransfer) return;
+    e.dataTransfer.setData('text/plain', valueId);
+    e.dataTransfer.effectAllowed = 'move';
+    this.dragValueId = valueId;
+  }
+
+  private onDragEnd() {
+    this.dragValueId = null;
+    this.dragOverZone = null;
+  }
+
+  private onDragOver(e: DragEvent, zone: Zone) {
+    e.preventDefault();
+    if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+    this.dragOverZone = zone;
+  }
+
+  private onDragLeave(e: DragEvent, zone: Zone) {
+    const related = e.relatedTarget as Node | null;
+    if (!related || !(e.currentTarget as HTMLElement).contains(related)) {
+      if (this.dragOverZone === zone) this.dragOverZone = null;
+    }
+  }
+
+  private onDrop(e: DragEvent, zone: Zone) {
+    e.preventDefault();
+    this.dragOverZone = null;
+    const valueId = e.dataTransfer?.getData('text/plain');
+    if (!valueId) return;
+    this.setZone(valueId, zone === 'deck' ? null : (zone as IntentionZone));
+    this.dragValueId = null;
+  }
+
   render() {
     const zones: Zone[] = ['deck', 'must', 'nice', 'wont'];
     const labels: Record<Zone, string> = {
@@ -126,16 +176,28 @@ export class VaStrategyBoard extends LitElement {
       <div class="board">
         ${zones.map(
           (zone) => html`
-            <section class="zone" data-zone=${zone} aria-label=${labels[zone]}>
+            <section
+              class="zone"
+              data-zone=${zone}
+              data-drag-over=${this.dragOverZone === zone}
+              aria-label=${labels[zone]}
+              @dragover=${(e: DragEvent) => this.onDragOver(e, zone)}
+              @dragleave=${(e: DragEvent) => this.onDragLeave(e, zone)}
+              @drop=${(e: DragEvent) => this.onDrop(e, zone)}
+            >
               <h3>${labels[zone]}</h3>
               <ul>
                 ${VALUES.filter((v) => this.zoneForValue(v.id) === zone).map(
                   (v) => html`
                     <li
                       tabindex="0"
+                      draggable="true"
+                      data-dragging=${this.dragValueId === v.id}
+                      @dragstart=${(e: DragEvent) => this.onDragStart(e, v.id)}
+                      @dragend=${() => this.onDragEnd()}
                       @keydown=${(e: KeyboardEvent) => this.onKey(e, v.id)}
                       @focus=${() => (this.focusedValueId = v.id)}
-                      aria-label=${`${v.name}. in ${labels[zone]}. press M, N, W, or D to move.`}
+                      aria-label=${`${v.name}. in ${labels[zone]}. drag to move, or press M, N, W, or D.`}
                     >
                       <va-value-card
                         .value=${v}

@@ -28,6 +28,7 @@ export class VaParticipant extends LitElement {
   @state() private joined = false;
   @state() private welcomed = false;
   @state() private currentPrompt = 0;
+  @state() private reflectionSubmitted = false;
   private unsub?: () => void;
   private lastBidSeen = 0;
 
@@ -132,6 +133,21 @@ export class VaParticipant extends LitElement {
       teamId: this.team.id,
       statement: val,
     });
+  }
+
+  private onReflectionAnswer(index: number, answer: string) {
+    if (!this.team) return;
+    this.controller?.dispatch({
+      type: 'REFLECTION_ANSWER',
+      teamId: this.team.id,
+      index,
+      answer,
+    });
+  }
+
+  private submitReflection() {
+    announce(COPY.reflection.ready, 'polite');
+    this.reflectionSubmitted = true;
   }
 
   static styles = css`
@@ -474,6 +490,18 @@ export class VaParticipant extends LitElement {
 
   private renderReflection() {
     if (!this.team) return html``;
+
+    if (this.reflectionSubmitted) {
+      return html`
+        <section class="reflection fade-in">
+          <va-company-card .team=${this.team} showWon></va-company-card>
+          <div class="sector">
+            <p>your reflection is in. your identity card will be ready when the facilitator opens regather.</p>
+          </div>
+        </section>
+      `;
+    }
+
     const prompts = COPY.reflection.prompts;
     const current = prompts[this.currentPrompt];
     const isLast = this.currentPrompt >= prompts.length - 1;
@@ -493,12 +521,20 @@ export class VaParticipant extends LitElement {
                 ></textarea>
                 <va-button
                   variant="primary"
-                  @va-click=${() =>
-                    announce(COPY.reflection.ready, 'polite')}
+                  @va-click=${() => this.submitReflection()}
                   >${COPY.reflection.submit}</va-button
                 >
               `
             : html`
+                <textarea
+                  placeholder="your response..."
+                  .value=${this.team.reflectionAnswers[this.currentPrompt] ?? ''}
+                  @input=${(e: Event) =>
+                    this.onReflectionAnswer(
+                      this.currentPrompt,
+                      (e.target as HTMLTextAreaElement).value,
+                    )}
+                ></textarea>
                 <va-button
                   variant="primary"
                   @va-click=${() => (this.currentPrompt += 1)}

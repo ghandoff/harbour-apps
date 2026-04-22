@@ -4,7 +4,7 @@ import type { Controller } from '@/state/controller';
 import type { Session } from '@/state/types';
 import { COPY } from '@/content/copy';
 import { ACTS } from '@/content/acts';
-import { VALUES } from '@/content/values';
+import { VALUES, getValue } from '@/content/values';
 import { DEFAULT_AUCTION_MS, advanceAct, assignTeams } from '@/state/reducers';
 import { bidsPerMinute, silentTeams } from '@/state/selectors';
 import { startTicker } from '@/utils/timer';
@@ -70,7 +70,13 @@ export class VaFacilitator extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     if (this.controller) {
-      this.unsub = this.controller.store.subscribe((s) => (this.session = s));
+      this.unsub = this.controller.store.subscribe((s) => {
+        this.session = s;
+        // Auto-advance nextValueId when the previously selected value leaves the deck
+        if (this.nextValueId && !s.valueDeck.includes(this.nextValueId)) {
+          this.nextValueId = s.valueDeck[0] ?? null;
+        }
+      });
       this.session = this.controller.store.getState();
       if (this.session.currentAct === 'arrival' && !this.session.startedAt) {
         this.controller.dispatch({
@@ -145,8 +151,10 @@ export class VaFacilitator extends LitElement {
   }
 
   private endAuction() {
+    const currentValueId = this.session?.currentAuction?.valueId;
     this.controller?.dispatch({ type: 'AUCTION_END', at: Date.now() });
-    this.nextValueId = null;
+    const remaining = (this.session?.valueDeck ?? []).filter((id) => id !== currentValueId);
+    this.nextValueId = remaining[0] ?? null;
   }
 
   private broadcast() {
@@ -294,6 +302,19 @@ export class VaFacilitator extends LitElement {
       border: 2px solid transparent;
       background: var(--bg);
       font-weight: 700;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .deck button .value-name {
+      font-weight: 700;
+    }
+    .deck button .value-desc {
+      font-size: 12px;
+      font-weight: 400;
+      color: var(--fg-muted);
+      white-space: normal;
+      line-height: 1.4;
     }
     .deck button[data-selected='true'] {
       border-color: var(--wv-redwood);
@@ -301,6 +322,50 @@ export class VaFacilitator extends LitElement {
     .deck button:focus-visible {
       outline: var(--focus-ring);
       outline-offset: var(--focus-ring-offset);
+    }
+    .live-auction {
+      margin-top: var(--space-4);
+    }
+    .live-auction h2 {
+      font: var(--type-h2);
+      margin-bottom: var(--space-2);
+    }
+    .live-value-name {
+      font-weight: 700;
+      font-size: 16px;
+      margin-bottom: var(--space-1);
+    }
+    .live-value-desc {
+      font-size: 13px;
+      color: var(--fg-muted);
+      margin-bottom: var(--space-3);
+    }
+    .high-bid-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-weight: 700;
+      font-size: 18px;
+      margin-bottom: var(--space-3);
+    }
+    .bid-chip {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .bid-log {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-1);
+    }
+    .bid-entry {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-size: 13px;
+      color: var(--fg-muted);
     }
     input[type='text'] {
       padding: var(--space-2) var(--space-3);
@@ -443,6 +508,52 @@ export class VaFacilitator extends LitElement {
           </dl>
         </div>
 
+        ${s.currentAuction
+          ? html`
+              <div class="panel live-auction">
+                <h2>on the block</h2>
+                ${(() => {
+                  const v = getValue(s.currentAuction.valueId);
+                  const highBid = s.currentAuction.highBid;
+                  const highTeam = highBid ? s.teams.find((t) => t.id === highBid.teamId) : null;
+                  const recentBids = s.events
+                    .filter(
+                      (ev) =>
+                        ev.type === 'bidPlaced' &&
+                        ev.payload['valueId'] === s.currentAuction!.valueId,
+                    )
+                    .slice(-5)
+                    .reverse();
+                  return html`
+                    <div class="live-value-name">${v?.name ?? s.currentAuction.valueId}</div>
+                    <div class="live-value-desc">${v?.description ?? ''}</div>
+                    ${highTeam && highBid
+                      ? html`<div class="high-bid-row">
+                          <span
+                            class="bid-chip"
+                            style=${`background: var(--team-${highTeam.colour})`}
+                          ></span>
+                          ${highTeam.name}: ${highBid.amount} credos
+                        </div>`
+                      : html`<p style="color: var(--fg-muted); margin-bottom: var(--space-3);">no bids yet</p>`}
+                    <div class="bid-log">
+                      ${recentBids.map((ev) => {
+                        const t = s.teams.find((tm) => tm.id === ev.payload['teamId']);
+                        return html`<div class="bid-entry">
+                          <span
+                            class="bid-chip"
+                            style=${`background: var(--team-${t?.colour ?? 'cadet'})`}
+                          ></span>
+                          ${t?.name ?? 'unknown'}: ${ev.payload['amount']} credos
+                        </div>`;
+                      })}
+                    </div>
+                  `;
+                })()}
+              </div>
+            `
+          : ''}
+
         <div class="panel" style="margin-top: var(--space-4);">
           <h2>teams</h2>
           <div class="team-list">
@@ -500,7 +611,8 @@ export class VaFacilitator extends LitElement {
                 data-selected=${this.nextValueId === v.id}
                 @click=${() => (this.nextValueId = v.id)}
               >
-                ${v.name}
+                <span class="value-name">${v.name}</span>
+                <span class="value-desc">${v.description}</span>
               </button>
             `,
           )}
