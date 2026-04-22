@@ -6,7 +6,10 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 // POST /api/rooms/[code]/ai-tally
-// locks in the ceiling (client reads it from ai_use_votes) and advances state to pledge.
+// reads the current room state:
+//  - ai_ladder_propose → advance to ai_ladder (open the proposal-vote ballot)
+//  - ai_ladder         → tally proposal votes, lock the ceiling, advance to pledge
+// falls back to the legacy level-ladder tally if no proposals have been posted.
 export async function POST(
   _req: Request,
   { params }: { params: Promise<{ code: string }> },
@@ -17,9 +20,22 @@ export async function POST(
     return NextResponse.json({ error: "invalid code" }, { status: 400 });
   }
   const store = getStore();
-  const result = await store.tallyAiLadder(normalised);
-  if (!result) {
+  const snapshot = await store.getSnapshot(normalised);
+  if (!snapshot) {
     return NextResponse.json({ error: "room not found" }, { status: 404 });
+  }
+
+  if (snapshot.room.state === "ai_ladder_propose") {
+    await store.updateRoomState(normalised, "ai_ladder");
+    return NextResponse.json({ advanced_to: "ai_ladder" });
+  }
+
+  const hasProposals = (snapshot.ai_use_proposals?.length ?? 0) > 0;
+  const result = hasProposals
+    ? await store.tallyAiProposals(normalised)
+    : await store.tallyAiLadder(normalised);
+  if (!result) {
+    return NextResponse.json({ error: "couldn't tally" }, { status: 400 });
   }
   await store.updateRoomState(normalised, "pledge");
   return NextResponse.json(result);

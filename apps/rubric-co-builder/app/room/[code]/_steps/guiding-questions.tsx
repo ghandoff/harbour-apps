@@ -23,9 +23,9 @@ const QUESTIONS: Record<RoomState, string[]> = {
     "which one would you most want to be graded on?",
   ],
   vote2: [
-    "now that you've seen how each criterion gets scaled — does your ranking change?",
-    "which criterion will actually change how you work on the artefact?",
-    "which descriptor still feels vague? vote for the ones where the language landed.",
+    "whose descriptor for each level names what you'd actually want the marker to look at?",
+    "which wording is specific enough that you'd know how to hit it?",
+    "where did the class quietly raise the bar — does that feel right?",
   ],
   vote3: [
     "which criteria are doing real work — not just sounding good?",
@@ -42,8 +42,13 @@ const QUESTIONS: Record<RoomState, string[]> = {
     "what piece of language would have moved you one level up or down?",
     "where did the descriptor feel slippery — what would you rewrite?",
   ],
+  ai_ladder_propose: [
+    "which rung fits this project — not AI-use in general, this project?",
+    "what's the one sentence that would convince a sceptical classmate?",
+    "what would using AI beyond this rung actually cost the learning?",
+  ],
   ai_ladder: [
-    "what kind of help with this work would still feel like your work?",
+    "which classmate's rationale lands hardest for you — why?",
     "what would cross a line for you personally, even if it isn’t cheating?",
     "what ceiling lets the team stretch without outsourcing the thinking?",
   ],

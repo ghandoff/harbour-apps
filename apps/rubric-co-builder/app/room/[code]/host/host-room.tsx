@@ -5,6 +5,8 @@ import { useRoom } from "@/lib/use-room";
 import { Wordmark } from "@/app/_components/wordmark";
 import { apiPath } from "@/lib/paths";
 import type {
+  AiUseProposal,
+  AiUseProposalVote,
   AiUseVote,
   CalibrationScore,
   Criterion,
@@ -13,6 +15,7 @@ import type {
   RoomState,
   Scale,
   ScaleResponse,
+  ScaleResponseVote,
   Vote,
 } from "@/lib/types";
 import { roundForState } from "@/lib/types";
@@ -42,7 +45,9 @@ import { StepFrame } from "../_steps/step-frame";
 import { StepPropose } from "../_steps/step-propose";
 import { StepVote } from "../_steps/step-vote";
 import { StepScale } from "../_steps/step-scale";
+import { StepScaleVote } from "../_steps/step-scale-vote";
 import { StepCalibrate } from "../_steps/step-calibrate";
+import { StepAiPropose } from "../_steps/step-ai-propose";
 import { StepAiLadder } from "../_steps/step-ai-ladder";
 import { StepPledge } from "../_steps/step-pledge";
 import { StepCommit } from "../_steps/step-commit";
@@ -57,7 +62,7 @@ const STATE_ORDER: RoomState[] = [
   "criteria_gate",
   "scale",
   "vote2",
-  "vote3",
+  "ai_ladder_propose",
   "ai_ladder",
   "pledge",
   "commit",
@@ -95,8 +100,11 @@ export function HostRoom({ code }: { code: string }) {
     votes,
     scales,
     scale_responses,
+    scale_response_votes,
     calibration_scores,
     ai_use_votes,
+    ai_use_proposals,
+    ai_use_proposal_votes,
     pledge_slots,
   } = snapshot;
 
@@ -186,8 +194,11 @@ export function HostRoom({ code }: { code: string }) {
             votes={votes}
             scales={scales}
             scale_responses={scale_responses ?? []}
+            scale_response_votes={scale_response_votes ?? []}
             calibration_scores={calibration_scores}
             ai_use_votes={ai_use_votes}
+            ai_use_proposals={ai_use_proposals ?? []}
+            ai_use_proposal_votes={ai_use_proposal_votes ?? []}
             pledge_slots={pledge_slots}
             participants_count={participants_count}
             onResolveChoice={resolveChoice}
@@ -258,6 +269,7 @@ function HostControls({
 
   const isTallyState = current === "vote" || current === "vote2" || current === "vote3";
   const isGateState = current === "criteria_gate";
+  const isAiTallyState = current === "ai_ladder_propose" || current === "ai_ladder";
   const tallyRound = current === "vote" ? 1 : current === "vote2" ? 2 : 3;
 
   async function wrap(action: () => Promise<void>, label: string) {
@@ -271,9 +283,14 @@ function HostControls({
 
   const tallyLabels: Record<1 | 2 | 3, { idle: string; busy: string }> = {
     1: { idle: "tally votes & review criteria", busy: "tallying…" },
-    2: { idle: "tally & move to round 3", busy: "tallying…" },
+    2: { idle: "lock descriptors & move to AI ladder", busy: "tallying…" },
     3: { idle: "tally & move to AI ladder", busy: "tallying…" },
   };
+
+  const aiTallyLabel =
+    current === "ai_ladder_propose"
+      ? { idle: "close proposals & open vote", busy: "opening vote…" }
+      : { idle: "lock ceiling & move to pledge", busy: "locking ceiling…" };
 
   const timerActive = timerEnd !== null && remaining !== null && remaining > 0;
   const isUrgent = remaining !== null && remaining <= 30 && remaining > 0;
@@ -296,13 +313,13 @@ function HostControls({
                 ? tallyLabels[tallyRound as 1 | 2 | 3].busy
                 : tallyLabels[tallyRound as 1 | 2 | 3].idle}
             </button>
-          ) : current === "ai_ladder" ? (
+          ) : isAiTallyState ? (
             <button
               onClick={() => wrap(onAiTally, "ai-tally")}
               disabled={pending !== null}
               className="bg-[color:var(--color-sienna)] text-white px-4 py-2 rounded text-sm font-medium hover:opacity-90 disabled:opacity-60 disabled:cursor-wait"
             >
-              {pending === "ai-tally" ? "locking ceiling…" : "lock ceiling & move to pledge"}
+              {pending === "ai-tally" ? aiTallyLabel.busy : aiTallyLabel.idle}
             </button>
           ) : isGateState ? null : next ? (
             <button
@@ -384,8 +401,11 @@ type HostBodyProps = {
   votes: Vote[];
   scales: Scale[];
   scale_responses: ScaleResponse[];
+  scale_response_votes: ScaleResponseVote[];
   calibration_scores: CalibrationScore[];
   ai_use_votes: AiUseVote[];
+  ai_use_proposals: AiUseProposal[];
+  ai_use_proposal_votes: AiUseProposalVote[];
   pledge_slots: PledgeSlot[];
   participants_count: number;
   onResolveChoice: (selectedIds: string[]) => void;
@@ -399,14 +419,16 @@ function HostBody({
   votes,
   scales,
   scale_responses,
+  scale_response_votes,
   calibration_scores,
   ai_use_votes,
+  ai_use_proposals,
+  ai_use_proposal_votes,
   pledge_slots,
   participants_count,
   onResolveChoice,
   onConfirmGate,
 }: HostBodyProps) {
-  const isVoteState = room.state === "vote" || room.state === "vote2" || room.state === "vote3";
   const voteRound = roundForState(room.state);
 
   switch (room.state) {
@@ -449,7 +471,6 @@ function HostBody({
         </Collapsible>
       );
     case "vote":
-    case "vote2":
     case "vote3":
       return (
         <Collapsible
@@ -473,6 +494,22 @@ function HostBody({
               onResolve={onResolveChoice}
             />
           </>
+        </Collapsible>
+      );
+    case "vote2":
+      return (
+        <Collapsible
+          label={`vote round 2 — ${scale_response_votes.length} dots across descriptors`}
+          autoExpand={scale_response_votes.length}
+        >
+          <StepScaleVote
+            code={code}
+            criteria={criteria}
+            scaleResponses={scale_responses}
+            scaleResponseVotes={scale_response_votes}
+            participantId={null}
+            participantsCount={participants_count}
+          />
         </Collapsible>
       );
     case "scale":
@@ -504,12 +541,35 @@ function HostBody({
           />
         </Collapsible>
       );
+    case "ai_ladder_propose":
+      return (
+        <Collapsible
+          label={`AI ladder · propose — ${ai_use_proposals.length} proposal${
+            ai_use_proposals.length === 1 ? "" : "s"
+          }`}
+          autoExpand={ai_use_proposals.length}
+        >
+          <StepAiPropose
+            code={code}
+            proposals={ai_use_proposals}
+            participantId={null}
+            participantsCount={participants_count}
+          />
+        </Collapsible>
+      );
     case "ai_ladder":
       return (
-        <Collapsible label={`AI ladder — ${ai_use_votes.length} vote${ai_use_votes.length === 1 ? "" : "s"}`} autoExpand={ai_use_votes.length}>
+        <Collapsible
+          label={`AI ladder · vote — ${ai_use_proposal_votes.length} dot${
+            ai_use_proposal_votes.length === 1 ? "" : "s"
+          }`}
+          autoExpand={ai_use_proposal_votes.length}
+        >
           <StepAiLadder
             code={code}
-            votes={ai_use_votes}
+            proposals={ai_use_proposals}
+            proposalVotes={ai_use_proposal_votes}
+            legacyVotes={ai_use_votes}
             participantId={null}
             participantsCount={participants_count}
           />
@@ -522,6 +582,8 @@ function HostBody({
             code={code}
             slots={pledge_slots}
             votes={ai_use_votes}
+            proposals={ai_use_proposals}
+            proposalVotes={ai_use_proposal_votes}
             canEdit={false}
           />
         </Collapsible>
@@ -534,6 +596,8 @@ function HostBody({
             criteria={criteria}
             scales={scales}
             votes={ai_use_votes}
+            proposals={ai_use_proposals}
+            proposalVotes={ai_use_proposal_votes}
             slots={pledge_slots}
           />
         </Collapsible>
