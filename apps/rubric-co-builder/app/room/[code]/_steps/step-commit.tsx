@@ -2,6 +2,8 @@
 
 import { useMemo, useState } from "react";
 import type {
+  AiUseProposal,
+  AiUseProposalVote,
   AiUseVote,
   Criterion,
   PledgeSlot,
@@ -9,17 +11,31 @@ import type {
   Scale,
 } from "@/lib/types";
 import { PLEDGE_SLOTS, SCALE_LEVELS } from "@/lib/types";
-import { computeCeiling, levelMeta } from "@/lib/ai-contract";
+import {
+  computeCeiling,
+  computeCeilingFromProposals,
+  levelMeta,
+} from "@/lib/ai-contract";
 
 type Props = {
   room: Room;
   criteria: Criterion[];
   scales: Scale[];
   votes: AiUseVote[];
+  proposals?: AiUseProposal[];
+  proposalVotes?: AiUseProposalVote[];
   slots: PledgeSlot[];
 };
 
-export function StepCommit({ room, criteria, scales, votes, slots }: Props) {
+export function StepCommit({
+  room,
+  criteria,
+  scales,
+  votes,
+  proposals,
+  proposalVotes,
+  slots,
+}: Props) {
   const [copyMsg, setCopyMsg] = useState<string | null>(null);
   const selected = useMemo(
     () =>
@@ -28,7 +44,10 @@ export function StepCommit({ room, criteria, scales, votes, slots }: Props) {
         .sort((a, b) => a.position - b.position),
     [criteria],
   );
-  const { ceiling } = computeCeiling(votes);
+  const useProposals = (proposals?.length ?? 0) > 0;
+  const { ceiling } = useProposals
+    ? computeCeilingFromProposals(proposals ?? [], proposalVotes ?? [])
+    : computeCeiling(votes);
   const rung = levelMeta(ceiling);
 
   const markdown = useMemo(

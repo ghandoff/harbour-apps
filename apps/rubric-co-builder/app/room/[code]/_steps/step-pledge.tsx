@@ -2,23 +2,41 @@
 
 import { useEffect, useRef, useState } from "react";
 import type {
+  AiUseProposal,
+  AiUseProposalVote,
   AiUseVote,
   PledgeSlot,
   PledgeSlotIndex,
 } from "@/lib/types";
 import { PLEDGE_SLOTS } from "@/lib/types";
 import { apiPath } from "@/lib/paths";
-import { computeCeiling, levelMeta } from "@/lib/ai-contract";
+import {
+  computeCeiling,
+  computeCeilingFromProposals,
+  levelMeta,
+} from "@/lib/ai-contract";
 
 type Props = {
   code: string;
   slots: PledgeSlot[];
   votes: AiUseVote[];
+  proposals?: AiUseProposal[];
+  proposalVotes?: AiUseProposalVote[];
   canEdit: boolean;
 };
 
-export function StepPledge({ code, slots, votes, canEdit }: Props) {
-  const { ceiling } = computeCeiling(votes);
+export function StepPledge({
+  code,
+  slots,
+  votes,
+  proposals,
+  proposalVotes,
+  canEdit,
+}: Props) {
+  const useProposals = (proposals?.length ?? 0) > 0;
+  const { ceiling } = useProposals
+    ? computeCeilingFromProposals(proposals ?? [], proposalVotes ?? [])
+    : computeCeiling(votes);
   const rung = levelMeta(ceiling);
 
   return (

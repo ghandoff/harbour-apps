@@ -1,6 +1,8 @@
 import { neon, type NeonQueryFunction } from "@neondatabase/serverless";
 import type {
   AiUseLevel,
+  AiUseProposal,
+  AiUseProposalVote,
   AiUseVote,
   CalibrationScore,
   Criterion,
@@ -13,6 +15,7 @@ import type {
   RoomState,
   Scale,
   ScaleResponse,
+  ScaleResponseVote,
   Vote,
 } from "./types";
 import { DEFAULT_DESCRIPTORS, PLEDGE_SLOTS, SCALE_LEVELS } from "./types";
@@ -92,6 +95,42 @@ export type Store = {
     code: string,
   ): Promise<{ ceiling: AiUseLevel; counts: Record<AiUseLevel, number> } | null>;
 
+  castScaleResponseVote(
+    participantId: string,
+    scaleResponseId: string,
+  ): Promise<ScaleResponseVote | null>;
+  removeScaleResponseVote(
+    participantId: string,
+    scaleResponseId: string,
+  ): Promise<boolean>;
+
+  // picks the most-voted scale_response per (criterion, level) and writes its
+  // descriptor into canonical scales. advances the room to `nextState`.
+  tallyScaleResponseVotes(
+    code: string,
+    nextState: RoomState,
+  ): Promise<{ winners: Scale[] } | null>;
+
+  upsertAiProposal(
+    participantId: string,
+    roomCode: string,
+    level: AiUseLevel,
+    rationale: string,
+  ): Promise<AiUseProposal | null>;
+
+  castAiProposalVote(
+    participantId: string,
+    proposalId: string,
+  ): Promise<AiUseProposalVote | null>;
+  removeAiProposalVote(
+    participantId: string,
+    proposalId: string,
+  ): Promise<boolean>;
+
+  tallyAiProposals(
+    code: string,
+  ): Promise<{ ceiling: AiUseLevel; counts: Record<AiUseLevel, number> } | null>;
+
   upsertPledgeSlot(
     roomCode: string,
     slotIndex: PledgeSlotIndex,
@@ -122,8 +161,11 @@ type MemoryDb = {
   votes: Map<string, Vote>;
   scales: Map<string, Scale>;
   scaleResponses: Map<string, ScaleResponse>;
+  scaleResponseVotes: Map<string, ScaleResponseVote>;
   calibration: Map<string, CalibrationScore>;
   aiVotes: Map<string, AiUseVote>;
+  aiProposals: Map<string, AiUseProposal>;
+  aiProposalVotes: Map<string, AiUseProposalVote>;
   pledgeSlots: Map<string, PledgeSlot>;
 };
 
@@ -135,8 +177,11 @@ function memoryStore(): Store {
     votes: new Map(),
     scales: new Map(),
     scaleResponses: new Map(),
+    scaleResponseVotes: new Map(),
     calibration: new Map(),
     aiVotes: new Map(),
+    aiProposals: new Map(),
+    aiProposalVotes: new Map(),
     pledgeSlots: new Map(),
   };
 
@@ -270,10 +315,21 @@ function memoryStore(): Store {
       const scale_responses = [...db.scaleResponses.values()].filter((sr) =>
         criterionIds.has(sr.criterion_id),
       );
+      const scaleResponseIds = new Set(scale_responses.map((sr) => sr.id));
+      const scale_response_votes = [...db.scaleResponseVotes.values()].filter((srv) =>
+        scaleResponseIds.has(srv.scale_response_id),
+      );
       const calibration_scores = [...db.calibration.values()].filter((c) =>
         criterionIds.has(c.criterion_id),
       );
       const ai_use_votes = [...db.aiVotes.values()].filter((v) => v.room_id === room.id);
+      const ai_use_proposals = [...db.aiProposals.values()].filter(
+        (p) => p.room_id === room.id,
+      );
+      const proposalIds = new Set(ai_use_proposals.map((p) => p.id));
+      const ai_use_proposal_votes = [...db.aiProposalVotes.values()].filter((pv) =>
+        proposalIds.has(pv.proposal_id),
+      );
       const pledge_slots = [...db.pledgeSlots.values()]
         .filter((s) => s.room_id === room.id)
         .sort((a, b) => a.slot_index - b.slot_index);
@@ -284,8 +340,11 @@ function memoryStore(): Store {
         votes,
         scales,
         scale_responses,
+        scale_response_votes,
         calibration_scores,
         ai_use_votes,
+        ai_use_proposals,
+        ai_use_proposal_votes,
         pledge_slots,
       };
     },
@@ -594,6 +653,161 @@ function memoryStore(): Store {
       db.rooms.set(updated.id, updated);
       return updated;
     },
+
+    async castScaleResponseVote(participantId, scaleResponseId) {
+      const key = `${participantId}:${scaleResponseId}`;
+      if (db.scaleResponseVotes.has(key)) return db.scaleResponseVotes.get(key)!;
+      if (!db.participants.has(participantId)) return null;
+      const exists = [...db.scaleResponses.values()].some((sr) => sr.id === scaleResponseId);
+      if (!exists) return null;
+      const vote: ScaleResponseVote = {
+        id: uuid(),
+        participant_id: participantId,
+        scale_response_id: scaleResponseId,
+        created_at: new Date().toISOString(),
+      };
+      db.scaleResponseVotes.set(key, vote);
+      return vote;
+    },
+
+    async removeScaleResponseVote(participantId, scaleResponseId) {
+      return db.scaleResponseVotes.delete(`${participantId}:${scaleResponseId}`);
+    },
+
+    async tallyScaleResponseVotes(code, nextState) {
+      const room = findByCode(code);
+      if (!room) return null;
+      const roomCriteria = [...db.criteria.values()].filter((c) => c.room_id === room.id);
+      const roomCriteriaIds = new Set(roomCriteria.map((c) => c.id));
+      const roomResponses = [...db.scaleResponses.values()].filter((sr) =>
+        roomCriteriaIds.has(sr.criterion_id),
+      );
+      const roomResponseIds = new Set(roomResponses.map((sr) => sr.id));
+
+      const voteCounts = new Map<string, number>();
+      for (const v of db.scaleResponseVotes.values()) {
+        if (roomResponseIds.has(v.scale_response_id)) {
+          voteCounts.set(
+            v.scale_response_id,
+            (voteCounts.get(v.scale_response_id) ?? 0) + 1,
+          );
+        }
+      }
+
+      // pick winner per (criterion, level)
+      const winners: Scale[] = [];
+      const selectedCriteria = roomCriteria.filter((c) => c.status === "selected");
+      for (const c of selectedCriteria) {
+        for (const { level } of SCALE_LEVELS) {
+          const candidates = roomResponses.filter(
+            (sr) => sr.criterion_id === c.id && sr.level === level,
+          );
+          if (candidates.length === 0) continue;
+          const sorted = [...candidates].sort((a, b) => {
+            const ca = voteCounts.get(a.id) ?? 0;
+            const cb = voteCounts.get(b.id) ?? 0;
+            if (cb !== ca) return cb - ca;
+            // tiebreak: earlier descriptor wins
+            return a.updated_at.localeCompare(b.updated_at);
+          });
+          const top = sorted[0];
+          if (!top.descriptor.trim()) continue;
+          const key = scaleKey(c.id, level);
+          const now = new Date().toISOString();
+          const existing = db.scales.get(key);
+          const updated: Scale = existing
+            ? { ...existing, descriptor: top.descriptor, updated_at: now }
+            : {
+                id: uuid(),
+                criterion_id: c.id,
+                level,
+                descriptor: top.descriptor,
+                updated_at: now,
+              };
+          db.scales.set(key, updated);
+          winners.push(updated);
+        }
+      }
+
+      const updatedRoom: Room = {
+        ...room,
+        state: nextState,
+        step_started_at: new Date().toISOString(),
+        timer_end: null,
+        timer_duration: null,
+      };
+      db.rooms.set(updatedRoom.id, updatedRoom);
+      return { winners };
+    },
+
+    async upsertAiProposal(participantId, roomCode, level, rationale) {
+      const room = findByCode(roomCode);
+      if (!room) return null;
+      const participant = db.participants.get(participantId);
+      if (!participant || participant.room_id !== room.id) return null;
+      const key = `${room.id}:${participantId}`;
+      const now = new Date().toISOString();
+      const existing = db.aiProposals.get(key);
+      const proposal: AiUseProposal = existing
+        ? { ...existing, level, rationale }
+        : {
+            id: uuid(),
+            room_id: room.id,
+            participant_id: participantId,
+            level,
+            rationale,
+            created_at: now,
+          };
+      db.aiProposals.set(key, proposal);
+      return proposal;
+    },
+
+    async castAiProposalVote(participantId, proposalId) {
+      const key = `${participantId}:${proposalId}`;
+      if (db.aiProposalVotes.has(key)) return db.aiProposalVotes.get(key)!;
+      if (!db.participants.has(participantId)) return null;
+      const proposal = [...db.aiProposals.values()].find((p) => p.id === proposalId);
+      if (!proposal) return null;
+      const vote: AiUseProposalVote = {
+        id: uuid(),
+        participant_id: participantId,
+        proposal_id: proposalId,
+        created_at: new Date().toISOString(),
+      };
+      db.aiProposalVotes.set(key, vote);
+      return vote;
+    },
+
+    async removeAiProposalVote(participantId, proposalId) {
+      return db.aiProposalVotes.delete(`${participantId}:${proposalId}`);
+    },
+
+    async tallyAiProposals(code) {
+      const room = findByCode(code);
+      if (!room) return null;
+      const proposals = [...db.aiProposals.values()].filter((p) => p.room_id === room.id);
+      const proposalIds = new Set(proposals.map((p) => p.id));
+      const perProposal = new Map<string, number>();
+      for (const v of db.aiProposalVotes.values()) {
+        if (proposalIds.has(v.proposal_id)) {
+          perProposal.set(v.proposal_id, (perProposal.get(v.proposal_id) ?? 0) + 1);
+        }
+      }
+      const counts: Record<AiUseLevel, number> = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0 };
+      for (const p of proposals) {
+        counts[p.level] += perProposal.get(p.id) ?? 0;
+      }
+      // ceiling: level with the most proposal-votes; ties break to the lower rung
+      let ceiling: AiUseLevel = 0;
+      let best = -1;
+      for (const lvl of [0, 1, 2, 3, 4] as AiUseLevel[]) {
+        if (counts[lvl] > best) {
+          best = counts[lvl];
+          ceiling = lvl;
+        }
+      }
+      return { ceiling, counts };
+    },
   };
 }
 
@@ -731,6 +945,25 @@ function neonStore(url: string): Store {
         from rubric_cobuilder.ai_use_votes
         where room_id = ${room.id}
       `) as AiUseVote[];
+      const scale_response_votes: ScaleResponseVote[] = await (sql`
+        select srv.id, srv.participant_id, srv.scale_response_id, srv.created_at
+        from rubric_cobuilder.scale_response_votes srv
+        join rubric_cobuilder.scale_responses sr on sr.id = srv.scale_response_id
+        join rubric_cobuilder.criteria c on c.id = sr.criterion_id
+        where c.room_id = ${room.id}
+      ` as unknown as Promise<ScaleResponseVote[]>).catch(() => []);
+      const ai_use_proposals: AiUseProposal[] = await (sql`
+        select id, room_id, participant_id, level, rationale, created_at
+        from rubric_cobuilder.ai_use_proposals
+        where room_id = ${room.id}
+        order by created_at asc
+      ` as unknown as Promise<AiUseProposal[]>).catch(() => []);
+      const ai_use_proposal_votes: AiUseProposalVote[] = await (sql`
+        select pv.id, pv.participant_id, pv.proposal_id, pv.created_at
+        from rubric_cobuilder.ai_use_proposal_votes pv
+        join rubric_cobuilder.ai_use_proposals p on p.id = pv.proposal_id
+        where p.room_id = ${room.id}
+      ` as unknown as Promise<AiUseProposalVote[]>).catch(() => []);
       const pledge_slots = (await sql`
         select id, room_id, slot_index, content, updated_at
         from rubric_cobuilder.pledge_slots
@@ -745,8 +978,11 @@ function neonStore(url: string): Store {
         votes,
         scales,
         scale_responses,
+        scale_response_votes,
         calibration_scores,
         ai_use_votes,
+        ai_use_proposals,
+        ai_use_proposal_votes,
         pledge_slots,
       };
     },
@@ -1085,6 +1321,166 @@ function neonStore(url: string): Store {
                       timer_end, timer_duration
           `;
       return (rows[0] as Room | undefined) ?? null;
+    },
+
+    async castScaleResponseVote(participantId, scaleResponseId) {
+      const rows = await sql`
+        insert into rubric_cobuilder.scale_response_votes (participant_id, scale_response_id)
+        values (${participantId}, ${scaleResponseId})
+        on conflict (participant_id, scale_response_id) do nothing
+        returning id, participant_id, scale_response_id, created_at
+      `;
+      if (rows.length === 0) {
+        const [existing] = await sql`
+          select id, participant_id, scale_response_id, created_at
+          from rubric_cobuilder.scale_response_votes
+          where participant_id = ${participantId} and scale_response_id = ${scaleResponseId}
+          limit 1
+        `;
+        return (existing as ScaleResponseVote | undefined) ?? null;
+      }
+      return rows[0] as ScaleResponseVote;
+    },
+
+    async removeScaleResponseVote(participantId, scaleResponseId) {
+      const rows = await sql`
+        delete from rubric_cobuilder.scale_response_votes
+        where participant_id = ${participantId} and scale_response_id = ${scaleResponseId}
+        returning id
+      `;
+      return rows.length > 0;
+    },
+
+    async tallyScaleResponseVotes(code, nextState) {
+      const [room] = await sql`
+        select id from rubric_cobuilder.rooms where code = ${code} limit 1
+      `;
+      if (!room) return null;
+      const roomId = room.id as string;
+
+      const rows = (await sql`
+        select sr.id as response_id, sr.criterion_id, sr.level, sr.descriptor,
+               sr.updated_at, coalesce(vcount.c, 0)::int as vote_count
+        from rubric_cobuilder.scale_responses sr
+        join rubric_cobuilder.criteria c on c.id = sr.criterion_id
+        left join (
+          select scale_response_id, count(*)::int as c
+          from rubric_cobuilder.scale_response_votes
+          group by scale_response_id
+        ) vcount on vcount.scale_response_id = sr.id
+        where c.room_id = ${roomId} and c.status = 'selected'
+      `) as Array<{
+        response_id: string;
+        criterion_id: string;
+        level: number;
+        descriptor: string;
+        updated_at: string;
+        vote_count: number;
+      }>;
+
+      // group by (criterion, level) and pick the winner
+      const bestByKey = new Map<string, typeof rows[number]>();
+      for (const r of rows) {
+        if (!r.descriptor.trim()) continue;
+        const key = `${r.criterion_id}:${r.level}`;
+        const cur = bestByKey.get(key);
+        if (
+          !cur ||
+          r.vote_count > cur.vote_count ||
+          (r.vote_count === cur.vote_count && r.updated_at < cur.updated_at)
+        ) {
+          bestByKey.set(key, r);
+        }
+      }
+
+      const winners: Scale[] = [];
+      for (const w of bestByKey.values()) {
+        const [row] = await sql`
+          insert into rubric_cobuilder.scales (criterion_id, level, descriptor)
+          values (${w.criterion_id}, ${w.level}, ${w.descriptor})
+          on conflict (criterion_id, level) do update
+            set descriptor = excluded.descriptor, updated_at = now()
+          returning id, criterion_id, level, descriptor, updated_at
+        `;
+        winners.push(row as Scale);
+      }
+
+      await sql`
+        update rubric_cobuilder.rooms
+        set state = ${nextState}, step_started_at = now(),
+            timer_end = null, timer_duration = null
+        where id = ${roomId}
+      `;
+
+      return { winners };
+    },
+
+    async upsertAiProposal(participantId, roomCode, level, rationale) {
+      const [room] = await sql`
+        select id from rubric_cobuilder.rooms where code = ${roomCode} limit 1
+      `;
+      if (!room) return null;
+      const [row] = await sql`
+        insert into rubric_cobuilder.ai_use_proposals (room_id, participant_id, level, rationale)
+        values (${room.id}, ${participantId}, ${level}, ${rationale})
+        on conflict (room_id, participant_id) do update
+          set level = excluded.level, rationale = excluded.rationale
+        returning id, room_id, participant_id, level, rationale, created_at
+      `;
+      return row as AiUseProposal;
+    },
+
+    async castAiProposalVote(participantId, proposalId) {
+      const rows = await sql`
+        insert into rubric_cobuilder.ai_use_proposal_votes (participant_id, proposal_id)
+        values (${participantId}, ${proposalId})
+        on conflict (participant_id, proposal_id) do nothing
+        returning id, participant_id, proposal_id, created_at
+      `;
+      if (rows.length === 0) {
+        const [existing] = await sql`
+          select id, participant_id, proposal_id, created_at
+          from rubric_cobuilder.ai_use_proposal_votes
+          where participant_id = ${participantId} and proposal_id = ${proposalId}
+          limit 1
+        `;
+        return (existing as AiUseProposalVote | undefined) ?? null;
+      }
+      return rows[0] as AiUseProposalVote;
+    },
+
+    async removeAiProposalVote(participantId, proposalId) {
+      const rows = await sql`
+        delete from rubric_cobuilder.ai_use_proposal_votes
+        where participant_id = ${participantId} and proposal_id = ${proposalId}
+        returning id
+      `;
+      return rows.length > 0;
+    },
+
+    async tallyAiProposals(code) {
+      const [room] = await sql`
+        select id from rubric_cobuilder.rooms where code = ${code} limit 1
+      `;
+      if (!room) return null;
+      const rows = (await sql`
+        select p.level, count(pv.id)::int as c
+        from rubric_cobuilder.ai_use_proposals p
+        left join rubric_cobuilder.ai_use_proposal_votes pv on pv.proposal_id = p.id
+        where p.room_id = ${room.id}
+        group by p.level
+      `) as Array<{ level: number; c: number }>;
+      const counts: Record<AiUseLevel, number> = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0 };
+      for (const r of rows) counts[r.level as AiUseLevel] = (counts[r.level as AiUseLevel] ?? 0) + r.c;
+      let ceiling: AiUseLevel = 0;
+      let best = -1;
+      for (const lvl of [0, 1, 2, 3, 4] as AiUseLevel[]) {
+        if (counts[lvl] > best) {
+          best = counts[lvl];
+          ceiling = lvl;
+        }
+      }
+      return { ceiling, counts };
     },
   };
 }

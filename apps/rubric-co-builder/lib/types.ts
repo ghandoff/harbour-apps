@@ -5,10 +5,11 @@ export type RoomState =
   | "vote"
   | "criteria_gate"  // facilitator reviews vote-1 results and picks which criteria advance
   | "scale"
-  | "vote2"
-  | "vote3"
+  | "vote2"  // vote on per-student scale_responses (round 2)
+  | "vote3"  // kept for legacy rooms only; not in the current STATE_ORDER
   | "calibrate"  // kept for backward compat with rooms created before the rework
-  | "ai_ladder"
+  | "ai_ladder_propose"  // each student posts a level + rationale
+  | "ai_ladder"  // everyone votes on the proposals
   | "pledge"
   | "commit";
 
@@ -95,6 +96,29 @@ export type AiUseVote = {
   created_at: string;
 };
 
+export type ScaleResponseVote = {
+  id: string;
+  participant_id: string;
+  scale_response_id: string;
+  created_at: string;
+};
+
+export type AiUseProposal = {
+  id: string;
+  room_id: string;
+  participant_id: string;
+  level: AiUseLevel;
+  rationale: string;
+  created_at: string;
+};
+
+export type AiUseProposalVote = {
+  id: string;
+  participant_id: string;
+  proposal_id: string;
+  created_at: string;
+};
+
 export type PledgeSlot = {
   id: string;
   room_id: string;
@@ -110,8 +134,11 @@ export type RoomSnapshot = {
   votes: Vote[];
   scales: Scale[];
   scale_responses: ScaleResponse[];
+  scale_response_votes: ScaleResponseVote[];
   calibration_scores: CalibrationScore[];
   ai_use_votes: AiUseVote[];
+  ai_use_proposals: AiUseProposal[];
+  ai_use_proposal_votes: AiUseProposalVote[];
   pledge_slots: PledgeSlot[];
 };
 

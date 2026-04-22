@@ -8,7 +8,9 @@ import { StepFrame } from "./_steps/step-frame";
 import { StepPropose } from "./_steps/step-propose";
 import { StepVote } from "./_steps/step-vote";
 import { StepScale } from "./_steps/step-scale";
+import { StepScaleVote } from "./_steps/step-scale-vote";
 import { StepCalibrate } from "./_steps/step-calibrate";
+import { StepAiPropose } from "./_steps/step-ai-propose";
 import { StepAiLadder } from "./_steps/step-ai-ladder";
 import { StepPledge } from "./_steps/step-pledge";
 import { StepCommit } from "./_steps/step-commit";
@@ -21,7 +23,7 @@ import { apiPath } from "@/lib/paths";
 
 const STATE_ORDER: RoomState[] = [
   "lobby", "frame", "propose", "vote", "criteria_gate", "scale",
-  "vote2", "vote3", "ai_ladder", "pledge", "commit",
+  "vote2", "ai_ladder_propose", "ai_ladder", "pledge", "commit",
 ];
 
 function useCountdown(timerEnd: string | null): number | null {
@@ -140,8 +142,11 @@ export function StudentRoom({ code }: { code: string }) {
     votes,
     scales,
     scale_responses,
+    scale_response_votes,
     calibration_scores,
     ai_use_votes,
+    ai_use_proposals,
+    ai_use_proposal_votes,
     pledge_slots,
   } = snapshot;
 
@@ -182,7 +187,7 @@ export function StudentRoom({ code }: { code: string }) {
     if (room.state === "propose") {
       return <StepPropose code={code} criteria={criteria} canEdit={canEdit} />;
     }
-    if (room.state === "vote" || room.state === "vote2" || room.state === "vote3") {
+    if (room.state === "vote" || room.state === "vote3") {
       const ballot = criteria.filter((c) => c.status !== "rejected");
       const round = roundForState(room.state);
       return (
@@ -194,6 +199,18 @@ export function StudentRoom({ code }: { code: string }) {
           participantsCount={participants_count}
           round={round}
           scales={round > 1 ? scales : undefined}
+        />
+      );
+    }
+    if (room.state === "vote2") {
+      return (
+        <StepScaleVote
+          code={code}
+          criteria={criteria}
+          scaleResponses={scale_responses ?? []}
+          scaleResponseVotes={scale_response_votes ?? []}
+          participantId={participantId}
+          participantsCount={participants_count}
         />
       );
     }
@@ -222,11 +239,23 @@ export function StudentRoom({ code }: { code: string }) {
         />
       );
     }
+    if (room.state === "ai_ladder_propose") {
+      return (
+        <StepAiPropose
+          code={code}
+          proposals={ai_use_proposals ?? []}
+          participantId={participantId}
+          participantsCount={participants_count}
+        />
+      );
+    }
     if (room.state === "ai_ladder") {
       return (
         <StepAiLadder
           code={code}
-          votes={ai_use_votes}
+          proposals={ai_use_proposals ?? []}
+          proposalVotes={ai_use_proposal_votes ?? []}
+          legacyVotes={ai_use_votes}
           participantId={participantId}
           participantsCount={participants_count}
         />
@@ -234,7 +263,14 @@ export function StudentRoom({ code }: { code: string }) {
     }
     if (room.state === "pledge") {
       return (
-        <StepPledge code={code} slots={pledge_slots} votes={ai_use_votes} canEdit={canEdit} />
+        <StepPledge
+          code={code}
+          slots={pledge_slots}
+          votes={ai_use_votes}
+          proposals={ai_use_proposals ?? []}
+          proposalVotes={ai_use_proposal_votes ?? []}
+          canEdit={canEdit}
+        />
       );
     }
     return (
@@ -243,6 +279,8 @@ export function StudentRoom({ code }: { code: string }) {
         criteria={criteria}
         scales={scales}
         votes={ai_use_votes}
+        proposals={ai_use_proposals ?? []}
+        proposalVotes={ai_use_proposal_votes ?? []}
         slots={pledge_slots}
       />
     );
