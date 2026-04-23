@@ -16,8 +16,10 @@ const VALID_STATES: RoomState[] = [
   "vote2",
   "vote3",
   "calibrate",
+  "ai_ladder_propose",
   "ai_ladder",
   "pledge",
+  "pledge_vote",
   "commit",
 ];
 

@@ -11,11 +11,12 @@ const STATE_LABELS: Record<RoomState, string> = {
   criteria_gate: "3.5 facilitator review",
   scale: "4 scale",
   vote2: "5 vote — scale descriptors",
-  vote3: "5.5 vote — round 3",       // legacy
+  vote3: "7.5 vote — AI use rung",
   calibrate: "5.6 calibrate",        // legacy
   ai_ladder_propose: "6 AI ladder — propose",
   ai_ladder: "7 AI ladder — vote",
   pledge: "8 pledge",
+  pledge_vote: "8.5 vote — pledge wording",
   commit: "9 commit",
 };
 

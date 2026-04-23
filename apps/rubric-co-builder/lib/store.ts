@@ -8,6 +8,8 @@ import type {
   Criterion,
   CriterionSource,
   Participant,
+  PledgeResponse,
+  PledgeResponseVote,
   PledgeSlot,
   PledgeSlotIndex,
   Room,
@@ -131,6 +133,27 @@ export type Store = {
     code: string,
   ): Promise<{ ceiling: AiUseLevel; counts: Record<AiUseLevel, number> } | null>;
 
+  tallyAiVote(code: string): Promise<{ ceiling: AiUseLevel } | null>;
+
+  upsertPledgeResponse(
+    code: string,
+    participantId: string,
+    slotIndex: PledgeSlotIndex,
+    content: string,
+  ): Promise<PledgeResponse | null>;
+
+  castPledgeResponseVote(
+    participantId: string,
+    pledgeResponseId: string,
+  ): Promise<PledgeResponseVote | null>;
+
+  removePledgeResponseVote(
+    participantId: string,
+    pledgeResponseId: string,
+  ): Promise<boolean>;
+
+  tallyPledgeVotes(code: string): Promise<{ winners: PledgeSlot[] } | null>;
+
   upsertPledgeSlot(
     roomCode: string,
     slotIndex: PledgeSlotIndex,
@@ -167,6 +190,8 @@ type MemoryDb = {
   aiProposals: Map<string, AiUseProposal>;
   aiProposalVotes: Map<string, AiUseProposalVote>;
   pledgeSlots: Map<string, PledgeSlot>;
+  pledgeResponses: Map<string, PledgeResponse>;
+  pledgeResponseVotes: Map<string, PledgeResponseVote>;
 };
 
 function memoryStore(): Store {
@@ -183,6 +208,8 @@ function memoryStore(): Store {
     aiProposals: new Map(),
     aiProposalVotes: new Map(),
     pledgeSlots: new Map(),
+    pledgeResponses: new Map(),
+    pledgeResponseVotes: new Map(),
   };
 
   function findByCode(code: string): Room | null {
@@ -333,6 +360,13 @@ function memoryStore(): Store {
       const pledge_slots = [...db.pledgeSlots.values()]
         .filter((s) => s.room_id === room.id)
         .sort((a, b) => a.slot_index - b.slot_index);
+      const pledge_responses = [...db.pledgeResponses.values()].filter(
+        (pr) => pr.room_id === room.id,
+      );
+      const pledgeResponseIds = new Set(pledge_responses.map((pr) => pr.id));
+      const pledge_response_votes = [...db.pledgeResponseVotes.values()].filter((prv) =>
+        pledgeResponseIds.has(prv.pledge_response_id),
+      );
       return {
         room,
         criteria,
@@ -346,6 +380,8 @@ function memoryStore(): Store {
         ai_use_proposals,
         ai_use_proposal_votes,
         pledge_slots,
+        pledge_responses,
+        pledge_response_votes,
       };
     },
 
@@ -599,6 +635,121 @@ function memoryStore(): Store {
         }
       }
       return { ceiling, counts };
+    },
+
+    async tallyAiVote(code) {
+      const room = findByCode(code);
+      if (!room) return null;
+      const counts: Record<AiUseLevel, number> = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0 };
+      for (const v of db.aiVotes.values()) {
+        if (v.room_id === room.id) counts[v.level]++;
+      }
+      let ceiling: AiUseLevel = 0;
+      let bestCount = -1;
+      for (const lvl of [0, 1, 2, 3, 4] as AiUseLevel[]) {
+        if (counts[lvl] > bestCount) {
+          bestCount = counts[lvl];
+          ceiling = lvl;
+        }
+      }
+      const updated: Room = {
+        ...room,
+        state: "pledge",
+        step_started_at: new Date().toISOString(),
+        timer_end: null,
+        timer_duration: null,
+      };
+      db.rooms.set(updated.id, updated);
+      return { ceiling };
+    },
+
+    async upsertPledgeResponse(code, participantId, slotIndex, content) {
+      const room = findByCode(code);
+      if (!room) return null;
+      const key = `${room.id}:${participantId}:${slotIndex}`;
+      const now = new Date().toISOString();
+      const existing = db.pledgeResponses.get(key);
+      const pr: PledgeResponse = existing
+        ? { ...existing, content, updated_at: now }
+        : {
+            id: uuid(),
+            participant_id: participantId,
+            room_id: room.id,
+            slot_index: slotIndex,
+            content,
+            updated_at: now,
+          };
+      db.pledgeResponses.set(key, pr);
+      return pr;
+    },
+
+    async castPledgeResponseVote(participantId, pledgeResponseId) {
+      const key = `${participantId}:${pledgeResponseId}`;
+      if (db.pledgeResponseVotes.has(key)) return db.pledgeResponseVotes.get(key)!;
+      if (!db.participants.has(participantId)) return null;
+      const exists = [...db.pledgeResponses.values()].some((pr) => pr.id === pledgeResponseId);
+      if (!exists) return null;
+      const vote: PledgeResponseVote = {
+        id: uuid(),
+        participant_id: participantId,
+        pledge_response_id: pledgeResponseId,
+        created_at: new Date().toISOString(),
+      };
+      db.pledgeResponseVotes.set(key, vote);
+      return vote;
+    },
+
+    async removePledgeResponseVote(participantId, pledgeResponseId) {
+      return db.pledgeResponseVotes.delete(`${participantId}:${pledgeResponseId}`);
+    },
+
+    async tallyPledgeVotes(code) {
+      const room = findByCode(code);
+      if (!room) return null;
+      const responses = [...db.pledgeResponses.values()].filter((pr) => pr.room_id === room.id);
+      const responseIds = new Set(responses.map((pr) => pr.id));
+      const voteCounts = new Map<string, number>();
+      for (const v of db.pledgeResponseVotes.values()) {
+        if (responseIds.has(v.pledge_response_id)) {
+          voteCounts.set(v.pledge_response_id, (voteCounts.get(v.pledge_response_id) ?? 0) + 1);
+        }
+      }
+      const winners: PledgeSlot[] = [];
+      for (const slotIndex of [1, 2, 3, 4] as PledgeSlotIndex[]) {
+        const candidates = responses.filter((pr) => pr.slot_index === slotIndex);
+        if (candidates.length === 0) continue;
+        const sorted = [...candidates].sort((a, b) => {
+          const ca = voteCounts.get(a.id) ?? 0;
+          const cb = voteCounts.get(b.id) ?? 0;
+          if (cb !== ca) return cb - ca;
+          return a.updated_at.localeCompare(b.updated_at);
+        });
+        const top = sorted[0];
+        if (!top.content.trim()) continue;
+        const key = `${room.id}:${slotIndex}`;
+        const now = new Date().toISOString();
+        const existing = db.pledgeSlots.get(key);
+        const updated: PledgeSlot = existing
+          ? { ...existing, content: top.content, updated_at: now }
+          : {
+              id: uuid(),
+              room_id: room.id,
+              slot_index: slotIndex,
+              content: top.content,
+              updated_at: now,
+            };
+        db.pledgeSlots.set(key, updated);
+        winners.push(updated);
+      }
+      const updatedRoom: Room = {
+        ...room,
+        state: "commit",
+        step_started_at: new Date().toISOString(),
+        timer_end: null,
+        timer_duration: null,
+      };
+      db.rooms.set(updatedRoom.id, updatedRoom);
+      return { winners };
     },
 
     async upsertPledgeSlot(roomCode, slotIndex, content) {
@@ -970,6 +1121,17 @@ function neonStore(url: string): Store {
         where room_id = ${room.id}
         order by slot_index asc
       `) as PledgeSlot[];
+      const pledge_responses: PledgeResponse[] = await (sql`
+        select id, participant_id, room_id, slot_index, content, updated_at
+        from rubric_cobuilder.pledge_responses
+        where room_id = ${room.id}
+      ` as unknown as Promise<PledgeResponse[]>).catch(() => []);
+      const pledge_response_votes: PledgeResponseVote[] = await (sql`
+        select prv.id, prv.participant_id, prv.pledge_response_id, prv.created_at
+        from rubric_cobuilder.pledge_response_votes prv
+        join rubric_cobuilder.pledge_responses pr on pr.id = prv.pledge_response_id
+        where pr.room_id = ${room.id}
+      ` as unknown as Promise<PledgeResponseVote[]>).catch(() => []);
 
       return {
         room,
@@ -984,6 +1146,8 @@ function neonStore(url: string): Store {
         ai_use_proposals,
         ai_use_proposal_votes,
         pledge_slots,
+        pledge_responses,
+        pledge_response_votes,
       };
     },
 
@@ -1257,6 +1421,137 @@ function neonStore(url: string): Store {
         }
       }
       return { ceiling, counts };
+    },
+
+    async tallyAiVote(code) {
+      const [room] = await sql`
+        select id from rubric_cobuilder.rooms where code = ${code} limit 1
+      `;
+      if (!room) return null;
+      const rows = (await sql`
+        select level, count(*)::int as count
+        from rubric_cobuilder.ai_use_votes
+        where room_id = ${room.id}
+        group by level
+      `) as Array<{ level: number; count: number }>;
+      const counts: Record<AiUseLevel, number> = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0 };
+      for (const r of rows) counts[r.level as AiUseLevel] = r.count;
+      let ceiling: AiUseLevel = 0;
+      let best = -1;
+      for (const lvl of [0, 1, 2, 3, 4] as AiUseLevel[]) {
+        if (counts[lvl] > best) {
+          best = counts[lvl];
+          ceiling = lvl;
+        }
+      }
+      await sql`
+        update rubric_cobuilder.rooms
+        set state = 'pledge', step_started_at = now(),
+            timer_end = null, timer_duration = null
+        where id = ${room.id}
+      `;
+      return { ceiling };
+    },
+
+    async upsertPledgeResponse(code, participantId, slotIndex, content) {
+      const [room] = await sql`
+        select id from rubric_cobuilder.rooms where code = ${code} limit 1
+      `;
+      if (!room) return null;
+      const [row] = await sql`
+        insert into rubric_cobuilder.pledge_responses (participant_id, room_id, slot_index, content)
+        values (${participantId}, ${room.id}, ${slotIndex}, ${content})
+        on conflict (participant_id, room_id, slot_index) do update
+          set content = excluded.content, updated_at = now()
+        returning id, participant_id, room_id, slot_index, content, updated_at
+      `;
+      return row as PledgeResponse;
+    },
+
+    async castPledgeResponseVote(participantId, pledgeResponseId) {
+      const rows = await sql`
+        insert into rubric_cobuilder.pledge_response_votes (participant_id, pledge_response_id)
+        values (${participantId}, ${pledgeResponseId})
+        on conflict (participant_id, pledge_response_id) do nothing
+        returning id, participant_id, pledge_response_id, created_at
+      `;
+      if (rows.length === 0) {
+        const [existing] = await sql`
+          select id, participant_id, pledge_response_id, created_at
+          from rubric_cobuilder.pledge_response_votes
+          where participant_id = ${participantId} and pledge_response_id = ${pledgeResponseId}
+          limit 1
+        `;
+        return (existing as PledgeResponseVote | undefined) ?? null;
+      }
+      return rows[0] as PledgeResponseVote;
+    },
+
+    async removePledgeResponseVote(participantId, pledgeResponseId) {
+      const rows = await sql`
+        delete from rubric_cobuilder.pledge_response_votes
+        where participant_id = ${participantId} and pledge_response_id = ${pledgeResponseId}
+        returning id
+      `;
+      return rows.length > 0;
+    },
+
+    async tallyPledgeVotes(code) {
+      const [room] = await sql`
+        select id from rubric_cobuilder.rooms where code = ${code} limit 1
+      `;
+      if (!room) return null;
+      const rows = (await sql`
+        select pr.id as response_id, pr.slot_index, pr.content, pr.updated_at,
+               coalesce(vc.cnt, 0)::int as vote_count
+        from rubric_cobuilder.pledge_responses pr
+        left join (
+          select pledge_response_id, count(*)::int as cnt
+          from rubric_cobuilder.pledge_response_votes
+          group by pledge_response_id
+        ) vc on vc.pledge_response_id = pr.id
+        where pr.room_id = ${room.id}
+      `) as Array<{
+        response_id: string;
+        slot_index: number;
+        content: string;
+        updated_at: string;
+        vote_count: number;
+      }>;
+
+      const bestBySlot = new Map<number, typeof rows[number]>();
+      for (const r of rows) {
+        if (!r.content.trim()) continue;
+        const cur = bestBySlot.get(r.slot_index);
+        if (
+          !cur ||
+          r.vote_count > cur.vote_count ||
+          (r.vote_count === cur.vote_count && r.updated_at < cur.updated_at)
+        ) {
+          bestBySlot.set(r.slot_index, r);
+        }
+      }
+
+      const winners: PledgeSlot[] = [];
+      for (const w of bestBySlot.values()) {
+        const [row] = await sql`
+          insert into rubric_cobuilder.pledge_slots (room_id, slot_index, content)
+          values (${room.id}, ${w.slot_index}, ${w.content})
+          on conflict (room_id, slot_index) do update
+            set content = excluded.content, updated_at = now()
+          returning id, room_id, slot_index, content, updated_at
+        `;
+        winners.push(row as PledgeSlot);
+      }
+
+      await sql`
+        update rubric_cobuilder.rooms
+        set state = 'commit', step_started_at = now(),
+            timer_end = null, timer_duration = null
+        where id = ${room.id}
+      `;
+
+      return { winners };
     },
 
     async upsertPledgeSlot(roomCode, slotIndex, content) {

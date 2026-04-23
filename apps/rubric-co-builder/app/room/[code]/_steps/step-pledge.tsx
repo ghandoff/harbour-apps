@@ -5,6 +5,7 @@ import type {
   AiUseProposal,
   AiUseProposalVote,
   AiUseVote,
+  PledgeResponse,
   PledgeSlot,
   PledgeSlotIndex,
 } from "@/lib/types";
@@ -22,7 +23,9 @@ type Props = {
   votes: AiUseVote[];
   proposals?: AiUseProposal[];
   proposalVotes?: AiUseProposalVote[];
-  canEdit: boolean;
+  participantId: string | null;
+  pledgeResponses: PledgeResponse[];
+  participantsCount: number;
 };
 
 export function StepPledge({
@@ -31,13 +34,17 @@ export function StepPledge({
   votes,
   proposals,
   proposalVotes,
-  canEdit,
+  participantId,
+  pledgeResponses,
+  participantsCount,
 }: Props) {
   const useProposals = (proposals?.length ?? 0) > 0;
   const { ceiling } = useProposals
     ? computeCeilingFromProposals(proposals ?? [], proposalVotes ?? [])
     : computeCeiling(votes);
   const rung = levelMeta(ceiling);
+
+  const participantIds = [...new Set(pledgeResponses.map((pr) => pr.participant_id))].sort();
 
   return (
     <div className="space-y-6">
@@ -51,119 +58,173 @@ export function StepPledge({
         </div>
         <h1 className="text-3xl font-bold">write the pledge.</h1>
         <p className="text-[color:var(--color-cadet)]/85 leading-relaxed">
-          four slots. fill them in your own words. edits auto-save and sync to everyone
-          in the room. the ceiling above is the lid — nothing in the pledge can push past it.
+          four slots. fill them in your own words. the ceiling above is the lid —
+          nothing in the pledge can push past it.
+          {participantId
+            ? " after everyone writes, you'll vote on the best wording for each slot."
+            : " the facilitator sees all responses side by side."}
         </p>
+        {!participantId && (
+          <p className="text-sm text-[color:var(--color-cadet)]/60">
+            {pledgeResponses.length} response{pledgeResponses.length === 1 ? "" : "s"} across{" "}
+            {participantsCount} participant{participantsCount === 1 ? "" : "s"}.
+          </p>
+        )}
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {PLEDGE_SLOTS.map((meta) => {
-          const slot =
-            slots.find((s) => s.slot_index === meta.index) ??
-            ({
-              id: `pending-${meta.index}`,
-              room_id: "",
-              slot_index: meta.index,
-              content: "",
-              updated_at: "",
-            } satisfies PledgeSlot);
-          return (
-            <PledgeSlotCard
-              key={meta.index}
-              code={code}
-              index={meta.index}
-              label={meta.label}
-              placeholder={meta.placeholder}
-              initial={slot.content}
-              canEdit={canEdit}
-            />
-          );
-        })}
-      </div>
+      {participantId ? (
+        // student view: per-student blank-slate entry
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {PLEDGE_SLOTS.map((meta) => {
+            const myResponse = pledgeResponses.find(
+              (pr) => pr.slot_index === meta.index && pr.participant_id === participantId,
+            );
+            return (
+              <PledgeResponseCell
+                key={meta.index}
+                code={code}
+                index={meta.index}
+                label={meta.label}
+                placeholder={meta.placeholder}
+                myContent={myResponse?.content ?? ""}
+                participantId={participantId}
+              />
+            );
+          })}
+        </div>
+      ) : participantIds.length > 0 ? (
+        // host view: table of all student responses per slot
+        <div className="space-y-4">
+          {PLEDGE_SLOTS.map((meta) => {
+            const slotResponses = pledgeResponses.filter((pr) => pr.slot_index === meta.index);
+            return (
+              <div
+                key={meta.index}
+                className="rounded-lg border border-[color:var(--color-cadet)]/15 bg-white p-4"
+              >
+                <p className="text-sm font-semibold text-[color:var(--color-cadet)] mb-3">
+                  {meta.label}
+                </p>
+                {slotResponses.length === 0 ? (
+                  <p className="text-xs text-[color:var(--color-cadet)]/40 italic">
+                    no responses yet.
+                  </p>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                    {slotResponses.map((pr, i) => (
+                      <div
+                        key={pr.id}
+                        className="rounded bg-[color:var(--color-champagne)]/40 p-3 text-sm"
+                      >
+                        <p className="text-xs tracking-wider text-[color:var(--color-cadet)]/55 mb-1">
+                          student {participantIds.indexOf(pr.participant_id) + 1 || i + 1}
+                        </p>
+                        <p className="leading-relaxed whitespace-pre-wrap text-[color:var(--color-cadet)]/85">
+                          {pr.content || <span className="opacity-40">—</span>}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        // host view, no responses yet — also show canonical slots for context
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {PLEDGE_SLOTS.map((meta) => {
+            const slot = slots.find((s) => s.slot_index === meta.index);
+            return (
+              <div
+                key={meta.index}
+                className="rounded-lg bg-white border border-[color:var(--color-cadet)]/15 p-4 flex flex-col gap-2"
+              >
+                <p className="text-sm font-semibold text-[color:var(--color-cadet)]">
+                  {meta.label}
+                </p>
+                <p className="bg-[color:var(--color-champagne)]/40 rounded p-3 text-sm leading-relaxed text-[color:var(--color-cadet)]/60 min-h-[5rem] italic">
+                  {slot?.content || "waiting for student responses…"}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
 
-function PledgeSlotCard({
+function PledgeResponseCell({
   code,
   index,
   label,
   placeholder,
-  initial,
-  canEdit,
+  myContent,
+  participantId,
 }: {
   code: string;
   index: PledgeSlotIndex;
   label: string;
   placeholder: string;
-  initial: string;
-  canEdit: boolean;
+  myContent: string;
+  participantId: string;
 }) {
-  const [value, setValue] = useState(initial);
+  const [value, setValue] = useState(myContent ?? "");
   const [saving, setSaving] = useState(false);
-  const [savedAt, setSavedAt] = useState<string | null>(null);
-  const lastSent = useRef(initial);
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const dirtyRef = useRef(false);
 
-  // if remote content changes and we haven't diverged locally, sync
   useEffect(() => {
-    if (value === lastSent.current && initial !== value) {
-      setValue(initial);
-      lastSent.current = initial;
+    if (!dirtyRef.current) {
+      setValue(myContent ?? "");
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initial]);
+  }, [myContent]);
 
-  function schedule(next: string) {
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(async () => {
-      if (!canEdit || next === lastSent.current) return;
-      setSaving(true);
-      try {
-        await fetch(apiPath(`/api/rooms/${code}/pledge`), {
-          method: "PATCH",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ slot_index: index, content: next }),
-        });
-        lastSent.current = next;
-        setSavedAt(new Date().toISOString());
-      } finally {
-        setSaving(false);
-      }
-    }, 500);
+  async function save() {
+    if (!participantId) return;
+    setSaving(true);
+    try {
+      await fetch(apiPath(`/api/rooms/${code}/pledge-responses`), {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          participant_id: participantId,
+          slot_index: index,
+          content: value,
+        }),
+      });
+    } finally {
+      setSaving(false);
+      dirtyRef.current = false;
+    }
   }
 
   return (
     <div className="rounded-lg bg-white border border-[color:var(--color-cadet)]/15 p-4 flex flex-col gap-2">
       <div className="flex items-center justify-between">
         <label
-          htmlFor={`slot-${index}`}
+          htmlFor={`pledge-slot-${index}`}
           className="text-sm font-semibold text-[color:var(--color-cadet)]"
         >
           {label}
         </label>
-        <span className="text-xs text-[color:var(--color-cadet)]/50">
-          {saving ? "saving…" : savedAt ? "saved" : "auto-saves"}
-        </span>
+        {saving ? (
+          <span className="text-xs text-[color:var(--color-cadet)]/50">saving…</span>
+        ) : null}
       </div>
-      {canEdit ? (
-        <textarea
-          id={`slot-${index}`}
-          value={value}
-          onChange={(e) => {
-            setValue(e.target.value);
-            schedule(e.target.value);
-          }}
-          rows={4}
-          maxLength={800}
-          placeholder={placeholder}
-          className="w-full bg-[color:var(--color-champagne)]/40 rounded p-3 text-sm leading-relaxed placeholder:text-[color:var(--color-cadet)]/40 focus:bg-white focus:outline-none border border-transparent focus:border-[color:var(--color-cadet)]/30 resize-none"
-        />
-      ) : (
-        <p className="bg-[color:var(--color-champagne)]/40 rounded p-3 text-sm leading-relaxed text-[color:var(--color-cadet)]/85 min-h-[5rem] whitespace-pre-wrap">
-          {value || <span className="opacity-40">{placeholder}</span>}
-        </p>
-      )}
+      <textarea
+        id={`pledge-slot-${index}`}
+        value={value}
+        onChange={(e) => {
+          dirtyRef.current = true;
+          setValue(e.target.value);
+        }}
+        onBlur={save}
+        rows={4}
+        maxLength={800}
+        placeholder={placeholder}
+        className="w-full bg-[color:var(--color-champagne)]/40 rounded p-3 text-sm leading-relaxed placeholder:text-[color:var(--color-cadet)]/40 placeholder:italic focus:bg-white focus:outline-none border border-transparent focus:border-[color:var(--color-cadet)]/30 resize-none"
+      />
     </div>
   );
 }

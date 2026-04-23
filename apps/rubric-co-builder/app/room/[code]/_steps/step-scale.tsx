@@ -34,7 +34,9 @@ export function StepScale({ code, criteria, scales, scaleResponses, participantI
         <p className="text-[color:var(--color-cadet)]/85 leading-relaxed">
           four levels for each criterion — novice, emerging, proficient, advanced. write
           your own version of what each level looks like. your input appears in your column.
-          {!participantId ? " the facilitator sees all responses side by side." : ""}
+          {!participantId
+            ? " the facilitator sees all responses side by side."
+            : " after everyone writes, you'll vote on the best descriptor for each level."}
         </p>
       </header>
 
@@ -193,15 +195,15 @@ function ScaleCell({
   participantId: string | null;
   canEdit: boolean;
 }) {
-  const [value, setValue] = useState(myDescriptor || canonicalDescriptor);
+  const [value, setValue] = useState(myDescriptor ?? "");
   const [saving, setSaving] = useState(false);
   const dirtyRef = useRef(false);
 
   useEffect(() => {
     if (!dirtyRef.current) {
-      setValue(myDescriptor || canonicalDescriptor);
+      setValue(myDescriptor ?? "");
     }
-  }, [myDescriptor, canonicalDescriptor]);
+  }, [myDescriptor]);
 
   async function save() {
     if (!canEdit || !participantId) return;
@@ -240,7 +242,8 @@ function ScaleCell({
           onBlur={save}
           rows={5}
           maxLength={600}
-          className="w-full text-sm leading-relaxed bg-white rounded p-2 border border-transparent focus:border-[color:var(--color-cadet)]/30 focus:outline-none resize-none"
+          placeholder={canonicalDescriptor || "describe this level…"}
+          className="w-full text-sm leading-relaxed bg-white rounded p-2 border border-transparent focus:border-[color:var(--color-cadet)]/30 focus:outline-none resize-none placeholder:text-[color:var(--color-cadet)]/30 placeholder:italic"
         />
       ) : (
         <p className="text-sm leading-relaxed whitespace-pre-wrap text-[color:var(--color-cadet)]/85">

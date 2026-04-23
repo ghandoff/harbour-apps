@@ -6,11 +6,12 @@ export type RoomState =
   | "criteria_gate"  // facilitator reviews vote-1 results and picks which criteria advance
   | "scale"
   | "vote2"  // vote on per-student scale_responses (round 2)
-  | "vote3"  // kept for legacy rooms only; not in the current STATE_ORDER
+  | "vote3"  // final binding AI use rung vote (cast after ai_ladder discussion)
   | "calibrate"  // kept for backward compat with rooms created before the rework
   | "ai_ladder_propose"  // each student posts a level + rationale
   | "ai_ladder"  // everyone votes on the proposals
   | "pledge"
+  | "pledge_vote"  // vote on per-student pledge responses (like vote2 for scale)
   | "commit";
 
 export type AiUseLevel = 0 | 1 | 2 | 3 | 4;
@@ -127,6 +128,22 @@ export type PledgeSlot = {
   updated_at: string;
 };
 
+export type PledgeResponse = {
+  id: string;
+  participant_id: string;
+  room_id: string;
+  slot_index: PledgeSlotIndex;
+  content: string;
+  updated_at: string;
+};
+
+export type PledgeResponseVote = {
+  id: string;
+  participant_id: string;
+  pledge_response_id: string;
+  created_at: string;
+};
+
 export type RoomSnapshot = {
   room: Room;
   criteria: Criterion[];
@@ -140,6 +157,8 @@ export type RoomSnapshot = {
   ai_use_proposals: AiUseProposal[];
   ai_use_proposal_votes: AiUseProposalVote[];
   pledge_slots: PledgeSlot[];
+  pledge_responses: PledgeResponse[];
+  pledge_response_votes: PledgeResponseVote[];
 };
 
 export const SEED_CRITERIA: Array<Pick<Criterion, "name" | "good_description">> = [
