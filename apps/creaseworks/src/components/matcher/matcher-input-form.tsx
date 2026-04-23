@@ -304,11 +304,17 @@ export default function MatcherInputForm({
 
           {/* continuous size-sorted scroll — every material, smallest to
               biggest. 2 cols on mobile, 3 on desktop, constrained so
-              tiles feel the same size across breakpoints.              */}
+              tiles feel the same size across breakpoints.
+              NOTE: no className="rounded-xl border" — globals.css line 678
+              applies translateY(-4px) rotate(-0.5deg) on hover to any
+              element matching .rounded-xl.border, which tilted the ENTIRE
+              scroll container when a kid hovered over a tile. border is
+              inlined instead; border-radius kept in inline style.        */}
           <div
-            className="rounded-xl border p-3 -webkit-overflow-scrolling-touch"
+            className="p-3 -webkit-overflow-scrolling-touch"
             style={{
-              borderColor: "rgba(39, 50, 72, 0.06)",
+              borderRadius: 12,
+              border: "1px solid rgba(39, 50, 72, 0.06)",
               backgroundColor: "rgba(255, 246, 232, 0.5)",
             }}
           >
