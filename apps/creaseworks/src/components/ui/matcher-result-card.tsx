@@ -177,7 +177,7 @@ export default function MatcherResultCard({
           {playdate.headline && (
             <p
               className="text-sm mt-0.5 line-clamp-2"
-              style={{ color: "var(--wv-cadet)", opacity: 0.55 }}
+              style={{ color: "var(--color-text-on-cream-muted)" }}
             >
               {playdate.headline}
             </p>
@@ -238,7 +238,7 @@ export default function MatcherResultCard({
         {playdate.frictionDial != null && (
           <span
             className="text-xs px-1"
-            style={{ color: "var(--wv-cadet)", opacity: 0.35 }}
+            style={{ color: "var(--color-text-on-cream-muted)" }}
           >
             {"🟢🟡🟠🔴🔴".charAt(playdate.frictionDial - 1) || "🟢"}{" "}
             effort {playdate.frictionDial}/5
@@ -341,7 +341,7 @@ export default function MatcherResultCard({
             onClick={() => setCoverageOpen(!coverageOpen)}
             aria-expanded={coverageOpen}
             className="flex items-center gap-1.5 text-xs font-medium sm:hidden mb-2"
-            style={{ color: "var(--wv-cadet)", opacity: 0.5 }}
+            style={{ color: "var(--wv-cadet)", opacity: 0.65 }}
           >
             <svg
               width="12"
@@ -377,7 +377,7 @@ export default function MatcherResultCard({
                 <div>
                   <h4
                     className="font-bold mb-1"
-                    style={{ color: "var(--wv-cadet)", opacity: 0.55 }}
+                    style={{ color: "var(--color-text-on-cream-muted)" }}
                   >
                     materials
                   </h4>
@@ -397,7 +397,7 @@ export default function MatcherResultCard({
                       <div
                         key={m.id}
                         className="flex items-center gap-1.5"
-                        style={{ color: "var(--wv-cadet)", opacity: 0.45 }}
+                        style={{ color: "var(--wv-cadet)", opacity: 0.62 }}
                       >
                         <MaterialIllustration formPrimary={m.formPrimary} size={16} />
                         <span style={{ color: "var(--wv-redwood)" }}>✗</span>
@@ -413,7 +413,7 @@ export default function MatcherResultCard({
                 <div>
                   <h4
                     className="font-bold mb-1"
-                    style={{ color: "var(--wv-cadet)", opacity: 0.55 }}
+                    style={{ color: "var(--color-text-on-cream-muted)" }}
                   >
                     types
                   </h4>
@@ -432,7 +432,7 @@ export default function MatcherResultCard({
                     {coverage.formsMissing.map((f) => (
                       <div
                         key={f}
-                        style={{ color: "var(--wv-cadet)", opacity: 0.45 }}
+                        style={{ color: "var(--wv-cadet)", opacity: 0.62 }}
                       >
                         <span style={{ color: "var(--wv-redwood)" }}>✗</span>{" "}
                         {f}
