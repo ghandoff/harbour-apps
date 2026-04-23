@@ -148,7 +148,7 @@ export function FloatingBasket({
           className="flex-shrink-0 text-xs font-medium active:scale-95"
           style={{
             color: "var(--wv-cadet)",
-            opacity: 0.5,
+            opacity: 0.65,
             minHeight: 48,
             padding: "0 8px",
           }}

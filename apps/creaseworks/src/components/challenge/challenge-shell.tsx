@@ -163,8 +163,9 @@ export default function ChallengeShell({
           </p>
         </div>
 
-        {/* emoji grid */}
-        <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
+        {/* emoji grid — larger tiles so each item reads clearly and the
+            grid feels like a game board, not the same list as classic.  */}
+        <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
           {allItems.map((item, i) => (
             <EmojiTile
               key={item.id}
@@ -173,7 +174,8 @@ export default function ChallengeShell({
               label={item.label}
               selected={state.found.has(item.id)}
               onClick={() => state.tapItem(item.id)}
-              size="md"
+              size="lg"
+              fluid
               accentColor="var(--wv-sienna)"
               index={i}
             />
@@ -236,7 +238,7 @@ export default function ChallengeShell({
 
         <p
           className="text-sm mb-8"
-          style={{ color: "var(--wv-cadet)", opacity: 0.5 }}
+          style={{ color: "var(--color-text-on-cream-muted)" }}
         >
           let&apos;s see what these can become
         </p>
@@ -247,7 +249,7 @@ export default function ChallengeShell({
             type="button"
             onClick={state.reset}
             className="text-sm font-medium"
-            style={{ color: "var(--wv-cadet)", opacity: 0.4 }}
+            style={{ color: "var(--wv-cadet)", opacity: 0.55 }}
           >
             🔄 look again
           </button>
@@ -312,13 +314,13 @@ export default function ChallengeShell({
           type="button"
           onClick={state.reset}
           className="text-sm font-medium mb-3"
-          style={{ color: "var(--wv-cadet)", opacity: 0.4 }}
+          style={{ color: "var(--wv-cadet)", opacity: 0.55 }}
         >
           🔄 look again
         </button>
         <p
           className="text-sm font-bold"
-          style={{ color: "var(--wv-cadet)", opacity: 0.5 }}
+          style={{ color: "var(--color-text-on-cream-muted)" }}
         >
           you noticed {state.found.size} thing
           {state.found.size !== 1 ? "s" : ""} — here&apos;s what they can become
