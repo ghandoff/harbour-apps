@@ -94,10 +94,17 @@ body {
 
 /* ── display font for headings ────────────────────────────────────
    Nunito: rounded geometric sans — warm, playful, highly legible.
-   aligns with brand verbal identity: "creative but not frivolous". */
+   aligns with brand verbal identity: "creative but not frivolous".
 
-h1, h2, h3 {
-  font-family: var(--font-nunito), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+   IMPORTANT: this must live in @layer base so that the font-serif
+   Tailwind utility (@layer utilities) can properly override it.
+   Unlayered rules beat all layered rules regardless of specificity —
+   leaving this unlayered means .font-serif never fires.            */
+
+@layer base {
+  h1, h2, h3 {
+    font-family: var(--font-nunito), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  }
 }
 
 /* all UI copy is lowercase per brand guidelines — except user-generated content */
