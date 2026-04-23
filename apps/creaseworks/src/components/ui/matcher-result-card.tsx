@@ -11,6 +11,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import { MaterialIllustration } from "@/components/material-illustration";
+import CharacterSlot, {
+  resolveCharacterFromForm,
+  type CharacterName,
+} from "@windedvertigo/characters";
 
 /* ── types ─────────────────────────────────────────────────────────── */
 
@@ -58,6 +62,37 @@ function getMatchQuality(score: number) {
   return { label: "worth a try", emoji: "💫", stars: 0, color: "rgba(39, 50, 72, 0.3)" };
 }
 
+/** One-liner identity per character. Used to turn a cast set into a
+ *  short tagline like "bendy meets holder meets drape" that sits next
+ *  to the cast avatars as the playdate's pedagogical read.             */
+const CHARACTER_VERB: Record<CharacterName, string> = {
+  cord:   "bendy",
+  twig:   "stiff",
+  swatch: "drape",
+  jugs:   "holder",
+  crate:  "stack",
+  mud:    "shape-shifter",
+  drip:   "flow",
+};
+
+/** Deduplicate + order-preserve characters encountered in the cast.
+ *  Covered materials come first (the kid brought them); missing after
+ *  (swap candidates). We take the cast across BOTH so the card always
+ *  represents the playdate's full material family lineup.              */
+function resolveCast(coverage: Coverage): CharacterName[] {
+  const seen = new Set<CharacterName>();
+  const out: CharacterName[] = [];
+  const all = [...coverage.materialsCovered, ...coverage.materialsMissing];
+  for (const m of all) {
+    const c = resolveCharacterFromForm(m.formPrimary, m.title);
+    if (c && !seen.has(c)) {
+      seen.add(c);
+      out.push(c);
+    }
+  }
+  return out;
+}
+
 /* ── component ─────────────────────────────────────────────────────── */
 
 export default function MatcherResultCard({
@@ -72,6 +107,16 @@ export default function MatcherResultCard({
     coverage.materialsMissing.length > 0 ||
     coverage.formsCovered.length > 0 ||
     coverage.formsMissing.length > 0;
+
+  // Resolve the cast of characters this playdate's materials belong to.
+  // Gives every result a pedagogical read ("Cord meets Crate: bendy meets
+  // holder") without requiring new DB fields — the character taxonomy
+  // lives in form_primary already and the cast surfaces it.
+  const cast = resolveCast(coverage);
+  const castTagline =
+    cast.length >= 2
+      ? cast.map((c) => CHARACTER_VERB[c]).join(" · ")
+      : null;
 
   const [coverageOpen, setCoverageOpen] = useState(false);
 
@@ -216,6 +261,66 @@ export default function MatcherResultCard({
             </span>
           ))}
       </div>
+
+      {/* ── cast row — the playdate as a character pairing ─
+          Renders every harbour character whose form_primary
+          appears in this playdate's materials. 2+ characters is
+          where this gets interesting ("Cord meets Crate: bendy
+          meets holder"). Quiet enough not to dominate, present
+          enough to carry the pedagogical read.                */}
+      {cast.length >= 2 && (
+        <div
+          className="flex items-center gap-3 mt-3 pt-3 border-t"
+          style={{ borderColor: "rgba(39, 50, 72, 0.05)" }}
+          aria-label={`cast: ${cast.join(" meets ")} — ${castTagline}`}
+        >
+          <div className="flex items-center" style={{ gap: 4 }}>
+            {cast.map((c, i) => (
+              <span
+                key={c}
+                className="inline-flex items-center justify-center"
+                style={{
+                  width: 34,
+                  height: 34,
+                  borderRadius: "50%",
+                  background: "rgba(203, 120, 88, 0.08)",
+                  marginLeft: i === 0 ? 0 : -6, // overlap for cast-feel
+                  border: "1.5px solid var(--wv-cream, #fff6e8)",
+                  flexShrink: 0,
+                }}
+              >
+                <CharacterSlot
+                  character={c}
+                  size={28}
+                  animate={false}
+                />
+              </span>
+            ))}
+          </div>
+          <div className="flex flex-col min-w-0">
+            <span
+              className="text-xs font-bold leading-tight"
+              style={{
+                color: "var(--wv-sienna)",
+                letterSpacing: "0.02em",
+              }}
+            >
+              {cast.join(" meets ")}
+            </span>
+            {castTagline && (
+              <span
+                className="text-xs mt-0.5 leading-tight truncate"
+                style={{
+                  color: "var(--wv-cadet)",
+                  opacity: 0.55,
+                }}
+              >
+                {castTagline}
+              </span>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ── coverage detail ────────────────────────────── */}
       {hasCoverageDetail && (
