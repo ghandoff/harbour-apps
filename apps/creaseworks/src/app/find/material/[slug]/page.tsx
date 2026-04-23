@@ -16,7 +16,7 @@ import {
 } from "@/lib/queries/materials";
 import { batchGetMaterialsForPlaydates } from "@/lib/queries/playdates";
 import { PlaydateCard } from "@/components/ui/playdate-card";
-import { CharacterSlot, resolveCharacterFromForm } from "@windedvertigo/characters";
+import CharacterSlot, { resolveCharacterFromForm } from "@windedvertigo/characters";
 
 export const dynamic = "force-dynamic";
 

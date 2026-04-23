@@ -12,7 +12,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { getMaterialBySlug } from "@/lib/queries/materials";
 import { getGalleryEvidenceByMaterial } from "@/lib/queries/gallery";
-import { CharacterSlot, resolveCharacterFromForm } from "@windedvertigo/characters";
+import CharacterSlot, { resolveCharacterFromForm } from "@windedvertigo/characters";
 
 export const dynamic = "force-dynamic";
 
