@@ -147,8 +147,14 @@ export default function MatcherResultCard({
           <span
             className="rounded-full px-3 py-1.5 text-xs font-medium"
             style={{
-              backgroundColor: "var(--wv-champagne)",
-              color: "var(--wv-cadet)",
+              // don't use var(--wv-champagne) here — globals.css line 986
+              // hijacks it to a dark brown inside .cw-find-bg to fix legacy
+              // text-on-cadet components. for this pill we need a cream-ish
+              // bg with cadet text, so use a warm sienna-tinted surface +
+              // sienna text to stay in the card's warm accent family.
+              backgroundColor: "rgba(203, 120, 88, 0.14)",
+              color: "var(--wv-sienna)",
+              fontWeight: 600,
             }}
           >
             {playdate.primaryFunction}
