@@ -158,7 +158,7 @@ export default function FindPhaseShell({
           />
 
           <h1
-            className="text-3xl sm:text-4xl font-bold tracking-tight mb-3"
+            className="text-3xl sm:text-4xl font-bold font-serif tracking-tight mb-3"
             style={{ color: "var(--wv-cadet)" }}
           >
             {hero.heading}{" "}

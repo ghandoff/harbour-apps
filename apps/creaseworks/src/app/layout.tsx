@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Atkinson_Hyperlegible, Nunito } from "next/font/google";
+import { Inter, Atkinson_Hyperlegible, Nunito, Fraunces } from "next/font/google";
 import { cookies } from "next/headers";
 import "./globals.css";
 import Providers from "@/components/providers";
@@ -28,6 +28,16 @@ const nunito = Nunito({
   display: "swap",
   variable: "--font-nunito",
   weight: ["400", "600", "700", "800"],
+});
+
+/* display serif — warm variable font with WONK axis (playfulness 0–1).
+   kid mode: WONK 0.65 via --wf-wonk CSS var; grownup: 0 (straight).
+   Applied only to large headings; body stays Inter, tiles stay Nunito. */
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-fraunces",
+  axes: ["WONK"],
 });
 
 export const viewport: Viewport = {
@@ -81,7 +91,8 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [cookieStore, session] = await Promise.all([cookies(), auth()]);
+  const cookieStore = await cookies();
+  const session = await auth();
   const reduceMotion = cookieStore.get("cw-reduce-motion")?.value === "true";
   const dyslexiaFont = cookieStore.get("cw-dyslexia-font")?.value === "true";
   const calmTheme = cookieStore.get("cw-calm-theme")?.value === "true";
@@ -93,6 +104,7 @@ export default async function RootLayout({
     inter.variable,
     atkinson.variable,
     nunito.variable,
+    fraunces.variable,
     reduceMotion && "reduce-motion",
     dyslexiaFont && "dyslexia-font",
     calmTheme && "calm-theme",

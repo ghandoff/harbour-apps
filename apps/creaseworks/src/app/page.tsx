@@ -105,7 +105,7 @@ export default async function Home() {
           </p>
 
           <h1
-            className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-4 leading-tight"
+            className="text-4xl sm:text-5xl lg:text-6xl font-bold font-serif tracking-tight mb-4 leading-tight"
             style={{ color: "var(--wv-white)", maxWidth: 800 }}
           >
             tap what you have on hand

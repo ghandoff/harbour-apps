@@ -51,11 +51,23 @@
   --color-mint: var(--wv-mint);
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+  /* display serif — Fraunces variable with WONK axis.
+     use font-serif Tailwind class for h1/h2 display headings only. */
+  --font-serif: var(--font-fraunces), Georgia, ui-serif, serif;
   --font-size-2xs: 0.625rem;           /* 10px — micro labels, badges, timestamps */
   --font-size-2xs--line-height: 1rem;   /* 16px line-height for readability */
   --shadow-soft: 0 1px 3px rgba(39, 50, 72, 0.06);
   --shadow-warm: 0 2px 8px rgba(203, 120, 88, 0.08);
 }
+
+/* ── Fraunces WONK axis ─────────────────────────────────────────
+   WONK 0 = straight/editorial; WONK 1 = fully irregular/playful.
+   Kid mode (default): 0.65. Grownup mode: 0 (via html.grownup-mode).
+   font-variation-settings cannot be set from the @theme block, so
+   we target the Tailwind utility class directly.               */
+:root { --wf-wonk: 0.65; }
+html.grownup-mode { --wf-wonk: 0; }
+.font-serif { font-variation-settings: "WONK" var(--wf-wonk, 0.65); }
 
 /* ── phase colour tokens ─────────────────────────────────────────
    each creative cycle phase gets a distinct accent colour.
