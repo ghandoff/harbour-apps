@@ -131,7 +131,7 @@ export default function PhotoQuickLogButton({
   /* ── done state ── */
   if (state === "done") {
     return (
-      <span className="inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium text-cadet/60 bg-champagne/20">
+      <span className="inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium text-cadet/60 bg-cream/20">
         {previewUrl && (
           <img
             src={previewUrl}

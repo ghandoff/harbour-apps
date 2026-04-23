@@ -238,12 +238,12 @@ export default function ProfileJourney(props: ProfileJourneyProps) {
               {creditBalance} credits
             </span>
           </div>
-          <div className="h-2 rounded-full bg-champagne/15 overflow-hidden mb-1.5">
+          <div className="h-2 rounded-full bg-cadet/10 overflow-hidden mb-1.5">
             <div
               className="h-full rounded-full transition-all"
               style={{
                 width: `${creditPct}%`,
-                backgroundColor: "var(--wv-champagne)",
+                backgroundColor: "var(--wv-sienna)",
               }}
             />
           </div>

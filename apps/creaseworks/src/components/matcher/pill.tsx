@@ -55,7 +55,7 @@ export function Pill({
       }}
       onMouseEnter={(e) => {
         if (!selected) {
-          e.currentTarget.style.backgroundColor = "var(--wv-champagne)";
+          e.currentTarget.style.backgroundColor = "var(--wv-cream)";
           e.currentTarget.style.borderColor = "rgba(203, 120, 88, 0.3)";
           e.currentTarget.style.opacity = "1";
           e.currentTarget.style.transform = "scale(1.06)";

@@ -88,7 +88,7 @@ export default function EntitledPlaydateView({
       )}
 
       {/* at a glance — playful, parent-readable summary */}
-      <section className="rounded-xl border border-cadet/10 bg-champagne/30 p-6">
+      <section className="rounded-xl border border-cadet/10 bg-cream/30 p-6">
         <h2 className="text-sm font-semibold text-cadet/80 mb-4">
           at a glance
         </h2>
@@ -241,7 +241,7 @@ export default function EntitledPlaydateView({
 
       {/* slots notes — practical material hints */}
       {playdate.slots_notes && (
-        <section className="rounded-xl border border-cadet/10 bg-champagne/20 p-6">
+        <section className="rounded-xl border border-cadet/10 bg-cream/20 p-6">
           <h2 className="text-sm font-semibold text-cadet/80 mb-2">
             material tips
           </h2>
@@ -253,7 +253,7 @@ export default function EntitledPlaydateView({
 
       {/* substitutions notes */}
       {playdate.substitutions_notes && (
-        <section className="rounded-xl border border-cadet/10 bg-champagne/20 p-6">
+        <section className="rounded-xl border border-cadet/10 bg-cream/20 p-6">
           <h2 className="text-sm font-semibold text-cadet/80 mb-2">
             swap ideas
           </h2>

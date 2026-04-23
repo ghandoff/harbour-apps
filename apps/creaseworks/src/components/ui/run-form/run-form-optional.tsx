@@ -29,7 +29,7 @@ export function RunFormOptional({ state, materials }: RunFormOptionalProps) {
   );
 
   return (
-    <div className="rounded-xl border border-cadet/10 bg-champagne/30 p-5">
+    <div className="rounded-xl border border-cadet/10 bg-cream/30 p-5">
       <button
         type="button"
         onClick={() => state.setShowOptional(!state.showOptional)}
@@ -133,7 +133,7 @@ export function RunFormOptional({ state, materials }: RunFormOptionalProps) {
                     {groupedMaterials[form].map((m: Material) => (
                       <label
                         key={m.id}
-                        className="flex items-center gap-2 py-0.5 cursor-pointer text-xs hover:bg-champagne/40 rounded px-1"
+                        className="flex items-center gap-2 py-0.5 cursor-pointer text-xs hover:bg-cream/40 rounded px-1"
                       >
                         <input
                           type="checkbox"

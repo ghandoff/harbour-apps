@@ -295,7 +295,7 @@ export default function RunForm({
           />
         ))}
 
-        <div className="rounded-xl border border-champagne/40 bg-champagne/10 p-6 text-center space-y-4">
+        <div className="rounded-xl border border-champagne/40 bg-cream/10 p-6 text-center space-y-4">
           <p className="text-lg font-semibold text-cadet">
             ✓ reflection saved!
           </p>
@@ -436,7 +436,7 @@ export default function RunForm({
           {state.evidenceState.photos.length === 0 ? (
             <button
               type="button"
-              className="w-full rounded-lg border-2 border-dashed border-cadet/15 px-4 py-6 text-center transition-all hover:border-cadet/25 hover:bg-champagne/20"
+              className="w-full rounded-lg border-2 border-dashed border-cadet/15 px-4 py-6 text-center transition-all hover:border-cadet/25 hover:bg-cream/20"
               onClick={() => quickPhotoInputRef.current?.click()}
             >
               <span className="block text-2xl mb-1" aria-hidden>

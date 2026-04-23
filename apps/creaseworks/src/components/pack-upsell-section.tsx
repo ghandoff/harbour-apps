@@ -34,7 +34,7 @@ export default function PackUpsellSection({
           <Link
             key={pack.id}
             href={`/packs/${pack.slug}`}
-            className="block rounded-xl border border-sienna/15 bg-gradient-to-br from-champagne/10 to-white px-5 py-4 hover:shadow-md hover:border-sienna/30 transition-all"
+            className="block rounded-xl border border-sienna/15 bg-gradient-to-br from-cream/10 to-white px-5 py-4 hover:shadow-md hover:border-sienna/30 transition-all"
           >
             <h3 className="text-base font-semibold text-cadet mb-1">
               {pack.title}

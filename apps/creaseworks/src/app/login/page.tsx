@@ -44,7 +44,7 @@ export default async function LoginPage({
         {error && (
           <div
             className="mb-6 p-3 rounded-lg text-sm text-center"
-            style={{ backgroundColor: "var(--wv-champagne)", color: "var(--wv-redwood)" }}
+            style={{ backgroundColor: "var(--wv-cream)", color: "var(--wv-redwood)" }}
           >
             {error === "Verification"
               ? "the magic link has expired or was already used. please request a new one."
@@ -56,7 +56,7 @@ export default async function LoginPage({
           <div className="text-center space-y-4">
             <div
               className="w-16 h-16 mx-auto rounded-full flex items-center justify-center"
-              style={{ backgroundColor: "var(--wv-champagne)" }}
+              style={{ backgroundColor: "var(--wv-cream)" }}
             >
               <span className="text-2xl">{"✉"}</span>
             </div>

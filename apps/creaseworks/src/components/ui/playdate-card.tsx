@@ -21,7 +21,7 @@ export type ProgressTier =
 
 const TIER_BADGE: Record<ProgressTier, { label: string; className: string }> = {
   tried_it:        { label: "◎", className: "bg-cadet/10 text-cadet/40" },
-  found_something: { label: "◉", className: "bg-champagne/60 text-cadet/50" },
+  found_something: { label: "◉", className: "bg-cream/60 text-cadet/50" },
   folded_unfolded:  { label: "◉◉", className: "bg-sienna/20 text-sienna" },
   found_again:     { label: "★", className: "bg-redwood/15 text-redwood" },
 };
@@ -31,7 +31,7 @@ const ARC_COLOURS: Record<string, string> = {
   explore:   "bg-sienna/10 text-sienna/80",
   express:   "bg-redwood/10 text-redwood/70",
   construct: "bg-cadet/8 text-cadet/70",
-  move:      "bg-champagne text-cadet/70",
+  move:      "bg-cream text-cadet/70",
   connect:   "bg-sienna/15 text-sienna",
   observe:   "bg-cadet/10 text-cadet/60",
 };
@@ -55,7 +55,7 @@ function functionAccentColor(fn: string | null): string {
 /* ── tinkering tier visual mapping ── */
 const TINKERING_TIERS: Record<string, { label: string; className: string }> = {
   guided:      { label: "guided",      className: "bg-cadet/8 text-cadet/60" },
-  scaffolded:  { label: "scaffolded",  className: "bg-champagne text-cadet/70" },
+  scaffolded:  { label: "scaffolded",  className: "bg-cream text-cadet/70" },
   "open-ended":{ label: "open-ended",  className: "bg-sienna/12 text-sienna/80" },
   "free-form": { label: "free-form",   className: "bg-redwood/10 text-redwood/70" },
 };
@@ -228,7 +228,7 @@ export function PlaydateCard({
 
         <div className="flex flex-wrap gap-1 mb-2">
           {show("primaryFunction") && primaryFunction && (
-            <span className="inline-block rounded-full bg-champagne px-2 py-px text-2xs font-medium text-cadet">
+            <span className="inline-block rounded-full bg-cream px-2 py-px text-2xs font-medium text-cadet">
               {primaryFunction}
             </span>
           )}

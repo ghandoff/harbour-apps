@@ -31,16 +31,16 @@ export default function PlaydatePeek({
           : null;
 
   return (
-    <li className="rounded-lg border border-cadet/10 bg-champagne/20 overflow-hidden transition-all">
+    <li className="rounded-lg border border-cadet/10 bg-cream/20 overflow-hidden transition-all">
       <button
         onClick={() => setExpanded(!expanded)}
-        className="w-full text-left px-4 py-3 flex items-center justify-between gap-3 hover:bg-champagne/30 transition-colors"
+        className="w-full text-left px-4 py-3 flex items-center justify-between gap-3 hover:bg-cream/30 transition-colors"
       >
         <div className="min-w-0">
           <span className="text-sm font-medium text-cadet">{title}</span>
           <div className="flex items-center gap-2 mt-1 text-xs text-cadet/40 flex-wrap">
             {primaryFunction && (
-              <span className="rounded-full bg-champagne px-2 py-0.5">
+              <span className="rounded-full bg-cream px-2 py-0.5">
                 {primaryFunction}
               </span>
             )}

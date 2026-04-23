@@ -83,7 +83,7 @@ export default function RunList({
       {runs.map((run) => (
         <div
           key={run.id}
-          className="rounded-xl border border-cadet/10 bg-champagne/30 p-5 transition-all hover:border-cadet/20"
+          className="rounded-xl border border-cadet/10 bg-cream/30 p-5 transition-all hover:border-cadet/20"
         >
           {/* header row */}
           <div className="flex items-start justify-between gap-4 mb-3">

@@ -48,7 +48,7 @@ export default function StartHereCard({
     <div className="relative mb-4 sm:mb-6">
       {/* "start here" badge positioned above the card */}
       <div className="mb-2 flex items-center gap-2">
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-champagne px-3 py-1 text-xs font-semibold text-sienna">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-cream px-3 py-1 text-xs font-semibold text-sienna">
           ✨ start here
         </span>
       </div>

@@ -99,7 +99,7 @@ export function QrInvite({ inviteCode }: QrInviteProps) {
       {/* invite code — large, spaced-out, monospace */}
       <div
         className="inline-flex items-center gap-1 rounded-lg px-5 py-3 mb-4"
-        style={{ backgroundColor: "var(--wv-champagne)" }}
+        style={{ backgroundColor: "var(--wv-cream)" }}
       >
         {inviteCode.split("").map((char, i) => (
           <span

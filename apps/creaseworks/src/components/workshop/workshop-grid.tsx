@@ -87,7 +87,7 @@ export default function WorkshopGrid({ allMaterials, ownedIds }: WorkshopGridPro
   return (
     <div>
       {/* inventory summary */}
-      <div className="flex items-center gap-3 mb-6 p-3 rounded-lg bg-champagne/30">
+      <div className="flex items-center gap-3 mb-6 p-3 rounded-lg bg-cream/30">
         <span className="text-2xl font-bold text-sienna">{ownedCount}</span>
         <span className="text-sm text-cadet/60">
           material{ownedCount !== 1 ? "s" : ""} in your workshop

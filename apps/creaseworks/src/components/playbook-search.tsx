@@ -203,7 +203,7 @@ export default function PlaybookSearch({
                     ? `/playbook/${p.collection_slug}`
                     : `/sampler/${p.slug}`
                 }
-                className="flex items-center gap-3 rounded-lg border border-cadet/5 px-4 py-3 hover:border-sienna/20 hover:bg-champagne/5 transition-colors"
+                className="flex items-center gap-3 rounded-lg border border-cadet/5 px-4 py-3 hover:border-sienna/20 hover:bg-cream/5 transition-colors"
               >
                 {p.cover_url ? (
                   <div className="relative w-10 h-10 rounded-md overflow-hidden flex-shrink-0">
@@ -216,7 +216,7 @@ export default function PlaybookSearch({
                     />
                   </div>
                 ) : (
-                  <div className="w-10 h-10 rounded-md bg-champagne/20 flex items-center justify-center flex-shrink-0">
+                  <div className="w-10 h-10 rounded-md bg-cream/20 flex items-center justify-center flex-shrink-0">
                     <span className="text-sm opacity-40">🎨</span>
                   </div>
                 )}

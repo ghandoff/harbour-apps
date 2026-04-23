@@ -43,7 +43,7 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
       <div className="text-center space-y-4">
         <div
           className="w-16 h-16 mx-auto rounded-full flex items-center justify-center"
-          style={{ backgroundColor: "var(--wv-champagne)" }}
+          style={{ backgroundColor: "var(--wv-cream)" }}
         >
           <span className="text-2xl">{"\u2709"}</span>
         </div>
@@ -75,7 +75,7 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
       <button
         type="button"
         onClick={handleGoogleSignIn}
-        className="w-full flex items-center justify-center gap-3 py-3 rounded-lg border font-medium text-sm transition-colors hover:bg-champagne/20"
+        className="w-full flex items-center justify-center gap-3 py-3 rounded-lg border font-medium text-sm transition-colors hover:bg-cream/20"
         style={{ borderColor: "var(--wv-cadet)", color: "var(--wv-cadet)" }}
       >
         <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">

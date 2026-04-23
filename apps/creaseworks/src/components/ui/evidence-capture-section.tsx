@@ -170,7 +170,7 @@ export default function EvidenceCaptureSection({
             <div className="flex items-center gap-2 text-xs text-cadet/50">
               <span
                 className="inline-block w-2 h-2 rounded-full"
-                style={{ backgroundColor: "var(--wv-champagne)" }}
+                style={{ backgroundColor: "var(--wv-cream)" }}
               />
               photo consent: {state.photoConsent.tier}
               {state.photoConsent.marketingApproved && " · marketing approved"}

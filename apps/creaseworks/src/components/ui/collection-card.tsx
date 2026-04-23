@@ -75,7 +75,7 @@ export default function CollectionCard({
         <div className="mt-3">
           <div className="h-1 rounded-full bg-cadet/5 overflow-hidden">
             <div
-              className="h-full rounded-full bg-champagne transition-all duration-500"
+              className="h-full rounded-full bg-cream transition-all duration-500"
               style={{ width: `${pct}%` }}
             />
           </div>
