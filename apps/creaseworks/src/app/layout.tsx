@@ -85,6 +85,9 @@ export default async function RootLayout({
   const dyslexiaFont = cookieStore.get("cw-dyslexia-font")?.value === "true";
   const calmTheme = cookieStore.get("cw-calm-theme")?.value === "true";
   const uiTier = cookieStore.get("cw-ui-tier")?.value || "casual";
+  // ui mode — kid is product default; grownup only applies when the
+  // user has explicitly flipped the toggle in /profile accessibility.
+  const grownupMode = cookieStore.get("cw-ui-mode")?.value === "grownup";
   const htmlClasses = [
     inter.variable,
     atkinson.variable,
@@ -92,6 +95,7 @@ export default async function RootLayout({
     reduceMotion && "reduce-motion",
     dyslexiaFont && "dyslexia-font",
     calmTheme && "calm-theme",
+    grownupMode && "grownup-mode",
     `tier-${uiTier}`,
   ]
     .filter(Boolean)
