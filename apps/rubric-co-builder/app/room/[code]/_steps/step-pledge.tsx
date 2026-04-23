@@ -142,7 +142,7 @@ function PledgeSlotCard({
         >
           {label}
         </label>
-        <span className="text-[10px] text-[color:var(--color-cadet)]/50">
+        <span className="text-xs text-[color:var(--color-cadet)]/50">
           {saving ? "saving…" : savedAt ? "saved" : "auto-saves"}
         </span>
       </div>

@@ -147,7 +147,7 @@ export function StepCommit({
                     key={level}
                     className="text-left font-semibold bg-[color:var(--color-cadet)] text-white p-3 align-bottom"
                   >
-                    <span className="block text-[10px] tracking-wider opacity-80">
+                    <span className="block text-xs tracking-wider opacity-80">
                       level {level}
                     </span>
                     {label}
@@ -188,7 +188,7 @@ export function StepCommit({
           </table>
         </div>
 
-        <p className="text-[10px] tracking-wider text-[color:var(--color-cadet)]/60 mt-6">
+        <p className="text-xs tracking-wider text-[color:var(--color-cadet)]/60 mt-6">
           co-designed in a rubric co-builder session · winded.vertigo
         </p>
       </article>
@@ -232,7 +232,7 @@ export function StepCommit({
           })}
         </dl>
 
-        <p className="text-[10px] tracking-wider text-[color:var(--color-cadet)]/60 mt-6">
+        <p className="text-xs tracking-wider text-[color:var(--color-cadet)]/60 mt-6">
           co-designed in a rubric co-builder session · winded.vertigo
         </p>
       </article>

@@ -148,7 +148,7 @@ export function StepScaleVote({
                   .sort((a, b) => a.updated_at.localeCompare(b.updated_at));
                 return (
                   <div key={level}>
-                    <p className="text-[10px] tracking-wider uppercase text-[color:var(--color-cadet)]/60 mb-2">
+                    <p className="text-xs tracking-wider uppercase text-[color:var(--color-cadet)]/60 mb-2">
                       {level} · {label}
                     </p>
                     {responses.length === 0 ? (
@@ -180,12 +180,12 @@ export function StepScaleVote({
                               ].join(" ")}
                             >
                               <div className="flex items-center justify-between mb-2">
-                                <span className="text-[10px] uppercase tracking-wider text-[color:var(--color-cadet)]/55">
+                                <span className="text-xs uppercase tracking-wider text-[color:var(--color-cadet)]/55">
                                   {participantLabel.get(sr.participant_id) ?? "student"}
                                   {ownDescriptor ? " · yours" : ""}
                                 </span>
                                 {mine ? (
-                                  <span className="text-[10px] uppercase tracking-wider bg-[color:var(--color-sienna)] text-white rounded px-2 py-0.5">
+                                  <span className="text-xs uppercase tracking-wider bg-[color:var(--color-sienna)] text-white rounded px-2 py-0.5">
                                     your dot
                                   </span>
                                 ) : null}
@@ -202,7 +202,7 @@ export function StepScaleVote({
                                   />
                                 ))}
                                 {count === 0 ? (
-                                  <span className="text-[10px] text-[color:var(--color-cadet)]/40">
+                                  <span className="text-xs text-[color:var(--color-cadet)]/40">
                                     no dots yet
                                   </span>
                                 ) : null}

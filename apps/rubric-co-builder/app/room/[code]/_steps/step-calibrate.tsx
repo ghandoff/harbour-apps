@@ -153,7 +153,7 @@ function CalibrationRow({
     <div className={`rounded-lg border border-[color:var(--color-cadet)]/15 p-4 ${bg[conv]}`}>
       <div className="flex items-baseline justify-between gap-3 mb-3">
         <h3 className="text-lg font-bold text-[color:var(--color-cadet)]">{criterion.name}</h3>
-        <p className="text-[10px] tracking-wider text-[color:var(--color-cadet)]/60">
+        <p className="text-xs tracking-wider text-[color:var(--color-cadet)]/60">
           {total} score{total === 1 ? "" : "s"} · {conv}
         </p>
       </div>
@@ -175,7 +175,7 @@ function CalibrationRow({
                 disabled ? "cursor-default" : "cursor-pointer",
               ].join(" ")}
             >
-              <p className="text-[10px] tracking-wider text-[color:var(--color-cadet)]/60">
+              <p className="text-xs tracking-wider text-[color:var(--color-cadet)]/60">
                 {level} · {label}
               </p>
               <p className="text-xs leading-snug mt-1 line-clamp-5">

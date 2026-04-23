@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRoom } from "@/lib/use-room";
 import { Wordmark } from "@/app/_components/wordmark";
 import { apiPath } from "@/lib/paths";
@@ -62,6 +62,7 @@ const STATE_ORDER: RoomState[] = [
   "criteria_gate",
   "scale",
   "vote2",
+  "vote3",
   "ai_ladder_propose",
   "ai_ladder",
   "pledge",
@@ -73,8 +74,9 @@ export function HostRoom({ code }: { code: string }) {
 
   if (state.status === "loading") {
     return (
-      <main className="min-h-screen flex items-center justify-center">
+      <main className="min-h-screen flex flex-col items-center justify-center gap-3">
         <Wordmark />
+        <div className="w-8 h-8 rounded-full border-2 border-[color:var(--color-cadet)]/20 border-t-[color:var(--color-cadet)] animate-spin" />
         <p className="text-[color:var(--color-cadet)]/70">spinning up the room…</p>
       </main>
     );
@@ -108,56 +110,60 @@ export function HostRoom({ code }: { code: string }) {
     pledge_slots,
   } = snapshot;
 
-  async function advance(to: RoomState, fromState?: RoomState) {
+  const advance = useCallback(async (to: RoomState, fromState?: RoomState) => {
     await fetch(apiPath(`/api/rooms/${code}`), {
       method: "PATCH",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ state: to, ...(fromState ? { from_state: fromState } : {}) }),
     });
-  }
+  }, [code]);
 
-  async function startTimer(durationSeconds: number) {
+  const startTimer = useCallback(async (durationSeconds: number) => {
     await fetch(apiPath(`/api/rooms/${code}/timer`), {
       method: "PATCH",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ duration: durationSeconds }),
     });
-  }
+  }, [code]);
 
-  async function cancelTimer() {
+  const cancelTimer = useCallback(async () => {
     await fetch(apiPath(`/api/rooms/${code}/timer`), {
       method: "PATCH",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ duration: null }),
     });
-  }
+  }, [code]);
 
-  async function tally(round: 1 | 2 | 3) {
+  const tally = useCallback(async (round: 1 | 2 | 3) => {
     const endpoint =
       round === 1 ? "tally" : round === 2 ? "tally2" : "tally3";
     await fetch(apiPath(`/api/rooms/${code}/${endpoint}`), { method: "POST" });
-  }
+  }, [code]);
 
-  async function aiTally() {
+  const aiTally = useCallback(async () => {
     await fetch(apiPath(`/api/rooms/${code}/ai-tally`), { method: "POST" });
-  }
+  }, [code]);
 
-  async function resolveChoice(selectedIds: string[]) {
+  const resolveChoice = useCallback(async (selectedIds: string[]) => {
     await fetch(apiPath(`/api/rooms/${code}/facilitator-choice`), {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ selected_ids: selectedIds }),
     });
-  }
+  }, [code]);
 
-  async function confirmGate(selectedIds: string[]) {
+  const confirmGate = useCallback(async (selectedIds: string[]) => {
     await fetch(apiPath(`/api/rooms/${code}/facilitator-choice`), {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ selected_ids: selectedIds }),
     });
-    await advance("scale");
-  }
+    await fetch(apiPath(`/api/rooms/${code}`), {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ state: "scale" }),
+    });
+  }, [code]);
 
   const surface: "white" | "champagne" =
     room.state === "lobby" || room.state === "frame" || room.state === "commit"
@@ -299,7 +305,7 @@ function HostControls({
     <div className="rounded-lg bg-[color:var(--color-cadet)] text-white p-4 pointer-events-auto space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <p className="text-[10px] tracking-widest opacity-70">room code</p>
+          <p className="text-xs tracking-widest opacity-70">room code</p>
           <p className="text-2xl font-bold tracking-[0.3em]">{code}</p>
         </div>
         <div className="flex flex-wrap gap-2 items-center">
@@ -334,12 +340,12 @@ function HostControls({
               {pending === "advance" ? "moving…" : `move to ${next.replace(/_/g, " ")} →`}
             </button>
           ) : null}
-          <div className="flex items-center gap-1 text-xs flex-wrap">
+          <div className="flex items-center gap-1 text-xs overflow-x-auto">
             {STATE_ORDER.map((s) => (
               <button
                 key={s}
                 onClick={() => onAdvance(s)}
-                className={`px-2 py-1 rounded ${
+                className={`px-2 py-1 rounded shrink-0 ${
                   s === current
                     ? "bg-white text-[color:var(--color-cadet)]"
                     : "opacity-60 hover:opacity-100"
@@ -354,7 +360,7 @@ function HostControls({
 
       {/* timer controls */}
       <div className="flex flex-wrap items-center gap-3 pt-1 border-t border-white/20">
-        <span className="text-[10px] tracking-widest opacity-70 shrink-0">timer</span>
+        <span className="text-xs tracking-widest opacity-70 shrink-0">timer</span>
 
         {timerActive ? (
           <>
@@ -637,10 +643,11 @@ function Collapsible({
     <div className="rounded-lg border border-[color:var(--color-cadet)]/15 overflow-hidden">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center justify-between px-4 py-3 bg-[color:var(--color-champagne)]/40 hover:bg-[color:var(--color-champagne)]/70 transition-colors text-left"
+        aria-expanded={open}
+        className="w-full flex items-center justify-between px-4 py-3 bg-[color:var(--color-champagne)]/40 hover:bg-[color:var(--color-champagne)]/70 transition-colors text-left pointer-events-auto"
       >
         <span className="text-sm font-medium text-[color:var(--color-cadet)]">{label}</span>
-        <span className="text-[color:var(--color-cadet)]/50 text-xs ml-4">{open ? "▲" : "▼"}</span>
+        <span aria-hidden="true" className="text-[color:var(--color-cadet)]/50 text-xs ml-4">{open ? "▲" : "▼"}</span>
       </button>
       {open ? (
         <div className="p-4">
@@ -693,7 +700,7 @@ function TiebreakerPanel({
   return (
     <div className="mt-6 rounded-lg border-2 border-[color:var(--color-sienna)]/40 bg-[color:var(--color-sienna)]/5 p-4 space-y-3 pointer-events-auto">
       <div className="flex items-center gap-2">
-        <span className="text-[color:var(--color-sienna)] text-lg">⚖</span>
+        <span aria-hidden="true" className="text-[color:var(--color-sienna)] text-lg">⚖</span>
         <h3 className="font-semibold text-[color:var(--color-cadet)]">facilitator decides</h3>
       </div>
       <p className="text-sm text-[color:var(--color-cadet)]/80">
@@ -780,7 +787,7 @@ function CriteriaGatePanel({
           <p className="text-xs font-medium tracking-widest text-[color:var(--color-cadet)]/50 uppercase">required (always included)</p>
           {requiredCriteria.map((c) => (
             <div key={c.id} className="flex items-center gap-3 px-3 py-2 rounded bg-[color:var(--color-cadet)]/5">
-              <input type="checkbox" checked readOnly className="h-4 w-4 opacity-50" />
+              <input type="checkbox" checked disabled className="h-4 w-4 opacity-50" />
               <span className="text-sm font-medium">{c.name}</span>
               <span className="text-xs text-[color:var(--color-cadet)]/50 ml-auto">
                 {counts.get(c.id) ?? 0} vote{(counts.get(c.id) ?? 0) === 1 ? "" : "s"}

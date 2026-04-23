@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRoom } from "@/lib/use-room";
 import { ensureJoined } from "@/lib/participant";
 import { StepShell } from "./_steps/shell";
@@ -19,12 +19,6 @@ import { Wordmark } from "@/app/_components/wordmark";
 import { FacilitatorNudgeBanner } from "@/app/_components/nudge";
 import { roundForState } from "@/lib/types";
 import type { RoomState } from "@/lib/types";
-import { apiPath } from "@/lib/paths";
-
-const STATE_ORDER: RoomState[] = [
-  "lobby", "frame", "propose", "vote", "criteria_gate", "scale",
-  "vote2", "ai_ladder_propose", "ai_ladder", "pledge", "commit",
-];
 
 function useCountdown(timerEnd: string | null): number | null {
   const [remaining, setRemaining] = useState<number | null>(null);
@@ -47,32 +41,11 @@ function fmt(secs: number): string {
   return `${m}:${s}`;
 }
 
-function TimerBanner({ timerEnd, currentState, code }: {
+function TimerBanner({ timerEnd, currentState }: {
   timerEnd: string | null;
   currentState: RoomState;
-  code: string;
 }) {
   const remaining = useCountdown(timerEnd);
-  const firedFor = useRef<RoomState | null>(null);
-
-  useEffect(() => {
-    if (remaining === 0 && timerEnd && firedFor.current !== currentState) {
-      const i = STATE_ORDER.indexOf(currentState);
-      const next = i >= 0 && i < STATE_ORDER.length - 1 ? STATE_ORDER[i + 1] : null;
-      if (next) {
-        firedFor.current = currentState;
-        fetch(apiPath(`/api/rooms/${code}`), {
-          method: "PATCH",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ state: next, from_state: currentState }),
-        });
-      }
-    }
-  }, [remaining, timerEnd, currentState, code]);
-
-  useEffect(() => {
-    firedFor.current = null;
-  }, [currentState]);
 
   if (!timerEnd || remaining === null) return null;
 
@@ -113,8 +86,9 @@ export function StudentRoom({ code }: { code: string }) {
 
   if (state.status === "loading") {
     return (
-      <main className="min-h-screen flex items-center justify-center">
+      <main className="min-h-screen flex flex-col items-center justify-center gap-3">
         <Wordmark />
+        <div className="w-8 h-8 rounded-full border-2 border-[color:var(--color-cadet)]/20 border-t-[color:var(--color-cadet)] animate-spin" />
         <p className="text-[color:var(--color-cadet)]/70">joining room…</p>
       </main>
     );
@@ -153,7 +127,7 @@ export function StudentRoom({ code }: { code: string }) {
   const canEdit = participantId !== null;
   const nudge = <FacilitatorNudgeBanner text={room.facilitator_nudge} />;
   const guide = <GuidingQuestions state={room.state as RoomState} />;
-  const timer = <TimerBanner timerEnd={room.timer_end} currentState={room.state as RoomState} code={code} />;
+  const timer = <TimerBanner timerEnd={room.timer_end} currentState={room.state as RoomState} />;
 
   const body = (() => {
     if (room.state === "lobby") {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Criterion, Scale, ScaleResponse } from "@/lib/types";
 import { SCALE_LEVELS } from "@/lib/types";
 import { apiPath } from "@/lib/paths";
@@ -100,13 +100,13 @@ function ScaleBlock({
           <table className="w-full text-sm border-collapse">
             <thead>
               <tr>
-                <th className="text-left text-[10px] tracking-wider text-[color:var(--color-cadet)]/60 pb-2 pr-4 w-24">
+                <th className="text-left text-xs tracking-wider text-[color:var(--color-cadet)]/60 pb-2 pr-4 w-24">
                   level
                 </th>
                 {participantIds.map((pid, i) => (
                   <th
                     key={pid}
-                    className="text-left text-[10px] tracking-wider text-[color:var(--color-cadet)]/60 pb-2 px-2"
+                    className="text-left text-xs tracking-wider text-[color:var(--color-cadet)]/60 pb-2 px-2"
                   >
                     student {i + 1}
                   </th>
@@ -116,7 +116,7 @@ function ScaleBlock({
             <tbody>
               {SCALE_LEVELS.map(({ level, label }) => (
                 <tr key={level} className="border-t border-[color:var(--color-cadet)]/10">
-                  <td className="py-2 pr-4 text-[10px] tracking-wider text-[color:var(--color-cadet)]/60 align-top">
+                  <td className="py-2 pr-4 text-xs tracking-wider text-[color:var(--color-cadet)]/60 align-top">
                     {level} · {label}
                   </td>
                   {participantIds.map((pid) => {
@@ -195,12 +195,18 @@ function ScaleCell({
 }) {
   const [value, setValue] = useState(myDescriptor || canonicalDescriptor);
   const [saving, setSaving] = useState(false);
+  const dirtyRef = useRef(false);
+
+  useEffect(() => {
+    if (!dirtyRef.current) {
+      setValue(myDescriptor || canonicalDescriptor);
+    }
+  }, [myDescriptor, canonicalDescriptor]);
 
   async function save() {
     if (!canEdit || !participantId) return;
     setSaving(true);
     try {
-      // save to per-student scale_responses
       await fetch(apiPath(`/api/rooms/${code}/scale-responses`), {
         method: "PATCH",
         headers: { "content-type": "application/json" },
@@ -213,23 +219,24 @@ function ScaleCell({
       });
     } finally {
       setSaving(false);
+      dirtyRef.current = false;
     }
   }
 
   return (
     <div className="rounded bg-[color:var(--color-champagne)]/40 p-3 flex flex-col">
       <div className="flex items-center justify-between mb-2">
-        <p className="text-[10px] tracking-wider text-[color:var(--color-cadet)]/60">
+        <p className="text-xs tracking-wider text-[color:var(--color-cadet)]/60">
           {level} · {label}
         </p>
         {saving ? (
-          <span className="text-[10px] text-[color:var(--color-cadet)]/50">saving…</span>
+          <span className="text-xs text-[color:var(--color-cadet)]/50">saving…</span>
         ) : null}
       </div>
       {canEdit ? (
         <textarea
           value={value}
-          onChange={(e) => setValue(e.target.value)}
+          onChange={(e) => { dirtyRef.current = true; setValue(e.target.value); }}
           onBlur={save}
           rows={5}
           maxLength={600}
