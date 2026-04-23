@@ -32,9 +32,9 @@ const HEROES: Record<FindMode, { heading: string; emoji: string; body: string }>
     body: "look around — what stuff do you have? cardboard boxes, sticks, old t-shirts, tape? pick what you find and we'll show you what these can become.",
   },
   rooms: {
-    heading: "what do you notice?",
-    emoji: "👀",
-    body: "look around — what stuff do you have? cardboard boxes, sticks, old t-shirts, tape? pick what you find and we'll show you what these can become.",
+    heading: "where are you right now?",
+    emoji: "🏠",
+    body: "pick a room and look around. tap the stuff you notice — everything counts.",
   },
   challenge: {
     heading: "how much can you notice?",
@@ -128,29 +128,33 @@ export default function FindPhaseShell({
         <Link
           href="/"
           className="text-sm hover:opacity-80 transition-opacity mb-5 sm:mb-7 inline-flex items-center gap-1.5"
-          style={{ color: "var(--wv-cadet)", opacity: 0.45 }}
+          style={{ color: "var(--wv-cadet)", opacity: 0.6 }}
         >
           <span>&larr;</span> creaseworks
         </Link>
 
         {/* ── hero copy — fixed min-height for stability ────────── */}
         <div className="relative mb-6 sm:mb-8" style={{ minHeight: 152 }}>
-          {/* decorative floating shapes — desktop only */}
+          {/* decorative floating shapes — desktop only, purely ornamental */}
           <div
+            aria-hidden="true"
             className="hidden sm:block absolute -left-10 top-2 w-5 h-5 rounded-lg"
             style={{
-              backgroundColor: "var(--wv-champagne)",
-              opacity: 0.15,
+              /* champagne is a font-colour token — use cornflower for bg shapes */
+              backgroundColor: "var(--wv-cornflower)",
+              opacity: 0.18,
               transform: "rotate(12deg)",
             }}
           />
           <div
+            aria-hidden="true"
             className="hidden sm:block absolute -left-6 top-12 w-3 h-3 rounded-full"
-            style={{ backgroundColor: "var(--wv-sienna)", opacity: 0.2 }}
+            style={{ backgroundColor: "var(--wv-sienna)", opacity: 0.22 }}
           />
           <div
+            aria-hidden="true"
             className="hidden sm:block absolute -right-6 top-4 w-4 h-4 rounded-full"
-            style={{ backgroundColor: "var(--wv-redwood)", opacity: 0.15 }}
+            style={{ backgroundColor: "var(--wv-redwood)", opacity: 0.18 }}
           />
 
           <h1
@@ -167,7 +171,7 @@ export default function FindPhaseShell({
           </h1>
           <p
             className="text-base sm:text-lg leading-relaxed max-w-xl"
-            style={{ color: "var(--color-text-on-tint)", opacity: 0.55 }}
+            style={{ color: "var(--color-text-on-cream-muted)" }}
           >
             {hero.body}
           </p>

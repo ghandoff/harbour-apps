@@ -30,7 +30,7 @@ const SPRING = "cubic-bezier(0.34, 1.56, 0.64, 1)";
 export function RoomGrid({ rooms, visitedRooms, selectedCountByRoom, onRoomTap }: RoomGridProps) {
   return (
     <div>
-      <p className="text-sm mb-5 text-center" style={{ color: "var(--wv-cadet)", opacity: 0.55 }}>
+      <p className="text-sm mb-5 text-center" style={{ color: "var(--color-text-on-cream-muted)" }}>
         pick a place and see what you notice
       </p>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">

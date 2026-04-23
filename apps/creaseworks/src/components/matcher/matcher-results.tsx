@@ -50,7 +50,7 @@ export function MatcherResults({
           </p>
           <p
             className="text-xs mt-1"
-            style={{ color: "var(--wv-cadet)", opacity: 0.4 }}
+            style={{ color: "var(--color-text-on-cream-muted)" }}
           >
             finding the best ones for your stuff
           </p>
@@ -141,7 +141,7 @@ export function MatcherResults({
         </h2>
         <p
           className="text-xs"
-          style={{ color: "var(--wv-cadet)", opacity: 0.45 }}
+          style={{ color: "var(--color-text-on-cream-muted)" }}
         >
           looked through {results.meta.totalCandidates} playdates
           {results.meta.contextFiltersApplied.length > 0 &&

@@ -67,9 +67,13 @@ export function RoomScene({
 
   return (
     <div
-      className="room-scene"
+      className="room-scene rounded-2xl p-4"
       style={{
         animation: `roomSlideIn 300ms ${SPRING}`,
+        /* A gentle room-colour wash makes the scene feel like you're
+           actually inside this space, not just looking at a list.      */
+        background: `color-mix(in srgb, ${room.color} 6%, var(--wv-cream))`,
+        border: `1.5px solid color-mix(in srgb, ${room.color} 20%, rgba(39,50,72,0.08))`,
       }}
     >
       {/* header */}
@@ -105,9 +109,10 @@ export function RoomScene({
         {room.prompt}
       </p>
 
-      {/* materials grid */}
+      {/* materials grid — bigger tiles than classic picker so the room
+          feels spatial, not like a list you're scrolling through.      */}
       {roomMaterials.length > 0 ? (
-        <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 mb-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
           {roomMaterials.map((mat, i) => (
             <EmojiTile
               key={mat.id}
@@ -118,7 +123,8 @@ export function RoomScene({
               selected={selectedMaterials.has(mat.id)}
               onClick={() => onMaterialTap(mat.id)}
               accentColor={room.color}
-              size="md"
+              size="lg"
+              fluid
               index={i}
             />
           ))}
@@ -126,7 +132,7 @@ export function RoomScene({
       ) : (
         <p
           className="text-sm py-8 text-center"
-          style={{ color: "var(--wv-cadet)", opacity: 0.4 }}
+          style={{ color: "var(--color-text-on-cream-muted)" }}
         >
           nothing here yet — try another room!
         </p>
@@ -142,10 +148,10 @@ export function RoomScene({
               paddingTop: 12,
             }}
           >
-            <span className="text-xs" style={{ opacity: 0.3 }}>🔧</span>
+            <span className="text-xs" aria-hidden="true" style={{ opacity: 0.4 }}>🔧</span>
             <span
               className="text-xs font-bold tracking-wider"
-              style={{ color: "var(--wv-cadet)", opacity: 0.4 }}
+              style={{ color: "var(--color-text-on-cream-muted)" }}
             >
               tools you might need here
             </span>
@@ -159,7 +165,7 @@ export function RoomScene({
                 selected={selectedSlots.has(slot)}
                 onClick={() => onSlotTap(slot)}
                 accentColor={room.color}
-                size="sm"
+                size="md"
                 index={i}
               />
             ))}
