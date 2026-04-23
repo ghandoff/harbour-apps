@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { usePathname } from "next/navigation";
 import NotificationBell from "@/components/ui/notification-bell";
 import { haptic } from "@/lib/haptics";
@@ -148,6 +148,26 @@ export default function NavBar() {
 
   const isAuthed = !!session?.user;
 
+  /* ── kid/adult mode toggle ────────────────────────────────────── */
+  const [isGrownup, setIsGrownup] = useState(false);
+
+  useEffect(() => {
+    setIsGrownup(document.documentElement.classList.contains("grownup-mode"));
+  }, []);
+
+  const toggleMode = useCallback(() => {
+    const next = !isGrownup;
+    // Flip class immediately for instant feedback
+    document.documentElement.classList.toggle("grownup-mode", next);
+    setIsGrownup(next);
+    // Persist preference
+    fetch("/harbour/creaseworks/api/preferences", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ uiMode: next ? "grownup" : "kid" }),
+    });
+  }, [isGrownup]);
+
   /* ── desktop nav links ──
    * All four cycle phases always visible. Each page is publicly
    * accessible (added to proxy public patterns) and handles auth
@@ -257,6 +277,30 @@ export default function NavBar() {
           {/* desktop links */}
           <div className="wv-header-nav hidden sm:flex">
             {navLinks}
+            {isAuthed && (
+              <button
+                type="button"
+                onClick={toggleMode}
+                aria-label={isGrownup ? "switch to kid mode" : "switch to grownup mode"}
+                title={isGrownup ? "switch to kid mode" : "switch to grownup mode"}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  minWidth: 24,
+                  minHeight: 24,
+                  padding: 0,
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  fontSize: "1rem",
+                  lineHeight: 1,
+                  color: "currentColor",
+                }}
+              >
+                {isGrownup ? "🪴" : "🎨"}
+              </button>
+            )}
             {profileLink}
             {isAuthed && <NotificationBell />}
             {authAction}
@@ -296,6 +340,31 @@ export default function NavBar() {
             style={{ borderTop: "1px solid rgba(255,235,210,0.1)" }}
           >
             {navLinks}
+            {isAuthed && (
+              <button
+                type="button"
+                onClick={() => { toggleMode(); close(); }}
+                aria-label={isGrownup ? "switch to kid mode" : "switch to grownup mode"}
+                title={isGrownup ? "switch to kid mode" : "switch to grownup mode"}
+                className="wv-header-nav-link flex items-center gap-1.5"
+                style={{ background: "none", border: "none", cursor: "pointer", padding: 0, color: "currentColor", textAlign: "left" }}
+              >
+                <span
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    minWidth: 24,
+                    minHeight: 24,
+                    fontSize: "1rem",
+                    lineHeight: 1,
+                  }}
+                >
+                  {isGrownup ? "🪴" : "🎨"}
+                </span>
+                <span>{isGrownup ? "kid mode" : "grownup mode"}</span>
+              </button>
+            )}
             {profileLink}
             {isAuthed && <NotificationBell />}
             {authAction}
