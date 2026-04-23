@@ -140,7 +140,8 @@ export default function PlaydateGrid({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="search playdates..."
-            className="flex-1 rounded-lg border border-cadet/15 bg-white px-3 py-2 text-sm text-cadet placeholder:text-cadet/30 focus:outline-none focus:border-sienna/40 transition-colors"
+            className="flex-1 rounded-lg border border-cadet/15 px-3 py-2 text-sm text-cadet placeholder:text-cadet/30 focus:outline-none focus:border-sienna/40 transition-colors"
+            style={{ backgroundColor: "var(--wv-cream)" }}
           />
           <select
             value={sortBy}

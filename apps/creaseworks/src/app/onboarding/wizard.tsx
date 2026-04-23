@@ -169,7 +169,7 @@ export default function OnboardingWizard({
         />
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-cadet/10 p-8">
+      <div className="rounded-2xl shadow-sm p-8" style={{ background: "var(--wv-cream)", border: "1.5px solid rgba(39, 50, 72, 0.08)" }}>
         {/* welcome banner for invited users — only on step 0 */}
         {step === 0 && !editMode && isInvitedUser && (
           <div className="mb-6 rounded-xl border border-sienna/20 bg-sienna/[0.04] px-5 py-4">

@@ -145,7 +145,8 @@ async function renderPlaydatePackPage(slug: string) {
               <Link
                 key={p.id}
                 href={`/packs/${slug}/playdates/${p.slug}`}
-                className="block rounded-xl border border-cadet/10 bg-white p-4 hover:shadow-md hover:border-sienna/40 transition-all"
+                className="block rounded-xl p-4 hover:shadow-md hover:border-sienna/40 transition-all"
+                style={{ background: "var(--wv-cream)", border: "1.5px solid rgba(39, 50, 72, 0.08)" }}
               >
                 <div className="flex items-center gap-2">
                   <h3 className="font-medium">{p.title}</h3>
