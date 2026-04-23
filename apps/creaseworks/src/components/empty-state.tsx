@@ -224,7 +224,13 @@ export default function EmptyState({ type, heading, body, cta }: EmptyStateProps
   const Illustration = ILLUSTRATIONS[type];
 
   return (
-    <div className="rounded-xl border border-sienna/15 bg-sienna/[0.03] p-10 text-center max-w-md mx-auto">
+    <div
+      className="rounded-xl p-10 text-center max-w-md mx-auto"
+      style={{
+        background: "var(--wv-cream)",
+        border: "1.5px solid rgba(39, 50, 72, 0.08)",
+      }}
+    >
       <Illustration />
       <p
         className="text-base font-medium mb-1"

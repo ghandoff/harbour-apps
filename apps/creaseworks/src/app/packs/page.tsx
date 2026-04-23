@@ -55,9 +55,9 @@ export default async function PacksCataloguePage() {
   return (
     <main className="min-h-screen px-6 pt-16 pb-24 sm:pb-16 max-w-4xl mx-auto">
       <div className="flex items-center gap-3 mb-2">
-        <h1 className="text-3xl font-semibold tracking-tight">{c["packs.headline"]?.copy ?? "packs"}</h1>
+        <h1 className="text-3xl font-semibold tracking-tight font-serif">{c["packs.headline"]?.copy ?? "packs"}</h1>
         {isCollective && (
-          <span className="text-2xs font-semibold tracking-wide px-2 py-0.5 rounded-full bg-champagne/20 text-champagne">
+          <span className="text-2xs font-semibold tracking-wide px-2 py-0.5 rounded-full bg-cadet/8 text-champagne">
             collective view
           </span>
         )}

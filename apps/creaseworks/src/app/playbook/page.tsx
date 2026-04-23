@@ -70,7 +70,7 @@ export default async function PlaybookPage() {
   return (
     <main className="min-h-screen px-6 pt-16 pb-24 sm:pb-16 max-w-4xl mx-auto">
       {/* ── header ── */}
-      <h1 className="text-3xl font-semibold tracking-tight mb-1">
+      <h1 className="text-3xl font-semibold tracking-tight font-serif mb-1">
         {c["playbook.headline"]?.copy ?? "my playbook"}
       </h1>
       <p className="text-cadet/50 text-sm mb-8">
