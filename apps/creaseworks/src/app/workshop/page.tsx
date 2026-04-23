@@ -39,7 +39,7 @@ export default async function WorkshopPage() {
   return (
     <main className="px-4 pt-8 pb-24 sm:px-6 sm:pt-14 sm:pb-16">
       <div style={{ maxWidth: 900, margin: "0 auto" }}>
-        <h1 className="text-2xl sm:text-3xl font-bold text-cadet mb-2">
+        <h1 className="text-2xl sm:text-3xl font-bold font-serif text-cadet mb-2">
           my workshop
         </h1>
         <p className="text-sm text-cadet/60 mb-8" style={{ maxWidth: 500 }}>
@@ -47,10 +47,18 @@ export default async function WorkshopPage() {
           playdates that work with what you already have.
         </p>
 
-        <WorkshopGrid
-          allMaterials={allMaterials}
-          ownedIds={Array.from(ownedIds)}
-        />
+        <div
+          className="rounded-2xl p-6"
+          style={{
+            background: "var(--wv-cream)",
+            border: "1.5px solid rgba(39, 50, 72, 0.08)",
+          }}
+        >
+          <WorkshopGrid
+            allMaterials={allMaterials}
+            ownedIds={Array.from(ownedIds)}
+          />
+        </div>
       </div>
     </main>
   );

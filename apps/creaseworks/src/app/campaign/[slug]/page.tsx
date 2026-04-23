@@ -73,7 +73,7 @@ export default async function CampaignPage({
         <Link href="/sampler" className="text-sm text-cadet/50 hover:text-cadet mb-4 inline-block">
           &larr; all playdates
         </Link>
-        <h1 className="text-3xl font-semibold tracking-tight mb-2">
+        <h1 className="text-3xl font-semibold tracking-tight font-serif mb-2">
           {campaign.title}
         </h1>
         <p className="text-cadet/60 max-w-lg">{campaign.description}</p>

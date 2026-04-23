@@ -16,6 +16,7 @@ import {
 } from "@/lib/queries/materials";
 import { batchGetMaterialsForPlaydates } from "@/lib/queries/playdates";
 import { PlaydateCard } from "@/components/ui/playdate-card";
+import { CharacterSlot, resolveCharacterFromForm } from "@windedvertigo/characters";
 
 export const dynamic = "force-dynamic";
 
@@ -69,6 +70,7 @@ export default async function MaterialDetailPage({ params }: Props) {
     ? `/harbour/creaseworks/icons/materials/${material.icon}.png`
     : null;
   const functions: string[] = material.functions ?? [];
+  const characterName = resolveCharacterFromForm(material.form_primary, material.title);
 
   return (
     <main className="min-h-screen px-4 pt-8 pb-24 sm:px-6 sm:pt-14 sm:pb-16">
@@ -105,10 +107,15 @@ export default async function MaterialDetailPage({ params }: Props) {
               </span>
             )}
           </div>
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-cadet mb-1">
-              {material.title}
-            </h1>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-3 mb-1">
+              <h1 className="font-serif text-2xl sm:text-3xl font-bold text-cadet">
+                {material.title}
+              </h1>
+              {characterName && (
+                <CharacterSlot character={characterName} size={80} animate={false} variant="kid" />
+              )}
+            </div>
             {material.form_primary && (
               <p className="text-sm text-cadet/50 mb-3">
                 form: <span className="font-medium text-cadet/70">{material.form_primary}</span>
@@ -142,7 +149,10 @@ export default async function MaterialDetailPage({ params }: Props) {
           </h2>
 
           {playdates.length === 0 ? (
-            <div className="text-center py-12 rounded-xl border border-cadet/10">
+            <div
+              className="text-center py-12 rounded-xl"
+              style={{ background: "var(--wv-cream)", border: "1.5px solid rgba(39, 50, 72, 0.08)" }}
+            >
               <p className="text-cadet/40 text-sm">
                 no playdates use this material yet — check back as we add more!
               </p>

@@ -9,6 +9,7 @@ import Link from "next/link";
 import { requireAuth } from "@/lib/auth-helpers";
 import { getRunByInviteCode } from "@/lib/queries/co-play-page";
 import { CoPlayReflectionForm } from "@/components/co-play-reflection-form";
+import CharacterSlot from "@windedvertigo/characters";
 
 interface CoPlayReflectionsPageProps {
   params: Promise<{ code: string }>;
@@ -26,8 +27,11 @@ export default async function CoPlayReflectionsPage({
   if (!run) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="max-w-md w-full bg-white rounded-lg shadow-sm border border-cadet/10 p-6 text-center">
-          <h1 className="text-2xl font-bold mb-2 text-cadet">
+        <div
+          className="max-w-md w-full rounded-lg p-6 text-center"
+          style={{ background: "var(--wv-cream)", border: "1.5px solid rgba(39, 50, 72, 0.08)" }}
+        >
+          <h1 className="text-2xl font-bold font-serif mb-2 text-cadet">
             session not found
           </h1>
           <p className="text-cadet/60 mb-6">
@@ -52,7 +56,10 @@ export default async function CoPlayReflectionsPage({
   return (
     <div className="min-h-screen bg-background py-12 px-4">
       <div className="max-w-2xl mx-auto">
-        <div className="bg-white rounded-lg shadow-sm border border-cadet/10 p-8">
+        <div
+          className="rounded-lg p-8"
+          style={{ background: "var(--wv-cream)", border: "1.5px solid rgba(39, 50, 72, 0.08)" }}
+        >
           <Link
             href={`/runs/${run.id}`}
             className="text-redwood hover:underline text-sm mb-6 inline-block"
@@ -60,7 +67,10 @@ export default async function CoPlayReflectionsPage({
             ← back to playdate
           </Link>
 
-          <h1 className="text-3xl font-bold mb-2 text-cadet">
+          <div className="flex justify-center mb-4" aria-hidden="true">
+            <CharacterSlot character="jugs" size={52} animate={false} variant="kid" />
+          </div>
+          <h1 className="text-3xl font-bold font-serif mb-2 text-cadet">
             share your reflections
           </h1>
           <p className="text-cadet/60 mb-8">

@@ -25,7 +25,7 @@ export default async function CoPlayHub() {
   return (
     <main className="min-h-screen px-4 pt-8 pb-24 sm:px-6 sm:pt-16 sm:pb-16 max-w-lg mx-auto">
       {/* header */}
-      <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight mb-2">
+      <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight font-serif mb-2">
         co-play
       </h1>
       <p className="text-sm text-cadet/50 mb-8">

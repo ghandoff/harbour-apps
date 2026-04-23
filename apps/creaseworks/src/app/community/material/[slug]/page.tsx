@@ -12,6 +12,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { getMaterialBySlug } from "@/lib/queries/materials";
 import { getGalleryEvidenceByMaterial } from "@/lib/queries/gallery";
+import { CharacterSlot, resolveCharacterFromForm } from "@windedvertigo/characters";
 
 export const dynamic = "force-dynamic";
 
@@ -60,6 +61,7 @@ export default async function CommunityMaterialPage({ params }: Props) {
     ? `/harbour/creaseworks/icons/materials/${material.icon}.png`
     : null;
   const functions: string[] = material.functions ?? [];
+  const characterName = resolveCharacterFromForm(material.form_primary, material.title);
 
   /* group items by function_used — null/empty → "general" */
   const groupMap = new Map<string, typeof items>();
@@ -108,10 +110,15 @@ export default async function CommunityMaterialPage({ params }: Props) {
               </span>
             )}
           </div>
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-cadet mb-1">
-              how families use {material.title}
-            </h1>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-3 mb-1">
+              <h1 className="font-serif text-2xl sm:text-3xl font-bold text-cadet">
+                how families use {material.title}
+              </h1>
+              {characterName && (
+                <CharacterSlot character={characterName} size={80} animate={false} variant="kid" />
+              )}
+            </div>
             <div className="flex flex-wrap items-center gap-1.5">
               {material.form_primary && (
                 <span
@@ -244,10 +251,10 @@ function GalleryCard({ item, functionUsed }: GalleryCardProps) {
 
   return (
     <div
-      className="relative rounded-lg overflow-hidden border h-full flex flex-col transition-all hover:shadow-lg"
+      className="relative rounded-lg overflow-hidden h-full flex flex-col transition-all hover:shadow-lg"
       style={{
-        borderColor: "rgba(39, 50, 72, 0.1)",
-        backgroundColor: "white",
+        background: "var(--wv-cream)",
+        border: "1.5px solid rgba(39, 50, 72, 0.08)",
       }}
     >
       {/* function pill badge (top-right, absolute) */}

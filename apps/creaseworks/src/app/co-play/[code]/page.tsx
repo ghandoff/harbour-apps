@@ -10,6 +10,7 @@ import Link from "next/link";
 import { getSession } from "@/lib/auth-helpers";
 import { getRunByInviteCode } from "@/lib/queries/co-play-page";
 import { CoPlayJoinForm } from "@/components/co-play-join-form";
+import CharacterSlot from "@windedvertigo/characters";
 
 interface CoPlayPageProps {
   params: Promise<{ code: string }>;
@@ -25,8 +26,11 @@ export default async function CoPlayPage({ params }: CoPlayPageProps) {
   if (!run) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="max-w-md w-full bg-white rounded-lg shadow-sm border border-cadet/10 p-6 text-center">
-          <h1 className="text-2xl font-bold mb-2 text-cadet">
+        <div
+          className="max-w-md w-full rounded-lg p-6 text-center"
+          style={{ background: "var(--wv-cream)", border: "1.5px solid rgba(39, 50, 72, 0.08)" }}
+        >
+          <h1 className="text-2xl font-bold font-serif mb-2 text-cadet">
             invalid code
           </h1>
           <p className="text-cadet/60 mb-6">
@@ -56,8 +60,14 @@ export default async function CoPlayPage({ params }: CoPlayPageProps) {
   if (!session) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
-        <div className="max-w-md w-full bg-white rounded-lg shadow-sm border border-cadet/10 p-6">
-          <h1 className="text-2xl font-bold mb-2 text-cadet">
+        <div
+          className="max-w-md w-full rounded-lg p-6"
+          style={{ background: "var(--wv-cream)", border: "1.5px solid rgba(39, 50, 72, 0.08)" }}
+        >
+          <div className="flex justify-center mb-3" aria-hidden="true">
+            <CharacterSlot character="cord" size={52} animate={false} variant="kid" />
+          </div>
+          <h1 className="text-2xl font-bold font-serif mb-2 text-cadet">
             join co-play
           </h1>
           <p className="text-cadet/60 mb-4">
@@ -91,8 +101,14 @@ export default async function CoPlayPage({ params }: CoPlayPageProps) {
   // Already logged in — show join form
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-sm border border-cadet/10 p-6">
-        <h1 className="text-2xl font-bold mb-2 text-cadet">
+      <div
+        className="max-w-md w-full rounded-lg p-6"
+        style={{ background: "var(--wv-cream)", border: "1.5px solid rgba(39, 50, 72, 0.08)" }}
+      >
+        <div className="flex justify-center mb-3" aria-hidden="true">
+          <CharacterSlot character="cord" size={52} animate={false} variant="kid" />
+        </div>
+        <h1 className="text-2xl font-bold font-serif mb-2 text-cadet">
           join co-play
         </h1>
         <p className="text-cadet/60 mb-6">

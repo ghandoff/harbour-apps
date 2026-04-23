@@ -9,6 +9,7 @@
 
 import type { Metadata } from "next";
 import Link from "next/link";
+import CharacterSlot from "@windedvertigo/characters";
 
 export const dynamic = "force-dynamic";
 
@@ -27,14 +28,11 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
   return (
     <main className="min-h-screen flex items-center justify-center px-6">
       <div className="max-w-md text-center">
-        <div
-          className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full"
-          style={{ backgroundColor: "rgba(177, 80, 67, 0.1)" }}
-        >
-          <span className="text-2xl">✓</span>
+        <div className="flex justify-center mb-5" aria-hidden="true">
+          <CharacterSlot character="swatch" size={80} animate={false} variant="kid" />
         </div>
 
-        <h1 className="text-2xl font-semibold tracking-tight mb-3">
+        <h1 className="text-2xl font-semibold tracking-tight font-serif mb-3">
           your pack is ready
         </h1>
 
