@@ -3,11 +3,14 @@
 /**
  * Accessibility preferences — client component.
  *
- * Three toggles:
- *   1. Reduced motion — suppresses CSS animations & transitions.
- *   2. Dyslexia-friendly font — switches to Atkinson Hyperlegible.
- *   3. Calm theme — warm dark backgrounds, muted accents for sensory
+ * Four toggles:
+ *   1. UI mode — kid (default, bright + playful) vs grown-up (quieter,
+ *      muted). Flips the harbour character cast register and turns down
+ *      the kid-only chrome (big wobble tiles, crayon-drawer rhythm).
+ *   2. Calm theme — warm dark backgrounds, muted accents for sensory
  *      sensitivity (autism spectrum, migraines, ADHD overstimulation).
+ *   3. Reduced motion — suppresses CSS animations & transitions.
+ *   4. Dyslexia-friendly font — switches to Atkinson Hyperlegible.
  *
  * Each toggle immediately updates the <html> classList for instant
  * visual feedback, then calls the API to persist to DB + cookies.
@@ -21,10 +24,13 @@
 import { useState, useEffect, useCallback } from "react";
 import { apiUrl } from "@/lib/api-url";
 
+type UiMode = "kid" | "grownup";
+
 interface Prefs {
   reduceMotion: boolean;
   dyslexiaFont: boolean;
   calmTheme: boolean;
+  uiMode: UiMode;
 }
 
 export default function AccessibilityPrefs() {
@@ -40,6 +46,9 @@ export default function AccessibilityPrefs() {
           reduceMotion: data.reduceMotion ?? false,
           dyslexiaFont: data.dyslexiaFont ?? false,
           calmTheme: data.calmTheme ?? false,
+          // kid is the product's default register — an existing 'grownup'
+          // user opted in deliberately via the toggle below.
+          uiMode: data.uiMode === "grownup" ? "grownup" : "kid",
         });
         setLoading(false);
       })
@@ -76,6 +85,9 @@ export default function AccessibilityPrefs() {
     if (updates.calmTheme !== undefined) {
       applyClassToHtml("calm-theme", updates.calmTheme);
     }
+    if (updates.uiMode !== undefined) {
+      applyClassToHtml("grownup-mode", updates.uiMode === "grownup");
+    }
 
     setSaving(true);
 
@@ -98,6 +110,9 @@ export default function AccessibilityPrefs() {
         if (updates.calmTheme !== undefined) {
           applyClassToHtml("calm-theme", prefs.calmTheme);
         }
+        if (updates.uiMode !== undefined) {
+          applyClassToHtml("grownup-mode", prefs.uiMode === "grownup");
+        }
       }
     } catch {
       // rollback state and CSS classes
@@ -110,6 +125,9 @@ export default function AccessibilityPrefs() {
       }
       if (updates.calmTheme !== undefined) {
         applyClassToHtml("calm-theme", prefs.calmTheme);
+      }
+      if (updates.uiMode !== undefined) {
+        applyClassToHtml("grownup-mode", prefs.uiMode === "grownup");
       }
     } finally {
       setSaving(false);
@@ -139,7 +157,49 @@ export default function AccessibilityPrefs() {
 
   return (
     <div className="space-y-6">
-      {/* Calm theme toggle — first because it's the most visually dramatic */}
+      {/* UI mode — kid (default) vs grownup. First because it changes the
+          whole app register (character cast tone, tile wobble, layout
+          rhythm), and kids should never see this toggle flipped on them
+          by accident.                                                    */}
+      <div
+        className="cw-a11y-card rounded-lg border p-4"
+        style={{ borderColor: "var(--cw-border)" }}
+      >
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p
+              className="text-sm font-medium"
+              style={{ color: "var(--cw-text)" }}
+            >
+              grown-up interface
+            </p>
+            <p
+              className="text-xs mt-0.5"
+              style={{ color: "var(--cw-text-muted)" }}
+            >
+              creaseworks defaults to <em>kid mode</em> — bright tiles,
+              the harbour character cast in their playful register, crayon-
+              drawer rhythm. flip this on for a quieter grown-up voice
+              (muted cast, calmer chrome) when you&apos;re planning without
+              the kids in the room.
+            </p>
+          </div>
+
+          <ToggleSwitch
+            checked={prefs.uiMode === "grownup"}
+            label="toggle grown-up interface"
+            disabled={saving}
+            onToggle={() =>
+              updatePrefs({
+                uiMode: prefs.uiMode === "grownup" ? "kid" : "grownup",
+              })
+            }
+          />
+        </div>
+      </div>
+
+      {/* Calm theme toggle — orthogonal to kid/grownup; affects colour
+          palette for sensory sensitivity regardless of register.         */}
       <div
         className="cw-a11y-card rounded-lg border p-4"
         style={{ borderColor: "var(--cw-border)" }}

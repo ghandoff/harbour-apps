@@ -385,6 +385,33 @@ html.reduce-motion *::after {
   scroll-behavior: auto !important;
 }
 
+/* ── grownup mode ──────────────────────────────────────────────
+   When html.grownup-mode is set, quiet the kid-register chrome
+   without going fully adult-register. Wobbles go static, tile
+   tilts un-tilt, saturation drops a notch so the app reads as
+   a quieter workspace without losing its identity. The full
+   adult-register character swap (variant="adult" everywhere) is
+   a follow-up pass threaded through context.                      */
+
+html.grownup-mode .et-tile,
+html.grownup-mode .mph-tile,
+html.grownup-mode button.mph-tile:not([type="submit"]):not(.wv-header-signout) {
+  animation: none !important;
+  rotate: 0deg !important;
+}
+html.grownup-mode .et-tile:hover,
+html.grownup-mode .mph-tile:hover {
+  rotate: 0deg !important;
+}
+html.grownup-mode {
+  --kid-saturation: 0.88;
+}
+html.grownup-mode .et-tile svg,
+html.grownup-mode .mph-tile svg,
+html.grownup-mode [aria-label*="character named"] svg {
+  filter: saturate(var(--kid-saturation, 1));
+}
+
 /* ── dyslexia-friendly font ─────────────────────────────────────
    Switches to Atkinson Hyperlegible when .dyslexia-font is on
    <html>. Characters have distinct shapes to reduce mirroring
