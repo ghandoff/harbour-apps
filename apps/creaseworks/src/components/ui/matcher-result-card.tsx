@@ -58,8 +58,10 @@ function getMatchQuality(score: number) {
   if (score >= 55)
     return { label: "great match", emoji: "⭐", stars: 2, color: "var(--wv-sienna)" };
   if (score >= 30)
-    return { label: "good match", emoji: "✨", stars: 1, color: "var(--wv-champagne)" };
-  return { label: "worth a try", emoji: "💫", stars: 0, color: "rgba(39, 50, 72, 0.3)" };
+    // UDL fix: champagne on a white card is ~1.15:1 (invisible).
+    // Use sienna — same warm accent family, 3.7:1 AA large-text on white.
+    return { label: "good match", emoji: "✨", stars: 1, color: "var(--wv-sienna)" };
+  return { label: "worth a try", emoji: "💫", stars: 0, color: "rgba(39, 50, 72, 0.45)" };
 }
 
 /** One-liner identity per character. Used to turn a cast set into a
@@ -444,8 +446,15 @@ export default function MatcherResultCard({
         <div
           className="mt-3 rounded-xl p-4 text-xs"
           style={{
-            backgroundColor: "var(--wv-champagne)",
-            color: "var(--wv-cadet)",
+            // UDL time-bomb fix: previously bg used var(--wv-champagne)
+            // AND text used var(--wv-cadet). Inside .cw-find-bg the hijack
+            // remapped champagne → #3a3024 so this rendered as dark-brown
+            // on dark-cadet at ~1.4:1 — invisible copy. Now the bg uses
+            // the semantic surface-cream token (stable across routes) and
+            // the text is cadet for 10.3:1 AAA regardless of parent.
+            backgroundColor: "var(--color-surface-cream)",
+            color: "var(--color-text-on-cream)",
+            border: "1px solid rgba(39, 50, 72, 0.08)",
           }}
         >
           <h4 className="font-bold mb-1">💡 swap ideas</h4>

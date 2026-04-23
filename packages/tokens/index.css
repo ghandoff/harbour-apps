@@ -52,8 +52,18 @@
   --color-text-on-dark:         var(--wv-champagne); /* #ffebd2 on #273248 = 9.8:1 */
   --color-text-on-dark-muted:   rgba(255, 235, 210, 0.85); /* AAA */
 
+  /* text on kid-surface / phase-tint light backgrounds.
+     retires the `--wv-champagne: #3a3024` hijack that used to live
+     inside .cw-find-bg — now every component can ask for
+     var(--color-text-on-cream) and get a readable dark tone
+     regardless of which phase surface it renders on.               */
+  --color-text-on-cream:        var(--wv-cadet);     /* #273248 on #fff6e8 = 10.3:1 AAA */
+  --color-text-on-cream-muted:  rgba(39, 50, 72, 0.65); /* on cream ≈ 5.5:1 AA */
+  --color-text-on-tint:         #3a3024;             /* warm near-black on phase tints ≈ 9:1 AAA */
+
   /* surfaces */
   --color-surface-raised:       #1e2738;             /* card/panel on cadet bg */
+  --color-surface-cream:        var(--wv-cream);     /* #fff6e8 — kid-surface default */
 
   /* interactive */
   --color-focus:    #3B82F6;                          /* blue-500 — focus rings only */

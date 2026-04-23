@@ -43,15 +43,20 @@ export default function FindModeSelector({
             href={mode.href}
             className="rounded-xl px-3 py-3 text-center active:scale-[0.96] flex flex-col items-center gap-1"
             style={{
+              // UDL fix: inactive tabs were rgba-white-on-tint with 1.05:1
+              // affordance. Now: solid white card + cadet border so the
+              // tab reads as a real object against the phase tint.
               backgroundColor: active
                 ? "var(--wv-sienna)"
-                : "rgba(255, 255, 255, 0.06)",
-              color: active ? "var(--wv-white)" : "var(--wv-champagne)",
-              opacity: active ? 1 : 0.7,
+                : "var(--wv-white)",
+              color: active
+                ? "var(--wv-white)"
+                : "var(--color-text-on-cream)",
+              opacity: active ? 1 : 0.9,
               transition: `all 200ms ${SPRING}`,
               border: active
                 ? "1.5px solid var(--wv-sienna)"
-                : "1.5px solid rgba(255, 255, 255, 0.1)",
+                : "1.5px solid rgba(39, 50, 72, 0.12)",
               WebkitTapHighlightColor: "transparent",
             }}
           >
