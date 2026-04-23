@@ -4,6 +4,7 @@ import { GameShowcase } from "@/components/game-showcase";
 import { GameDock } from "@/components/game-dock";
 import { CredibilityZone } from "@/components/credibility-zone";
 import { ScrollReveal } from "@/components/scroll-reveal";
+import { CastParade } from "@/components/cast-parade";
 import { fetchGames, fetchCredibility } from "@/lib/notion";
 
 /** ISR: revalidate every hour so Notion edits appear without a redeploy. */
@@ -55,6 +56,9 @@ export default async function HarbourPage() {
             </div>
           </div>
         </section>
+
+        {/* ── cast parade — brand signature, connective tissue ─ */}
+        <CastParade />
 
         {/* ── play. — games and toys ─────────────────────────── */}
         <div id="play" className="scroll-mt-24">
