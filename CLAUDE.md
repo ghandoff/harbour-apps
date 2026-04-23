@@ -97,11 +97,21 @@ document answers in `docs/infrastructure-and-costs.md` before committing to a ne
 
 - **always rebase before push**. never amend published commits.
 - **use `--force-with-lease`** after rebase, never `--force`.
+- **after a rebase**, run `git log --oneline` and confirm your commits are at the top before pushing.
 - **pull before starting work** — Garrett works from multiple machines (laptop + desktop).
+- **session-start checklist** — run these before touching any code:
+  ```
+  git fetch origin
+  git log --oneline origin/main..HEAD   # your unpushed commits
+  git log --oneline HEAD..origin/main   # commits you're behind
+  git status
+  ```
+  if you're behind, run `git pull --rebase origin main` before branching.
 - **branch naming**: `feat/feature-name`, `fix/bug-name`, `chore/task-name`.
 - **commit style**: `type(scope): concise summary` — feat, fix, docs, chore, style, refactor.
 - **database migrations sequence**: feature branch → code changes → deploy to Vercel preview → test → merge to main → THEN run migration. never migrate production before code is deployed.
 - **notion sync bot pushes daily** (6 AM UTC) — can cause rejected pushes mid-session. run `git pull --rebase origin main` before retrying.
+- **branch protection**: `main` should have push protection enabled in GitHub settings — always merge via PR, never push directly to `main`.
 
 ---
 
