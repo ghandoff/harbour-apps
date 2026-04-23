@@ -188,7 +188,7 @@ export default function OnboardingWizard({
         {/* step 0: tier selection (new users only) */}
         {step === 0 && !editMode && (
           <>
-            <h1 className="text-xl font-semibold text-cadet mb-1">
+            <h1 className="text-xl font-semibold font-serif text-cadet mb-1">
               how do you want to use creaseworks?
             </h1>
             <p className="text-sm text-cadet/50 mb-6">
@@ -220,7 +220,7 @@ export default function OnboardingWizard({
         {/* step 1: ages */}
         {step === 1 && (
           <>
-            <h1 className="text-xl font-semibold text-cadet mb-1">
+            <h1 className="text-xl font-semibold font-serif text-cadet mb-1">
               who&apos;s playing?
             </h1>
             <p className="text-sm text-cadet/50 mb-6">
@@ -251,7 +251,7 @@ export default function OnboardingWizard({
         {/* step 2: context */}
         {step === 2 && (
           <>
-            <h1 className="text-xl font-semibold text-cadet mb-1">
+            <h1 className="text-xl font-semibold font-serif text-cadet mb-1">
               where do you usually play?
             </h1>
             <p className="text-sm text-cadet/50 mb-6">
@@ -282,7 +282,7 @@ export default function OnboardingWizard({
         {/* step 3: energy */}
         {step === 3 && (
           <>
-            <h1 className="text-xl font-semibold text-cadet mb-1">
+            <h1 className="text-xl font-semibold font-serif text-cadet mb-1">
               what energy level works?
             </h1>
             <p className="text-sm text-cadet/50 mb-6">
@@ -314,7 +314,7 @@ export default function OnboardingWizard({
         {/* step 4 (edit mode only): name this context */}
         {step === 4 && editMode && (
           <>
-            <h1 className="text-xl font-semibold text-cadet mb-1">
+            <h1 className="text-xl font-semibold font-serif text-cadet mb-1">
               name this context
             </h1>
             <p className="text-sm text-cadet/50 mb-6">

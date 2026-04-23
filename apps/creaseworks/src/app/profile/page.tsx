@@ -199,7 +199,7 @@ export default async function ProfilePage({
         </div>
 
         <div className="flex-1 min-w-0">
-          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight truncate">
+          <h1 className="text-2xl sm:text-3xl font-semibold font-serif tracking-tight truncate">
             {displayName}
           </h1>
           <div className="flex items-center gap-2 text-sm text-cadet/40 mt-0.5">

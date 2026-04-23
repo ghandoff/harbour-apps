@@ -33,7 +33,7 @@ export default async function LoginPage({
         style={{ backgroundColor: "var(--wv-white)" }}
       >
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold mb-2" style={{ color: "var(--wv-cadet)" }}>
+          <h1 className="text-2xl font-bold font-serif mb-2" style={{ color: "var(--wv-cadet)" }}>
             creaseworks
           </h1>
           <p className="text-sm" style={{ color: "var(--wv-cadet)", opacity: 0.7 }}>

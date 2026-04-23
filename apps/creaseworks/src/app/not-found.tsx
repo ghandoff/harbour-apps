@@ -10,7 +10,7 @@ export default function NotFound() {
       style={{ backgroundColor: "var(--wv-cadet)", color: "var(--wv-champagne)" }}
     >
       <h1
-        className="text-6xl font-bold tracking-tight mb-2"
+        className="text-6xl font-bold font-serif tracking-tight mb-2"
         style={{ color: "var(--wv-sienna)" }}
       >
         404
