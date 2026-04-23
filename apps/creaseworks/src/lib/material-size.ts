@@ -208,3 +208,37 @@ export function sortMaterialsBySize<
     return a.title.localeCompare(b.title);
   });
 }
+
+/* ── size tiers: visual anchors for non-reader kids ─────────────
+   Replace the old "↑ small stuff / big stuff ↓" text hint in the
+   classic picker with these milestone bands. Each tier has a big
+   emoji (reads instantly), a one-word label (for older kids and
+   parents), and a rank range. A tier change between adjacent
+   materials in the sorted list triggers a sticky band at that
+   row of the grid — natural rest points for kids scrolling the
+   long list.                                                       */
+
+export interface SizeTier {
+  key: string;
+  emoji: string;
+  label: string;
+  minRank: number;
+}
+
+export const SIZE_TIERS: readonly SizeTier[] = [
+  { key: "tiny",   emoji: "🫘", label: "tiny things",   minRank: 0   },
+  { key: "small",  emoji: "✏️", label: "small stuff",    minRank: 300 },
+  { key: "medium", emoji: "📄", label: "medium things", minRank: 500 },
+  { key: "big",    emoji: "📦", label: "big stuff",     minRank: 700 },
+  { key: "huge",   emoji: "🗑️", label: "the huge ones", minRank: 900 },
+] as const;
+
+/** Resolve a rank (100–1100) to its visual tier. O(n) linear scan
+ *  over 5 entries — trivially cheap. */
+export function getSizeTier(rank: number): SizeTier {
+  let match: SizeTier = SIZE_TIERS[0];
+  for (const tier of SIZE_TIERS) {
+    if (rank >= tier.minRank) match = tier;
+  }
+  return match;
+}
