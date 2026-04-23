@@ -6,6 +6,7 @@ import { apiPath } from "@/lib/paths";
 import { ARTIFACT_EXAMPLES } from "@/lib/types";
 
 type SeedInput = {
+  id: string;
   name: string;
   good_description: string;
   required: boolean;
@@ -21,6 +22,7 @@ export function NewRoomForm({ seeds }: Props) {
   const [description, setDescription] = useState("");
   const [seedState, setSeedState] = useState<SeedInput[]>(
     seeds.map((s) => ({
+      id: crypto.randomUUID(),
       name: s.name,
       good_description: s.good_description ?? "",
       required: false,
@@ -38,7 +40,7 @@ export function NewRoomForm({ seeds }: Props) {
   }
 
   function addSeed() {
-    setSeedState((cur) => [...cur, { name: "", good_description: "", required: false }]);
+    setSeedState((cur) => [...cur, { id: crypto.randomUUID(), name: "", good_description: "", required: false }]);
   }
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -143,7 +145,7 @@ export function NewRoomForm({ seeds }: Props) {
         <div className="space-y-3">
           {seedState.map((seed, i) => (
             <div
-              key={i}
+              key={seed.id}
               className="rounded-lg border border-[color:var(--color-cadet)]/15 bg-white p-4 space-y-3"
             >
               <div className="flex items-center gap-3">

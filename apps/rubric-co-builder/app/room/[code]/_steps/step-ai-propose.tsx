@@ -78,7 +78,7 @@ export function StepAiPropose({
                 value={rationale}
                 onChange={(e) => setRationale(e.target.value)}
                 onBlur={() => {
-                  if (level !== null) save(level, rationale);
+                  if (level !== null && !saving) save(level, rationale);
                 }}
                 rows={4}
                 maxLength={600}
@@ -148,7 +148,7 @@ export function StepAiPropose({
                   </p>
                 </div>
                 <div className="w-20 shrink-0 text-right">
-                  <span className="text-[10px] tracking-wider uppercase text-[color:var(--color-cadet)]/50">
+                  <span className="text-xs tracking-wider uppercase text-[color:var(--color-cadet)]/50">
                     {rungProposals.length}{" "}
                     {rungProposals.length === 1 ? "proposal" : "proposals"}
                   </span>

@@ -165,7 +165,7 @@ export function StepAiLadder({
                     />
                   ))}
                   {rungCount === 0 ? (
-                    <span className="text-[10px] text-[color:var(--color-cadet)]/40">
+                    <span className="text-xs text-[color:var(--color-cadet)]/40">
                       —
                     </span>
                   ) : null}
@@ -192,7 +192,7 @@ export function StepAiLadder({
                           ].join(" ")}
                         >
                           <div className="flex items-center justify-between mb-1">
-                            <span className="text-[10px] uppercase tracking-wider text-[color:var(--color-cadet)]/55">
+                            <span className="text-xs uppercase tracking-wider text-[color:var(--color-cadet)]/55">
                               {participantLabel.get(p.participant_id) ?? "student"}
                               {p.participant_id === participantId ? " · yours" : ""}
                             </span>
@@ -219,7 +219,7 @@ export function StepAiLadder({
                   })}
                 </ul>
               ) : (
-                <p className="mt-2 ml-20 text-[10px] uppercase tracking-wider text-[color:var(--color-cadet)]/40">
+                <p className="mt-2 ml-20 text-xs uppercase tracking-wider text-[color:var(--color-cadet)]/40">
                   no proposals on this rung
                 </p>
               )}
@@ -353,7 +353,7 @@ function LegacyLadder({
                   />
                 ))}
                 {rungCount === 0 ? (
-                  <span className="text-[10px] text-[color:var(--color-cadet)]/40">
+                  <span className="text-xs text-[color:var(--color-cadet)]/40">
                     —
                   </span>
                 ) : null}

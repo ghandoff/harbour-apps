@@ -43,13 +43,14 @@ export function StepPropose({ code, criteria, canEdit }: Props) {
 
   async function remove(id: string) {
     if (!canEdit) return;
-    await fetch(apiPath(`/api/rooms/${code}/criteria/${id}`), { method: "DELETE" });
+    const res = await fetch(apiPath(`/api/rooms/${code}/criteria/${id}`), { method: "DELETE" });
+    if (!res.ok) throw new Error("the network blinked.");
   }
 
   // instead of overwriting, propose a new version alongside the original
   async function proposeVersion(original: Criterion, nextName: string, nextGood: string) {
     if (!canEdit) return;
-    await fetch(apiPath(`/api/rooms/${code}/criteria`), {
+    const res = await fetch(apiPath(`/api/rooms/${code}/criteria`), {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
@@ -58,6 +59,7 @@ export function StepPropose({ code, criteria, canEdit }: Props) {
         version_of: original.id,
       }),
     });
+    if (!res.ok) throw new Error("the network blinked.");
   }
 
   // group criteria: originals + their versions
@@ -166,13 +168,14 @@ function CriterionCard({
   criterion: Criterion;
   canEdit: boolean;
   isVersion?: boolean;
-  onRemove: () => void;
-  onProposeVersion: (name: string, good: string) => void;
+  onRemove: () => Promise<void>;
+  onProposeVersion: (name: string, good: string) => Promise<void>;
 }) {
   const [showVersionForm, setShowVersionForm] = useState(false);
   const [vName, setVName] = useState(criterion.name);
   const [vGood, setVGood] = useState(criterion.good_description ?? "");
   const [submittingVersion, setSubmittingVersion] = useState(false);
+  const [removeError, setRemoveError] = useState<string | null>(null);
 
   async function submitVersion(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -198,18 +201,21 @@ function CriterionCard({
           {criterion.name}
         </p>
         {criterion.required ? (
-          <span className="text-[10px] uppercase tracking-wider bg-[color:var(--color-cadet)] text-white rounded px-2 py-0.5 mt-1 shrink-0">
+          <span className="text-xs uppercase tracking-wider bg-[color:var(--color-cadet)] text-white rounded px-2 py-0.5 mt-1 shrink-0">
             required
           </span>
         ) : null}
         {isVersion ? (
-          <span className="text-[10px] uppercase tracking-wider bg-[color:var(--color-sienna)]/15 text-[color:var(--color-sienna)] rounded px-2 py-0.5 mt-1 shrink-0">
+          <span className="text-xs uppercase tracking-wider bg-[color:var(--color-sienna)]/15 text-[color:var(--color-sienna)] rounded px-2 py-0.5 mt-1 shrink-0">
             variation
           </span>
         ) : null}
         {canEdit && !criterion.required ? (
           <button
-            onClick={onRemove}
+            onClick={async () => {
+              setRemoveError(null);
+              try { await onRemove(); } catch { setRemoveError("the network blinked."); }
+            }}
             aria-label={`remove ${criterion.name}`}
             className="text-xs text-[color:var(--color-redwood)]/80 hover:text-[color:var(--color-redwood)] shrink-0"
           >
@@ -218,6 +224,10 @@ function CriterionCard({
         ) : null}
       </div>
 
+      {removeError ? (
+        <p className="text-xs text-[color:var(--color-redwood)]">{removeError}</p>
+      ) : null}
+
       {criterion.good_description ? (
         <p className="text-sm leading-relaxed text-[color:var(--color-cadet)]/80">
           {criterion.good_description}
@@ -225,13 +235,13 @@ function CriterionCard({
       ) : null}
 
       <div className="flex items-center justify-between">
-        <p className="text-[10px] uppercase tracking-wider text-[color:var(--color-cadet)]/50">
+        <p className="text-xs uppercase tracking-wider text-[color:var(--color-cadet)]/50">
           {criterion.source}
         </p>
         {canEdit && !isVersion ? (
           <button
             onClick={() => setShowVersionForm((v) => !v)}
-            className="text-[10px] uppercase tracking-wider text-[color:var(--color-cadet)]/50 hover:text-[color:var(--color-sienna)] transition-colors"
+            className="text-xs uppercase tracking-wider text-[color:var(--color-cadet)]/50 hover:text-[color:var(--color-sienna)] transition-colors"
           >
             {showVersionForm ? "cancel" : "+ propose variation"}
           </button>

@@ -9,6 +9,10 @@ type Props = {
   size?: number;
 };
 
+// matches --color-cadet and --color-wv-white
+const QR_DARK = "#273248";
+const QR_LIGHT = "#ffffff";
+
 // renders a QR that points at the canonical join URL for this room.
 // uses window.location.origin so it works in local dev, the vercel preview,
 // and the windedvertigo.com proxy without any env wiring.
@@ -24,7 +28,7 @@ export function JoinQR({ code, size = 176 }: Props) {
       type: "svg",
       errorCorrectionLevel: "M",
       margin: 1,
-      color: { dark: "#273248", light: "#ffffff" },
+      color: { dark: QR_DARK, light: QR_LIGHT },
     })
       .then(setSvg)
       .catch(() => setSvg(""));
@@ -38,7 +42,7 @@ export function JoinQR({ code, size = 176 }: Props) {
         className="bg-white rounded-lg p-2 shadow-sm"
         dangerouslySetInnerHTML={{ __html: svg }}
       />
-      <p className="text-[10px] text-center max-w-[14rem] break-all text-[color:var(--color-cadet)]/70 font-mono">
+      <p className="text-xs text-center max-w-[14rem] break-all text-[color:var(--color-cadet)]/70 font-mono">
         {href || "…"}
       </p>
     </div>

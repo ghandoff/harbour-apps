@@ -7,6 +7,7 @@
   --color-champagne: #ffebd2;
   --color-soft-green: #a8c4a1;
   --color-wv-white: #ffffff;
+  --color-focus: #3b82f6;
 
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }
@@ -33,7 +34,7 @@
   }
 
   *:focus-visible {
-    outline: 3px solid #3b82f6;
+    outline: 3px solid var(--color-focus);
     outline-offset: 2px;
     border-radius: 4px;
   }
@@ -56,6 +57,10 @@
   @media (prefers-contrast: more) {
     body {
       color: #000000;
+    }
+    /* strengthen interactive borders for high-contrast environments */
+    input, textarea, button, [role="button"] {
+      border-color: var(--color-cadet) !important;
     }
   }
 }

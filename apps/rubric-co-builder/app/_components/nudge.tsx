@@ -94,7 +94,7 @@ export function FacilitatorNudgeBanner({ text }: { text: string | null }) {
       aria-live="polite"
       className="mb-6 rounded-lg border-l-4 border-[color:var(--color-sienna)] bg-[color:var(--color-champagne)] px-4 py-3"
     >
-      <p className="text-[10px] tracking-widest text-[color:var(--color-cadet)]/70 mb-1">
+      <p className="text-xs tracking-widest text-[color:var(--color-cadet)]/70 mb-1">
         from the facilitator
       </p>
       <p className="text-sm text-[color:var(--color-cadet)] leading-relaxed">{text}</p>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import type { Criterion, Scale, Vote } from "@/lib/types";
 import { SCALE_LEVELS } from "@/lib/types";
 import { apiPath } from "@/lib/paths";
@@ -31,6 +31,7 @@ export function StepVote({
   scales,
 }: Props) {
   const maxVotes = maxVotesFor(criteria.length);
+  const [voteError, setVoteError] = useState<string | null>(null);
 
   // only look at votes for the current round
   const roundVotes = useMemo(() => votes.filter((v) => (v.round ?? 1) === round), [votes, round]);
@@ -62,24 +63,31 @@ export function StepVote({
   async function toggle(criterion: Criterion) {
     if (!participantId) return;
     const already = myCast.has(criterion.id);
-    if (already) {
-      await fetch(
-        apiPath(
-          `/api/rooms/${code}/votes?participant_id=${participantId}&criterion_id=${criterion.id}&round=${round}`,
-        ),
-        { method: "DELETE" },
-      );
-    } else {
-      if (dotsLeft <= 0) return;
-      await fetch(apiPath(`/api/rooms/${code}/votes`), {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          participant_id: participantId,
-          criterion_id: criterion.id,
-          round,
-        }),
-      });
+    setVoteError(null);
+    try {
+      if (already) {
+        const res = await fetch(
+          apiPath(
+            `/api/rooms/${code}/votes?participant_id=${participantId}&criterion_id=${criterion.id}&round=${round}`,
+          ),
+          { method: "DELETE" },
+        );
+        if (!res.ok) setVoteError("the network blinked — try again.");
+      } else {
+        if (dotsLeft <= 0) return;
+        const res = await fetch(apiPath(`/api/rooms/${code}/votes`), {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            participant_id: participantId,
+            criterion_id: criterion.id,
+            round,
+          }),
+        });
+        if (!res.ok) setVoteError("the network blinked — try again.");
+      }
+    } catch {
+      setVoteError("the network blinked — try again.");
     }
   }
 
@@ -143,12 +151,12 @@ export function StepVote({
                   {c.name}
                 </p>
                 {c.required ? (
-                  <span className="text-[10px] uppercase tracking-wider bg-[color:var(--color-cadet)] text-white rounded px-2 py-0.5">
+                  <span className="text-xs uppercase tracking-wider bg-[color:var(--color-cadet)] text-white rounded px-2 py-0.5">
                     required
                   </span>
                 ) : null}
                 {c.version_of ? (
-                  <span className="text-[10px] uppercase tracking-wider bg-[color:var(--color-sienna)]/15 text-[color:var(--color-sienna)] rounded px-2 py-0.5">
+                  <span className="text-xs uppercase tracking-wider bg-[color:var(--color-sienna)]/15 text-[color:var(--color-sienna)] rounded px-2 py-0.5">
                     variation
                   </span>
                 ) : null}
@@ -163,7 +171,7 @@ export function StepVote({
                 <div className="mt-3 pt-3 border-t border-[color:var(--color-cadet)]/10 space-y-2">
                   {criterionScales.map(({ level, label, descriptor }) => (
                     <div key={level} className="flex gap-2 text-xs leading-relaxed">
-                      <span className="shrink-0 text-[10px] uppercase tracking-wider text-[color:var(--color-cadet)]/50 w-20 pt-0.5">
+                      <span className="shrink-0 text-xs uppercase tracking-wider text-[color:var(--color-cadet)]/50 w-20 pt-0.5">
                         {level} · {label}
                       </span>
                       <span className="text-[color:var(--color-cadet)]/75">
@@ -183,14 +191,15 @@ export function StepVote({
                   />
                 ))}
                 {count === 0 ? (
-                  <span className="text-[10px] text-[color:var(--color-cadet)]/40">
+                  <span className="text-xs text-[color:var(--color-cadet)]/40">
                     no dots yet
                   </span>
                 ) : null}
+                <span className="sr-only">{count} vote{count !== 1 ? "s" : ""}</span>
               </div>
 
               {hasVotes && !c.required ? (
-                <p className="text-[10px] uppercase tracking-wider mt-2 text-[color:var(--color-cadet)] font-semibold">
+                <p className="text-xs uppercase tracking-wider mt-2 text-[color:var(--color-cadet)] font-semibold">
                   making the cut
                 </p>
               ) : null}
@@ -198,6 +207,10 @@ export function StepVote({
           );
         })}
       </div>
+
+      {voteError ? (
+        <p role="alert" className="text-xs text-[color:var(--color-redwood)]">{voteError}</p>
+      ) : null}
 
       <p className="text-xs text-[color:var(--color-cadet)]/55 max-w-xl">
         when the host taps <em>tally</em>, every criterion with at least one dot moves forward.
