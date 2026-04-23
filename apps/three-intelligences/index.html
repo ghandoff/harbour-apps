@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>the three intelligences</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --cadet:     #273248;
+  --redwood:   #b15043;
+  --sienna:    #cb7858;
+  --champagne: #ffebd2;
+  --white:     #ffffff;
+  --focus:     #3B82F6;
+  --muted:     #6b7280;
+  --rule:      rgba(39,50,72,0.12);
+  --rule-dark: rgba(255,235,210,0.1);
+  --font: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.6;
+  letter-spacing: 0.02em;
+  -webkit-font-smoothing: antialiased;
+  scroll-behavior: smooth;
+  min-width: 375px;
+}
+
+body { background: var(--white); color: var(--cadet); }
+
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media (prefers-contrast: more) {
+  body { color: #000; }
+  .s-dark { color: #fff; }
+}
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+}
+
+.skip-link {
+  position: fixed; top: -48px; left: 12px; z-index: 200;
+  padding: 8px 14px; background: var(--champagne); color: var(--cadet);
+  font-size: 0.8125rem; font-weight: 600; text-decoration: none;
+  border-radius: 8px; box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+  transition: top 160ms ease;
+}
+.skip-link:focus { top: 12px; }
+
+/* ── welcome banner ── */
+#welcome-banner {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 1rem; padding: 0.75rem 1.5rem;
+  background: var(--champagne); color: var(--cadet);
+  font-size: 0.875rem; font-weight: 500;
+}
+#welcome-banner[hidden] { display: none; }
+#dismiss-banner {
+  background: none; border: none; cursor: pointer;
+  font-size: 1.25rem; line-height: 1; color: var(--cadet); padding: 0 4px;
+}
+
+/* ── section nav ── */
+.section-nav {
+  background: var(--cadet); padding: 0.5rem 1.5rem;
+  position: sticky; top: 0; z-index: 100;
+  border-bottom: 1px solid var(--rule-dark);
+}
+.section-nav ul {
+  list-style: none; display: flex; flex-wrap: wrap; gap: 0.25rem 1rem;
+  max-width: 70ch; margin: 0 auto;
+}
+.section-nav a {
+  font-size: 0.75rem; font-weight: 600; letter-spacing: 0.04em;
+  color: rgba(255,235,210,0.7); text-decoration: none;
+  padding: 4px 0; transition: color 150ms ease;
+}
+.section-nav a:hover { color: var(--champagne); }
+
+/* ── section shells ── */
+.s-dark { background: var(--cadet); color: var(--champagne); }
+.s-light { background: var(--white); color: var(--cadet); }
+
+section { padding: 4rem 1.5rem; }
+
+.container {
+  max-width: 70ch; margin: 0 auto;
+}
+
+/* ── typography ── */
+h1 { font-size: clamp(1.75rem, 4vw, 2.5rem); font-weight: 600; letter-spacing: -0.02em; line-height: 1.15; }
+h2 { font-size: clamp(1.25rem, 3vw, 1.75rem); font-weight: 600; letter-spacing: -0.015em; line-height: 1.25; margin-bottom: 1rem; }
+h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.25rem; }
+p  { max-width: 70ch; }
+
+/* ── buttons ── */
+.btn {
+  display: inline-block; font-family: var(--font); font-size: 0.9375rem;
+  font-weight: 600; letter-spacing: 0.02em; text-decoration: none;
+  padding: 0.75rem 1.75rem; border-radius: 999px; border: 2px solid transparent;
+  cursor: pointer; transition: background 150ms ease, color 150ms ease, border-color 150ms ease;
+  line-height: 1;
+}
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.btn-primary { background: var(--redwood); color: var(--white); border-color: var(--redwood); }
+.btn-primary:not(:disabled):hover { background: var(--sienna); border-color: var(--sienna); }
+
+.btn-secondary {
+  background: transparent; color: var(--cadet); border-color: var(--cadet);
+}
+.btn-secondary:hover { background: var(--cadet); color: var(--champagne); }
+
+.btn-ghost {
+  background: transparent; color: var(--champagne); border-color: rgba(255,235,210,0.4);
+  font-size: 0.875rem; padding: 0.5rem 1.25rem;
+}
+.btn-ghost:hover { background: rgba(255,235,210,0.1); }
+
+/* ── wordmark ── */
+.wordmark { font-size: 0.875rem; font-weight: 700; letter-spacing: -0.01em; }
+.wordmark .dot { color: var(--sienna); }
+/* ── self-assessment ── */
+.intel-fieldset { border: none; margin-bottom: 2.5rem; }
+.intel-fieldset legend { font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem; }
+.intel-blurb { font-size: 0.875rem; color: var(--muted); margin-bottom: 1.25rem; max-width: 60ch; }
+
+.q-item { margin-bottom: 1.5rem; }
+.q-statement { font-size: 0.9375rem; margin-bottom: 0.75rem; }
+
+.rating-group { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.rating-group input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
+.rating-group label {
+  display: flex; align-items: center; justify-content: center;
+  width: 44px; height: 44px; border: 2px solid var(--cadet); border-radius: 999px;
+  font-weight: 600; font-size: 0.9375rem; color: var(--cadet);
+  cursor: pointer; transition: background 120ms ease, color 120ms ease;
+  user-select: none;
+}
+.rating-group label:hover { background: rgba(39,50,72,0.08); }
+.rating-group input:checked + label { background: var(--cadet); color: var(--champagne); }
+.rating-group input:focus-visible + label { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 999px; }
+
+.progress-row { display: flex; align-items: center; gap: 1rem; margin-top: 2rem; flex-wrap: wrap; }
+#progress-label { font-size: 0.875rem; color: var(--muted); }
+
+/* ── radar ── */
+.radar-wrap {
+  width: min(90vw, 560px); aspect-ratio: 1; margin: 0 auto 1.5rem;
+  position: relative;
+}
+.radar-wrap canvas { width: 100% !important; height: 100% !important; }
+.radar-extremes { display: flex; gap: 2rem; flex-wrap: wrap; margin-bottom: 1.5rem; font-size: 0.875rem; }
+.radar-extremes span { color: var(--muted); }
+.radar-extremes strong { color: var(--cadet); }
+.radar-ctas { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+
+/* ── practice cards ── */
+.plan-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; margin-top: 1.5rem; }
+.practice-card {
+  border: 1px solid var(--rule); border-radius: 12px;
+  padding: 1.25rem; display: flex; flex-direction: column; gap: 0.5rem;
+}
+.practice-meta { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.04em; color: var(--muted); text-transform: uppercase; }
+.practice-card h3 { font-size: 0.9375rem; }
+.practice-card p { font-size: 0.875rem; color: var(--muted); flex: 1; }
+.practice-actions { display: flex; align-items: center; justify-content: space-between; margin-top: 0.5rem; gap: 0.5rem; }
+.check-label { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8125rem; cursor: pointer; }
+.check-label input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--cadet); cursor: pointer; }
+.swap-btn {
+  background: none; border: 1px solid var(--rule); border-radius: 999px;
+  font-size: 0.75rem; font-weight: 600; color: var(--muted); padding: 4px 12px;
+  cursor: pointer; transition: border-color 120ms, color 120ms;
+}
+.swap-btn:hover { border-color: var(--cadet); color: var(--cadet); }
+
+/* ── library ── */
+.lib-controls { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.25rem; align-items: center; }
+.chip-group { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.chip {
+  padding: 5px 14px; border-radius: 999px; border: 1.5px solid var(--rule);
+  font-size: 0.8125rem; font-weight: 600; cursor: pointer;
+  background: var(--white); color: var(--cadet); transition: background 120ms, border-color 120ms;
+}
+.chip.active { background: var(--cadet); color: var(--champagne); border-color: var(--cadet); }
+.chip:hover:not(.active) { border-color: var(--cadet); }
+.lib-search {
+  padding: 7px 14px; border: 1.5px solid var(--rule); border-radius: 999px;
+  font-family: var(--font); font-size: 0.875rem; color: var(--cadet);
+  width: min(100%, 280px); outline: none; transition: border-color 120ms;
+}
+.lib-search:focus { border-color: var(--focus); }
+.lib-search::placeholder { color: var(--muted); }
+
+.lib-group { margin-bottom: 2rem; }
+.lib-group-title {
+  font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 0.75rem; padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--rule);
+}
+.lib-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 0.75rem; }
+.lib-card {
+  border: 1px solid var(--rule); border-radius: 10px; padding: 1rem;
+  display: flex; flex-direction: column; gap: 0.375rem;
+}
+.lib-card h4 { font-size: 0.875rem; font-weight: 600; }
+.lib-card p { font-size: 0.8125rem; color: var(--muted); }
+.lib-card .check-label { margin-top: 0.5rem; }
+#lib-empty { color: var(--muted); font-size: 0.875rem; padding: 1rem 0; }
+
+/* ── semester tracker ── */
+#s6 p { max-width: 60ch; margin-bottom: 1.25rem; }
+
+/* ── close section ── */
+#s7 p { max-width: 65ch; margin-bottom: 1rem; }
+.sources { margin-top: 1.5rem; }
+.sources p { font-size: 0.875rem; color: rgba(255,235,210,0.75); margin-bottom: 0.5rem; }
+.attribution { font-size: 0.8125rem; color: rgba(255,235,210,0.5); margin-top: 1.5rem; }
+.start-over-link {
+  font-size: 0.8125rem; color: rgba(255,235,210,0.45); cursor: pointer;
+  background: none; border: none; text-decoration: underline; margin-top: 0.5rem;
+  padding: 0; font-family: var(--font);
+}
+.start-over-link:hover { color: rgba(255,235,210,0.7); }
+
+/* ── details ── */
+details > summary {
+  cursor: pointer; font-size: 0.9375rem; font-weight: 600;
+  padding: 0.75rem 0; list-style: none; display: flex; align-items: center; gap: 0.5rem;
+}
+details > summary::-webkit-details-marker { display: none; }
+details > summary::before { content: '+'; font-size: 1.1em; font-weight: 700; color: var(--redwood); }
+details[open] > summary::before { content: '\2212'; }
+
+/* ── print ── */
+@media print {
+  .section-nav, #welcome-banner, .btn, .swap-btn, .chip-group, .lib-search { display: none !important; }
+  #s5 { display: none; }
+  .practice-card { page-break-inside: avoid; }
+  h2 { page-break-after: avoid; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">skip to main content</a>
+<div id="welcome-banner" hidden>
+  <p>welcome back — continue where you left off.</p>
+  <button id="dismiss-banner" aria-label="dismiss welcome banner">&times;</button>
+</div>
+<nav aria-label="section navigation" class="section-nav">
+  <ul>
+    <li><a href="#s1">introduction</a></li>
+    <li><a href="#s2">self-assessment</a></li>
+    <li><a href="#s3">your web</a></li>
+    <li><a href="#s4">practice plan</a></li>
+    <li><a href="#s5">all practices</a></li>
+    <li><a href="#s6">semester tracker</a></li>
+    <li><a href="#s7">close</a></li>
+  </ul>
+</nav>
+<main id="main">
+<section id="s1" class="s-dark" aria-label="introduction">
+  <div class="container">
+    <p class="wordmark">winded<span class="dot">.</span>vertigo</p>
+    <h1 style="margin: 2rem 0 0.75rem">the three intelligences</h1>
+    <p style="font-size:1.0625rem; color: rgba(255,235,210,0.8); margin-bottom:2rem">a self-assessment and practice workbook</p>
+    <p style="color: rgba(255,235,210,0.85); max-width:60ch; margin-bottom:2.5rem">this is a self-assessment and practice workbook built around three forms of intelligence that matter most in the work of responsible management: the ability to think creatively across difference, to navigate your own emotions and those of others, and to collaborate across genuine disagreement. it is not a test and it has no correct score. what it gives you is a picture of where you are now, a set of practices grounded in that picture, and a way to track how that picture changes over a semester.</p>
+    <button class="btn btn-primary" id="btn-begin">begin</button>
+  </div>
+</section>
+<section id="s2" class="s-light" aria-label="self-assessment">
+  <div class="container">
+    <h2>self-assessment</h2>
+    <p style="color:var(--muted); margin-bottom:2rem">rate each statement from 1 (strongly disagree) to 5 (strongly agree). be honest — there are no correct scores.</p>
+    <form id="assessment-form">
+      <fieldset class="intel-fieldset">
+        <legend>creative intelligence</legend>
+        <p class="intel-blurb">the capacity to see more than one way through a problem, to sit with ambiguity long enough for something new to surface, and to look at a familiar situation from a perspective you have not tried yet. it is not the same as artistic talent. it is a cognitive habit that can be practised.</p>
+        <div class="q-item"><p class="q-statement">when I face a problem, I usually come up with more than one way to solve it.</p><div class="rating-group" role="group" aria-label="q1 rating"><!-- Q1 --></div></div>
+        <div class="q-item"><p class="q-statement">I'm comfortable not knowing the answer right away.</p><div class="rating-group" role="group" aria-label="q2 rating"><!-- Q2 --></div></div>
+        <div class="q-item"><p class="q-statement">when I'm stuck, I can look at the same problem from a completely different angle.</p><div class="rating-group" role="group" aria-label="q3 rating"><!-- Q3 --></div></div>
+      </fieldset>
+      <fieldset class="intel-fieldset">
+        <legend>emotional intelligence</legend>
+        <p class="intel-blurb">the ability to name what you are feeling in the moment it happens, to stay functional when you are under pressure, and to read what others are experiencing even when they have not said so. it is the intelligence that sits beneath all the others.</p>
+        <div class="q-item"><p class="q-statement">I can name what I'm feeling when I feel it — not hours later.</p><div class="rating-group" role="group" aria-label="q4 rating"><!-- Q4 --></div></div>
+        <div class="q-item"><p class="q-statement">when I'm stressed, I can still think clearly.</p><div class="rating-group" role="group" aria-label="q5 rating"><!-- Q5 --></div></div>
+        <div class="q-item"><p class="q-statement">I can usually tell when someone is upset even if they haven't said so.</p><div class="rating-group" role="group" aria-label="q6 rating"><!-- Q6 --></div></div>
+      </fieldset>
+      <fieldset class="intel-fieldset">
+        <legend>collaboration intelligence</legend>
+        <p class="intel-blurb">the willingness to listen to a view you disagree with as if it might be right, to let a better argument actually change your position, and to push back on an idea without making the disagreement personal. it is the intelligence that makes groups better than individuals.</p>
+        <div class="q-item"><p class="q-statement">I listen to views I disagree with with real curiosity, not just to respond.</p><div class="rating-group" role="group" aria-label="q7 rating"><!-- Q7 --></div></div>
+        <div class="q-item"><p class="q-statement">I've changed my mind because a peer's argument was better than mine.</p><div class="rating-group" role="group" aria-label="q8 rating"><!-- Q8 --></div></div>
+        <div class="q-item"><p class="q-statement">I can disagree with someone without making it personal.</p><div class="rating-group" role="group" aria-label="q9 rating"><!-- Q9 --></div></div>
+      </fieldset>
+      <div class="progress-row">
+        <p role="status" aria-live="polite" id="progress-label">0 of 9</p>
+        <button type="button" class="btn btn-primary" id="btn-shape" disabled aria-disabled="true">see my shape</button>
+      </div>
+    </form>
+  </div>
+</section>
+<section id="s3" class="s-light" aria-label="your web">
+  <div class="container">
+    <h2>your web</h2>
+    <div class="radar-wrap">
+      <canvas id="radar-canvas" aria-label="your three intelligences web" role="img"></canvas>
+    </div>
+    <p role="status" aria-live="polite" id="radar-sr" class="sr-only"></p>
+    <div class="radar-extremes" id="radar-extremes" hidden>
+      <span>your strongest: <strong id="radar-strongest"></strong></span>
+      <span>your weakest: <strong id="radar-weakest"></strong></span>
+    </div>
+    <div class="radar-ctas">
+      <button class="btn btn-primary" id="btn-plan">see my practice plan</button>
+      <button class="btn btn-secondary" id="btn-explore">explore all practices</button>
+      <button class="btn btn-secondary" id="btn-download">download my web</button>
+    </div>
+  </div>
+</section>
+<section id="s4" class="s-light" aria-label="practice plan">
+  <div class="container">
+    <h2>your practice plan</h2>
+    <p style="color:var(--muted); margin-bottom:1.5rem">drawn from your two lowest-rated axes. swap any card for another in the same pool. tick when done.</p>
+    <div class="plan-grid" id="plan-cards"></div>
+  </div>
+</section>
+<section id="s5" class="s-light" aria-label="full practice library">
+  <div class="container">
+    <details id="library-details">
+      <summary>explore all 72 practices</summary>
+      <div style="padding-top:1rem">
+        <div class="lib-controls">
+          <div class="chip-group" id="lib-chips" role="group" aria-label="filter practices">
+            <button class="chip" data-filter="personal">personal</button>
+            <button class="chip" data-filter="school">school</button>
+            <button class="chip" data-filter="cr">creative</button>
+            <button class="chip" data-filter="em">emotional</button>
+            <button class="chip" data-filter="co">collaboration</button>
+          </div>
+          <input class="lib-search" type="search" id="lib-search" placeholder="search practices…" aria-label="search practices">
+        </div>
+        <div id="lib-content"></div>
+        <p id="lib-empty" hidden>no practices match those filters.</p>
+      </div>
+    </details>
+  </div>
+</section>
+<section id="s6" class="s-light" aria-label="semester tracker">
+  <div class="container">
+    <h2>semester tracker</h2>
+    <p>return to this workbook at the start, middle, and end of your semester. each time you come back, re-rate yourself on the nine statements. your web will shift — some axes will grow as you practise deliberately, others will surface as blind spots you had not noticed.</p>
+    <p>the radar keeps a history of your last three webs so you can see the direction of change, not just your current position. the practice plan updates with each re-rating, pulling from whichever intelligences you rated lowest.</p>
+    <p>the goal is not a perfect score. it is an honest account of where you are, and a set of practical steps toward where you want to be.</p>
+    <button class="btn btn-secondary" id="btn-rerate">re-rate yourself</button>
+  </div>
+</section>
+<section id="s7" class="s-dark" aria-label="close">
+  <div class="container">
+    <h2 style="color:var(--champagne)">note to your faculty</h2>
+    <p>this workbook was completed as part of my programme's engagement with the three intelligences framework. the self-assessment reflects my own honest rating of nine statements across creative, emotional, and collaborative intelligence. the practice plan shown here was generated from my two lowest-rated axes and draws from a pool of 72 evidence-informed practices. I have used the semester tracker to revisit my ratings and can show how my radar has changed across the term. the sources cited in the closing section ground the framework in peer-reviewed research. I am happy to discuss my ratings and the practices I chose.</p>
+    <div class="sources">
+      <p>Mayer, J. D., &amp; Salovey, P. (1997). What is emotional intelligence? In P. Salovey &amp; D. Sluyter (Eds.), <em>Emotional development and emotional intelligence: Educational implications</em> (pp. 3–34). Basic Books.</p>
+      <p>Runco, M. A., &amp; Jaeger, G. J. (2012). The standard definition of creativity. <em>Creativity Research Journal, 24</em>(1), 92–96. https://doi.org/10.1080/10400419.2012.650092</p>
+      <p>Salovey, P., &amp; Mayer, J. D. (1990). Emotional intelligence. <em>Imagination, Cognition and Personality, 9</em>(3), 185–211. https://doi.org/10.2190/DUGG-P24E-52WK-6CDG</p>
+      <p>Vygotsky, L. S. (1978). <em>Mind in society: The development of higher psychological processes.</em> Harvard University Press.</p>
+      <p>West, M. A. (2012). <em>Effective teamwork: Practical lessons from organizational research</em> (3rd ed.). BPS Blackwell.</p>
+    </div>
+    <p class="attribution">PRME (CC BY 4.0) &nbsp;&middot;&nbsp; LEGO Foundation &nbsp;&middot;&nbsp; winded.vertigo &nbsp;&middot;&nbsp; 2026</p>
+    <button class="start-over-link" id="btn-start-over">start over</button>
+  </div>
+</section>
+</main>
+<script>
+const PRACTICES = {
+  cr: {
+    p: [
+      { id:'cr-p-1',  title:'divergence journal',       body:'keep a daily list of alternative solutions to problems you encounter. aim for five options before choosing one.' },
+      { id:'cr-p-2',  title:'constraint creation',      body:'impose an artificial limit on your next project — no budget, no internet, one colour only — and notice how limits force originality.' },
+      { id:'cr-p-3',  title:'reverse the brief',        body:'take a problem you are working on and rewrite it from the opposite direction. what would anti-success look like?' },
+      { id:'cr-p-4',  title:'input expansion',          body:'spend one hour each week consuming something completely outside your field — a documentary genre, a craft, a sport — and write down what it changes in your thinking.' },
+      { id:'cr-p-5',  title:'idea archaeology',         body:'dig up an abandoned idea from six months ago and ask why you stopped. see if the obstacle still exists.' },
+      { id:'cr-p-6',  title:'ambiguity sit',            body:'pick one open question in your work and deliberately resist answering it for 48 hours. observe what surfaces.' },
+      { id:'cr-p-7',  title:'borrowed lens',            body:'pick a different profession — chef, architect, social worker — and describe your current problem using their vocabulary.' },
+      { id:'cr-p-8',  title:'prototype fast',           body:'take your next idea and make a rough physical or digital version within two hours. speed matters more than quality.' },
+      { id:'cr-p-9',  title:'yes-and solo',             body:'take your own first idea and build three extensions to it using only yes-and logic — no negation allowed.' },
+      { id:'cr-p-10', title:'failure portfolio',        body:'collect three things you tried that did not work. write one sentence on what each one taught you.' },
+      { id:'cr-p-11', title:'question swarm',           body:'take a decision you need to make and generate 20 questions about it before considering any answers.' },
+      { id:'cr-p-12', title:'metaphor mapping',         body:'describe your current project using a completely different domain — cooking, ecology, music. notice what the metaphor reveals.' }
+    ],
+    s: [
+      { id:'cr-s-1',  title:'facilitated alternatives', body:'in your next class discussion, commit to proposing at least two different framings before settling on one.' },
+      { id:'cr-s-2',  title:'assignment reframe',       body:'when you receive a brief, write your own version of the assignment question before reading the instructions fully. compare the two.' },
+      { id:'cr-s-3',  title:'cross-cohort lens',        body:'interview a student from a different programme about how they would approach your current project. bring one of their ideas into your work.' },
+      { id:'cr-s-4',  title:'studio critique',          body:'arrange a five-minute informal critique of your work-in-progress with two peers who did not work on it. take notes without defending.' },
+      { id:'cr-s-5',  title:'speculative presentation', body:'create a slide deck for an idea that probably will not work. present it as if it will.' },
+      { id:'cr-s-6',  title:'rapid ideation sprint',    body:'in your next team meeting, set a five-minute timer and generate as many ideas as possible before evaluating any of them.' },
+      { id:'cr-s-7',  title:'uncertainty map',          body:'draw a visual map of everything you do not yet know about your current assignment. use it as a research guide.' },
+      { id:'cr-s-8',  title:'prototype gallery',        body:'make three rough versions of the same deliverable in different formats — visual, written, diagrammatic — and compare what each one reveals.' },
+      { id:'cr-s-9',  title:'borrowed framework',       body:'apply a framework from a module you have already completed to your current module’s problem. write up what transfers and what does not.' },
+      { id:'cr-s-10', title:'reverse peer review',      body:'give a peer feedback on what you would change, then ask them to tell you what was already strong. track the ratio.' },
+      { id:'cr-s-11', title:'creative brief swap',      body:'exchange assignment briefs with a peer from a different cohort. draft a response to theirs; share the drafts.' },
+      { id:'cr-s-12', title:'what-if seminar',          body:'bring one what-if-the-opposite-were-true question to your next seminar and see how far the class can take it.' }
+    ]
+  },
+  em: {
+    p: [
+      { id:'em-p-1',  title:'real-time naming',         body:'when you notice a shift in your mood, pause and name it specifically. not “bad” but “frustrated because I feel unseen”.' },
+      { id:'em-p-2',  title:'body scan anchor',         body:'once a day, spend two minutes checking in with physical sensations before labelling your emotional state. start with the chest, then shoulders, then jaw.' },
+      { id:'em-p-3',  title:'trigger mapping',          body:'keep a note of three recurring situations that reliably shift your emotional state. look for patterns across a fortnight.' },
+      { id:'em-p-4',  title:'emotional lag check',      body:'at the end of the day, ask: was there a moment when I named what I felt hours after it happened? what slowed the recognition?' },
+      { id:'em-p-5',  title:'stress inventory',         body:'when stress peaks, write down what specifically is driving it. separate the controllable from the uncontrollable.' },
+      { id:'em-p-6',  title:'one-breath rule',          body:'when you feel reactive in conversation, commit to one breath before responding. track how often you use it.' },
+      { id:'em-p-7',  title:'clarity window',           body:'identify the hour in your day when you think most clearly. protect it for tasks that require calm judgment.' },
+      { id:'em-p-8',  title:'emotion palette',          body:'build a personal vocabulary of 20 emotional states, including shades beyond angry, sad, happy. use them in your journalling.' },
+      { id:'em-p-9',  title:'self-compassion prompt',   body:'when something goes wrong, write what you would say to a close friend in the same situation. notice if it differs from how you speak to yourself.' },
+      { id:'em-p-10', title:'emotional forecast',       body:'at the start of each day, write a short prediction of when and why you might find it hard to stay regulated. see how accurate you are.' },
+      { id:'em-p-11', title:'recovery ritual',          body:'design a five-minute routine you use specifically to return to calm after a difficult interaction. practise it enough to make it automatic.' },
+      { id:'em-p-12', title:'distraction audit',        body:'when you avoid a task, pause and name the emotion behind the avoidance. track what you are most often avoiding and why.' }
+    ],
+    s: [
+      { id:'em-s-1',  title:'pre-meeting check-in',     body:'before any group session, take 60 seconds to notice your current state. share it briefly with your team using one word.' },
+      { id:'em-s-2',  title:'emotional framing',        body:'when receiving feedback, write down what you felt immediately, then re-read the feedback 24 hours later. compare your two readings.' },
+      { id:'em-s-3',  title:'lecture self-regulation',  body:'when your attention drifts in a lecture or seminar, note the moment and what pulled you away. look for patterns across three weeks.' },
+      { id:'em-s-4',  title:'assessment emotion log',   body:'for each major piece of work, write a short note about how you felt submitting it and why. build a library of these over the semester.' },
+      { id:'em-s-5',  title:'peer calibration',         body:'find out how a peer whose judgment you respect would describe their emotional experience of the same module. notice what is shared and what is different.' },
+      { id:'em-s-6',  title:'stress-to-strategy map',   body:'for each assessment deadline, write a brief plan for how you will manage your emotional state in the 48 hours before submission.' },
+      { id:'em-s-7',  title:'feedback receipt protocol',body:'design a personal two-step ritual for receiving written feedback: read once without annotating, then re-read with a pen.' },
+      { id:'em-s-8',  title:'seminar regulation',       body:'when a seminar discussion triggers a strong reaction, choose to listen for two full minutes before contributing. track how it changes your input.' },
+      { id:'em-s-9',  title:'visibility practice',      body:'in a class where you normally stay quiet, commit to one contribution per session for three weeks. note how it feels each time.' },
+      { id:'em-s-10', title:'module transition',        body:'between modules, write a short paragraph describing how you feel leaving one subject and entering another. notice what carries over.' },
+      { id:'em-s-11', title:'conflict note',            body:'when a disagreement arises in a team project, write a private account of your emotional experience of it within two hours. look for your patterns.' },
+      { id:'em-s-12', title:'wellbeing check-in',       body:'at the end of each teaching week, rate your sense of groundedness out of five and note one thing that anchored it. look for trends.' }
+    ]
+  },
+  co: {
+    p: [
+      { id:'co-p-1',  title:'listen longer',              body:'in your next three conversations, commit to making no contribution until the other person has fully finished their thought and you have paused for two seconds.' },
+      { id:'co-p-2',  title:'persuasion log',             body:'keep a record of three times this month that someone changed your mind. write what the argument was and what made it land.' },
+      { id:'co-p-3',  title:'disagreement style audit',   body:'after a conflict or disagreement, write down what you did, what you wish you had done differently, and what the other person might have experienced.' },
+      { id:'co-p-4',  title:'question-first habit',       body:'in conversations where you feel an urge to give your opinion, convert your first two responses into questions instead.' },
+      { id:'co-p-5',  title:'role reversal',              body:'take a position you disagreed with recently and write the strongest version of the argument for it. share it with someone who holds that position and ask if you got it right.' },
+      { id:'co-p-6',  title:'contribution inventory',     body:'for each team project, track privately whether your contributions have been additive — building on others — or substitutive — replacing others\' ideas. aim for a higher additive ratio.' },
+      { id:'co-p-7',  title:'dissent practice',           body:'identify a team decision you agreed with publicly but privately questioned. draft the dissenting argument and ask yourself whether it deserved airtime.' },
+      { id:'co-p-8',  title:'silence appreciation',       body:'in your next group setting, identify the quietest person and ask them a direct question. reflect on what emerged.' },
+      { id:'co-p-9',  title:'feedback request',           body:'ask three people who work with you closely to describe your collaboration style in three words. compare their words with your self-perception.' },
+      { id:'co-p-10', title:'repair practice',            body:'when a working relationship has been strained, initiate a brief, direct conversation about what happened. keep it focused on the work, not the person.' },
+      { id:'co-p-11', title:'assumption check',           body:'before a difficult conversation, write down three things you assume the other person thinks or wants. check each assumption explicitly during the conversation.' },
+      { id:'co-p-12', title:'gratitude specific',         body:'once a week, tell a collaborator specifically what they contributed that made the work better. avoid generic praise.' }
+    ],
+    s: [
+      { id:'co-s-1',  title:'active reading partnership', body:'share reading notes from a lecture or seminar with a peer before the next session. identify one thing you interpreted differently.' },
+      { id:'co-s-2',  title:'structured challenge',       body:'in your next group project meeting, assign one person the role of productive challenger for 15 minutes. rotate this role across the project.' },
+      { id:'co-s-3',  title:'presentation pre-test',      body:'rehearse your group presentation in front of one person outside your group. ask them to identify one thing that confused them.' },
+      { id:'co-s-4',  title:'contribution mapping',       body:'after completing a group project, draw a visual map showing what each member contributed. share and compare maps as a debrief.' },
+      { id:'co-s-5',  title:'negotiated roles',           body:'before starting a group assignment, spend ten minutes explicitly negotiating who does what and why. revisit the agreement at the midpoint.' },
+      { id:'co-s-6',  title:'peer interview',             body:'before a significant group project, interview each team member for five minutes about how they work best. use this to shape the team\'s process.' },
+      { id:'co-s-7',  title:'dissent protocol',           body:'agree as a group that any member can call a pause at any point to raise a concern without judgment. use it at least once.' },
+      { id:'co-s-8',  title:'feedback round',             body:'at the end of each major team task, give every member one specific piece of written feedback on their collaboration — not their output. read and discuss.' },
+      { id:'co-s-9',  title:'argument quality check',     body:'after a group decision, revisit the reasoning that led to it. could you all articulate the three strongest objections to the choice you made?' },
+      { id:'co-s-10', title:'cross-group debrief',        body:'after a project, speak with a member of a different group about what worked in their process. bring one idea back to your group.' },
+      { id:'co-s-11', title:'conflict resolution protocol',body:'agree as a team, at the start of the project, on how you will handle disagreements. write it down. test it.' },
+      { id:'co-s-12', title:'shared retrospective',       body:'at the end of each semester, write a one-page reflection on how your collaboration skills have changed and where the evidence for that change lives.' }
+    ]
+  }
+};
+
+const Q_TO_INTEL = { q1:'cr', q2:'cr', q3:'cr', q4:'em', q5:'em', q6:'em', q7:'co', q8:'co', q9:'co' };
+const AXIS_LABELS = ['alternatives','ambiguity','reframe','self-awareness','regulation','empathy','listening','persuadable','challenge'];
+const INTEL_NAMES = { cr:'creative', em:'emotional', co:'collaboration' };
+const CAT_NAMES   = { p:'personal', s:'school' };
+const STORAGE_KEY = 'wv-threeint-v1';
+let state = { ratings: {}, checked: {}, swaps: {}, history: [] };
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) state = Object.assign({ ratings:{}, checked:{}, swaps:{}, history:[] }, JSON.parse(raw));
+  } catch(_) {}
+}
+
+function saveState() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(_) {}
+}
+
+function buildRadios() {
+  for (let q = 1; q <= 9; q++) {
+    const container = document.querySelector(`[aria-label="q${q} rating"]`);
+    if (!container) continue;
+    for (let v = 1; v <= 5; v++) {
+      const id = `q${q}-${v}`;
+      const inp = document.createElement('input');
+      inp.type = 'radio'; inp.name = `q${q}`; inp.id = id; inp.value = String(v);
+      inp.setAttribute('aria-label', String(v));
+      if (state.ratings[`q${q}`] === v) inp.checked = true;
+      inp.addEventListener('change', () => {
+        state.ratings[`q${q}`] = v;
+        saveState(); updateProgress();
+      });
+      const lbl = document.createElement('label');
+      lbl.htmlFor = id; lbl.textContent = String(v);
+      container.appendChild(inp); container.appendChild(lbl);
+    }
+  }
+}
+
+function updateProgress() {
+  const n = Object.keys(state.ratings).length;
+  document.getElementById('progress-label').textContent = `${n} of 9`;
+  const btn = document.getElementById('btn-shape');
+  btn.disabled = n < 9;
+  btn.setAttribute('aria-disabled', n < 9 ? 'true' : 'false');
+}
+let radarChart = null;
+
+function radarDatasets(ratings, history) {
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const sets = [];
+  const vals = ['q1','q2','q3','q4','q5','q6','q7','q8','q9'].map(k => ratings[k] || 0);
+  sets.push({
+    label:'now', data: vals,
+    backgroundColor:'rgba(177,80,67,0.15)', borderColor:'#b15043',
+    borderWidth:2, pointBackgroundColor:'#b15043', pointRadius:4
+  });
+  if (history.length > 0) {
+    const h0 = ['q1','q2','q3','q4','q5','q6','q7','q8','q9'].map(k => history[0].ratings[k] || 0);
+    sets.push({
+      label:'previous', data: h0,
+      backgroundColor:'rgba(203,120,88,0.08)', borderColor:'#cb7858',
+      borderWidth:1.5, borderDash:[4,4], pointRadius:3, pointBackgroundColor:'#cb7858'
+    });
+  }
+  if (history.length > 1) {
+    const h1 = ['q1','q2','q3','q4','q5','q6','q7','q8','q9'].map(k => history[1].ratings[k] || 0);
+    sets.push({
+      label:'earliest', data: h1,
+      backgroundColor:'rgba(39,50,72,0.06)', borderColor:'#273248',
+      borderWidth:1, borderDash:[2,4], pointRadius:2, pointBackgroundColor:'#273248'
+    });
+  }
+  return sets;
+}
+
+function buildRadar() {
+  const canvas = document.getElementById('radar-canvas');
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const cfg = {
+    type: 'radar',
+    data: { labels: AXIS_LABELS, datasets: radarDatasets(state.ratings, state.history) },
+    options: {
+      animation: reduced ? false : { duration:600, easing:'easeOutCubic' },
+      scales: { r: { min:0, max:5, ticks:{ stepSize:1, display:false },
+        grid:{ color:'rgba(39,50,72,0.12)' }, angleLines:{ color:'rgba(39,50,72,0.12)' },
+        pointLabels:{ font:{ size:13, family:'Inter' }, color:'#273248' } } },
+      plugins:{ legend:{ display:false } }
+    }
+  };
+  if (radarChart) { radarChart.destroy(); }
+  radarChart = new Chart(canvas, cfg);
+}
+
+function updateRadar() {
+  if (!radarChart) { buildRadar(); return; }
+  radarChart.data.datasets = radarDatasets(state.ratings, state.history);
+  radarChart.update();
+}
+
+function updateRadarExtras() {
+  const keys = ['q1','q2','q3','q4','q5','q6','q7','q8','q9'];
+  const vals = keys.map(k => state.ratings[k] || 0);
+  const maxV = Math.max(...vals); const minV = Math.min(...vals);
+  const maxI = vals.indexOf(maxV); const minI = vals.indexOf(minV);
+  document.getElementById('radar-strongest').textContent = AXIS_LABELS[maxI];
+  document.getElementById('radar-weakest').textContent   = AXIS_LABELS[minI];
+  document.getElementById('radar-extremes').hidden = false;
+  const sr = keys.map((k,i) => `${AXIS_LABELS[i]}: ${state.ratings[k] || 0} of 5`).join(', ');
+  document.getElementById('radar-sr').textContent = `your web: ${sr}`;
+}
+function computeSlots(ratings) {
+  const sorted = Object.entries(ratings)
+    .sort(([a,av],[b,bv]) => av !== bv ? av - bv : parseInt(a.slice(1)) - parseInt(b.slice(1)));
+  const [q1, q2] = sorted.slice(0,2).map(([q]) => q);
+  const i1 = Q_TO_INTEL[q1], i2 = Q_TO_INTEL[q2];
+  if (i1 === i2) {
+    return [
+      ...Array.from({length:6},(_,i) => ({intel:i1, cat:'p', slot:i})),
+      ...Array.from({length:6},(_,i) => ({intel:i1, cat:'s', slot:i}))
+    ];
+  }
+  return [
+    ...Array.from({length:3},(_,i) => ({intel:i1, cat:'p', slot:i})),
+    ...Array.from({length:3},(_,i) => ({intel:i1, cat:'s', slot:i})),
+    ...Array.from({length:3},(_,i) => ({intel:i2, cat:'p', slot:i})),
+    ...Array.from({length:3},(_,i) => ({intel:i2, cat:'s', slot:i}))
+  ];
+}
+
+function practiceAt(intel, cat, slot) {
+  const key = `${intel}-${cat}-${slot}`;
+  const count = state.swaps[key] || 0;
+  const idx = (slot + count) % 12;
+  return { ...PRACTICES[intel][cat][idx], swapKey: key };
+}
+
+function renderPlan() {
+  const container = document.getElementById('plan-cards');
+  if (!container) return;
+  if (Object.keys(state.ratings).length < 9) { container.innerHTML = ''; return; }
+  const slots = computeSlots(state.ratings);
+  container.innerHTML = '';
+  slots.forEach(({intel, cat, slot}) => {
+    const p = practiceAt(intel, cat, slot);
+    const checked = state.checked[p.id] || false;
+    const card = document.createElement('div');
+    card.className = 'practice-card';
+    card.innerHTML = `
+      <div class="practice-meta">${INTEL_NAMES[intel]} &middot; ${CAT_NAMES[cat]}</div>
+      <h3>${p.title}</h3>
+      <p>${p.body}</p>
+      <div class="practice-actions">
+        <label class="check-label">
+          <input type="checkbox" ${checked ? 'checked' : ''} data-pid="${p.id}" aria-label="mark ${p.title} as done">
+          <span>done</span>
+        </label>
+        <button class="swap-btn" data-key="${p.swapKey}" aria-label="swap for another ${CAT_NAMES[cat]} ${INTEL_NAMES[intel]} practice">swap</button>
+      </div>`;
+    card.querySelector('input[type="checkbox"]').addEventListener('change', e => {
+      state.checked[e.target.dataset.pid] = e.target.checked;
+      saveState();
+    });
+    card.querySelector('.swap-btn').addEventListener('click', e => {
+      const k = e.target.dataset.key;
+      state.swaps[k] = (state.swaps[k] || 0) + 1;
+      saveState(); renderPlan();
+    });
+    container.appendChild(card);
+  });
+}
+let libFilters = new Set();
+let libSearch = '';
+
+function renderLibrary() {
+  const content = document.getElementById('lib-content');
+  const empty   = document.getElementById('lib-empty');
+  const groups = [
+    { intel:'cr', cat:'p', label:'creative — personal' },
+    { intel:'cr', cat:'s', label:'creative — school' },
+    { intel:'em', cat:'p', label:'emotional — personal' },
+    { intel:'em', cat:'s', label:'emotional — school' },
+    { intel:'co', cat:'p', label:'collaboration — personal' },
+    { intel:'co', cat:'s', label:'collaboration — school' }
+  ];
+  const term = libSearch.toLowerCase();
+  let total = 0;
+  content.innerHTML = '';
+  groups.forEach(({ intel, cat, label }) => {
+    const catName = cat === 'p' ? 'personal' : 'school';
+    if (libFilters.size > 0) {
+      const wantIntel = libFilters.has(intel);
+      const wantCat   = libFilters.has(catName);
+      const hasIntel  = ['cr','em','co'].some(f => libFilters.has(f));
+      const hasCat    = ['personal','school'].some(f => libFilters.has(f));
+      if (hasIntel && !wantIntel) return;
+      if (hasCat && !wantCat) return;
+    }
+    const practices = PRACTICES[intel][cat].filter(p =>
+      !term || p.title.toLowerCase().includes(term) || p.body.toLowerCase().includes(term)
+    );
+    if (!practices.length) return;
+    total += practices.length;
+    const group = document.createElement('div');
+    group.className = 'lib-group';
+    const title = document.createElement('p');
+    title.className = 'lib-group-title'; title.textContent = label;
+    group.appendChild(title);
+    const grid = document.createElement('div');
+    grid.className = 'lib-grid';
+    practices.forEach(p => {
+      const card = document.createElement('div');
+      card.className = 'lib-card';
+      const checked = state.checked[p.id] || false;
+      card.innerHTML = `
+        <h4>${p.title}</h4>
+        <p>${p.body}</p>
+        <label class="check-label">
+          <input type="checkbox" ${checked ? 'checked' : ''} data-pid="${p.id}" aria-label="mark ${p.title} as done">
+          <span>done</span>
+        </label>`;
+      card.querySelector('input[type="checkbox"]').addEventListener('change', e => {
+        state.checked[e.target.dataset.pid] = e.target.checked;
+        saveState(); syncPlanCheckboxes();
+      });
+      grid.appendChild(card);
+    });
+    group.appendChild(grid);
+    content.appendChild(group);
+  });
+  empty.hidden = total > 0;
+}
+
+function syncPlanCheckboxes() {
+  document.querySelectorAll('#plan-cards input[type="checkbox"]').forEach(inp => {
+    inp.checked = state.checked[inp.dataset.pid] || false;
+  });
+}
+
+function initLibrary() {
+  document.querySelectorAll('#lib-chips .chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      chip.classList.toggle('active');
+      const f = chip.dataset.filter;
+      libFilters.has(f) ? libFilters.delete(f) : libFilters.add(f);
+      renderLibrary();
+    });
+  });
+  document.getElementById('lib-search').addEventListener('input', e => {
+    libSearch = e.target.value;
+    renderLibrary();
+  });
+  renderLibrary();
+}
+function smoothTo(id) {
+  document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+}
+
+function initBanner() {
+  const banner = document.getElementById('welcome-banner');
+  if (Object.keys(state.ratings).length > 0 || state.history.length > 0) {
+    banner.hidden = false;
+  }
+  document.getElementById('dismiss-banner').addEventListener('click', () => { banner.hidden = true; });
+}
+
+function revealRadar() {
+  buildRadar();
+  updateRadarExtras();
+  renderPlan();
+  smoothTo('s3');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadState();
+  buildRadios();
+  updateProgress();
+  initBanner();
+  initLibrary();
+
+  if (Object.keys(state.ratings).length === 9) {
+    buildRadar();
+    updateRadarExtras();
+    renderPlan();
+  }
+
+  document.getElementById('btn-begin').addEventListener('click', () => smoothTo('s2'));
+
+  document.getElementById('btn-shape').addEventListener('click', revealRadar);
+
+  document.getElementById('btn-plan').addEventListener('click', () => smoothTo('s4'));
+
+  document.getElementById('btn-explore').addEventListener('click', () => {
+    document.getElementById('library-details').open = true;
+    smoothTo('s5');
+  });
+
+  document.getElementById('btn-download').addEventListener('click', () => {
+    if (!radarChart) return;
+    const url = radarChart.toBase64Image('image/png', 1.0);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'my-three-intelligences.png'; a.click();
+  });
+
+  document.getElementById('btn-rerate').addEventListener('click', () => {
+    if (!Object.keys(state.ratings).length) { smoothTo('s2'); return; }
+    state.history.unshift({ ratings: { ...state.ratings }, date: new Date().toISOString() });
+    if (state.history.length > 3) state.history = state.history.slice(0, 3);
+    state.ratings = {};
+    state.swaps   = {};
+    saveState();
+    document.querySelectorAll('#assessment-form input[type="radio"]').forEach(r => { r.checked = false; });
+    updateProgress();
+    smoothTo('s2');
+  });
+
+  document.getElementById('btn-start-over').addEventListener('click', () => {
+    if (confirm('reset everything and start from scratch?')) {
+      localStorage.removeItem(STORAGE_KEY);
+      location.reload();
+    }
+  });
+});
+</script>
+</body>
+</html>
