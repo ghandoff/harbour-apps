@@ -13,6 +13,7 @@
   --wv-sienna:    #cb7858;
   --wv-champagne: #ffebd2;
   --wv-white:     #ffffff;
+  --wv-cream:     #fff6e8;  /* kid-surface background. champagne stays text-only. */
 }
 
 /* ── complementary colours (internal brand guidelines, page 21) ──
