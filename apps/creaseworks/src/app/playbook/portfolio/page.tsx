@@ -42,7 +42,7 @@ export default async function PortfolioPage() {
         &larr; back to playbook
       </Link>
 
-      <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight mb-1">
+      <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight font-serif mb-1">
         your portfolio
       </h1>
       <p className="text-sm text-cadet/50 mb-8">

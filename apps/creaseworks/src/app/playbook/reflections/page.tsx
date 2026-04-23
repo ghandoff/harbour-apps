@@ -37,7 +37,7 @@ export default async function PlaybookReflectionsPage() {
       </Link>
 
       <div className="flex items-center justify-between mb-2">
-        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight font-serif">
           all reflections
         </h1>
         <div className="flex items-center gap-2 sm:gap-3">

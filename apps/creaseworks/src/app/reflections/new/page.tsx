@@ -73,7 +73,7 @@ export default async function NewReflectionPage({ searchParams }: Props) {
 
   return (
     <main className="min-h-screen px-6 pt-16 pb-24 sm:pb-16 max-w-3xl mx-auto">
-      <h1 className="text-3xl font-semibold tracking-tight mb-2">
+      <h1 className="text-3xl font-semibold tracking-tight font-serif mb-2">
         log a reflection
       </h1>
       <p className="text-sm text-cadet/50 mb-8">

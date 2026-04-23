@@ -93,7 +93,7 @@ export default async function CollectionDetailPage({ params }: Props) {
             </span>
           )}
           <div>
-            <h1 className="text-3xl font-semibold tracking-tight">
+            <h1 className="text-3xl font-semibold tracking-tight font-serif">
               {collection.title}
             </h1>
             {(collection.description || collection.description_html) && (

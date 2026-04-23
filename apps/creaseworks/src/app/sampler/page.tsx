@@ -58,7 +58,7 @@ export default async function SamplerPage() {
         <Link href="/" className="text-sm text-cadet/50 hover:text-cadet mb-4 inline-block">
           &larr; creaseworks
         </Link>
-        <h1 className="text-3xl font-semibold tracking-tight mb-2">
+        <h1 className="text-3xl font-semibold tracking-tight font-serif mb-2">
           playdate sampler
         </h1>
         <p className="text-cadet/60 max-w-lg">

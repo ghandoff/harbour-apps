@@ -99,7 +99,7 @@ export default async function EntitledPlaydatePage({ params, searchParams }: Pro
         </div>
       )}
 
-      <h1 className="text-3xl font-semibold tracking-tight mb-4">
+      <h1 className="text-3xl font-semibold tracking-tight font-serif mb-4">
         {playdate.title}
       </h1>
 

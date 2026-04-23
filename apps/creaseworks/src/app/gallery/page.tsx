@@ -56,7 +56,7 @@ export default async function GalleryPage({
     <main className="min-h-screen px-4 pt-8 pb-24 sm:px-6 sm:pt-12 sm:pb-12 max-w-6xl mx-auto">
       {/* ---- header ---- */}
       <div className="mb-12">
-        <h1 className="text-4xl sm:text-5xl font-semibold tracking-tight mb-3">
+        <h1 className="text-4xl sm:text-5xl font-semibold tracking-tight font-serif mb-3">
           community gallery
         </h1>
         <p

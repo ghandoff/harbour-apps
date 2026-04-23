@@ -59,7 +59,7 @@ export default async function PlaydateTeaserPage({ params }: Props) {
           </div>
         )}
 
-        <h1 className="text-3xl font-semibold tracking-tight mb-4">
+        <h1 className="text-3xl font-semibold tracking-tight font-serif mb-4">
           {fullPlaydate.title}
         </h1>
 
@@ -113,7 +113,7 @@ export default async function PlaydateTeaserPage({ params }: Props) {
         </div>
       )}
 
-      <h1 className="text-3xl font-semibold tracking-tight mb-2">
+      <h1 className="text-3xl font-semibold tracking-tight font-serif mb-2">
         {playdate.title}
       </h1>
 

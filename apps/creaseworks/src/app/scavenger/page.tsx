@@ -100,7 +100,7 @@ export default async function ScavengerPage() {
         >
           &larr; creaseworks
         </Link>
-        <h1 className="text-3xl font-semibold tracking-tight mb-2">
+        <h1 className="text-3xl font-semibold tracking-tight font-serif mb-2">
           {c["scavenger.headline"]?.copy ?? "scavenger hunts"}
         </h1>
         <p className="text-cadet/60 max-w-lg">

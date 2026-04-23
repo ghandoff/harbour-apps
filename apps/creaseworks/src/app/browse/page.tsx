@@ -67,7 +67,7 @@ export default async function BrowsePage() {
           &larr; sampler
         </Link>
         <div className="flex items-center gap-3 mb-2">
-          <h1 className="text-3xl font-semibold tracking-tight">
+          <h1 className="text-3xl font-semibold tracking-tight font-serif">
             all playdates
           </h1>
           {isInternal && (

@@ -117,7 +117,7 @@ async function renderPlaydatePackPage(slug: string) {
           </div>
         )}
 
-        <h1 className="text-3xl font-semibold tracking-tight mb-2">
+        <h1 className="text-3xl font-semibold tracking-tight font-serif mb-2">
           {pack.title}
         </h1>
 
