@@ -16,6 +16,7 @@
  * Search bar survives for parents who know what they're looking for.
  */
 
+import { Fragment } from "react";
 import { MatcherInputFormProps, Material } from "./types";
 import { FilterSection } from "./filter-section";
 import { EmojiTile } from "./emoji-tile";
@@ -23,6 +24,7 @@ import { useMatcherState } from "./use-matcher-state";
 import { MatcherResults } from "./matcher-results";
 import { getMaterialEmoji, getMaterialIcon } from "./material-emoji";
 import { resolveCharacterFromForm } from "@windedvertigo/characters";
+import { getSizeRank, getSizeTier } from "@/lib/material-size";
 
 /* ── emoji maps for filter tiles ───────────────────────────────────
    FORM_EMOJI was removed when the classic picker dropped its form-bucket
@@ -284,32 +286,17 @@ export default function MatcherInputForm({
             />
           </div>
 
-          {/* size hint — a small two-word tell that the scroll is a size
-              axis. subtle enough to not teach with a sledgehammer. */}
-          <div
-            className="flex items-center justify-between px-1 mb-2"
-            style={{
-              fontSize: "0.625rem",
-              fontWeight: 700,
-              letterSpacing: "0.06em",
-              color: "var(--wv-cadet)",
-              opacity: 0.45,
-              textTransform: "uppercase",
-            }}
-            aria-hidden="true"
-          >
-            <span>↑ small stuff</span>
-            <span>big stuff ↓</span>
-          </div>
-
           {/* continuous size-sorted scroll — every material, smallest to
               biggest. 2 cols on mobile, 3 on desktop, constrained so
-              tiles feel the same size across breakpoints.
+              tiles feel the same size across breakpoints. The tier-
+              milestone bands (injected inline in the .map below via
+              col-span) replace the old text-only "↑ small stuff /
+              big stuff ↓" hint — a non-reader kid can parse 🫘→📦
+              without touching the copy.
               NOTE: no className="rounded-xl border" — globals.css line 678
               applies translateY(-4px) rotate(-0.5deg) on hover to any
               element matching .rounded-xl.border, which tilted the ENTIRE
-              scroll container when a kid hovered over a tile. border is
-              inlined instead; border-radius kept in inline style.        */}
+              scroll container when a kid hovered over a tile.           */}
           <div
             className="p-3 -webkit-overflow-scrolling-touch"
             style={{
@@ -323,21 +310,67 @@ export default function MatcherInputForm({
                 className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 mx-auto"
                 style={{ maxWidth: 720 }}
               >
-                {filteredMaterialsBySize.map((mat: Material, i) => (
-                  <div key={mat.id} className="flex flex-col items-center gap-1">
-                    <EmojiTile
-                      emoji={getMaterialEmoji(mat.title, mat.form_primary, mat.emoji)}
-                      emojiSrc={getMaterialIcon(mat.title, mat.form_primary, mat.emoji, mat.icon) ?? undefined}
-                      characterName={resolveCharacterFromForm(mat.form_primary, mat.title)}
-                      label={mat.title}
-                      selected={selectedMaterials.has(mat.id)}
-                      onClick={() =>
-                        toggleSet(selectedMaterials, setSelectedMaterials, mat.id)
-                      }
-                      size="xl"
-                      fluid
-                      index={i}
-                    />
+                {filteredMaterialsBySize.map((mat: Material, i) => {
+                  const tier = getSizeTier(getSizeRank(mat));
+                  const prev = i > 0 ? filteredMaterialsBySize[i - 1] : null;
+                  const prevTier = prev ? getSizeTier(getSizeRank(prev)) : null;
+                  const showTierHeader = tier.key !== prevTier?.key;
+                  return (
+                    <Fragment key={mat.id}>
+                      {showTierHeader && (
+                        <div
+                          className="col-span-2 sm:col-span-3 flex items-center gap-3 pt-2"
+                          aria-label={`size tier — ${tier.label}`}
+                          style={{
+                            paddingLeft: 4,
+                            marginTop: i === 0 ? 0 : 8,
+                          }}
+                        >
+                          <span
+                            aria-hidden="true"
+                            style={{
+                              fontSize: 32,
+                              lineHeight: 1,
+                              filter: "drop-shadow(0 1px 0 rgba(39,50,72,0.08))",
+                            }}
+                          >
+                            {tier.emoji}
+                          </span>
+                          <span
+                            style={{
+                              fontSize: "0.75rem",
+                              fontWeight: 800,
+                              letterSpacing: "0.08em",
+                              textTransform: "uppercase",
+                              color: "var(--color-text-on-cream-muted)",
+                            }}
+                          >
+                            {tier.label}
+                          </span>
+                          <span
+                            aria-hidden="true"
+                            style={{
+                              flex: 1,
+                              height: 1,
+                              backgroundColor: "rgba(39, 50, 72, 0.08)",
+                            }}
+                          />
+                        </div>
+                      )}
+                      <div className="flex flex-col items-center gap-1">
+                        <EmojiTile
+                          emoji={getMaterialEmoji(mat.title, mat.form_primary, mat.emoji)}
+                          emojiSrc={getMaterialIcon(mat.title, mat.form_primary, mat.emoji, mat.icon) ?? undefined}
+                          characterName={resolveCharacterFromForm(mat.form_primary, mat.title)}
+                          label={mat.title}
+                          selected={selectedMaterials.has(mat.id)}
+                          onClick={() =>
+                            toggleSet(selectedMaterials, setSelectedMaterials, mat.id)
+                          }
+                          size="xl"
+                          fluid
+                          index={i}
+                        />
                     {mat.functions && mat.functions.length > 0 && (
                       <div className="flex flex-wrap gap-1 justify-center max-w-full px-1">
                         {mat.functions.slice(0, 2).map((fn: string) => (
@@ -346,8 +379,12 @@ export default function MatcherInputForm({
                             className="text-center leading-tight"
                             style={{
                               fontSize: "0.625rem",
-                              color: "var(--wv-seafoam)",
-                              opacity: 0.75,
+                              // UDL fix: seafoam on cream @ 0.75 was ~1.9:1
+                              // (illegible) — function labels are the
+                              // pedagogical "what it does" signal, must read.
+                              // Swap to cadet @ 65% for ~5.5:1 AA + keep a
+                              // teal accent dot for colour-coding.
+                              color: "var(--color-text-on-cream-muted)",
                               fontWeight: 600,
                               letterSpacing: "0.01em",
                             }}
@@ -358,7 +395,9 @@ export default function MatcherInputForm({
                       </div>
                     )}
                   </div>
-                ))}
+                    </Fragment>
+                  );
+                })}
               </div>
             ) : (
               <p
