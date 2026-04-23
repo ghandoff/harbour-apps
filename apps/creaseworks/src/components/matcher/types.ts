@@ -12,6 +12,13 @@ export interface MatcherInputFormProps {
   forms: string[];
   slots: string[];
   contexts: string[];
+  /**
+   * Material IDs to seed the selection with on mount. Used when the user
+   * arrives from the landing MaterialPickerHero, which ships a preselected
+   * list via ?materials=<csv>. Applied once on mount — later prop changes
+   * won't overwrite user edits.
+   */
+  preselectedMaterialIds?: string[];
 }
 
 export interface MatcherResult {

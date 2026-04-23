@@ -8,6 +8,7 @@ import Footer from "@/components/ui/footer";
 import { auth } from "@/lib/auth";
 import { HarbourNav } from "@windedvertigo/auth/harbour-nav";
 import { FeedbackWidget } from "@windedvertigo/feedback";
+import { CharacterVariantProvider } from "@windedvertigo/characters/variant-context";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -105,19 +106,23 @@ export default async function RootLayout({
     <html lang="en" className={htmlClasses}>
       <body className="antialiased pt-12">
         <Providers>
-          <a
-            href="#main-content"
-            className="skip-link"
+          <CharacterVariantProvider
+            variant={grownupMode ? "adult" : "kid"}
           >
-            skip to main content
-          </a>
-          <HarbourNav currentApp="creaseworks" user={session?.user} />
-          <NavBar />
-          <div id="main-content">
-            {children}
-          </div>
-          <Footer />
-          <FeedbackWidget appSlug="creaseworks" />
+            <a
+              href="#main-content"
+              className="skip-link"
+            >
+              skip to main content
+            </a>
+            <HarbourNav currentApp="creaseworks" user={session?.user} />
+            <NavBar />
+            <div id="main-content">
+              {children}
+            </div>
+            <Footer />
+            <FeedbackWidget appSlug="creaseworks" />
+          </CharacterVariantProvider>
         </Providers>
       </body>
     </html>

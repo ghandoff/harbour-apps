@@ -21,6 +21,7 @@
 
 import { useRef, useCallback } from "react";
 import CharacterSlot, { type CharacterName } from "@windedvertigo/characters";
+import { useCharacterVariant } from "@windedvertigo/characters/variant-context";
 
 export type EmojiTileSize = "sm" | "md" | "lg" | "xl";
 
@@ -94,6 +95,11 @@ export function EmojiTile({
 }: EmojiTileProps) {
   const cfg = SIZE_CONFIG[size];
   const tapRef = useRef<HTMLButtonElement>(null);
+  // ambient register from the root-layout cookie-bootstrapped provider —
+  // kid by default, grownup when the user has flipped the toggle in
+  // /profile accessibility. Passed explicitly to CharacterSlot so
+  // CharacterSlot itself stays hook-free (server-safe).
+  const characterVariant = useCharacterVariant();
 
   const accent = accentColor ?? ACCENTS[index % ACCENTS.length];
   const corners = CORNERS[index % CORNERS.length];
@@ -161,8 +167,15 @@ export function EmojiTile({
           style={{ width: cfg.imgPx, height: cfg.imgPx }}
         >
           {/* animate={false} — EmojiTile owns the wobble via .et-tile, so
-              the character's self-wobble would double-animate. */}
-          <CharacterSlot character={characterName} size={cfg.imgPx} animate={false} />
+              the character's self-wobble would double-animate.
+              variant={characterVariant} — from the ambient provider so
+              flipping kid/grownup at /profile propagates instantly.   */}
+          <CharacterSlot
+            character={characterName}
+            size={cfg.imgPx}
+            animate={false}
+            variant={characterVariant}
+          />
         </span>
       ) : emojiSrc ? (
         <img

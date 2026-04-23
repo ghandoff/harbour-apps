@@ -1,7 +1,9 @@
 import { Inter } from "next/font/google";
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { Analytics } from "@vercel/analytics/next";
 import { FeedbackWidget } from "@windedvertigo/feedback";
+import { CharacterVariantProvider } from "@windedvertigo/characters/variant-context";
 import "./globals.css";
 
 const inter = Inter({
@@ -44,11 +46,18 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // Read the shared kid/adult register cookie. Path was broadened to
+  // /harbour (see /api/preferences/route.ts) so harbour and creaseworks
+  // share the preference — if the user flips the toggle in creaseworks
+  // profile, the next harbour render picks it up without a refresh.
+  const cookieStore = await cookies();
+  const grownupMode = cookieStore.get("cw-ui-mode")?.value === "grownup";
+
   return (
     <html lang="en" className={inter.variable}>
       <head>
@@ -58,12 +67,14 @@ export default function RootLayout({
         </noscript>
       </head>
       <body className="bg-[var(--wv-cadet)] text-[var(--color-text-on-dark)] font-[family-name:var(--font-body)] antialiased">
-        <a href="#main" className="skip-link">
-          Skip to content
-        </a>
-        {children}
-        <FeedbackWidget appSlug="harbour" />
-        <Analytics />
+        <CharacterVariantProvider variant={grownupMode ? "adult" : "kid"}>
+          <a href="#main" className="skip-link">
+            Skip to content
+          </a>
+          {children}
+          <FeedbackWidget appSlug="harbour" />
+          <Analytics />
+        </CharacterVariantProvider>
       </body>
     </html>
   );

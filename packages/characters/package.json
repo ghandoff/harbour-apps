@@ -8,10 +8,12 @@
   },
   "main": "index.tsx",
   "exports": {
-    ".": "./index.tsx"
+    ".": "./index.tsx",
+    "./variant-context": "./variant-context.tsx"
   },
   "files": [
-    "index.tsx"
+    "index.tsx",
+    "variant-context.tsx"
   ],
   "peerDependencies": {
     "react": ">=18"

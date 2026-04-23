@@ -86,7 +86,13 @@ export async function PATCH(req: NextRequest) {
     // HttpOnly=false so client JS can also read them for optimistic UI.
     const res = NextResponse.json({ ...prefs, uiTier, uiMode });
     const cookieOpts = {
-      path: "/harbour/creaseworks",
+      // path widened from /harbour/creaseworks to /harbour so the kid/adult
+      // register preference flips cast appearance across every harbour app
+      // (harbour hub, creaseworks, vertigo-vault, etc.) — each reads the
+      // same cw-ui-mode cookie server-side. Accessibility cookies share
+      // the same path for consistency; they're harmless for apps that
+      // don't read them.
+      path: "/harbour",
       maxAge: 60 * 60 * 24 * 365, // 1 year
       sameSite: "lax" as const,
       secure: process.env.NODE_ENV === "production",
