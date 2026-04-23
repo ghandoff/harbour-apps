@@ -171,7 +171,7 @@ export function CastParade() {
             color: "var(--wv-sienna, #cb7858)",
           }}
         >
-          seven characters · twenty-five shapes
+          seven characters · nineteen shapes
         </p>
 
         <div className="grid grid-cols-4 sm:grid-cols-7 gap-3 place-items-center">
