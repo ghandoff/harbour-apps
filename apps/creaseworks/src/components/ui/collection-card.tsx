@@ -36,7 +36,8 @@ export default function CollectionCard({
   return (
     <Link
       href={`/playbook/${slug}`}
-      className="block rounded-xl border border-cadet/10 bg-white shadow-sm hover:shadow-md hover:border-sienna/40 hover:-translate-y-0.5 transition-all duration-200 overflow-hidden"
+      className="block rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 overflow-hidden"
+      style={{ background: "var(--wv-cream)", border: "1.5px solid rgba(39, 50, 72, 0.08)" }}
     >
       {/* cover image header */}
       {coverUrl && (
