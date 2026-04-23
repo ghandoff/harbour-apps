@@ -99,7 +99,7 @@ export default function InviteTable({ invites, showRevoke = false }: Props) {
                     {inv.pack_names.map((name) => (
                       <span
                         key={name}
-                        className="text-2xs font-medium tracking-wide px-1.5 py-px rounded-full bg-champagne/20 text-cadet/60 whitespace-nowrap"
+                        className="text-2xs font-medium tracking-wide px-1.5 py-px rounded-full bg-cream/20 text-cadet/60 whitespace-nowrap"
                       >
                         {name}
                       </span>

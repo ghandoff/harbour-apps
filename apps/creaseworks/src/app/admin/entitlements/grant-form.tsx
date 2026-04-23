@@ -60,7 +60,7 @@ export default function EntitlementGrantForm({ orgs, packs }: GrantFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="rounded-xl border border-cadet/10 bg-champagne/30 p-5 mb-8">
+    <form onSubmit={handleSubmit} className="rounded-xl border border-cadet/10 bg-cream/30 p-5 mb-8">
       <h2 className="text-sm font-semibold text-cadet/80 mb-3">grant entitlement</h2>
       <div className="flex flex-wrap gap-3 items-end">
         <div className="flex-1 min-w-48">

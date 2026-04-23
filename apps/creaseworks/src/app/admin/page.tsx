@@ -105,7 +105,7 @@ export default async function AdminPage() {
           <Link
             key={s.href}
             href={s.href}
-            className="rounded-xl border border-cadet/10 bg-champagne/30 p-6 transition-all hover:border-cadet/20 hover:bg-champagne/50 group"
+            className="rounded-xl border border-cadet/10 bg-cream/30 p-6 transition-all hover:border-cadet/20 hover:bg-cream/50 group"
           >
             <div className="flex items-start gap-3">
               <span className="text-2xl" role="img" aria-hidden>

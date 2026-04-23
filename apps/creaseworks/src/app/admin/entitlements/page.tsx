@@ -30,7 +30,7 @@ export default async function AdminEntitlementsPage() {
       </h1>
 
       {/* grant form */}
-      <section className="rounded-xl border border-cadet/10 bg-champagne/30 p-6 mb-10">
+      <section className="rounded-xl border border-cadet/10 bg-cream/30 p-6 mb-10">
         <h2 className="text-sm font-semibold text-cadet/80 mb-4">
           grant entitlement
         </h2>

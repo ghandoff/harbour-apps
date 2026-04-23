@@ -160,7 +160,7 @@ async function renderPlaydatePackPage(slug: string) {
                 )}
                 <div className="flex items-center gap-2 mt-2 text-xs text-cadet/50">
                   {p.primary_function && (
-                    <span className="rounded-full bg-champagne px-2 py-0.5">
+                    <span className="rounded-full bg-cream px-2 py-0.5">
                       {p.primary_function}
                     </span>
                   )}

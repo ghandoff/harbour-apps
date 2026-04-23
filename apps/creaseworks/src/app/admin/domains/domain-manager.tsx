@@ -84,7 +84,7 @@ export default function DomainBlocklistManager({
   return (
     <div>
       {/* add form */}
-      <div className="rounded-xl border border-cadet/10 bg-champagne/30 p-5 mb-8">
+      <div className="rounded-xl border border-cadet/10 bg-cream/30 p-5 mb-8">
         <h2 className="text-sm font-semibold text-cadet/80 mb-3">add domain</h2>
         <div className="flex flex-wrap gap-3">
           <input

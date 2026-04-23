@@ -88,7 +88,7 @@ export default async function LogPage({
               href="/login"
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all"
               style={{
-                backgroundColor: "var(--wv-champagne)",
+                backgroundColor: "var(--wv-cream)",
                 color: "var(--wv-cadet)",
               }}
             >
@@ -224,7 +224,7 @@ async function GallerySection({
       </p>
 
       {items.length === 0 ? (
-        <div className="rounded-xl border border-champagne/20 bg-champagne/[0.04] p-8 text-center max-w-sm mx-auto">
+        <div className="rounded-xl border border-champagne/20 bg-cream/[0.04] p-8 text-center max-w-sm mx-auto">
           <p className="text-3xl mb-3" aria-hidden>
             🦋
           </p>

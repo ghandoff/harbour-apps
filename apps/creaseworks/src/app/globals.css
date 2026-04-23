@@ -38,6 +38,8 @@
   --color-redwood: var(--wv-redwood);
   --color-sienna: var(--wv-sienna);
   --color-champagne: var(--wv-champagne);
+  /* kid-surface token — use for backgrounds instead of champagne */
+  --color-cream: var(--wv-cream);
   /* complementary palette — phase accents */
   --color-navy: var(--wv-navy);
   --color-cornflower: var(--wv-cornflower);

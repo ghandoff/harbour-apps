@@ -71,7 +71,7 @@ export default async function BrowsePage() {
             all playdates
           </h1>
           {isInternal && (
-            <span className="text-2xs font-semibold tracking-wide px-2 py-0.5 rounded-full bg-champagne/20 text-champagne">
+            <span className="text-2xs font-semibold tracking-wide px-2 py-0.5 rounded-full bg-cream/20 text-champagne">
               collective view
             </span>
           )}

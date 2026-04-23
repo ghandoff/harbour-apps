@@ -118,7 +118,7 @@ async function PlaybookSection({ userId }: { userId: string }) {
       {suggestion && (
         <Link
           href={`/playbook/${suggestion.collection.slug}`}
-          className="block mb-5 rounded-lg bg-champagne/15 px-4 py-3 text-sm text-cadet/60 hover:bg-champagne/25 transition-colors"
+          className="block mb-5 rounded-lg bg-cream/15 px-4 py-3 text-sm text-cadet/60 hover:bg-cream/25 transition-colors"
         >
           {suggestion.reason} — try{" "}
           <span className="font-medium text-cadet">
@@ -347,7 +347,7 @@ function Pill({
   accent?: "champagne" | "sienna" | "redwood";
 }) {
   const colors = {
-    champagne: "bg-champagne/20 text-cadet/60",
+    champagne: "bg-cream/20 text-cadet/60",
     sienna: "bg-sienna/10 text-sienna/70",
     redwood: "bg-redwood/10 text-redwood/70",
   };

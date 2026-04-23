@@ -122,7 +122,7 @@ export default async function PlaydateTeaserPage({ params }: Props) {
       )}
 
       {/* ── at a glance ── */}
-      <section className="rounded-xl border border-cadet/10 bg-champagne/30 p-6 mb-8">
+      <section className="rounded-xl border border-cadet/10 bg-cream/30 p-6 mb-8">
         <h2 className="text-sm font-semibold text-cadet/80 mb-4">
           at a glance
         </h2>
@@ -276,7 +276,7 @@ export default async function PlaydateTeaserPage({ params }: Props) {
       )}
 
       {/* ── want more? — soft upsell ── */}
-      <section className="rounded-xl border border-sienna/20 bg-gradient-to-b from-champagne/20 to-champagne/5 p-6 mb-8">
+      <section className="rounded-xl border border-sienna/20 bg-gradient-to-b from-cream/20 to-cream/5 p-6 mb-8">
         <h2 className="text-sm font-semibold text-cadet/80 mb-1">
           want more?
         </h2>

@@ -127,7 +127,7 @@ export default async function CollectionDetailPage({ params }: Props) {
       <div className="mt-4 mb-8">
         <div className="h-1.5 rounded-full bg-cadet/5 overflow-hidden max-w-sm">
           <div
-            className="h-full rounded-full bg-champagne transition-all duration-500"
+            className="h-full rounded-full bg-cream transition-all duration-500"
             style={{ width: `${pct}%` }}
           />
         </div>
