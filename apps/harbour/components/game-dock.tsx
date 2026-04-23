@@ -2,6 +2,17 @@
 
 import { useState, useEffect, useRef, Fragment } from "react";
 import type { Game } from "./game-showcase";
+import CharacterSlot, { type CharacterName } from "@windedvertigo/characters";
+
+function getCharacterForGame(slug: string): CharacterName | null {
+  const s = slug.toLowerCase();
+  if (s.includes("crease")) return "cord";
+  if (s.includes("vault")) return "jugs";
+  if (s.includes("depth")) return "crate";
+  if (s.includes("deck")) return "swatch";
+  if (s.includes("raft")) return "mud";
+  return null;
+}
 
 interface GameDockProps {
   games: Game[];
@@ -41,7 +52,24 @@ function DockCard({
         </>
       )}
       <div className="relative z-10">
-        {game.icon && <span className="text-3xl sm:text-4xl block mb-3">{game.icon}</span>}
+        {(() => {
+          const character = getCharacterForGame(game.slug);
+          if (character) {
+            return (
+              <div className="mb-3">
+                <CharacterSlot
+                  character={character}
+                  size={52}
+                  animate={false}
+                  variant="kid"
+                />
+              </div>
+            );
+          }
+          return game.icon ? (
+            <span className="text-3xl sm:text-4xl block mb-3">{game.icon}</span>
+          ) : null;
+        })()}
         <h3 className="text-lg sm:text-xl font-bold text-[var(--color-text-on-dark)] tracking-tight mb-1">
           {game.name}
         </h3>
