@@ -10,6 +10,7 @@ import type { Metadata } from "next";
 import { getSession } from "@/lib/auth-helpers";
 import { getLeaderboard, getLeaderboardStatus } from "@/lib/queries/leaderboard";
 import LeaderboardOptIn from "@/components/leaderboard-opt-in";
+import CharacterSlot from "@windedvertigo/characters";
 
 export const dynamic = "force-dynamic";
 
@@ -35,7 +36,7 @@ export default async function CommunityPage() {
     <main className="min-h-screen px-4 pt-8 pb-24 sm:px-6 sm:pt-12 sm:pb-12 max-w-[900px] mx-auto">
       {/* Header */}
       <div className="mb-10">
-        <h1 className="text-4xl font-bold mb-2 text-redwood">
+        <h1 className="text-4xl font-bold font-serif mb-2 text-redwood">
           community
         </h1>
         <p className="text-base text-cadet leading-relaxed">
@@ -54,29 +55,32 @@ export default async function CommunityPage() {
 
       {/* Leaderboard content */}
       {leaderboard.length === 0 ? (
-        <div className="text-center py-14 rounded-xl bg-sienna/[0.03] border border-sienna/15 max-w-md mx-auto">
-          {/* brand-aligned illustration: connected people */}
-          <svg
-            viewBox="0 0 80 50"
-            width={80}
-            height={50}
-            className="mx-auto mb-4"
+        <div
+          className="text-center py-14 rounded-2xl max-w-md mx-auto"
+          style={{
+            background: "var(--wv-cream)",
+            border: "1.5px solid rgba(39, 50, 72, 0.08)",
+          }}
+        >
+          {/* cast trio — Cord, Jugs, and Swatch waiting for the first player */}
+          <div
+            className="flex items-end justify-center gap-4 mb-5"
             aria-hidden="true"
           >
-            <circle cx="40" cy="16" r="7" fill="none" stroke="var(--wv-sienna)" strokeWidth="1.3" opacity="0.5" />
-            <circle cx="20" cy="22" r="5" fill="none" stroke="var(--wv-sienna)" strokeWidth="1" opacity="0.3" />
-            <circle cx="60" cy="22" r="5" fill="none" stroke="var(--wv-sienna)" strokeWidth="1" opacity="0.3" />
-            <path d="M30 42c0-5.5 4.5-10 10-10s10 4.5 10 10" fill="none" stroke="var(--wv-sienna)" strokeWidth="1.3" strokeLinecap="round" opacity="0.4" />
-            <path d="M12 38c0-4.4 3.6-8 8-8" fill="none" stroke="var(--wv-sienna)" strokeWidth="1" strokeLinecap="round" opacity="0.25" />
-            <path d="M68 38c0-4.4-3.6-8-8-8" fill="none" stroke="var(--wv-sienna)" strokeWidth="1" strokeLinecap="round" opacity="0.25" />
-          </svg>
+            <CharacterSlot character="cord"   size={52} animate={false} variant="kid" />
+            <CharacterSlot character="jugs"   size={64} animate={false} variant="kid" />
+            <CharacterSlot character="swatch" size={52} animate={false} variant="kid" />
+          </div>
           <p
-            className="text-base font-medium mb-1"
+            className="text-base font-bold mb-1.5"
             style={{ color: "var(--wv-sienna)" }}
           >
             no leaders yet — be the first!
           </p>
-          <p className="text-sm text-cadet/50">
+          <p
+            className="text-sm max-w-xs mx-auto leading-relaxed"
+            style={{ color: "var(--wv-cadet)", opacity: 0.55 }}
+          >
             join the leaderboard and share your creative journey with the community.
           </p>
         </div>
