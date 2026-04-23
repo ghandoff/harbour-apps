@@ -108,7 +108,7 @@ export default async function CollectionDetailPage({ params }: Props) {
 
         {/* body content — rich HTML from Notion page body */}
         {collection.body_html && (
-          <section className="rounded-xl border border-cadet/10 bg-white p-6 mb-4">
+          <section className="rounded-xl p-6 mb-4" style={{ background: "var(--wv-cream)", border: "1.5px solid rgba(39, 50, 72, 0.08)" }}>
             <SafeHtml
               html={collection.body_html}
               fallback={null}
