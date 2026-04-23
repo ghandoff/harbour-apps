@@ -3,6 +3,7 @@
 import { useState, useRef, useMemo } from "react";
 import { Material, MatcherResult } from "./types";
 import { apiUrl } from "@/lib/api-url";
+import { sortMaterialsBySize } from "@/lib/material-size";
 
 export function useMatcherState(materials: Material[]) {
   // selection state
@@ -57,6 +58,25 @@ export function useMatcherState(materials: Material[]) {
     }
     return filtered;
   }, [materialsByForm, materialSearch]);
+
+  /**
+   * Flat, size-sorted list of all materials (smallest → biggest).
+   * Used by the new classic picker which abandoned form-bucket grouping
+   * in favour of a single continuous scroll where the size axis IS the
+   * mental model. Search term filters before sort so results stay
+   * stable order regardless of query.
+   */
+  const filteredMaterialsBySize = useMemo(() => {
+    const query = materialSearch.trim().toLowerCase();
+    const base = query
+      ? materials.filter(
+          (m) =>
+            m.title.toLowerCase().includes(query) ||
+            (m.form_primary ?? "").toLowerCase().includes(query),
+        )
+      : materials;
+    return sortMaterialsBySize(base);
+  }, [materials, materialSearch]);
 
   const hasSelection =
     selectedMaterials.size > 0 ||
@@ -187,6 +207,7 @@ export function useMatcherState(materials: Material[]) {
     resultsRef,
     materialsByForm,
     filteredMaterialsByForm,
+    filteredMaterialsBySize,
     hasSelection,
     totalSelections,
     toggleSet,

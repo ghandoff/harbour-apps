@@ -18,6 +18,7 @@
     "@neondatabase/serverless": "^0.10.0",
     "@notionhq/client": "^2.3.0",
     "@windedvertigo/auth": "*",
+    "@windedvertigo/characters": "*",
     "@windedvertigo/feedback": "*",
     "@windedvertigo/stripe": "*",
     "@windedvertigo/tokens": "*",

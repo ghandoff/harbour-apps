@@ -3,13 +3,17 @@
 /**
  * Matcher input form — playful, child-friendly material picker.
  *
- * "classic picker" mode — the original full material list using
- * EmojiTile cards instead of pills. Big, tappable tiles with emoji
- * above labels, designed for kids who can't read yet.
+ * "classic picker" mode — every material the app knows about, as one
+ * continuous scroll of big tiles ordered from smallest (buttons, beads)
+ * to biggest (trash bin, large cardboard boxes). No form buckets, no
+ * drop-down reveals — the size axis IS the mental model.
  *
- * Groups materials by form (paper, cardboard, fabric…) with
- * collapsible sections on mobile. Search bar for parents who
- * know what they're looking for.
+ * The cast still appears on each tile via resolveCharacterFromForm,
+ * but their role shifted: they no longer label form categories, they
+ * inhabit the scroll and let kids discover repetition patterns on
+ * their own (seven Cords in a row = "oh, these all bend").
+ *
+ * Search bar survives for parents who know what they're looking for.
  */
 
 import { MatcherInputFormProps, Material } from "./types";
@@ -18,37 +22,13 @@ import { EmojiTile } from "./emoji-tile";
 import { useMatcherState } from "./use-matcher-state";
 import { MatcherResults } from "./matcher-results";
 import { getMaterialEmoji, getMaterialIcon } from "./material-emoji";
+import { resolveCharacterFromForm } from "@windedvertigo/characters";
 
-/* ── emoji maps for material forms ────────────────────────────────── */
-
-const FORM_EMOJI: Record<string, string> = {
-  paper: "📄",
-  cardboard: "📦",
-  fabric: "🧵",
-  textile: "🧣",
-  wood: "🪵",
-  plastic: "🫙",
-  metal: "🔩",
-  natural: "🌿",
-  food: "🍎",
-  clay: "🏺",
-  string: "🧶",
-  rope: "🪢",
-  tape: "🩹",
-  paint: "🎨",
-  recycled: "♻️",
-  found: "🔍",
-  glass: "🪟",
-  rubber: "🎈",
-  foam: "🧽",
-  "containers / vessels": "🫙",
-  "cutting / dividing": "✂️",
-  "joining / fastening": "🔗",
-  "marking / coloring": "🖍️",
-  "shaping / molding": "🤲",
-  "building / stacking": "🏗️",
-  other: "🧩",
-};
+/* ── emoji maps for filter tiles ───────────────────────────────────
+   FORM_EMOJI was removed when the classic picker dropped its form-bucket
+   headers — the size axis replaced form-grouping as the organising
+   principle. CONTEXT_EMOJI + SLOT_EMOJI remain for the two filter rows
+   that still group discretely (contexts = "where", slots = "tools").  */
 
 const CONTEXT_EMOJI: Record<string, string> = {
   indoors: "🏠",
@@ -58,6 +38,9 @@ const CONTEXT_EMOJI: Record<string, string> = {
   park: "🏞️",
   beach: "🏖️",
   classroom: "🏫",
+  home: "🏡",
+  "low-resource": "🌱",
+  remote: "🏕️",
   car: "🚗",
   "rainy day": "🌧️",
   quiet: "🤫",
@@ -71,6 +54,11 @@ const SLOT_EMOJI: Record<string, string> = {
   water: "💧",
   oven: "🔥",
   hammer: "🔨",
+  // generic DB slot categories — more abstract than specific tools
+  "found object": "🔍",
+  "mark-maker": "✏️",
+  "small parts": "🧩",
+  surface: "⬜",
 };
 
 function getEmoji(
@@ -89,7 +77,6 @@ function getEmoji(
 
 export default function MatcherInputForm({
   materials,
-  forms,
   slots,
   contexts,
 }: MatcherInputFormProps) {
@@ -104,16 +91,14 @@ export default function MatcherInputForm({
     setSelectedContexts,
     materialSearch,
     setMaterialSearch,
-    expandedFormGroups,
     loading,
     error,
     results,
     resultsRef,
-    filteredMaterialsByForm,
+    filteredMaterialsBySize,
     hasSelection,
     totalSelections,
     toggleSet,
-    toggleFormGroup,
     handleSubmit,
     handleClear,
     materialTitleMap,
@@ -130,7 +115,7 @@ export default function MatcherInputForm({
           className="mb-5 rounded-2xl border-2 border-dashed px-5 py-4"
           style={{
             borderColor: "rgba(203, 120, 88, 0.3)",
-            backgroundColor: "rgba(39, 50, 72, 0.06)",
+            backgroundColor: "var(--wv-cream)",
             animation: "basketAppear 400ms cubic-bezier(0.34, 1.56, 0.64, 1)",
           }}
         >
@@ -144,7 +129,7 @@ export default function MatcherInputForm({
             </span>
             <span
               className="text-xs"
-              style={{ color: "var(--wv-champagne)", opacity: 0.7 }}
+              style={{ color: "var(--wv-cadet)", opacity: 0.7 }}
             >
               {totalSelections} thing{totalSelections !== 1 ? "s" : ""} picked
             </span>
@@ -167,7 +152,7 @@ export default function MatcherInputForm({
                   className="inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-medium transition-all active:scale-90"
                   style={{
                     backgroundColor: "rgba(177, 80, 67, 0.15)",
-                    color: "var(--wv-champagne)",
+                    color: "var(--wv-cadet)",
                   }}
                 >
                   {iconPath ? (
@@ -189,7 +174,7 @@ export default function MatcherInputForm({
                 className="inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-medium transition-all active:scale-90"
                 style={{
                   backgroundColor: "rgba(203, 120, 88, 0.15)",
-                  color: "var(--wv-champagne)",
+                  color: "var(--wv-cadet)",
                 }}
               >
                 {f}
@@ -207,7 +192,7 @@ export default function MatcherInputForm({
                 className="inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-medium transition-all active:scale-90"
                 style={{
                   backgroundColor: "rgba(203, 120, 88, 0.12)",
-                  color: "var(--wv-champagne)",
+                  color: "var(--wv-cadet)",
                 }}
               >
                 {getEmoji(CONTEXT_EMOJI, c)} {c}
@@ -223,7 +208,7 @@ export default function MatcherInputForm({
                 className="inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-medium transition-all active:scale-90"
                 style={{
                   backgroundColor: "rgba(228, 196, 137, 0.2)",
-                  color: "var(--wv-champagne)",
+                  color: "var(--wv-cadet)",
                   opacity: 0.9,
                 }}
               >
@@ -245,8 +230,11 @@ export default function MatcherInputForm({
           selectedCount={selectedContexts.size}
           defaultOpen={true}
         >
-          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-            {contexts.map((ctx) => (
+          <div
+            className="grid grid-cols-2 sm:grid-cols-3 gap-3 mx-auto"
+            style={{ maxWidth: 720 }}
+          >
+            {contexts.map((ctx, i) => (
               <EmojiTile
                 key={ctx}
                 emoji={getEmoji(CONTEXT_EMOJI, ctx, "📍")}
@@ -256,7 +244,9 @@ export default function MatcherInputForm({
                 onClick={() =>
                   toggleSet(selectedContexts, setSelectedContexts, ctx)
                 }
-                size="sm"
+                size="lg"
+                fluid
+                index={i}
               />
             ))}
           </div>
@@ -286,137 +276,88 @@ export default function MatcherInputForm({
               onChange={(e) => setMaterialSearch(e.target.value)}
               className="w-full rounded-xl border pl-10 pr-4 py-3 text-sm outline-none focus:ring-2"
               style={{
-                borderColor: "rgba(255, 255, 255, 0.15)",
-                color: "var(--wv-champagne)",
+                borderColor: "rgba(39, 50, 72, 0.12)",
+                color: "var(--wv-cadet)",
                 minHeight: 48,
-                backgroundColor: "rgba(255, 255, 255, 0.08)",
+                backgroundColor: "var(--wv-cream)",
               }}
             />
           </div>
 
-          {/* materials grouped by form — each group is a mini treasure trove */}
+          {/* size hint — a small two-word tell that the scroll is a size
+              axis. subtle enough to not teach with a sledgehammer. */}
           <div
-            className="space-y-2 max-h-[55vh] overflow-y-auto rounded-xl border p-3 -webkit-overflow-scrolling-touch"
+            className="flex items-center justify-between px-1 mb-2"
             style={{
-              borderColor: "rgba(255, 255, 255, 0.08)",
-              backgroundColor: "rgba(255, 255, 255, 0.04)",
+              fontSize: "0.625rem",
+              fontWeight: 700,
+              letterSpacing: "0.06em",
+              color: "var(--wv-cadet)",
+              opacity: 0.45,
+              textTransform: "uppercase",
+            }}
+            aria-hidden="true"
+          >
+            <span>↑ small stuff</span>
+            <span>big stuff ↓</span>
+          </div>
+
+          {/* continuous size-sorted scroll — every material, smallest to
+              biggest. 2 cols on mobile, 3 on desktop, constrained so
+              tiles feel the same size across breakpoints.              */}
+          <div
+            className="rounded-xl border p-3 -webkit-overflow-scrolling-touch"
+            style={{
+              borderColor: "rgba(39, 50, 72, 0.06)",
+              backgroundColor: "rgba(255, 246, 232, 0.5)",
             }}
           >
-            {Array.from(filteredMaterialsByForm.entries()).map(
-              ([form, mats]) => {
-                const groupSelected = mats.filter((m) =>
-                  selectedMaterials.has(m.id),
-                ).length;
-                const isExpanded = expandedFormGroups.has(form);
-                const formLower = form.toLowerCase();
-                const formEmoji =
-                  FORM_EMOJI[formLower] ??
-                  Object.entries(FORM_EMOJI).find(([k]) => formLower.includes(k) || k.includes(formLower))?.[1] ??
-                  FORM_EMOJI.other;
-
-                return (
-                  <div key={form} className="py-1">
-                    {/* form group header */}
-                    <button
-                      type="button"
-                      onClick={() => toggleFormGroup(form)}
-                      className="w-full flex items-center justify-between py-2 px-2 text-left rounded-lg transition-colors"
-                      style={{
-                        backgroundColor: "transparent",
-                      }}
-                    >
-                      <span className="flex items-center gap-2">
-                        <span className="text-base">{formEmoji}</span>
-                        <span
-                          className="text-xs font-bold tracking-wider"
-                          style={{ color: "var(--wv-champagne)", opacity: 0.7 }}
-                        >
-                          {form}
-                        </span>
-                        {groupSelected > 0 && (
+            {filteredMaterialsBySize.length > 0 ? (
+              <div
+                className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 mx-auto"
+                style={{ maxWidth: 720 }}
+              >
+                {filteredMaterialsBySize.map((mat: Material, i) => (
+                  <div key={mat.id} className="flex flex-col items-center gap-1">
+                    <EmojiTile
+                      emoji={getMaterialEmoji(mat.title, mat.form_primary, mat.emoji)}
+                      emojiSrc={getMaterialIcon(mat.title, mat.form_primary, mat.emoji, mat.icon) ?? undefined}
+                      characterName={resolveCharacterFromForm(mat.form_primary, mat.title)}
+                      label={mat.title}
+                      selected={selectedMaterials.has(mat.id)}
+                      onClick={() =>
+                        toggleSet(selectedMaterials, setSelectedMaterials, mat.id)
+                      }
+                      size="xl"
+                      fluid
+                      index={i}
+                    />
+                    {mat.functions && mat.functions.length > 0 && (
+                      <div className="flex flex-wrap gap-1 justify-center max-w-full px-1">
+                        {mat.functions.slice(0, 2).map((fn: string) => (
                           <span
-                            className="text-xs font-bold"
-                            style={{ color: "var(--wv-redwood)" }}
+                            key={fn}
+                            className="text-center leading-tight"
+                            style={{
+                              fontSize: "0.625rem",
+                              color: "var(--wv-seafoam)",
+                              opacity: 0.75,
+                              fontWeight: 600,
+                              letterSpacing: "0.01em",
+                            }}
                           >
-                            ({groupSelected})
+                            {fn}
                           </span>
-                        )}
-                      </span>
-                      <svg
-                        width="14"
-                        height="14"
-                        viewBox="0 0 16 16"
-                        fill="none"
-                        className="flex-shrink-0 sm:hidden"
-                        style={{
-                          transition:
-                            "transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1)",
-                          transform: isExpanded
-                            ? "rotate(180deg)"
-                            : "rotate(0deg)",
-                          opacity: 0.3,
-                        }}
-                      >
-                        <path
-                          d="M4 6L8 10L12 6"
-                          stroke="var(--wv-champagne)"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </button>
-
-                    {/* material tiles — always visible on desktop, collapsible on mobile */}
-                    <div
-                      className={`grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2 mt-1.5 ${
-                        isExpanded ? "" : "hidden sm:grid"
-                      }`}
-                    >
-                      {mats.map((mat: Material) => (
-                        <div key={mat.id} className="flex flex-col items-center gap-0.5">
-                          <EmojiTile
-                            emoji={getMaterialEmoji(mat.title, mat.form_primary, mat.emoji)}
-                            emojiSrc={getMaterialIcon(mat.title, mat.form_primary, mat.emoji, mat.icon) ?? undefined}
-                            label={mat.title}
-                            selected={selectedMaterials.has(mat.id)}
-                            onClick={() =>
-                              toggleSet(
-                                selectedMaterials,
-                                setSelectedMaterials,
-                                mat.id,
-                              )
-                            }
-                            size="sm"
-                          />
-                          {mat.functions && mat.functions.length > 0 && (
-                            <div className="flex flex-wrap gap-0.5 justify-center max-w-[80px]">
-                              {mat.functions.slice(0, 2).map((fn: string) => (
-                                <span
-                                  key={fn}
-                                  className="text-center leading-tight"
-                                  style={{
-                                    fontSize: "0.45rem",
-                                    color: "var(--wv-seafoam)",
-                                    opacity: 0.7,
-                                  }}
-                                >
-                                  {fn}
-                                </span>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                );
-              },
-            )}
-            {filteredMaterialsByForm.size === 0 && (
+                ))}
+              </div>
+            ) : (
               <p
                 className="text-sm py-6 text-center"
-                style={{ color: "var(--wv-champagne)", opacity: 0.5 }}
+                style={{ color: "var(--wv-cadet)", opacity: 0.5 }}
               >
                 hmm, nothing matches that search. try a different word!
               </p>
@@ -424,11 +365,11 @@ export default function MatcherInputForm({
 
             {/* encouragement for unlisted items */}
             <p
-              className="text-xs text-center py-3 mt-2 rounded-lg"
+              className="text-xs text-center py-3 mt-4 rounded-lg"
               style={{
-                color: "var(--wv-champagne)",
-                opacity: 0.4,
-                backgroundColor: "rgba(255, 255, 255, 0.02)",
+                color: "var(--wv-cadet)",
+                opacity: 0.55,
+                backgroundColor: "rgba(39, 50, 72, 0.03)",
               }}
             >
               💡 found something not listed? pick the closest match — creativity counts!
@@ -445,8 +386,11 @@ export default function MatcherInputForm({
             selectedCount={selectedSlots.size}
             defaultOpen={true}
           >
-            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-              {slots.map((slot) => (
+            <div
+              className="grid grid-cols-2 sm:grid-cols-3 gap-3 mx-auto"
+              style={{ maxWidth: 720 }}
+            >
+              {slots.map((slot, i) => (
                 <EmojiTile
                   key={slot}
                   emoji={getEmoji(SLOT_EMOJI, slot, "🔧")}
@@ -456,7 +400,9 @@ export default function MatcherInputForm({
                   onClick={() =>
                     toggleSet(selectedSlots, setSelectedSlots, slot)
                   }
-                  size="sm"
+                  size="lg"
+                  fluid
+                  index={i}
                 />
               ))}
             </div>
@@ -497,7 +443,7 @@ export default function MatcherInputForm({
               type="button"
               onClick={handleClear}
               className="text-sm font-medium transition-opacity hover:opacity-80"
-              style={{ color: "var(--wv-champagne)", opacity: 0.45 }}
+              style={{ color: "var(--wv-cadet)", opacity: 0.45 }}
             >
               start over
             </button>
@@ -519,10 +465,10 @@ export default function MatcherInputForm({
       <div
         className="fixed bottom-0 left-0 right-0 z-50 flex items-center gap-3 px-4 pt-3 sm:hidden"
         style={{
-          backgroundColor: "rgba(39, 50, 72, 0.97)",
+          backgroundColor: "rgba(255, 246, 232, 0.97)",
           backdropFilter: "blur(12px)",
           WebkitBackdropFilter: "blur(12px)",
-          borderTop: "2px solid rgba(203, 120, 88, 0.2)",
+          borderTop: "2px solid rgba(39, 50, 72, 0.1)",
           paddingBottom: "max(12px, env(safe-area-inset-bottom, 12px))",
         }}
       >
@@ -564,7 +510,7 @@ export default function MatcherInputForm({
             onClick={handleClear}
             className="flex-shrink-0 rounded-xl py-3.5 px-4 text-sm font-medium transition-opacity active:scale-95"
             style={{
-              color: "var(--wv-champagne)",
+              color: "var(--wv-cadet)",
               opacity: 0.45,
               minHeight: 48,
             }}

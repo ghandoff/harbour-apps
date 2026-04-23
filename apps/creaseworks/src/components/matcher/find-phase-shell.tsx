@@ -105,7 +105,7 @@ export default function FindPhaseShell({
         <Link
           href="/"
           className="text-sm hover:opacity-80 transition-opacity mb-5 sm:mb-7 inline-flex items-center gap-1.5"
-          style={{ color: "var(--wv-champagne)", opacity: 0.45 }}
+          style={{ color: "var(--wv-cadet)", opacity: 0.45 }}
         >
           <span>&larr;</span> creaseworks
         </Link>
@@ -132,7 +132,7 @@ export default function FindPhaseShell({
 
           <h1
             className="text-3xl sm:text-4xl font-bold tracking-tight mb-3"
-            style={{ color: "var(--wv-champagne)" }}
+            style={{ color: "var(--wv-cadet)" }}
           >
             {hero.heading}{" "}
             <span

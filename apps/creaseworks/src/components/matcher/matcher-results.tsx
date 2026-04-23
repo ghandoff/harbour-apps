@@ -50,7 +50,7 @@ export function MatcherResults({
           </p>
           <p
             className="text-xs mt-1"
-            style={{ color: "var(--wv-champagne)", opacity: 0.4 }}
+            style={{ color: "var(--wv-cadet)", opacity: 0.4 }}
           >
             finding the best ones for your stuff
           </p>
@@ -63,8 +63,8 @@ export function MatcherResults({
               key={i}
               className="rounded-2xl border-2 animate-pulse"
               style={{
-                borderColor: "rgba(203, 120, 88, 0.1)",
-                backgroundColor: "rgba(255, 255, 255, 0.04)",
+                borderColor: "rgba(39, 50, 72, 0.06)",
+                backgroundColor: "rgba(255, 246, 232, 0.6)",
                 height: i === 1 ? 150 : i === 2 ? 130 : 110,
                 animationDelay: `${(i - 1) * 200}ms`,
                 animationFillMode: "both",
@@ -117,7 +117,7 @@ export function MatcherResults({
       <div className="mb-6">
         <h2
           className="text-xl sm:text-2xl font-bold tracking-tight mb-1"
-          style={{ color: "var(--wv-champagne)" }}
+          style={{ color: "var(--wv-cadet)" }}
         >
           {results.ranked.length > 0 ? (
             <>
@@ -141,7 +141,7 @@ export function MatcherResults({
         </h2>
         <p
           className="text-xs"
-          style={{ color: "var(--wv-champagne)", opacity: 0.45 }}
+          style={{ color: "var(--wv-cadet)", opacity: 0.45 }}
         >
           looked through {results.meta.totalCandidates} playdates
           {results.meta.contextFiltersApplied.length > 0 &&
@@ -154,8 +154,8 @@ export function MatcherResults({
         <div
           className="rounded-2xl border-2 border-dashed p-8 text-center"
           style={{
-            borderColor: "rgba(203, 120, 88, 0.2)",
-            backgroundColor: "rgba(255, 255, 255, 0.03)",
+            borderColor: "rgba(39, 50, 72, 0.1)",
+            backgroundColor: "rgba(255, 246, 232, 0.5)",
           }}
         >
           {/* magnifying-glass illustration */}
@@ -167,7 +167,7 @@ export function MatcherResults({
             aria-hidden="true"
           >
             <circle cx="34" cy="26" r="14" fill="none" stroke="var(--wv-sienna)" strokeWidth="1.5" opacity="0.4" />
-            <circle cx="34" cy="26" r="10" fill="var(--wv-champagne)" opacity="0.2" />
+            <circle cx="34" cy="26" r="10" fill="var(--wv-cream)" opacity="0.8" />
             <line x1="44" y1="36" x2="56" y2="48" stroke="var(--wv-sienna)" strokeWidth="2.5" strokeLinecap="round" opacity="0.35" />
             <text x="34" y="30" textAnchor="middle" dominantBaseline="central" fontSize="12" fontWeight="600" fill="var(--wv-sienna)" opacity="0.25">?</text>
             <circle cx="60" cy="14" r="1.5" fill="var(--wv-sienna)" opacity="0.12" />
@@ -176,7 +176,7 @@ export function MatcherResults({
           </svg>
           <p
             className="text-sm leading-relaxed max-w-md mx-auto"
-            style={{ color: "var(--wv-champagne)", opacity: 0.6 }}
+            style={{ color: "var(--wv-cadet)", opacity: 0.6 }}
           >
             {results.meta.contextFiltersApplied.length > 0
               ? `we couldn't find a playdate that works in "${results.meta.contextFiltersApplied.join(" + ")}" with your stuff — try removing a place to see more!`

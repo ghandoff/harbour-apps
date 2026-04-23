@@ -17,6 +17,7 @@ import { RoomConfig } from "./room-config";
 import { EmojiTile } from "./emoji-tile";
 import { Material } from "./types";
 import { getMaterialEmoji, getMaterialIcon } from "./material-emoji";
+import { resolveCharacterFromForm } from "@windedvertigo/characters";
 
 interface RoomSceneProps {
   room: RoomConfig;
@@ -78,10 +79,10 @@ export function RoomScene({
           onClick={onBack}
           className="rounded-xl px-3 py-2 text-sm font-medium active:scale-95"
           style={{
-            color: "var(--wv-champagne)",
+            color: "var(--wv-cadet)",
             opacity: 0.6,
             transition: `all 180ms ease`,
-            border: "1.5px solid rgba(255, 255, 255, 0.12)",
+            border: "1.5px solid rgba(39, 50, 72, 0.12)",
           }}
           aria-label="back to rooms"
         >
@@ -99,7 +100,7 @@ export function RoomScene({
       {/* room prompt — the invitation to notice */}
       <p
         className="text-base font-bold mb-4"
-        style={{ color: "var(--wv-champagne)" }}
+        style={{ color: "var(--wv-cadet)" }}
       >
         {room.prompt}
       </p>
@@ -107,23 +108,25 @@ export function RoomScene({
       {/* materials grid */}
       {roomMaterials.length > 0 ? (
         <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 mb-4">
-          {roomMaterials.map((mat) => (
+          {roomMaterials.map((mat, i) => (
             <EmojiTile
               key={mat.id}
               emoji={getMaterialEmoji(mat.title, mat.form_primary, mat.emoji)}
               emojiSrc={getMaterialIcon(mat.title, mat.form_primary, mat.emoji, mat.icon) ?? undefined}
+              characterName={resolveCharacterFromForm(mat.form_primary, mat.title)}
               label={mat.title}
               selected={selectedMaterials.has(mat.id)}
               onClick={() => onMaterialTap(mat.id)}
               accentColor={room.color}
               size="md"
+              index={i}
             />
           ))}
         </div>
       ) : (
         <p
           className="text-sm py-8 text-center"
-          style={{ color: "var(--wv-champagne)", opacity: 0.4 }}
+          style={{ color: "var(--wv-cadet)", opacity: 0.4 }}
         >
           nothing here yet — try another room!
         </p>
@@ -135,20 +138,20 @@ export function RoomScene({
           <div
             className="flex items-center gap-2 mb-3 mt-2"
             style={{
-              borderTop: "1px solid rgba(255, 255, 255, 0.08)",
+              borderTop: "1px solid rgba(39, 50, 72, 0.08)",
               paddingTop: 12,
             }}
           >
             <span className="text-xs" style={{ opacity: 0.3 }}>🔧</span>
             <span
               className="text-xs font-bold tracking-wider"
-              style={{ color: "var(--wv-champagne)", opacity: 0.4 }}
+              style={{ color: "var(--wv-cadet)", opacity: 0.4 }}
             >
               tools you might need here
             </span>
           </div>
           <div className="flex gap-2 flex-wrap">
-            {room.slotSlugs.map((slot) => (
+            {room.slotSlugs.map((slot, i) => (
               <EmojiTile
                 key={slot}
                 emoji={SLOT_EMOJI[slot] ?? "🔧"}
@@ -157,6 +160,7 @@ export function RoomScene({
                 onClick={() => onSlotTap(slot)}
                 accentColor={room.color}
                 size="sm"
+                index={i}
               />
             ))}
           </div>
