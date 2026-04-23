@@ -289,9 +289,9 @@ export default function HuntShell({ contexts }: HuntShellProps) {
             onClick={() => chooseMode("solo")}
             className="rounded-2xl px-6 py-4 text-base font-bold border-2 active:scale-[0.97]"
             style={{
-              borderColor: "rgba(255, 255, 255, 0.1)",
-              backgroundColor: "rgba(255, 255, 255, 0.06)",
-              color: "var(--color-text-on-tint)",
+              borderColor: "rgba(39, 50, 72, 0.12)",
+              backgroundColor: "var(--wv-cream)",
+              color: "var(--color-text-on-cream)",
               transition: `all 220ms ${SPRING}`,
               WebkitTapHighlightColor: "transparent",
             }}
@@ -303,9 +303,9 @@ export default function HuntShell({ contexts }: HuntShellProps) {
             onClick={() => chooseMode("two-player")}
             className="rounded-2xl px-6 py-4 text-base font-bold border-2 active:scale-[0.97]"
             style={{
-              borderColor: "rgba(255, 255, 255, 0.1)",
-              backgroundColor: "rgba(255, 255, 255, 0.06)",
-              color: "var(--color-text-on-tint)",
+              borderColor: "rgba(39, 50, 72, 0.12)",
+              backgroundColor: "var(--wv-cream)",
+              color: "var(--color-text-on-cream)",
               transition: `all 220ms ${SPRING}`,
               WebkitTapHighlightColor: "transparent",
             }}
@@ -323,7 +323,7 @@ export default function HuntShell({ contexts }: HuntShellProps) {
       <div>
         <p
           className="text-sm text-center mb-4 font-bold"
-          style={{ color: "var(--color-text-on-tint)", opacity: 0.5 }}
+          style={{ color: "var(--color-text-on-cream-muted)" }}
         >
           {state.mode === "two-player" ? "what sounds fun to you two?" : "what sounds fun?"}
         </p>
@@ -331,7 +331,7 @@ export default function HuntShell({ contexts }: HuntShellProps) {
           {availableVibes.length === 0 && (
             <p
               className="text-sm text-center py-6"
-              style={{ color: "var(--color-text-on-tint)", opacity: 0.5 }}
+              style={{ color: "var(--color-text-on-cream-muted)" }}
             >
               no vibes available right now — check back soon!
             </p>
@@ -343,8 +343,8 @@ export default function HuntShell({ contexts }: HuntShellProps) {
               onClick={() => selectVibe(vibe)}
               className="rounded-2xl px-5 py-4 text-left border-2 active:scale-[0.97]"
               style={{
-                borderColor: "rgba(255, 255, 255, 0.1)",
-                backgroundColor: "rgba(255, 255, 255, 0.06)",
+                borderColor: "rgba(39, 50, 72, 0.12)",
+                backgroundColor: "var(--wv-cream)",
                 transition: `all 220ms ${SPRING}`,
                 WebkitTapHighlightColor: "transparent",
               }}
@@ -352,13 +352,13 @@ export default function HuntShell({ contexts }: HuntShellProps) {
               <span className="text-2xl mr-3">{vibe.emoji}</span>
               <span
                 className="text-sm font-bold"
-                style={{ color: "var(--color-text-on-tint)" }}
+                style={{ color: "var(--color-text-on-cream)" }}
               >
                 {vibe.label}
               </span>
               <span
                 className="block text-xs mt-0.5 ml-10"
-                style={{ color: "var(--color-text-on-tint)", opacity: 0.4 }}
+                style={{ color: "var(--color-text-on-cream-muted)" }}
               >
                 {vibe.description}
               </span>
@@ -390,7 +390,7 @@ export default function HuntShell({ contexts }: HuntShellProps) {
         </span>
         <p
           className="text-sm mt-4"
-          style={{ color: "var(--color-text-on-tint)", opacity: 0.5 }}
+          style={{ color: "var(--color-text-on-cream-muted)" }}
         >
           finding an adventure for you…
         </p>
@@ -404,13 +404,13 @@ export default function HuntShell({ contexts }: HuntShellProps) {
       <div>
         <p
           className="text-lg font-bold mb-2 text-center"
-          style={{ color: "var(--color-text-on-tint)" }}
+          style={{ color: "var(--color-text-on-cream)" }}
         >
           pick one!
         </p>
         <p
           className="text-sm mb-6 text-center"
-          style={{ color: "var(--color-text-on-tint)", opacity: 0.5 }}
+          style={{ color: "var(--color-text-on-cream-muted)" }}
         >
           or let us surprise you
         </p>
@@ -423,21 +423,21 @@ export default function HuntShell({ contexts }: HuntShellProps) {
               onClick={() => pickPlaydate(pd)}
               className="rounded-2xl px-5 py-4 text-left border-2 active:scale-[0.97]"
               style={{
-                borderColor: "rgba(255, 255, 255, 0.1)",
-                backgroundColor: "rgba(255, 255, 255, 0.06)",
+                borderColor: "rgba(39, 50, 72, 0.12)",
+                backgroundColor: "var(--wv-cream)",
                 transition: `all 220ms ${SPRING}`,
               }}
             >
               <span
                 className="text-sm font-bold block"
-                style={{ color: "var(--color-text-on-tint)" }}
+                style={{ color: "var(--color-text-on-cream)" }}
               >
                 {pd.title}
               </span>
               {pd.headline && (
                 <span
                   className="text-xs block mt-0.5"
-                  style={{ color: "var(--color-text-on-tint)", opacity: 0.5 }}
+                  style={{ color: "var(--color-text-on-cream-muted)" }}
                 >
                   {pd.headline}
                 </span>
@@ -492,7 +492,7 @@ export default function HuntShell({ contexts }: HuntShellProps) {
           )}
           <p
             className="text-base font-bold"
-            style={{ color: "var(--color-text-on-tint)" }}
+            style={{ color: "var(--color-text-on-cream)" }}
           >
             go find your stuff!
           </p>
@@ -509,7 +509,7 @@ export default function HuntShell({ contexts }: HuntShellProps) {
           >
             <span
               className="text-sm font-bold tabular-nums"
-              style={{ color: "var(--color-text-on-tint)" }}
+              style={{ color: "var(--color-text-on-cream)" }}
             >
               {requiredChecked.length}/{requiredItems.length}
             </span>
@@ -532,11 +532,11 @@ export default function HuntShell({ contexts }: HuntShellProps) {
                 className="flex items-center gap-3 rounded-xl px-4 py-3 text-left active:scale-[0.98]"
                 style={{
                   backgroundColor: checked
-                    ? "rgba(177, 80, 67, 0.12)"
-                    : "rgba(255, 255, 255, 0.06)",
+                    ? "color-mix(in srgb, var(--wv-redwood) 10%, var(--wv-cream))"
+                    : "var(--wv-cream)",
                   border: checked
                     ? "2px solid var(--wv-redwood)"
-                    : "2px solid rgba(255, 255, 255, 0.1)",
+                    : "2px solid rgba(39, 50, 72, 0.12)",
                   transition: `all 220ms ${SPRING}`,
                   opacity: checked ? 0.7 : 1,
                 }}
@@ -551,7 +551,7 @@ export default function HuntShell({ contexts }: HuntShellProps) {
                     height: 32,
                     backgroundColor: checked
                       ? "var(--wv-redwood)"
-                      : "rgba(255, 255, 255, 0.06)",
+                      : "rgba(39, 50, 72, 0.08)",
                     color: "var(--wv-white)",
                     fontSize: "0.8rem",
                     transition: `all 220ms ${SPRING}`,
@@ -577,7 +577,7 @@ export default function HuntShell({ contexts }: HuntShellProps) {
                   <span
                     className="text-sm font-medium block"
                     style={{
-                      color: "var(--color-text-on-tint)",
+                      color: "var(--color-text-on-cream)",
                       textDecoration: checked ? "line-through" : "none",
                     }}
                   >
@@ -588,7 +588,7 @@ export default function HuntShell({ contexts }: HuntShellProps) {
                   {roomHint && !checked && (
                     <span
                       className="text-xs block"
-                      style={{ color: "var(--wv-sienna)", opacity: 0.5 }}
+                      style={{ color: "var(--wv-sienna)", opacity: 0.7 }}
                     >
                       💡 {roomHint}
                     </span>
@@ -601,7 +601,7 @@ export default function HuntShell({ contexts }: HuntShellProps) {
                     className="text-xs font-bold px-1.5 py-0.5 rounded-full"
                     style={{
                       backgroundColor: "rgba(228, 196, 137, 0.3)",
-                      color: "var(--color-text-on-tint)",
+                      color: "var(--color-text-on-cream)",
                       fontSize: "0.55rem",
                     }}
                   >
@@ -657,7 +657,7 @@ export default function HuntShell({ contexts }: HuntShellProps) {
       <div className="text-center">
         <p
           className="text-lg font-bold mb-2"
-          style={{ color: "var(--color-text-on-tint)" }}
+          style={{ color: "var(--color-text-on-cream)" }}
         >
           buddy check! 🤝
         </p>
@@ -673,14 +673,14 @@ export default function HuntShell({ contexts }: HuntShellProps) {
             >
               <span
                 className="text-xs font-bold"
-                style={{ color: "var(--color-text-on-tint)" }}
+                style={{ color: "var(--color-text-on-cream)" }}
               >
                 {p1Count}/{p1Total}
               </span>
             </ProgressRing>
             <p
               className="text-xs font-bold mt-1"
-              style={{ color: "var(--color-text-on-tint)" }}
+              style={{ color: "var(--color-text-on-cream)" }}
             >
               player 1
             </p>
@@ -695,14 +695,14 @@ export default function HuntShell({ contexts }: HuntShellProps) {
             >
               <span
                 className="text-xs font-bold"
-                style={{ color: "var(--color-text-on-tint)" }}
+                style={{ color: "var(--color-text-on-cream)" }}
               >
                 {p2Count}/{p2Total}
               </span>
             </ProgressRing>
             <p
               className="text-xs font-bold mt-1"
-              style={{ color: "var(--color-text-on-tint)" }}
+              style={{ color: "var(--color-text-on-cream)" }}
             >
               player 2
             </p>
@@ -744,7 +744,7 @@ export default function HuntShell({ contexts }: HuntShellProps) {
 
       <p
         className="text-xl font-bold mb-2"
-        style={{ color: "var(--color-text-on-tint)" }}
+        style={{ color: "var(--color-text-on-cream)" }}
       >
         you&apos;re ready!
       </p>
@@ -759,7 +759,7 @@ export default function HuntShell({ contexts }: HuntShellProps) {
       {state.playdate?.headline && (
         <p
           className="text-sm mb-6"
-          style={{ color: "var(--color-text-on-tint)", opacity: 0.5 }}
+          style={{ color: "var(--color-text-on-cream-muted)" }}
         >
           {state.playdate.headline}
         </p>
@@ -799,7 +799,7 @@ export default function HuntShell({ contexts }: HuntShellProps) {
           type="button"
           onClick={restart}
           className="text-sm font-medium"
-          style={{ color: "var(--color-text-on-tint)", opacity: 0.4 }}
+          style={{ color: "var(--color-text-on-cream-muted)" }}
         >
           start a new hunt
         </button>
