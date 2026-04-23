@@ -158,7 +158,7 @@ export default function EntitledPlaydateView({
 
       {/* rails sentence */}
       {playdate.rails_sentence && (
-        <section className="rounded-xl border border-cadet/10 bg-white p-6">
+        <section className="rounded-xl p-6" style={{ background: "var(--wv-cream)", border: "1.5px solid rgba(39, 50, 72, 0.08)" }}>
           <h2 className="text-sm font-semibold text-cadet/80 mb-2">
             the big idea
           </h2>
@@ -175,7 +175,7 @@ export default function EntitledPlaydateView({
         </h2>
 
         {playdate.find && (
-          <div className="rounded-xl border border-cadet/10 bg-white p-5">
+          <div className="rounded-xl p-5" style={{ background: "var(--wv-cream)", border: "1.5px solid rgba(39, 50, 72, 0.08)" }}>
             <h3 className="text-xs font-bold text-redwood tracking-wider mb-1">
               find
             </h3>
@@ -191,7 +191,7 @@ export default function EntitledPlaydateView({
         )}
 
         {playdate.fold && (
-          <div className="rounded-xl border border-cadet/10 bg-white p-5">
+          <div className="rounded-xl p-5" style={{ background: "var(--wv-cream)", border: "1.5px solid rgba(39, 50, 72, 0.08)" }}>
             <h3 className="text-xs font-bold text-sienna tracking-wider mb-1">
               fold
             </h3>
@@ -207,7 +207,7 @@ export default function EntitledPlaydateView({
         )}
 
         {playdate.unfold && (
-          <div className="rounded-xl border border-cadet/10 bg-white p-5">
+          <div className="rounded-xl p-5" style={{ background: "var(--wv-cream)", border: "1.5px solid rgba(39, 50, 72, 0.08)" }}>
             <h3 className="text-xs font-bold text-cadet tracking-wider mb-1">
               unfold
             </h3>
@@ -267,7 +267,7 @@ export default function EntitledPlaydateView({
 
       {/* body content — rich HTML from Notion page body */}
       {playdate.body_html && (
-        <section className="rounded-xl border border-cadet/10 bg-white p-6">
+        <section className="rounded-xl p-6" style={{ background: "var(--wv-cream)", border: "1.5px solid rgba(39, 50, 72, 0.08)" }}>
           <SafeHtml
             html={playdate.body_html}
             fallback={null}

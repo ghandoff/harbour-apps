@@ -148,8 +148,8 @@ export function PlaydateCard({
   return (
     <Link
       href={href ?? `/sampler/${slug}`}
-      className="relative flex flex-col h-full rounded-xl border border-cadet/10 bg-white shadow-sm hover:shadow-md hover:border-sienna/40 hover:-translate-y-0.5 transition-all duration-200 overflow-hidden"
-      style={{ borderLeftWidth: 3, borderLeftColor: functionAccentColor(primaryFunction) }}
+      className="relative flex flex-col h-full rounded-xl shadow-sm hover:shadow-md hover:border-sienna/40 hover:-translate-y-0.5 transition-all duration-200 overflow-hidden"
+      style={{ background: "var(--wv-cream)", border: "1.5px solid rgba(39, 50, 72, 0.08)", borderLeftWidth: 3, borderLeftColor: functionAccentColor(primaryFunction) }}
     >
       {/* cover / illustration header */}
       {showIllustration && coverUrl ? (
