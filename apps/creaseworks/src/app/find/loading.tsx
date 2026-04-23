@@ -20,22 +20,22 @@ export default function MatcherLoading() {
         {/* back link placeholder */}
         <div
           className="h-4 w-28 rounded mb-5 sm:mb-7"
-          style={{ backgroundColor: "rgba(255,255,255,0.06)" }}
+          style={{ backgroundColor: "rgba(39, 50, 72, 0.06)" }}
         />
 
         {/* hero heading — matches minHeight: 152 */}
         <div className="relative mb-6 sm:mb-8" style={{ minHeight: 152 }}>
           <div
             className="h-9 w-72 rounded-lg mb-3"
-            style={{ backgroundColor: "rgba(255,255,255,0.06)" }}
+            style={{ backgroundColor: "rgba(39, 50, 72, 0.06)" }}
           />
           <div
             className="h-5 w-96 max-w-full rounded mb-2"
-            style={{ backgroundColor: "rgba(255,255,255,0.04)" }}
+            style={{ backgroundColor: "rgba(39, 50, 72, 0.04)" }}
           />
           <div
             className="h-5 w-64 rounded"
-            style={{ backgroundColor: "rgba(255,255,255,0.04)" }}
+            style={{ backgroundColor: "rgba(39, 50, 72, 0.04)" }}
           />
         </div>
 
@@ -46,8 +46,8 @@ export default function MatcherLoading() {
               key={i}
               className="rounded-xl h-16 sm:h-20"
               style={{
-                backgroundColor: "rgba(255,255,255,0.06)",
-                border: "1.5px solid rgba(255,255,255,0.1)",
+                backgroundColor: "rgba(39, 50, 72, 0.06)",
+                border: "1.5px solid rgba(39, 50, 72, 0.08)",
               }}
             />
           ))}
@@ -58,7 +58,7 @@ export default function MatcherLoading() {
       <div className="max-w-5xl mx-auto">
         <div
           className="h-64 rounded-2xl animate-pulse"
-          style={{ backgroundColor: "rgba(255,255,255,0.03)" }}
+          style={{ backgroundColor: "rgba(39, 50, 72, 0.04)" }}
         />
       </div>
     </main>

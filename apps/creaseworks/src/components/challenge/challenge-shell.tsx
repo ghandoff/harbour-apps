@@ -21,6 +21,10 @@ import { MatcherResults } from "../matcher/matcher-results";
 import { getMaterialEmoji } from "../matcher/material-emoji";
 import { useChallengeState, ChallengeConfig } from "./use-challenge-state";
 import { useMemo } from "react";
+import {
+  resolveCharacterFromForm,
+  type CharacterName,
+} from "@windedvertigo/characters";
 
 interface ChallengeShellProps {
   materials: Material[];
@@ -51,14 +55,22 @@ export default function ChallengeShell({
 }: ChallengeShellProps) {
   const state = useChallengeState(materials, slots);
 
-  /* merge materials + slots into a flat list for the emoji grid */
+  /* merge materials + slots into a flat list for the emoji grid.
+     Materials carry an optional characterName so EmojiTile can render
+     the harbour cast; slots don't (they're tools, not materials).     */
   const allItems = useMemo(() => {
-    const items: { id: string; emoji: string; label: string }[] = [];
+    const items: {
+      id: string;
+      emoji: string;
+      label: string;
+      characterName: CharacterName | null;
+    }[] = [];
     for (const mat of materials) {
       items.push({
         id: mat.id,
         emoji: getMaterialEmoji(mat.title, mat.form_primary, mat.emoji),
         label: mat.title,
+        characterName: resolveCharacterFromForm(mat.form_primary, mat.title),
       });
     }
     for (const slot of slots) {
@@ -66,6 +78,7 @@ export default function ChallengeShell({
         id: slot,
         emoji: SLOT_EMOJI[slot] ?? "🔧",
         label: slot,
+        characterName: null,
       });
     }
     return items;
@@ -87,9 +100,9 @@ export default function ChallengeShell({
               }
               className="rounded-2xl px-6 py-4 text-base font-bold active:scale-[0.96] border-2"
               style={{
-                borderColor: "rgba(255, 255, 255, 0.1)",
-                backgroundColor: "rgba(255, 255, 255, 0.06)",
-                color: "var(--wv-champagne)",
+                borderColor: "rgba(39, 50, 72, 0.1)",
+                backgroundColor: "var(--wv-cream)",
+                color: "var(--wv-cadet)",
                 transition: `all 220ms ${SPRING}`,
                 WebkitTapHighlightColor: "transparent",
               }}
@@ -144,7 +157,7 @@ export default function ChallengeShell({
 
           <p
             className="text-sm mt-3 font-bold"
-            style={{ color: "var(--wv-champagne)", opacity: 0.6 }}
+            style={{ color: "var(--wv-cadet)", opacity: 0.6 }}
           >
             spotted: {state.found.size}
           </p>
@@ -152,15 +165,17 @@ export default function ChallengeShell({
 
         {/* emoji grid */}
         <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
-          {allItems.map((item) => (
+          {allItems.map((item, i) => (
             <EmojiTile
               key={item.id}
               emoji={item.emoji}
+              characterName={item.characterName}
               label={item.label}
               selected={state.found.has(item.id)}
               onClick={() => state.tapItem(item.id)}
               size="md"
               accentColor="var(--wv-sienna)"
+              index={i}
             />
           ))}
         </div>
@@ -206,7 +221,7 @@ export default function ChallengeShell({
 
         <p
           className="text-xl font-bold mb-2"
-          style={{ color: "var(--wv-champagne)" }}
+          style={{ color: "var(--wv-cadet)" }}
         >
           you noticed {state.found.size} thing
           {state.found.size !== 1 ? "s" : ""}!
@@ -221,7 +236,7 @@ export default function ChallengeShell({
 
         <p
           className="text-sm mb-8"
-          style={{ color: "var(--wv-champagne)", opacity: 0.5 }}
+          style={{ color: "var(--wv-cadet)", opacity: 0.5 }}
         >
           let&apos;s see what these can become
         </p>
@@ -232,7 +247,7 @@ export default function ChallengeShell({
             type="button"
             onClick={state.reset}
             className="text-sm font-medium"
-            style={{ color: "var(--wv-champagne)", opacity: 0.4 }}
+            style={{ color: "var(--wv-cadet)", opacity: 0.4 }}
           >
             🔄 look again
           </button>
@@ -297,13 +312,13 @@ export default function ChallengeShell({
           type="button"
           onClick={state.reset}
           className="text-sm font-medium mb-3"
-          style={{ color: "var(--wv-champagne)", opacity: 0.4 }}
+          style={{ color: "var(--wv-cadet)", opacity: 0.4 }}
         >
           🔄 look again
         </button>
         <p
           className="text-sm font-bold"
-          style={{ color: "var(--wv-champagne)", opacity: 0.5 }}
+          style={{ color: "var(--wv-cadet)", opacity: 0.5 }}
         >
           you noticed {state.found.size} thing
           {state.found.size !== 1 ? "s" : ""} — here&apos;s what they can become
