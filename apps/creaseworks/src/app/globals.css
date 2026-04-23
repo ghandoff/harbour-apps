@@ -1002,16 +1002,18 @@ a[aria-label="play together"]:active {
   background: linear-gradient(175deg, #e2f7ed 0%, #edfaf4 50%, #f4fcf8 100%);
 }
 
-/* inside phase rooms, champagne text becomes dark for legibility.
-   many components use inline color: var(--wv-champagne) — originally
-   designed for contrast on dark cadet-blue. redefining the variable
-   on the container propagates automatically to all children.          */
-.cw-find-bg,
-.cw-fold-bg,
-.cw-unfold-bg,
-.cw-find-again-bg {
-  --wv-champagne: #3a3024;
-}
+/* phase rooms (.cw-find-bg + siblings) used to hijack --wv-champagne
+   to a dark brown so legacy text-on-cadet inline styles rendered
+   legibly on light phase tints. that hijack broke every component
+   that also used champagne as a background (result card swap callout,
+   floating decorations) — both sides rendering dark produced near-
+   illegible <1.5:1 contrast.
+
+   retired 2026-04-22. the shared tokens now expose
+   --color-text-on-cream / --color-text-on-cream-muted /
+   --color-text-on-tint — components that sit on light phase
+   surfaces reference those tokens directly. brand tokens (--wv-*)
+   stay pure brand constants, never surface-dependent.              */
 
 /* ── animated origami nav icons ──────────────────────────────────
    subtle CSS-only animations on the four cycle phase icons.

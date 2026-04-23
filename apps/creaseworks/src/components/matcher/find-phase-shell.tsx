@@ -144,7 +144,7 @@ export default function FindPhaseShell({
           </h1>
           <p
             className="text-base sm:text-lg leading-relaxed max-w-xl"
-            style={{ color: "var(--wv-champagne)", opacity: 0.55 }}
+            style={{ color: "var(--color-text-on-tint)", opacity: 0.55 }}
           >
             {hero.body}
           </p>
@@ -161,15 +161,20 @@ export default function FindPhaseShell({
                 onClick={() => switchMode(m.key)}
                 className="rounded-xl px-3 py-3 text-center active:scale-[0.96] flex flex-col items-center gap-1 cursor-pointer"
                 style={{
+                  // UDL fix: inactive mode buttons were rgba-white-on-tint
+                  // (≈1.05:1) — chrome was invisible. Now: solid white card
+                  // with cadet border for 3:1 non-text + text-on-cream for AAA.
                   backgroundColor: active
                     ? "var(--wv-sienna)"
-                    : "rgba(255, 255, 255, 0.06)",
-                  color: active ? "var(--wv-white)" : "var(--wv-champagne)",
-                  opacity: active ? 1 : 0.7,
+                    : "var(--wv-white)",
+                  color: active
+                    ? "var(--wv-white)"
+                    : "var(--color-text-on-cream)",
+                  opacity: active ? 1 : 0.9,
                   transition: `all 200ms ${SPRING}`,
                   border: active
                     ? "1.5px solid var(--wv-sienna)"
-                    : "1.5px solid rgba(255, 255, 255, 0.1)",
+                    : "1.5px solid rgba(39, 50, 72, 0.12)",
                   WebkitTapHighlightColor: "transparent",
                 }}
               >

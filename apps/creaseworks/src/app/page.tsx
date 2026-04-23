@@ -122,7 +122,7 @@ export default async function Home() {
 
           <p
             className="text-xs mt-6"
-            style={{ color: "rgba(255,235,210,0.35)" }}
+            style={{ color: "var(--color-text-on-dark-muted)" }}
           >
             or{" "}
             <Link href="/find" className="underline" style={{ color: "var(--wv-sienna)" }}>
