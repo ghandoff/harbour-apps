@@ -16,7 +16,7 @@
  * relevant without the kid ever thinking about "filters."
  */
 
-import { useState, useMemo, useCallback, useRef } from "react";
+import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { Material, MatcherResult } from "./types";
 import { ROOMS, RoomConfig } from "./room-config";
 import { RoomGrid } from "./room-grid";
@@ -29,12 +29,20 @@ interface RoomExplorerProps {
   materials: Material[];
   slots: string[];
   contexts: string[];
+  /**
+   * Material IDs to seed the selection with on mount. Used when the user
+   * arrives from the landing MaterialPickerHero, which ships a preselected
+   * list via ?materials=<csv>. Applied once on mount — later prop changes
+   * won't overwrite user edits.
+   */
+  preselectedMaterialIds?: string[];
 }
 
 export default function RoomExplorer({
   materials,
   slots,
   contexts,
+  preselectedMaterialIds,
 }: RoomExplorerProps) {
   /* ── view state ─────────────────────────────────────────────── */
   const [view, setView] = useState<"rooms" | "scene">("rooms");
@@ -44,6 +52,17 @@ export default function RoomExplorer({
   /* ── selection state ────────────────────────────────────────── */
   const [selectedMaterials, setSelectedMaterials] = useState<Set<string>>(new Set());
   const [selectedSlots, setSelectedSlots] = useState<Set<string>>(new Set());
+
+  /* Seed selectedMaterials once on mount when the URL brings along a
+     preselected list (?materials=csv → FindPhaseShell → here). Using a
+     ref so prop changes after mount don't clobber user edits. */
+  const seededRef = useRef(false);
+  useEffect(() => {
+    if (seededRef.current) return;
+    if (!preselectedMaterialIds || preselectedMaterialIds.length === 0) return;
+    seededRef.current = true;
+    setSelectedMaterials(new Set(preselectedMaterialIds));
+  }, [preselectedMaterialIds]);
 
   /* ── submission state ───────────────────────────────────────── */
   const [loading, setLoading] = useState(false);

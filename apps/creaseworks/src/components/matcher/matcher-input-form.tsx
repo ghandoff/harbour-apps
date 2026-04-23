@@ -16,7 +16,7 @@
  * Search bar survives for parents who know what they're looking for.
  */
 
-import { Fragment } from "react";
+import { Fragment, useEffect, useRef } from "react";
 import { MatcherInputFormProps, Material } from "./types";
 import { FilterSection } from "./filter-section";
 import { EmojiTile } from "./emoji-tile";
@@ -81,6 +81,7 @@ export default function MatcherInputForm({
   materials,
   slots,
   contexts,
+  preselectedMaterialIds,
 }: MatcherInputFormProps) {
   const {
     selectedMaterials,
@@ -108,6 +109,17 @@ export default function MatcherInputForm({
     materialEmojiMap,
     materialIconMap,
   } = useMatcherState(materials);
+
+  /* Seed selectedMaterials once on mount when the URL brings along a
+     preselected list (?materials=csv → FindPhaseShell → here). Using a
+     ref so prop changes after mount don't clobber user edits. */
+  const seededRef = useRef(false);
+  useEffect(() => {
+    if (seededRef.current) return;
+    if (!preselectedMaterialIds || preselectedMaterialIds.length === 0) return;
+    seededRef.current = true;
+    setSelectedMaterials(new Set(preselectedMaterialIds));
+  }, [preselectedMaterialIds, setSelectedMaterials]);
 
   return (
     <div>

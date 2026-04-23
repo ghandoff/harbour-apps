@@ -12,10 +12,11 @@
  * starting mode.
  */
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import type { Material } from "./types";
 import type { FindMode } from "./find-mode-selector";
+import { materialSlug } from "@/lib/material-slug";
 
 /* ── lazy imports for code-split — each mode only loads when used ── */
 import RoomExplorer from "@/components/matcher/room-explorer";
@@ -70,6 +71,13 @@ export interface FindPhaseShellProps {
   forms: string[];
   slots: string[];
   contexts: string[];
+  /**
+   * Material slugs parsed from the URL's ?materials=<csv> query param.
+   * Resolved to material IDs here (we hold the full materials array) and
+   * forwarded as preselectedMaterialIds to whichever shell owns the
+   * current mode. Unknown slugs are already filtered out by the page.
+   */
+  initialMaterialSlugs?: string[];
 }
 
 export default function FindPhaseShell({
@@ -78,11 +86,26 @@ export default function FindPhaseShell({
   forms,
   slots,
   contexts,
+  initialMaterialSlugs,
 }: FindPhaseShellProps) {
   const [mode, setMode] = useState<FindMode>(initialMode);
   /* resetKey bumps when user clicks the already-active mode → forces remount */
   const [resetKey, setResetKey] = useState(0);
   const hero = HEROES[mode];
+
+  /* Resolve ?materials=<csv> slugs to material IDs. The page has already
+     filtered to known slugs; we still scope the lookup to the materials
+     array on hand so any drift is silently dropped rather than passed
+     through as a bogus id. */
+  const preselectedMaterialIds = useMemo(() => {
+    if (!initialMaterialSlugs || initialMaterialSlugs.length === 0) return [];
+    const wanted = new Set(initialMaterialSlugs);
+    const ids: string[] = [];
+    for (const m of materials) {
+      if (wanted.has(materialSlug(m.title))) ids.push(m.id);
+    }
+    return ids;
+  }, [initialMaterialSlugs, materials]);
 
   const switchMode = useCallback((next: FindMode) => {
     setMode((prev) => {
@@ -202,6 +225,7 @@ export default function FindPhaseShell({
             materials={materials}
             slots={slots}
             contexts={contexts}
+            preselectedMaterialIds={preselectedMaterialIds}
           />
         )}
         {mode === "classic" && (
@@ -211,6 +235,7 @@ export default function FindPhaseShell({
             forms={forms}
             slots={slots}
             contexts={contexts}
+            preselectedMaterialIds={preselectedMaterialIds}
           />
         )}
         {mode === "challenge" && (

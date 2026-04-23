@@ -15,6 +15,7 @@ import CharacterSlot, {
   resolveCharacterFromForm,
   type CharacterName,
 } from "@windedvertigo/characters";
+import { useCharacterVariant } from "@windedvertigo/characters/variant-context";
 
 /* ── types ─────────────────────────────────────────────────────────── */
 
@@ -119,6 +120,9 @@ export default function MatcherResultCard({
     cast.length >= 2
       ? cast.map((c) => CHARACTER_VERB[c]).join(" · ")
       : null;
+  // Ambient kid/grownup register — passed explicitly to the cast avatars
+  // so the toggle in /profile propagates to result cards automatically.
+  const characterVariant = useCharacterVariant();
 
   const [coverageOpen, setCoverageOpen] = useState(false);
 
@@ -295,6 +299,7 @@ export default function MatcherResultCard({
                   character={c}
                   size={28}
                   animate={false}
+                  variant={characterVariant}
                 />
               </span>
             ))}
