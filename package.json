@@ -69,6 +69,7 @@
     "node": ">=22"
   },
   "overrides": {
-    "fast-xml-parser": "5.5.8"
+    "fast-xml-parser": "5.5.8",
+    "next": "16.2.3"
   }
 }
