@@ -75,7 +75,7 @@ export default async function SharedEvidencePage({
 
   return (
     <main className="min-h-screen px-6 py-16 max-w-5xl mx-auto">
-      <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight mb-1">
+      <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight font-serif mb-1">
         shared evidence
       </h1>
       <p className="text-sm text-cadet/50 mb-1">

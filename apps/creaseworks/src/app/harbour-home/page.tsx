@@ -85,7 +85,7 @@ export default async function HarbourHomePage() {
     <main className="min-h-screen px-6 py-16 max-w-4xl mx-auto">
       <header className="text-center mb-16">
         <h1
-          className="text-3xl font-bold tracking-tight mb-3"
+          className="text-3xl font-bold tracking-tight font-serif mb-3"
           style={{ color: "var(--wv-cadet)" }}
         >
           the harbour
