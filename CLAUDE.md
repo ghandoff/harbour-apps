@@ -116,7 +116,7 @@ document answers in `docs/infrastructure-and-costs.md` before committing to a ne
 - **shared auth cookies**: creaseworks and vertigo-vault share session cookies on `.windedvertigo.com`. changes to `AUTH_SECRET` in one break sessions in the other. always change both together.
 - **next-auth pinned at 5.0.0-beta.30** — waiting for v5 stable. do NOT downgrade to v4. do NOT blindly bump beta.
 - **vertigo-vault local builds fail** — pre-rendering requires `NOTION_TOKEN` (only in Vercel). compilation succeeds; failure is at static generation. this is expected.
-- **smoke test**: `node scripts/smoke-test.mjs https://windedvertigo.com/harbour/creaseworks` validates 29 routes.
+- **smoke test**: `cd apps/creaseworks && node scripts/smoke-test.mjs https://windedvertigo.com/harbour/creaseworks` validates 29 routes.
 - **Next.js basePath gotcha**: `redirect()` auto-prepends basePath. never hardcode basePath in redirect targets or it doubles. use `redirect("/")` not `redirect("/harbour/creaseworks")`.
 - **security headers (HSTS + CSP)** defined in both `next.config.ts` (runtime) and `vercel.json` (edge CDN). keep them in sync.
 - **scaling interactive demos**: currently inline in site repo. at 5+ demos, migrate to Vercel rewrite proxy pattern (each demo as its own project).
