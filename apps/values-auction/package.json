@@ -12,7 +12,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "e2e": "playwright test",
-    "lint": "eslint"
+    "lint": "eslint",
+    "dev:hub": "cd workers/hub && npx wrangler dev",
+    "deploy:hub": "cd workers/hub && npm install && npx wrangler deploy",
+    "deploy:spa": "npm run build && npx wrangler pages deploy dist --project-name values-auction"
   },
   "dependencies": {
     "@fontsource/inter": "^5.2.8",
