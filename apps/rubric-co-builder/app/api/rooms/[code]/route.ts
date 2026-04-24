@@ -64,13 +64,18 @@ export async function PATCH(
 
   // if from_state is provided, only advance if the room is still in that state
   // (prevents timer-expiry races where multiple clients call advance simultaneously)
+  // snapshot errors (e.g. transient db issue) fall through so the update still runs
   if (from_state) {
-    const snapshot = await getStore().getSnapshot(normalised);
-    if (!snapshot) {
-      return NextResponse.json({ error: "room not found" }, { status: 404 });
-    }
-    if (snapshot.room.state !== from_state) {
-      return NextResponse.json({ code: snapshot.room.code, state: snapshot.room.state });
+    try {
+      const snapshot = await getStore().getSnapshot(normalised);
+      if (!snapshot) {
+        return NextResponse.json({ error: "room not found" }, { status: 404 });
+      }
+      if (snapshot.room.state !== from_state) {
+        return NextResponse.json({ code: snapshot.room.code, state: snapshot.room.state });
+      }
+    } catch {
+      // snapshot fetch failed — skip race-guard and attempt the update
     }
   }
 
