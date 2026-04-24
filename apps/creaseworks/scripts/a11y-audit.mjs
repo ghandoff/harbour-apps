@@ -16,7 +16,7 @@
 
 import { execSync } from "child_process";
 
-const BASE = process.env.BASE_URL || "http://localhost:3000";
+const BASE = process.env.BASE_URL || "https://windedvertigo.com/harbour/creaseworks";
 
 /* pages to audit — add new routes here as you build them */
 const DEFAULT_PATHS = [
