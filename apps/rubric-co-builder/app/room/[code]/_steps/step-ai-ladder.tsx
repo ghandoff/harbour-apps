@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type {
   AiUseLevel,
   AiUseProposal,
@@ -43,6 +43,19 @@ export function StepAiLadder({
     [proposalVotes, participantId],
   );
 
+  // Optimistic local state to prevent double-votes while the poll catches up
+  const [localVoteId, setLocalVoteId] = useState<string | null>(
+    myVote?.proposal_id ?? null,
+  );
+  const [saving, setSaving] = useState(false);
+
+  // Sync from server whenever we're not mid-flight
+  useEffect(() => {
+    if (!saving) {
+      setLocalVoteId(myVote?.proposal_id ?? null);
+    }
+  }, [myVote?.proposal_id, saving]);
+
   const countsByProposal = useMemo(() => {
     const m = new Map<string, number>();
     for (const v of proposalVotes) {
@@ -60,33 +73,43 @@ export function StepAiLadder({
   }, [proposals, countsByProposal]);
 
   async function vote(proposalId: string) {
-    if (!participantId) return;
-    // one dot per student — replace previous pick
-    if (myVote && myVote.proposal_id !== proposalId) {
-      await fetch(
-        apiPath(
-          `/api/rooms/${code}/ai-proposal-votes?participant_id=${participantId}&proposal_id=${myVote.proposal_id}`,
-        ),
-        { method: "DELETE" },
-      );
+    if (!participantId || saving) return;
+    setSaving(true);
+    const prev = localVoteId;
+    const isToggle = prev === proposalId;
+    // Optimistic update first so the UI responds immediately
+    setLocalVoteId(isToggle ? null : proposalId);
+    try {
+      if (prev && !isToggle) {
+        // Moving dot to a different proposal — delete the old vote first
+        await fetch(
+          apiPath(
+            `/api/rooms/${code}/ai-proposal-votes?participant_id=${participantId}&proposal_id=${prev}`,
+          ),
+          { method: "DELETE" },
+        );
+      }
+      if (isToggle) {
+        // Tapping the same proposal again — remove the dot
+        await fetch(
+          apiPath(
+            `/api/rooms/${code}/ai-proposal-votes?participant_id=${participantId}&proposal_id=${proposalId}`,
+          ),
+          { method: "DELETE" },
+        );
+      } else {
+        await fetch(apiPath(`/api/rooms/${code}/ai-proposal-votes`), {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            participant_id: participantId,
+            proposal_id: proposalId,
+          }),
+        });
+      }
+    } finally {
+      setSaving(false);
     }
-    if (myVote && myVote.proposal_id === proposalId) {
-      await fetch(
-        apiPath(
-          `/api/rooms/${code}/ai-proposal-votes?participant_id=${participantId}&proposal_id=${proposalId}`,
-        ),
-        { method: "DELETE" },
-      );
-      return;
-    }
-    await fetch(apiPath(`/api/rooms/${code}/ai-proposal-votes`), {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        participant_id: participantId,
-        proposal_id: proposalId,
-      }),
-    });
   }
 
   const totalVotes = proposalVotes.length;
@@ -117,7 +140,7 @@ export function StepAiLadder({
         </p>
         {participantId ? (
           <p className="text-sm text-[color:var(--color-cadet)]/70">
-            {myVote
+            {localVoteId
               ? "your dot is down. tap it again to take it back, or tap another to move it."
               : "tap a proposal to vote."}
           </p>
@@ -175,12 +198,12 @@ export function StepAiLadder({
               {rungProposals.length > 0 ? (
                 <ul className="mt-2 ml-20 space-y-2">
                   {rungProposals.map((p) => {
-                    const mine = myVote?.proposal_id === p.id;
+                    const mine = localVoteId === p.id;
                     const count = countsByProposal.get(p.id) ?? 0;
                     return (
                       <li key={p.id}>
                         <button
-                          disabled={!participantId}
+                          disabled={!participantId || saving}
                           onClick={() => vote(p.id)}
                           aria-pressed={mine}
                           className={[
@@ -188,7 +211,7 @@ export function StepAiLadder({
                             mine
                               ? "ring-2 ring-[color:var(--color-sienna)]"
                               : "border border-[color:var(--color-cadet)]/15 hover:border-[color:var(--color-cadet)]/40",
-                            !participantId ? "cursor-default" : "cursor-pointer",
+                            !participantId || saving ? "cursor-default" : "cursor-pointer",
                           ].join(" ")}
                         >
                           <div className="flex items-center justify-between mb-1">
@@ -255,13 +278,20 @@ function LegacyLadder({
     [votes, participantId],
   );
 
+  const [casting, setCasting] = useState(false);
+
   async function cast(level: AiUseLevel) {
-    if (!participantId) return;
-    await fetch(apiPath(`/api/rooms/${code}/ai-votes`), {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ participant_id: participantId, level }),
-    });
+    if (!participantId || casting) return;
+    setCasting(true);
+    try {
+      await fetch(apiPath(`/api/rooms/${code}/ai-votes`), {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ participant_id: participantId, level }),
+      });
+    } finally {
+      setCasting(false);
+    }
   }
 
   return (
@@ -312,14 +342,14 @@ function LegacyLadder({
           return (
             <button
               key={rung.level}
-              disabled={!participantId}
+              disabled={!participantId || casting}
               onClick={() => cast(rung.level)}
               aria-pressed={mine}
               className={[
                 "w-full flex items-start gap-4 rounded-lg p-4 text-left transition-all relative z-10",
                 "bg-white border border-[color:var(--color-cadet)]/15",
                 mine ? "ring-2 ring-[color:var(--color-sienna)]" : "",
-                participantId
+                participantId && !casting
                   ? "hover:border-[color:var(--color-cadet)]/40 cursor-pointer"
                   : "cursor-default",
               ].join(" ")}
