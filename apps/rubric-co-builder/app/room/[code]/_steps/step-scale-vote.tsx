@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import type {
   Criterion,
   ScaleResponse,
@@ -62,25 +62,34 @@ export function StepScaleVote({
     return m;
   }, [scaleResponseVotes]);
 
+  const [voteError, setVoteError] = useState<string | null>(null);
+
   async function toggle(sr: ScaleResponse) {
     if (!participantId) return;
+    setVoteError(null);
     const already = myVoteSet.has(sr.id);
-    if (already) {
-      await fetch(
-        apiPath(
-          `/api/rooms/${code}/scale-response-votes?participant_id=${participantId}&scale_response_id=${sr.id}`,
-        ),
-        { method: "DELETE" },
-      );
-    } else {
-      await fetch(apiPath(`/api/rooms/${code}/scale-response-votes`), {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          participant_id: participantId,
-          scale_response_id: sr.id,
-        }),
-      });
+    try {
+      if (already) {
+        const res = await fetch(
+          apiPath(
+            `/api/rooms/${code}/scale-response-votes?participant_id=${participantId}&scale_response_id=${sr.id}`,
+          ),
+          { method: "DELETE" },
+        );
+        if (!res.ok) throw new Error(`${res.status}`);
+      } else {
+        const res = await fetch(apiPath(`/api/rooms/${code}/scale-response-votes`), {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            participant_id: participantId,
+            scale_response_id: sr.id,
+          }),
+        });
+        if (!res.ok) throw new Error(`${res.status}`);
+      }
+    } catch {
+      setVoteError("couldn't register your vote — the room might need a database update. try again shortly.");
     }
   }
 
@@ -119,6 +128,12 @@ export function StepScaleVote({
         )}
       </header>
 
+      {voteError ? (
+        <p className="text-sm text-[color:var(--color-sienna)] bg-[color:var(--color-sienna)]/10 rounded-lg px-4 py-3">
+          {voteError}
+        </p>
+      ) : null}
+
       <div className="space-y-10">
         {selected.map((c) => (
           <section
@@ -153,7 +168,7 @@ export function StepScaleVote({
                     </p>
                     {responses.length === 0 ? (
                       <p className="text-xs text-[color:var(--color-cadet)]/40 italic">
-                        no student descriptors yet.
+                        no descriptors written yet — students need to fill in this level during the scale step.
                       </p>
                     ) : (
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">

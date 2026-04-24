@@ -144,15 +144,18 @@ export function HostRoom({ code }: { code: string }) {
   const tally = useCallback(async (round: 1 | 2 | 3) => {
     const endpoint =
       round === 1 ? "tally" : round === 2 ? "tally2" : "tally3";
-    await fetch(apiPath(`/api/rooms/${code}/${endpoint}`), { method: "POST" });
+    const res = await fetch(apiPath(`/api/rooms/${code}/${endpoint}`), { method: "POST" });
+    if (!res.ok) throw new Error(`tally failed (${res.status})`);
   }, [code]);
 
   const aiTally = useCallback(async () => {
-    await fetch(apiPath(`/api/rooms/${code}/ai-tally`), { method: "POST" });
+    const res = await fetch(apiPath(`/api/rooms/${code}/ai-tally`), { method: "POST" });
+    if (!res.ok) throw new Error(`ai-tally failed (${res.status})`);
   }, [code]);
 
   const pledgeTally = useCallback(async () => {
-    await fetch(apiPath(`/api/rooms/${code}/tally-pledge`), { method: "POST" });
+    const res = await fetch(apiPath(`/api/rooms/${code}/tally-pledge`), { method: "POST" });
+    if (!res.ok) throw new Error(`pledge tally failed (${res.status})`);
   }, [code]);
 
   const resolveChoice = useCallback(async (selectedIds: string[]) => {
@@ -260,6 +263,7 @@ function HostControls({
   onCancelTimer: () => Promise<void>;
 }) {
   const [pending, setPending] = useState<string | null>(null);
+  const [tallyError, setTallyError] = useState<string | null>(null);
   const lastCurrent = useRef(current);
   const timerFiredFor = useRef<RoomState | null>(null);
   const remaining = useCountdown(timerEnd);
@@ -267,6 +271,7 @@ function HostControls({
   useEffect(() => {
     if (lastCurrent.current !== current) {
       setPending(null);
+      setTallyError(null);
       timerFiredFor.current = null;
       lastCurrent.current = current;
     }
@@ -297,8 +302,11 @@ function HostControls({
 
   async function wrap(action: () => Promise<void>, label: string) {
     setPending(label);
+    setTallyError(null);
     try {
       await action();
+    } catch (err) {
+      setTallyError(err instanceof Error ? err.message : "something went wrong — check the console.");
     } finally {
       setTimeout(() => setPending((p) => (p === label ? null : p)), 3000);
     }
@@ -424,6 +432,12 @@ function HostControls({
           </>
         )}
       </div>
+
+      {tallyError ? (
+        <p className="text-xs text-[color:var(--color-sienna)] bg-black/20 rounded px-3 py-2">
+          {tallyError}
+        </p>
+      ) : null}
     </div>
   );
 }

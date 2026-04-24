@@ -1653,16 +1653,11 @@ function neonStore(url: string): Store {
       if (!room) return null;
       const roomId = room.id as string;
 
-      const rows = (await sql`
-        select sr.id as response_id, sr.criterion_id, sr.level, sr.descriptor,
-               sr.updated_at, coalesce(vcount.c, 0)::int as vote_count
+      // fetch responses first (scale_responses exists from migration 004)
+      const responseRows = (await sql`
+        select sr.id as response_id, sr.criterion_id, sr.level, sr.descriptor, sr.updated_at
         from rubric_cobuilder.scale_responses sr
         join rubric_cobuilder.criteria c on c.id = sr.criterion_id
-        left join (
-          select scale_response_id, count(*)::int as c
-          from rubric_cobuilder.scale_response_votes
-          group by scale_response_id
-        ) vcount on vcount.scale_response_id = sr.id
         where c.room_id = ${roomId} and c.status = 'selected'
       `) as Array<{
         response_id: string;
@@ -1670,8 +1665,27 @@ function neonStore(url: string): Store {
         level: number;
         descriptor: string;
         updated_at: string;
-        vote_count: number;
       }>;
+
+      // vote counts — graceful if scale_response_votes table missing (migration 006 pending)
+      const voteCounts = new Map<string, number>();
+      if (responseRows.length > 0) {
+        try {
+          const voteRows = (await sql`
+            select scale_response_id, count(*)::int as c
+            from rubric_cobuilder.scale_response_votes
+            group by scale_response_id
+          `) as Array<{ scale_response_id: string; c: number }>;
+          for (const v of voteRows) voteCounts.set(v.scale_response_id, v.c);
+        } catch {
+          // table not yet created — fall through with zero counts, earliest wins
+        }
+      }
+
+      const rows = responseRows.map((r) => ({
+        ...r,
+        vote_count: voteCounts.get(r.response_id) ?? 0,
+      }));
 
       // group by (criterion, level) and pick the winner
       const bestByKey = new Map<string, typeof rows[number]>();
