@@ -39,7 +39,7 @@ for (const p of paths) {
 
   try {
     execSync(
-      `npx axe ${url} --tags wcag2a,wcag2aa,wcag21aa --reporter json`,
+      `npx axe ${url} --tags wcag2a,wcag2aa,wcag21aa --stdout --exit`,
       { stdio: "pipe", timeout: 30_000 }
     );
     console.log("  ✓ no violations");
