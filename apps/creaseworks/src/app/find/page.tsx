@@ -62,7 +62,7 @@ export default async function MatcherPage({
      list. Unknown slugs drop silently — the landing hero only emits slugs
      that come from the same material list the server fetched, but a stale
      share link or hand-typed URL shouldn't error. */
-  let initialMaterialSlugs: string[] = [];
+  const initialMaterialSlugs: string[] = [];
   if (params.materials) {
     const known = new Set(materials.map((m) => materialSlug(m.title)));
     const seen = new Set<string>();

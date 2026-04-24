@@ -389,8 +389,8 @@ async function PlayDashboard({
       {/* -- main CTA ------------------------------------------- */}
       <section className="text-center mb-10">
         <h1
-          className="text-3xl sm:text-4xl font-bold tracking-tight mb-3"
-          style={{ color: "var(--wv-white)", fontFamily: "var(--font-display)" }}
+          className="text-3xl sm:text-4xl font-bold font-serif tracking-tight mb-3"
+          style={{ color: "var(--wv-white)" }}
         >
           what should we do today?
         </h1>

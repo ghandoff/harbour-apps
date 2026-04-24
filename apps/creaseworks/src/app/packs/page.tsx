@@ -69,7 +69,7 @@ export default async function PacksCataloguePage() {
       {/* value proposition */}
       <div
         className="rounded-xl border p-5 mb-4 grid gap-4 sm:grid-cols-5"
-        style={{ borderColor: "rgba(39, 50, 72, 0.1)", backgroundColor: "var(--wv-white)" }}
+        style={{ borderColor: "rgba(39, 50, 72, 0.08)", backgroundColor: "var(--wv-cream)" }}
       >
         {[
           c["packs.features.1"]?.copy ?? "step-by-step guides — clear three-part instructions",

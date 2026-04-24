@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { usePathname } from "next/navigation";
 import NotificationBell from "@/components/ui/notification-bell";
 import { haptic } from "@/lib/haptics";
@@ -149,11 +149,10 @@ export default function NavBar() {
   const isAuthed = !!session?.user;
 
   /* ── kid/adult mode toggle ────────────────────────────────────── */
-  const [isGrownup, setIsGrownup] = useState(false);
-
-  useEffect(() => {
-    setIsGrownup(document.documentElement.classList.contains("grownup-mode"));
-  }, []);
+  // Lazy initializer reads DOM on client mount — no effect needed, no double-render.
+  const [isGrownup, setIsGrownup] = useState<boolean>(
+    () => typeof window !== "undefined" && document.documentElement.classList.contains("grownup-mode")
+  );
 
   const toggleMode = useCallback(() => {
     const next = !isGrownup;

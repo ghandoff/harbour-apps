@@ -130,8 +130,8 @@ p, li, dd {
   left: var(--space-md);
   z-index: 100;
   padding: var(--space-sm) var(--space-md);
-  background: var(--wv-champagne);
-  color: var(--wv-cadet);
+  background: var(--wv-cadet);
+  color: var(--wv-champagne);
   font-weight: 600;
   font-size: 0.875rem;
   border-radius: 0 0 4px 4px;
