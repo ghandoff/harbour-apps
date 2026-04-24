@@ -1,0 +1,7 @@
+name = "systems-thinking"
+compatibility_date = "2024-09-23"
+pages_build_output_dir = "."
+
+[vars]
+# Secrets set via: wrangler pages secret put UPSTASH_REDIS_REST_URL
+# Secrets set via: wrangler pages secret put UPSTASH_REDIS_REST_TOKEN
