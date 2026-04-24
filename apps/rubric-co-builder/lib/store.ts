@@ -725,7 +725,7 @@ function memoryStore(): Store {
           return a.updated_at.localeCompare(b.updated_at);
         });
         const top = sorted[0];
-        if (!top.content.trim()) continue;
+        if (!top.content?.trim()) continue;
         const key = `${room.id}:${slotIndex}`;
         const now = new Date().toISOString();
         const existing = db.pledgeSlots.get(key);
@@ -1534,6 +1534,7 @@ function neonStore(url: string): Store {
 
       const winners: PledgeSlot[] = [];
       for (const w of bestBySlot.values()) {
+        if (!w.content?.trim()) continue;
         const [row] = await sql`
           insert into rubric_cobuilder.pledge_slots (room_id, slot_index, content)
           values (${room.id}, ${w.slot_index}, ${w.content})
@@ -1541,7 +1542,7 @@ function neonStore(url: string): Store {
             set content = excluded.content, updated_at = now()
           returning id, room_id, slot_index, content, updated_at
         `;
-        winners.push(row as PledgeSlot);
+        if (row) winners.push(row as PledgeSlot);
       }
 
       await sql`

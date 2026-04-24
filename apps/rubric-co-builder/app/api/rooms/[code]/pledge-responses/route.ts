@@ -21,6 +21,7 @@ export async function PATCH(
   }
   const o = (body ?? {}) as Record<string, unknown>;
   const participantId = typeof o.participant_id === "string" ? o.participant_id : "";
+  // Number() can produce NaN for non-numeric input; [].includes(NaN) safely returns false
   const slotIndex = Number(o.slot_index);
   const content = typeof o.content === "string" ? o.content.slice(0, 800) : "";
   if (!participantId || ![1, 2, 3, 4].includes(slotIndex)) {
@@ -29,12 +30,18 @@ export async function PATCH(
       { status: 400 },
     );
   }
-  const result = await getStore().upsertPledgeResponse(
-    code.toUpperCase(),
-    participantId,
-    slotIndex as 1 | 2 | 3 | 4,
-    content,
-  );
+  let result;
+  try {
+    result = await getStore().upsertPledgeResponse(
+      code.toUpperCase(),
+      participantId,
+      slotIndex as 1 | 2 | 3 | 4,
+      content,
+    );
+  } catch (err) {
+    console.error("upsertPledgeResponse error:", err);
+    return NextResponse.json({ error: "internal server error" }, { status: 500 });
+  }
   if (!result) {
     return NextResponse.json({ error: "could not save response" }, { status: 400 });
   }

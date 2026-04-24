@@ -284,7 +284,9 @@ function HostControls({
       const next = i >= 0 && i < STATE_ORDER.length - 1 ? STATE_ORDER[i + 1] : null;
       if (next) {
         timerFiredFor.current = current;
-        onAdvance(next, current);
+        Promise.resolve(onAdvance(next, current)).catch((err) => {
+          setTallyError(err instanceof Error ? err.message : "auto-advance failed — check connection.");
+        });
       }
     }
   }, [remaining, timerEnd, current, onAdvance]);

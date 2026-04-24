@@ -16,7 +16,13 @@ export async function POST(
   if (!isValidRoomCode(normalised)) {
     return NextResponse.json({ error: "invalid code" }, { status: 400 });
   }
-  const result = await getStore().tallyPledgeVotes(normalised);
+  let result;
+  try {
+    result = await getStore().tallyPledgeVotes(normalised);
+  } catch (err) {
+    console.error("tallyPledgeVotes error:", err);
+    return NextResponse.json({ error: "internal server error" }, { status: 500 });
+  }
   if (!result) {
     return NextResponse.json({ error: "room not found" }, { status: 404 });
   }
