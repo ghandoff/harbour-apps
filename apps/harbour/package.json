@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@neondatabase/serverless": "^0.10.0",
-    "@notionhq/client": "^2.3.0",
+    "@notionhq/client": "^5.20.0",
     "@vercel/analytics": "^2.0.1",
     "@windedvertigo/characters": "*",
     "@windedvertigo/feedback": "*",

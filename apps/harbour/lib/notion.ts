@@ -11,25 +11,40 @@ import { Client } from "@notionhq/client";
 import type {
   PageObjectResponse,
   RichTextItemResponse,
+  QueryDataSourceParameters,
+  QueryDataSourceResponse,
 } from "@notionhq/client/build/src/api-endpoints";
-import fs from "fs";
-import path from "path";
 
 // ── client ────────────────────────────────────────────────
 const notion = new Client({ auth: process.env.NOTION_TOKEN });
 
-/**
- * Read a fallback JSON file from data/ if it exists.
- * Returns null if the file is missing.
- */
-function readFallback<T>(filename: string): T | null {
-  try {
-    const filePath = path.join(process.cwd(), "data", filename);
-    const raw = fs.readFileSync(filePath, "utf-8");
-    return JSON.parse(raw) as T;
-  } catch {
-    return null;
+// ── v5 data-source adapter ────────────────────────────────
+// Notion API split databases into "databases" (metadata) and "data sources"
+// (queryable rows). v5 query is on dataSources; we resolve and cache the
+// data_source_id once per database ID to keep call sites compact.
+const dataSourceCache = new Map<string, string>();
+
+async function getDataSourceId(databaseId: string): Promise<string> {
+  const cached = dataSourceCache.get(databaseId);
+  if (cached) return cached;
+  const db = await notion.databases.retrieve({ database_id: databaseId });
+  if (!("data_sources" in db) || db.data_sources.length === 0) {
+    throw new Error(`no data sources found for database ${databaseId}`);
   }
+  const id = db.data_sources[0].id;
+  dataSourceCache.set(databaseId, id);
+  return id;
+}
+
+/** Query a data source by the legacy database ID. Resolves and caches
+ *  the data_source_id transparently so call sites read like the old
+ *  notion.databases.query(...) shape. */
+async function queryDataSource(
+  databaseId: string,
+  params: Omit<QueryDataSourceParameters, "data_source_id">,
+): Promise<QueryDataSourceResponse> {
+  const data_source_id = await getDataSourceId(databaseId);
+  return notion.dataSources.query({ data_source_id, ...params });
 }
 
 // ── database IDs ──────────────────────────────────────────
@@ -217,28 +232,6 @@ async function withRetry<T>(
 }
 
 // ── fallback-aware wrapper ─────────────────────────────────
-/**
- * Try a live Notion fetch. If it fails (token missing, API down, etc.),
- * fall back to the cached JSON file in data/. This makes builds resilient
- * and allows a gradual migration (delete JSON files once Notion token is
- * confirmed on Vercel).
- */
-async function withFallback<T>(
-  fetcher: () => Promise<T>,
-  fallbackFile: string,
-  label: string,
-): Promise<T> {
-  try {
-    return await fetcher();
-  } catch (err) {
-    console.warn(
-      `[notion] ${label} failed, falling back to ${fallbackFile}: ${(err as Error).message}`,
-    );
-    const data = readFallback<T>(fallbackFile);
-    if (data !== null) return data;
-    throw err; // no fallback available — propagate error
-  }
-}
 
 // ── fetchers ──────────────────────────────────────────────
 
@@ -251,7 +244,7 @@ async function withFallback<T>(
  * Run `node scripts/sync-harbour-tiles.mjs` to download fresh copies.
  */
 export function fetchGames(): Promise<Game[]> {
-  return withFallback(_fetchGames, "games.json", "fetchGames");
+  return _fetchGames();
 }
 
 async function _fetchGames(): Promise<Game[]> {
@@ -259,8 +252,7 @@ async function _fetchGames(): Promise<Game[]> {
 
   const response = await withRetry(
     () =>
-      notion.databases.query({
-        database_id: DB.harbourGames,
+      queryDataSource(DB.harbourGames, {
         sorts: [{ property: p.order, direction: "ascending" }],
       }),
     "fetchGames",
@@ -308,7 +300,7 @@ async function _fetchGames(): Promise<Game[]> {
  * Fetch depth.chart skills from Notion.
  */
 export function fetchSkills(): Promise<Skill[]> {
-  return withFallback(_fetchSkills, "depth-chart.json", "fetchSkills");
+  return _fetchSkills();
 }
 
 async function _fetchSkills(): Promise<Skill[]> {
@@ -316,8 +308,7 @@ async function _fetchSkills(): Promise<Skill[]> {
 
   const response = await withRetry(
     () =>
-      notion.databases.query({
-        database_id: DB.depthChart,
+      queryDataSource(DB.depthChart, {
         sorts: [{ property: p.order, direction: "ascending" }],
       }),
     "fetchSkills",
@@ -359,11 +350,7 @@ async function _fetchSkills(): Promise<Skill[]> {
  * app's components expect.
  */
 export function fetchCredibility(): Promise<CredibilityData> {
-  return withFallback(
-    _fetchCredibility,
-    "credibility.json",
-    "fetchCredibility",
-  );
+  return _fetchCredibility();
 }
 
 async function _fetchCredibility(): Promise<CredibilityData> {
@@ -378,8 +365,7 @@ async function _fetchCredibility(): Promise<CredibilityData> {
     round++;
     const response = await withRetry(
       () =>
-        notion.databases.query({
-          database_id: DB.siteContent,
+        queryDataSource(DB.siteContent, {
           filter: {
             property: p.page,
             select: { equals: "harbour" },
