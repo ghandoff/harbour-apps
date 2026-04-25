@@ -1,34 +1,45 @@
-import mammoth from "mammoth";
-import { PDFParse } from "pdf-parse";
-
 /**
- * extract plain text from an uploaded file (PDF, DOCX, or TXT).
- * runs server-side only.
+ * Extract plain text from an uploaded file (PDF, DOCX, or TXT).
+ *
+ * On Cloudflare Workers, mammoth and pdf-parse can't run — pdf-parse's
+ * dependency on pdfjs-dist references DOMMatrix at module-import time,
+ * and mammoth depends on Node's Buffer in ways that fail under nodejs_compat.
+ * Both libraries also bring substantial bundle weight.
+ *
+ * Solution: hand off to port (Vercel/Node), which exposes a bearer-auth'd
+ * `/api/extract-text` endpoint that runs the same libraries and returns
+ * extracted text. depth-chart stays clean for CF Workers.
+ *
+ * Auth: PORT_EXTRACT_TOKEN — shared secret. Set on both the port (env var)
+ * and on this worker (`wrangler secret put PORT_EXTRACT_TOKEN`).
  */
+
+const PORT_EXTRACT_URL =
+  process.env.PORT_EXTRACT_URL ?? "https://port.windedvertigo.com/api/extract-text";
+
 export async function extract_text(file: File): Promise<string> {
-  const ext = file.name.split(".").pop()?.toLowerCase();
-  const array_buffer = await file.arrayBuffer();
-
-  switch (ext) {
-    case "pdf":
-      return extract_pdf(array_buffer);
-    case "docx":
-      return extract_docx(Buffer.from(array_buffer));
-    case "txt":
-      return new TextDecoder().decode(array_buffer);
-    default:
-      throw new Error(`unsupported file type: .${ext}`);
+  const token = process.env.PORT_EXTRACT_TOKEN;
+  if (!token) {
+    throw new Error("PORT_EXTRACT_TOKEN not configured");
   }
-}
 
-async function extract_pdf(data: ArrayBuffer): Promise<string> {
-  const uint8 = new Uint8Array(data);
-  const parser = new PDFParse(uint8);
-  const result = await parser.getText();
-  return typeof result === "string" ? result : String(result);
-}
+  const form = new FormData();
+  form.append("file", file);
 
-async function extract_docx(buffer: Buffer): Promise<string> {
-  const result = await mammoth.extractRawText({ buffer });
-  return result.value;
+  const res = await fetch(PORT_EXTRACT_URL, {
+    method: "POST",
+    headers: { authorization: `Bearer ${token}` },
+    body: form,
+  });
+
+  if (!res.ok) {
+    const detail = await res.text().catch(() => res.statusText);
+    throw new Error(
+      `port extract-text returned ${res.status}: ${detail.slice(0, 200)}`,
+    );
+  }
+
+  const payload = (await res.json()) as { text?: string; error?: string };
+  if (payload.error) throw new Error(payload.error);
+  return payload.text ?? "";
 }

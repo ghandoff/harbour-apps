@@ -16,6 +16,14 @@
       "binding": "WORKER_SELF_REFERENCE",
       "service": "wv-harbour-depth-chart"
     }
+  ],
+
+  // ISR incremental cache (OpenNext on CF Workers)
+  "r2_buckets": [
+    {
+      "binding": "NEXT_INC_CACHE_R2_BUCKET",
+      "bucket_name": "wv-depth-chart-cache"
+    }
   ]
 
   // Auth secrets — set via: wrangler secret put AUTH_SECRET
@@ -23,7 +31,4 @@
   //   AUTH_SECRET=...
   //   AUTH_GOOGLE_ID=...
   //   AUTH_GOOGLE_SECRET=...
-
-  // Uncomment for ISR:
-  // "r2_buckets": [{ "binding": "NEXT_INC_CACHE_R2_BUCKET", "bucket_name": "wv-depth-chart-cache" }]
 }
