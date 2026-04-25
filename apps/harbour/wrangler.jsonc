@@ -18,11 +18,18 @@
     }
   ],
 
-  // ISR incremental cache (OpenNext on CF Workers)
+  // ISR incremental cache (OpenNext on CF Workers) + tile image bucket
+  // for cover images synced from Notion via scripts/sync-tiles-to-r2.mjs.
+  // creaseworks-evidence is shared across vault/creaseworks/site for any
+  // user-uploaded content; tile images live under harbour-tiles/ prefix.
   "r2_buckets": [
     {
       "binding": "NEXT_INC_CACHE_R2_BUCKET",
       "bucket_name": "wv-harbour-cache"
+    },
+    {
+      "binding": "TILE_IMAGES",
+      "bucket_name": "creaseworks-evidence"
     }
   ]
 

@@ -18,6 +18,25 @@ import type {
 // ── client ────────────────────────────────────────────────
 const notion = new Client({ auth: process.env.NOTION_TOKEN });
 
+// ── tile image URL builder ────────────────────────────────
+/**
+ * Construct a tile image URL for a given slug.
+ *
+ * Uses R2 when R2_PUBLIC_URL is set (production CF Workers; images synced
+ * via scripts/sync-tiles-to-r2.mjs). Falls back to /harbour/images/{slug}.png
+ * (the static files committed to the repo) when R2 isn't configured or the
+ * slug hasn't been synced yet — Next.js's <Image> component handles 404s
+ * gracefully via the next/image error handler in tile components.
+ *
+ * Centralising images in R2 lets us update them without redeploying and
+ * keeps the repo lean as the catalog grows past ~20 tiles.
+ */
+function tileImageUrl(slug: string): string {
+  const r2 = process.env.R2_PUBLIC_URL;
+  if (!r2) return `/harbour/images/${slug}.png`;
+  return `${r2.replace(/\/$/, "")}/harbour-tiles/${slug}.png`;
+}
+
 // ── v5 data-source adapter ────────────────────────────────
 // Notion API split databases into "databases" (metadata) and "data sources"
 // (queryable rows). v5 query is on dataSources; we resolve and cache the
@@ -277,8 +296,10 @@ async function _fetchGames(): Promise<Game[]> {
       tagline: getText(props[p.tagline]),
       description: getText(props[p.description]),
       icon: getText(props[p.icon]),
-      // Keep using static images from public/ (Notion signed URLs expire)
-      image: `/harbour/images/${slug}.png`,
+      // Tile image: prefer R2 (synced via scripts/sync-tiles-to-r2.mjs;
+      // images are permanent there). Fall back to public/images/ if the R2
+      // URL is unset or the slug hasn't been synced yet.
+      image: tileImageUrl(slug),
       color: getText(props[p.brandColor]),
       accentColor: getText(props[p.accentColor]),
       features: featuresRaw
