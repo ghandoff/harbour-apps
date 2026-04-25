@@ -2,6 +2,7 @@
 
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { signIn } from "next-auth/react";
 
 function LoginInner() {
   const params = useSearchParams();
@@ -9,6 +10,27 @@ function LoginInner() {
   const error = params.get("error");
   const callback_url = params.get("callbackUrl") || "/plan/current";
   const [email, set_email] = useState("");
+  const [submitting, set_submitting] = useState(false);
+
+  // Auth.js v5 — use the client signIn helper which fetches the CSRF token
+  // and handles redirects. The previous v4-style POST form with an empty
+  // hidden csrfToken input failed with MissingCSRF on CF Workers.
+  const fullCallback = `/harbour/depth-chart${callback_url}`;
+
+  async function handleGoogle() {
+    set_submitting(true);
+    await signIn("google", { callbackUrl: fullCallback });
+  }
+
+  async function handleResend(e: React.FormEvent) {
+    e.preventDefault();
+    if (!email.trim()) return;
+    set_submitting(true);
+    await signIn("resend", {
+      email: email.toLowerCase().trim(),
+      callbackUrl: fullCallback,
+    });
+  }
 
   if (verify) {
     return (
@@ -52,12 +74,12 @@ function LoginInner() {
         )}
 
         {/* google sign-in */}
-        <form action="/harbour/depth-chart/api/auth/signin/google" method="POST">
-          <input type="hidden" name="callbackUrl" value={`/harbour/depth-chart${callback_url}`} />
-          <input type="hidden" name="csrfToken" value="" />
+        <div>
           <button
-            type="submit"
-            className="w-full flex items-center justify-center gap-3 bg-white text-gray-800 font-medium py-3 px-6 rounded-lg hover:bg-gray-100 transition-colors"
+            type="button"
+            onClick={handleGoogle}
+            disabled={submitting}
+            className="w-full flex items-center justify-center gap-3 bg-white text-gray-800 font-medium py-3 px-6 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50"
           >
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
               <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 01-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>
@@ -67,7 +89,7 @@ function LoginInner() {
             </svg>
             sign in with Google
           </button>
-        </form>
+        </div>
 
         <div className="flex items-center gap-3">
           <div className="flex-1 border-t border-white/10" />
@@ -76,9 +98,7 @@ function LoginInner() {
         </div>
 
         {/* email magic link */}
-        <form action="/harbour/depth-chart/api/auth/signin/resend" method="POST" className="space-y-3">
-          <input type="hidden" name="callbackUrl" value={`/harbour/depth-chart${callback_url}`} />
-          <input type="hidden" name="csrfToken" value="" />
+        <form onSubmit={handleResend} className="space-y-3">
           <input
             type="email"
             name="email"
@@ -90,7 +110,7 @@ function LoginInner() {
           />
           <button
             type="submit"
-            disabled={!email.trim()}
+            disabled={!email.trim() || submitting}
             className="w-full bg-[var(--wv-champagne)] text-[var(--wv-cadet)] font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
           >
             send magic link
