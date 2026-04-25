@@ -9,6 +9,7 @@
  */
 
 import { sql } from "@/lib/db";
+import { mapVaultRow, mapVaultRows } from "./vault-row";
 import {
   columnsToSql,
   VAULT_TEASER_COLUMNS,
@@ -121,7 +122,7 @@ export async function getVaultActivities(tier: VaultAccessTier) {
     const result = await sql.query(
       `SELECT ${cols} FROM vault_activities_cache ORDER BY name ASC`,
     );
-    return result.rows;
+    return mapVaultRows(result.rows);
   }
 
   // Build parameterised IN clause for allowed content tiers
@@ -132,7 +133,7 @@ export async function getVaultActivities(tier: VaultAccessTier) {
      ORDER BY name ASC`,
     allowed,
   );
-  return result.rows;
+  return mapVaultRows(result.rows);
 }
 
 /**
@@ -179,7 +180,7 @@ export async function getVaultActivityBySlug(
       `SELECT ${cols} FROM vault_activities_cache WHERE slug = $1`,
       [slug],
     );
-    return result.rows[0] ?? null;
+    return result.rows[0] ? mapVaultRow(result.rows[0]) : null;
   }
 
   // Phase 1: check row access + get content tier
@@ -199,7 +200,7 @@ export async function getVaultActivityBySlug(
     `SELECT ${cols} FROM vault_activities_cache WHERE slug = $1`,
     [slug],
   );
-  return result.rows[0] ?? null;
+  return result.rows[0] ? mapVaultRow(result.rows[0]) : null;
 }
 
 /**
@@ -208,11 +209,14 @@ export async function getVaultActivityBySlug(
  */
 export async function getVaultActivityMeta(slug: string) {
   const result = await sql.query(
-    `SELECT name, headline, cover_url, type, duration, tier, slug
+    `SELECT name, headline, cover_r2_key, type, duration, tier, slug
      FROM vault_activities_cache WHERE slug = $1`,
     [slug],
   );
-  return result.rows[0] as {
+  if (!result.rows[0]) return undefined;
+  // Compute cover_url from cover_r2_key — see lib/queries/vault-row.ts
+  const mapped = mapVaultRow(result.rows[0]);
+  return mapped as {
     name: string;
     headline: string | null;
     cover_url: string | null;
@@ -220,7 +224,7 @@ export async function getVaultActivityMeta(slug: string) {
     duration: string | null;
     tier: string;
     slug: string;
-  } | undefined;
+  };
 }
 
 /**
