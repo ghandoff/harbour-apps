@@ -8,7 +8,7 @@ function LoginInner() {
   const params = useSearchParams();
   const verify = params.get("verify");
   const error = params.get("error");
-  const callback_url = params.get("callbackUrl") || "/plan/current";
+  const callback_url = params.get("callbackUrl") || "/";
   const [email, set_email] = useState("");
   const [submitting, set_submitting] = useState(false);
 
