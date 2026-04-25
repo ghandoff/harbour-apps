@@ -38,7 +38,9 @@ these rules exist because we got a $223 Vercel bill from uncontrolled build mult
 - **never add a new Vercel project without updating the cost analysis**. each new project adds a build per push across the entire monorepo.
 - **always include `[skip ci]` in commits that don't need Vercel builds** — docs, content syncs, config-only changes. Vercel respects this flag.
 - **batch pushes during active sprints**. each `git push` triggers ~5-6 builds. pushing 3x instead of 15x saves ~60 wasted build attempts.
-- **disconnected projects deploy manually**: harbour, deep-deck, nordic-sqr-rct. use `cd apps/<project> && vercel --prod`. do not reconnect without discussing cost implications.
+- **disconnected projects deploy manually**: deep-deck, nordic-sqr-rct. do not reconnect without discussing cost implications.
+  - **harbour** (migrated to CF Workers 2026-04-25, project `wv-harbour-harbour`): deploy from monorepo root — `cd apps/harbour && npx opennextjs-cloudflare build && npx opennextjs-cloudflare deploy`. has R2 binding `TILE_IMAGES` → `creaseworks-evidence` bucket for tile images.
+  - **deep-deck, nordic-sqr-rct**: `cd apps/<project> && vercel --prod` (no workspace packages, app-level deploy still works).
 - **spending cap is $10 on-demand** (max $30/month). do NOT raise without explicit approval.
 - **every app has `turbo-ignore` in `vercel.json`**. never remove it — it's what prevents unchanged apps from building on every push.
 - **cron jobs count as serverless invocations**. creaseworks has 3 (sync-notion daily, send-digests weekly, send-nudges daily). don't add more without checking budget.
@@ -109,9 +111,11 @@ document answers in `docs/infrastructure-and-costs.md` before committing to a ne
 
 > full deployment topology (Vercel vs Cloudflare split, who lives where, how to deploy each runtime, and why the split exists) is in `docs/deployment-topology.md`. **always read that before making a shared-package change** — changes to `packages/auth` or `packages/tokens` require redeploying every CF-routed harbour app manually (17 apps). a git push alone won't ship them.
 
-- **two deployment runtimes**: creaseworks + vertigo.vault + the harbour hub deploy to **Vercel**. every other harbour app (paper-trail, deep-deck, depth-chart, raft-house, tidal-pool, mirror-log, and the 11 threshold-concept apps) deploys to **Cloudflare Workers** via OpenNext. the split exists to keep the long tail of low-traffic apps off Vercel's per-function billing after the Feb 2026 $223 overage.
-- **CF deploy is manual per app**: `cd apps/<app> && npx opennextjs-cloudflare build && npx opennextjs-cloudflare deploy`. `deploy` alone reuses cached artifacts — always build first when source changed. a batch loop for sweeping all 17 CF apps lives in `docs/deployment-topology.md`.
+- **two deployment runtimes**: creaseworks + vertigo.vault deploy to **Vercel**. the harbour hub and every other harbour app (paper-trail, deep-deck, depth-chart, raft-house, tidal-pool, mirror-log, and the 11 threshold-concept apps) deploys to **Cloudflare Workers** via OpenNext. harbour itself migrated 2026-04-25. the split exists to keep the long tail of low-traffic apps off Vercel's per-function billing after the Feb 2026 $223 overage.
+- **CF deploy is manual per app**: `cd apps/<app> && npx opennextjs-cloudflare build && npx opennextjs-cloudflare deploy`. `deploy` alone reuses cached artifacts — always build first when source changed. a batch loop for sweeping all CF apps lives in `docs/deployment-topology.md`.
 - **routing lives in a sibling repo**: `windedvertigo.com/harbour/*` is proxied by `ghandoff/windedvertigo` (the `site` project). its `next.config.ts` has the rewrites that pick Vercel vs Cloudflare per app. new harbour apps must add a rewrite there and redeploy that project.
+- **depth-chart bypasses the site router**: `wv-harbour-depth-chart` has direct CF Workers Routes for `windedvertigo.com/harbour/depth-chart/*`, which override the site's broader `windedvertigo.com/*` route. all secrets are wired (AUTH_SECRET synced from vault for SSO, GOOGLE_CLIENT_ID/SECRET from port, POSTGRES_URL, NOTION_TOKEN, RESEND_API_KEY, EMAIL_FROM, INITIAL_ADMIN_EMAIL, SLACK_FEEDBACK_*, AUTH_URL=`https://windedvertigo.com/harbour/depth-chart`, AUTH_TRUST_HOST=true, WORKERS_AUTH_PAGES_BASEPATH=`/harbour/depth-chart`, ANTHROPIC_API_KEY/BASE_URL via AI Gateway, PORT_EXTRACT_TOKEN). other harbour apps still go through the site router proxy.
+- **port hosts `/api/extract-text`** (Vercel, bearer-auth via PORT_EXTRACT_TOKEN). depth-chart's `/api/parse` calls it via fetch for PDF/DOCX extraction because pdf-parse + mammoth use Node Buffer/DOM APIs that don't run on CF Workers.
 - **static site proxies to other apps** via Next.js rewrites in the sibling `ghandoff/windedvertigo` repo's `site/next.config.ts`. if a proxied app's URL changes, update the rewrites there.
 - **shared auth cookies**: creaseworks and vertigo-vault share session cookies on `.windedvertigo.com`. changes to `AUTH_SECRET` in one break sessions in the other. always change both together.
 - **next-auth pinned at 5.0.0-beta.30** — waiting for v5 stable. do NOT downgrade to v4. do NOT blindly bump beta.
@@ -180,11 +184,13 @@ see `docs/version-management.md` for full update cadence.
 - **P0 (security CVEs)**: immediate, same day.
 - **P1 (frameworks — Next.js, React, Auth.js)**: monthly evaluation.
 - **P2 (SDKs — Anthropic, Stripe, Notion)**: quarterly.
-- **@notionhq/client**: hold at ^2.3.0 — v5.x is a major rewrite.
+- **@notionhq/client**: hold at ^2.3.0 — v5.x is a major rewrite. **exception: harbour is on ^5.20.0** (forced by CF Workers — v2 uses `node:https.request` which Workers don't polyfill; v5 uses fetch). the upgrade required swapping `notion.databases.query()` → `notion.dataSources.query()` via a `queryDataSource()` adapter. other apps stay on v2.
 - **Renovate**: opens grouped PRs weekly (Monday), automerges patches after CI.
 
 ---
 
 ## services in use
 
-Vercel (Pro, $20/mo + capped overage), Neon (Postgres), Stripe (pay-per-tx), Cloudflare R2 (object storage), Notion (CMS), Anthropic (Claude API), Resend (email), Upstash KV (Redis via Vercel KV), Slack, Google OAuth, GitHub Actions. full audit and env var inventory in `docs/infrastructure-and-costs.md`.
+Vercel (Pro, $20/mo + capped overage), Neon (Postgres), Stripe (pay-per-tx), Cloudflare R2 (object storage — canonical bucket `creaseworks-evidence` in the garrett CF account `097c92553b268f8360b74f625f6d980a`; public URL `https://pub-60282cf378c248cf9317acfb691f6c99.r2.dev`; the bucket was migrated from the anotheroption CF account on 2026-04-25), Notion (CMS), Anthropic (Claude API), Resend (email), Upstash KV (Redis via Vercel KV), Slack, Google OAuth, GitHub Actions. full audit and env var inventory in `docs/infrastructure-and-costs.md`.
+
+**R2 image patterns** (added 2026-04-25): vault computes `cover_url` from `cover_r2_key` at query time. harbour caches tile images via admin endpoint `POST /harbour/api/admin/sync-tiles` (Bearer `CRON_SECRET`).
