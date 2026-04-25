@@ -78,10 +78,18 @@ export async function syncPacks() {
     cleanupStale: async (activeNotionIds) => {
       // Soft-delete packs removed from Notion rather than hard-deleting,
       // because packs_catalogue and purchases reference packs_cache.
+      //
+      // The notion_id ~ '^[0-9a-f]{8}-' guard scopes the sweep to rows that
+      // actually came from Notion (UUID-shaped IDs). Without it, seeded
+      // commerce SKUs like dc-assessment-pro / harbour-bundle / dd-full-deck
+      // (added by migrations 033 + 052 with kebab-case notion_ids as a
+      // placeholder discriminator) get archived on every sync. Those rows
+      // have Stripe prices and entitlements wired and must not be touched.
       await sql.query(
         `UPDATE packs_cache
          SET status = 'archived', synced_at = NOW()
-         WHERE notion_id != ALL($1::text[])`,
+         WHERE notion_id ~ '^[0-9a-f]{8}-'
+           AND notion_id != ALL($1::text[])`,
         [activeNotionIds],
       );
     },

@@ -101,11 +101,15 @@ export async function syncCollections() {
       }
     },
     cleanupStale: async (activeNotionIds) => {
-      // Soft-delete collections removed from Notion
+      // Soft-delete collections removed from Notion. The notion_id ~ regex
+      // scopes the sweep to UUID-shaped IDs so future seeded rows (kebab-
+      // case notion_ids) won't get archived. Defense-in-depth: today no
+      // seeded rows exist in `collections`, but the same anti-pattern bit
+      // packs_cache (see packs.ts cleanupStale).
       await sql.query(
         `UPDATE collections
          SET status = 'archived', synced_at = NOW()
-         WHERE notion_id IS NOT NULL
+         WHERE notion_id ~ '^[0-9a-f]{8}-'
            AND notion_id != ALL($1::text[])`,
         [activeNotionIds],
       );
