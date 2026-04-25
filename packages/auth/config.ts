@@ -43,11 +43,27 @@ export function createHarbourAuth(options: HarbourAuthOptions) {
       }),
     ],
 
-    pages: {
-      signIn: "/login",
-      verifyRequest: "/login?verify=1",
-      error: "/login",
-    },
+    // Auth.js page paths.
+    //
+    // On Vercel, Next.js automatically prepends basePath to redirect URLs
+    // returned by Auth.js. So `/login` → `/harbour/{app}/login` correctly.
+    //
+    // On Cloudflare Workers via OpenNext, that automatic prepend doesn't
+    // apply to redirects emitted by Auth.js — they land at the bare path
+    // (`/login`), which 404s because no such route exists at site root.
+    //
+    // We detect "are we on CF Workers" via the WORKERS_AUTH_PAGES_BASEPATH
+    // env var (set on each CF-deployed worker as part of its secret config).
+    // When set, we hardcode the basePath into Auth.js page URLs.
+    pages: (() => {
+      const wp = process.env.WORKERS_AUTH_PAGES_BASEPATH;
+      const prefix = wp ? wp.replace(/\/$/, "") : "";
+      return {
+        signIn: `${prefix}/login`,
+        verifyRequest: `${prefix}/login?verify=1`,
+        error: `${prefix}/login`,
+      };
+    })(),
 
     session: { strategy: "jwt", maxAge: 7 * 24 * 60 * 60 },
 
