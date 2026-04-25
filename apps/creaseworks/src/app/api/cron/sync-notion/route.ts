@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
 import { syncAll } from "@/lib/sync";
+import {
+  getImageFailureCount,
+  resetImageFailureCount,
+} from "@/lib/sync/sync-image";
 
 /** Allow up to 60 s on Hobby, 300 s on Pro. */
 export const maxDuration = 300;
@@ -28,8 +32,14 @@ export async function POST(request: Request) {
   }
 
   try {
+    // Reset before the run so the counter reflects only this invocation.
+    // syncImageToR2 swallows individual image failures and returns null;
+    // exposing the count here makes silent breakage (e.g. R2 credential
+    // drift) detectable from the cron response, not just from log scrubbing.
+    resetImageFailureCount();
     const result = await syncAll();
-    return NextResponse.json({ ok: true, ...result });
+    const imageFailures = getImageFailureCount();
+    return NextResponse.json({ ok: true, ...result, imageFailures });
   } catch (err: any) {
     console.error("[cron] sync failed:", err);
     return NextResponse.json(

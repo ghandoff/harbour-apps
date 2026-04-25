@@ -11,6 +11,30 @@ import { uploadBuffer, getPublicUrl } from "@/lib/r2";
 /** Max image size we'll download — skip anything larger to avoid function timeouts. */
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024; // 10 MB
 
+/**
+ * Module-level counter for image-sync failures during a sync run.
+ *
+ * `syncImageToR2` swallows errors and returns null so it never blocks the
+ * surrounding text-property sync. That's the right behavior for a single
+ * image — but it makes whole-run failures invisible (cron returns 200 OK
+ * and `errors: []` while every image silently fails to upload). The cron
+ * route resets this before each run and includes the count in its response,
+ * so we can detect e.g. credential drift on R2 the moment it happens.
+ *
+ * Counter increments cover any return-null path where the image WOULD have
+ * been synced (R2 401, fetch non-2xx, oversize, empty body, thrown error).
+ * It does NOT increment when callers skip the call entirely (no source URL).
+ */
+let imageFailures = 0;
+
+export function getImageFailureCount(): number {
+  return imageFailures;
+}
+
+export function resetImageFailureCount(): void {
+  imageFailures = 0;
+}
+
 /** Map content-type → file extension. */
 const EXT_MAP: Record<string, string> = {
   "image/jpeg": "jpg",
@@ -69,6 +93,7 @@ export async function syncImageToR2(
     });
 
     if (!res.ok) {
+      imageFailures++;
       console.warn(
         `[sync-image] failed to download ${slot} for ${notionPageId}: HTTP ${res.status}`,
       );
@@ -78,6 +103,7 @@ export async function syncImageToR2(
     // size guard — check content-length header first
     const contentLength = res.headers.get("content-length");
     if (contentLength && parseInt(contentLength, 10) > MAX_IMAGE_BYTES) {
+      imageFailures++;
       console.warn(
         `[sync-image] ${slot} for ${notionPageId} too large (${contentLength} bytes), skipping`,
       );
@@ -88,6 +114,7 @@ export async function syncImageToR2(
 
     // double-check actual size
     if (buffer.byteLength > MAX_IMAGE_BYTES) {
+      imageFailures++;
       console.warn(
         `[sync-image] ${slot} for ${notionPageId} too large (${buffer.byteLength} bytes), skipping`,
       );
@@ -95,6 +122,7 @@ export async function syncImageToR2(
     }
 
     if (buffer.byteLength === 0) {
+      imageFailures++;
       console.warn(
         `[sync-image] ${slot} for ${notionPageId} is empty, skipping`,
       );
@@ -112,6 +140,7 @@ export async function syncImageToR2(
 
     return key;
   } catch (err) {
+    imageFailures++;
     console.warn(
       `[sync-image] error syncing ${slot} for ${notionPageId}:`,
       err instanceof Error ? err.message : err,
