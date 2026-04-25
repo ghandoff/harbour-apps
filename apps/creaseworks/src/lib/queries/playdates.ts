@@ -7,6 +7,7 @@ import {
 } from "@/lib/security/column-selectors";
 import { assertNoLeakedFields } from "@/lib/security/assert-no-leaked-fields";
 import { safeCols } from "@/lib/db-compat";
+import { mapCreaseworksRow, mapCreaseworksRows } from "./cover-row";
 
 /**
  * Fetch all public-ready playdates with teaser-tier columns only.
@@ -30,7 +31,7 @@ export async function getTeaserPlaydates() {
      ORDER BY p.title ASC`,
   );
   assertNoLeakedFields(result.rows, "teaser");
-  return result.rows;
+  return mapCreaseworksRows(result.rows);
 }
 
 /**
@@ -54,7 +55,7 @@ export async function getAllReadyPlaydates() {
      ORDER BY p.title ASC`,
   );
   assertNoLeakedFields(result.rows, "teaser");
-  return result.rows;
+  return mapCreaseworksRows(result.rows);
 }
 
 /**
@@ -79,7 +80,7 @@ export async function getPublishedPlaydates() {
      ORDER BY p.title ASC`,
   );
   assertNoLeakedFields(result.rows, "teaser");
-  return result.rows;
+  return mapCreaseworksRows(result.rows);
 }
 
 /**
@@ -99,7 +100,7 @@ export async function getTeaserPlaydateBySlug(slug: string) {
     [slug],
   );
   assertNoLeakedFields(result.rows, "teaser");
-  return result.rows[0] ?? null;
+  return result.rows[0] ? mapCreaseworksRow(result.rows[0]) : null;
 }
 
 /**
@@ -117,7 +118,7 @@ export async function getEntitledPlaydateBySlug(slug: string) {
     [slug],
   );
   assertNoLeakedFields(result.rows, "entitled");
-  return result.rows[0] ?? null;
+  return result.rows[0] ? mapCreaseworksRow(result.rows[0]) : null;
 }
 
 /**
@@ -136,7 +137,7 @@ export async function getEntitledPlaydateById(id: string) {
     [id],
   );
   assertNoLeakedFields(result.rows, "entitled");
-  return result.rows[0] ?? null;
+  return result.rows[0] ? mapCreaseworksRow(result.rows[0]) : null;
 }
 
 /**
@@ -155,7 +156,7 @@ export async function getCollectivePlaydateBySlug(slug: string) {
     [slug],
   );
   assertNoLeakedFields(result.rows, "collective");
-  return result.rows[0] ?? null;
+  return result.rows[0] ? mapCreaseworksRow(result.rows[0]) : null;
 }
 
 /**
@@ -181,7 +182,7 @@ export async function getCampaignPlaydates(campaignSlug: string) {
     [campaignSlug],
   );
   assertNoLeakedFields(result.rows, "teaser");
-  return result.rows;
+  return mapCreaseworksRows(result.rows);
 }
 
 /**
@@ -209,7 +210,7 @@ export async function getAllCampaignPlaydates() {
      ORDER BY p.title ASC`,
   );
   // campaign_tags is an extra field needed for grouping — skip the leak check
-  return result.rows;
+  return mapCreaseworksRows(result.rows);
 }
 
 // ── admin queries ──────────────────────────────────────────────────────
@@ -228,7 +229,7 @@ export async function getAdminPlaydates() {
        p.id, p.slug, p.title, p.headline,
        p.release_channel, p.status, p.primary_function,
        p.arc_emphasis, p.context_tags, p.friction_dial,
-       p.start_in_120s, p.tinkering_tier, p.cover_url,
+       p.start_in_120s, p.tinkering_tier, p.cover_r2_key,
        p.age_range, p.energy_level, p.campaign_tags,
        p.notion_id, p.synced_at,
        (p.find IS NOT NULL AND p.find != '')::bool AS has_find,
@@ -254,7 +255,7 @@ export async function getAdminPlaydates() {
      WHERE p.status = 'ready'
      ORDER BY p.title ASC`,
   );
-  return result.rows;
+  return mapCreaseworksRows(result.rows);
 }
 
 /**
@@ -271,7 +272,7 @@ export async function getAdminPlaydateDetail(id: string) {
          id, slug, title, headline, headline_html,
          release_channel, status, primary_function,
          arc_emphasis, context_tags, friction_dial,
-         start_in_120s, tinkering_tier, cover_url,
+         start_in_120s, tinkering_tier, cover_r2_key,
          age_range, energy_level, campaign_tags,
          find, find_html, fold, fold_html, unfold, unfold_html,
          find_again_mode, find_again_prompt, find_again_prompt_html,
@@ -298,7 +299,7 @@ export async function getAdminPlaydateDetail(id: string) {
   ]);
 
   if (!playdateResult.rows[0]) return null;
-  return { ...playdateResult.rows[0], materials: materialsResult.rows };
+  return { ...mapCreaseworksRow(playdateResult.rows[0]), materials: materialsResult.rows };
 }
 
 /**

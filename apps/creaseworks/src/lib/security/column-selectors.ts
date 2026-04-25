@@ -4,6 +4,12 @@
  * Every query that returns playdate/material data to a client must use
  * one of these selectors so that internal-only fields are never fetched
  * in the first place.
+ *
+ * Note: we read `cover_r2_key` (not `cover_url`) so that the public URL is
+ * computed at query time from `R2_PUBLIC_URL` + the key. This decouples
+ * stored data from the R2 bucket URL — future R2 account migrations only
+ * need an env-var update, not a DB migration. Use `mapCreaseworksRow()`
+ * from `lib/queries/cover-row.ts` to attach `cover_url` to query results.
  */
 
 // ── playdates ────────────────────────────────────────────────────────────
@@ -29,7 +35,7 @@ export const PLAYDATE_TEASER_COLUMNS = [
   "age_range",
   "energy_level",
   "tinkering_tier",
-  "cover_url",
+  "cover_r2_key",
   "gallery_visible_fields",
   /* phase content — shown in full on sampler pages */
   "find",
@@ -121,7 +127,7 @@ export const VAULT_TEASER_COLUMNS = [
   "tier",
   "age_range",
   "group_size",
-  "cover_url",
+  "cover_r2_key",
 ] as const;
 
 /**

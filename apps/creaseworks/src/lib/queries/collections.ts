@@ -8,6 +8,7 @@
 
 import { sql } from "@/lib/db";
 import { coverSelect, collectionCoverSelect, hasGalleryVisibleFieldsColumn } from "@/lib/db-compat";
+import { mapCreaseworksRow, mapCreaseworksRows } from "./cover-row";
 
 /* ------------------------------------------------------------------ */
 /*  types                                                              */
@@ -85,7 +86,7 @@ export async function getReadyCollections(): Promise<Collection[]> {
      GROUP BY c.id
      ORDER BY c.sort_order ASC, c.title ASC`,
   );
-  return result.rows;
+  return mapCreaseworksRows(result.rows);
 }
 
 /**
@@ -123,7 +124,7 @@ export async function getCollectionsWithProgress(
      ORDER BY c.sort_order ASC, c.title ASC`,
     [userId],
   );
-  return result.rows;
+  return mapCreaseworksRows(result.rows);
 }
 
 /* ------------------------------------------------------------------ */
@@ -149,7 +150,7 @@ export async function getCollectionBySlug(
      LIMIT 1`,
     [slug],
   );
-  return result.rows[0] ?? null;
+  return result.rows[0] ? mapCreaseworksRow(result.rows[0]) : null;
 }
 
 /**
@@ -195,7 +196,7 @@ export async function getCollectionPlaydates(
      ORDER BY cp.display_order ASC, p.title ASC`,
     [collectionId, userId],
   );
-  return result.rows;
+  return mapCreaseworksRows(result.rows);
 }
 
 /* ------------------------------------------------------------------ */
@@ -378,7 +379,7 @@ export async function getNextSuggestion(
   }
 
   return {
-    collection: collResult.rows[0],
+    collection: mapCreaseworksRow(collResult.rows[0]),
     reason,
   };
 }

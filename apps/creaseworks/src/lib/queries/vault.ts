@@ -17,6 +17,7 @@ import {
   VAULT_INTERNAL_COLUMNS,
 } from "@/lib/security/column-selectors";
 import { checkEntitlement } from "./entitlements";
+import { mapCreaseworksRow, mapCreaseworksRows } from "./cover-row";
 
 export type VaultAccessTier = "teaser" | "entitled" | "practitioner" | "internal";
 
@@ -93,7 +94,7 @@ export async function getVaultActivities(tier: VaultAccessTier) {
   const result = await sql.query(
     `SELECT ${cols} FROM vault_activities_cache ORDER BY name ASC`,
   );
-  return result.rows;
+  return mapCreaseworksRows(result.rows);
 }
 
 /**
@@ -111,7 +112,7 @@ export async function getVaultActivitiesByTier(
      ORDER BY name ASC`,
     [contentTier],
   );
-  return result.rows;
+  return mapCreaseworksRows(result.rows);
 }
 
 /**
@@ -127,7 +128,7 @@ export async function getVaultActivityBySlug(
     `SELECT ${cols} FROM vault_activities_cache WHERE slug = $1`,
     [slug],
   );
-  return result.rows[0] ?? null;
+  return result.rows[0] ? mapCreaseworksRow(result.rows[0]) : null;
 }
 
 /**
@@ -159,7 +160,7 @@ export async function getVaultActivitiesForPackPage() {
   const result = await sql.query(
     `SELECT ${cols} FROM vault_activities_cache ORDER BY name ASC`,
   );
-  return result.rows;
+  return mapCreaseworksRows(result.rows);
 }
 
 /**
@@ -175,5 +176,5 @@ export async function getRelatedActivities(activityId: string) {
      ORDER BY vac.name ASC`,
     [activityId],
   );
-  return result.rows;
+  return mapCreaseworksRows(result.rows);
 }

@@ -12,6 +12,7 @@ import {
 } from "@/lib/security/column-selectors";
 import { assertNoLeakedFields } from "@/lib/security/assert-no-leaked-fields";
 import { hasCoverUrlColumn, coverSelect, coverGroupBy, safeCols } from "@/lib/db-compat";
+import { mapCreaseworksRow, mapCreaseworksRows } from "./cover-row";
 
 /**
  * Fetch all visible packs for the public catalogue page.
@@ -43,7 +44,7 @@ export async function getVisiblePacks() {
        AND pc.slug IS NOT NULL
      ORDER BY pc.title ASC`,
   );
-  return result.rows;
+  return mapCreaseworksRows(result.rows);
 }
 
 /**
@@ -73,7 +74,7 @@ export async function getPackBySlug(slug: string) {
      LIMIT 1`,
     [slug],
   );
-  return result.rows[0] ?? null;
+  return result.rows[0] ? mapCreaseworksRow(result.rows[0]) : null;
 }
 
 /**
@@ -94,7 +95,7 @@ export async function getPackPlaydates(packCacheId: string) {
     [packCacheId],
   );
   assertNoLeakedFields(result.rows, "teaser");
-  return result.rows;
+  return mapCreaseworksRows(result.rows);
 }
 
 /**
@@ -114,7 +115,7 @@ export async function getPackPlaydatesEntitled(packCacheId: string) {
     [packCacheId],
   );
   assertNoLeakedFields(result.rows, "entitled");
-  return result.rows;
+  return mapCreaseworksRows(result.rows);
 }
 
 /**
@@ -136,7 +137,7 @@ export async function getPackPlaydatesCollective(packCacheId: string) {
     [packCacheId],
   );
   assertNoLeakedFields(result.rows, "collective");
-  return result.rows;
+  return mapCreaseworksRows(result.rows);
 }
 
 /**
@@ -164,7 +165,7 @@ export async function getAllPacks() {
        AND pc.title IS NOT NULL AND pc.title != ''
      ORDER BY pc.title ASC`,
   );
-  return result.rows;
+  return mapCreaseworksRows(result.rows);
 }
 
 /**
@@ -194,7 +195,7 @@ export async function getPackBySlugCollective(slug: string) {
      LIMIT 1`,
     [slug],
   );
-  return result.rows[0] ?? null;
+  return result.rows[0] ? mapCreaseworksRow(result.rows[0]) : null;
 }
 
 /**
@@ -202,14 +203,14 @@ export async function getPackBySlugCollective(slug: string) {
  */
 export async function getAllReadyPacks() {
   const hasCover = await hasCoverUrlColumn();
-  const coverCol = hasCover ? "cover_url," : "NULL AS cover_url,";
+  const coverCol = hasCover ? "cover_r2_key," : "NULL AS cover_r2_key,";
   const result = await sql.query(
     `SELECT id, slug, title, description, ${coverCol} status
      FROM packs_cache
      WHERE status = 'ready'
      ORDER BY title ASC`,
   );
-  return result.rows;
+  return mapCreaseworksRows(result.rows);
 }
 
 /**
@@ -306,7 +307,7 @@ export async function getUnownedPacks(orgId: string | null) {
      ORDER BY pc.title ASC`,
     [orgId],
   );
-  return result.rows;
+  return mapCreaseworksRows(result.rows);
 }
 
 /**
@@ -365,7 +366,7 @@ export async function getRecommendedPacks(
        LIMIT $1`,
       [limit],
     );
-    return result.rows as Array<{
+    return mapCreaseworksRows(result.rows) as Array<{
       id: string;
       slug: string;
       title: string;
@@ -415,7 +416,7 @@ export async function getRecommendedPacks(
      LIMIT $3`,
     [orgId, userId, limit],
   );
-  return result.rows as Array<{
+  return mapCreaseworksRows(result.rows) as Array<{
     id: string;
     slug: string;
     title: string;

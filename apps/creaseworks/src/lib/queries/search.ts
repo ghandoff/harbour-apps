@@ -9,6 +9,7 @@
  */
 
 import { sql } from "@/lib/db";
+import { mapCreaseworksRows } from "./cover-row";
 
 /* ------------------------------------------------------------------ */
 /*  types                                                              */
@@ -64,7 +65,7 @@ export async function searchPlaydates(
     `WITH playdate_matches AS (
        -- Match on playdate title
        SELECT p.id, p.slug, p.title, p.headline, p.primary_function,
-              p.cover_url, NULL AS icon_emoji,
+              p.cover_r2_key, NULL AS icon_emoji,
               'title' AS match_field,
               1 AS rank
        FROM playdates_cache p
@@ -75,7 +76,7 @@ export async function searchPlaydates(
 
        -- Match on playdate headline
        SELECT p.id, p.slug, p.title, p.headline, p.primary_function,
-              p.cover_url, NULL AS icon_emoji,
+              p.cover_r2_key, NULL AS icon_emoji,
               'headline' AS match_field,
               2 AS rank
        FROM playdates_cache p
@@ -87,7 +88,7 @@ export async function searchPlaydates(
 
        -- Match on rails_sentence (the "what you'll do" summary)
        SELECT p.id, p.slug, p.title, p.headline, p.primary_function,
-              p.cover_url, NULL AS icon_emoji,
+              p.cover_r2_key, NULL AS icon_emoji,
               'description' AS match_field,
               3 AS rank
        FROM playdates_cache p
@@ -101,7 +102,7 @@ export async function searchPlaydates(
        -- Match on linked material title
        SELECT DISTINCT ON (p.id)
               p.id, p.slug, p.title, p.headline, p.primary_function,
-              p.cover_url, NULL AS icon_emoji,
+              p.cover_r2_key, NULL AS icon_emoji,
               'material' AS match_field,
               4 AS rank
        FROM playdates_cache p
@@ -121,7 +122,7 @@ export async function searchPlaydates(
      )
      -- Join the first matching collection for context
      SELECT r.id, r.slug, r.title, r.headline, r.primary_function,
-            r.cover_url, r.icon_emoji, r.match_field,
+            r.cover_r2_key, r.icon_emoji, r.match_field,
             c.title AS collection_title, c.slug AS collection_slug
      FROM ranked r
      LEFT JOIN collection_playdates cp ON cp.playdate_id = r.id
@@ -131,7 +132,7 @@ export async function searchPlaydates(
     [pattern, limit],
   );
 
-  return result.rows;
+  return mapCreaseworksRows(result.rows);
 }
 
 /**
@@ -144,7 +145,7 @@ export async function searchCollections(
   const pattern = `%${query}%`;
 
   const result = await sql.query(
-    `SELECT c.id, c.slug, c.title, c.description, c.icon_emoji, c.cover_url,
+    `SELECT c.id, c.slug, c.title, c.description, c.icon_emoji, c.cover_r2_key,
             COUNT(cp.playdate_id)::int AS playdate_count
      FROM collections c
      LEFT JOIN collection_playdates cp ON cp.collection_id = c.id
@@ -156,7 +157,7 @@ export async function searchCollections(
     [pattern, limit],
   );
 
-  return result.rows;
+  return mapCreaseworksRows(result.rows);
 }
 
 /**

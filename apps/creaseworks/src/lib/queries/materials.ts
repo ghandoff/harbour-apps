@@ -5,6 +5,7 @@
  */
 
 import { sql } from "@/lib/db";
+import { mapCreaseworksRows } from "./cover-row";
 
 // Import + re-export the pure slug helper so existing server-side imports keep working.
 import { materialSlug } from "@/lib/material-slug";
@@ -49,7 +50,7 @@ export async function getPlaydatesForMaterial(materialId: string) {
   const result = await sql.query(
     `SELECT p.id, p.slug, p.title, p.headline, p.primary_function,
             p.arc_emphasis, p.context_tags, p.friction_dial,
-            p.start_in_120s, p.tinkering_tier, p.cover_url,
+            p.start_in_120s, p.tinkering_tier, p.cover_r2_key,
             p.gallery_visible_fields,
             (p.find_again_mode IS NOT NULL) AS has_find_again,
             COALESCE(rc.run_count, 0)::int AS run_count
@@ -65,5 +66,5 @@ export async function getPlaydatesForMaterial(materialId: string) {
      ORDER BY p.title ASC`,
     [materialId],
   );
-  return result.rows;
+  return mapCreaseworksRows(result.rows);
 }
