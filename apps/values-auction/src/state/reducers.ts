@@ -11,7 +11,7 @@ import { STARTUPS } from '@/content/startups';
 import { TEAM_COLOURS, teamDisplayName, uid } from '@/utils/id';
 
 export const STARTING_CREDOS = 150;
-export const DEFAULT_AUCTION_MS = 30_000;
+export const DEFAULT_AUCTION_MS = 60_000;
 export const BID_INCREMENT = 1;
 
 export function initialSession(sessionId: string, facilitatorId: string): Session {
@@ -47,6 +47,8 @@ function pushEvent(session: Session, ev: SessionEvent): Session {
 export function reduce(session: Session, action: Action): Session {
   switch (action.type) {
     case 'SESSION_INIT':
+      // do not wipe an in-flight session on facilitator reconnect.
+      if (session.participants.length > 0 || session.startedAt) return session;
       return initialSession(action.sessionId, action.facilitatorId);
 
     case 'SESSION_START': {
@@ -70,14 +72,37 @@ export function reduce(session: Session, action: Action): Session {
           ),
         };
       }
+      // late joiner after teams are formed: auto-assign to the smallest team
+      // so they don't get stranded on "waiting for a team assignment".
+      let participant = action.participant;
+      if (session.teams.length > 0 && !participant.teamId) {
+        const counts = new Map<string, number>(
+          session.teams.map((t) => [t.id, 0] as [string, number]),
+        );
+        for (const p of session.participants) {
+          if (p.teamId && counts.has(p.teamId)) {
+            counts.set(p.teamId, (counts.get(p.teamId) ?? 0) + 1);
+          }
+        }
+        let smallestId = session.teams[0]!.id;
+        let smallestCount = counts.get(smallestId) ?? 0;
+        for (const [id, count] of counts) {
+          if (count < smallestCount) {
+            smallestId = id;
+            smallestCount = count;
+          }
+        }
+        participant = { ...participant, teamId: smallestId };
+      }
       return pushEvent(
         {
           ...session,
-          participants: [...session.participants, action.participant],
+          participants: [...session.participants, participant],
         },
         event('participantJoined', {
-          id: action.participant.id,
-          name: action.participant.displayName,
+          id: participant.id,
+          name: participant.displayName,
+          teamId: participant.teamId,
         }),
       );
     }
@@ -104,6 +129,14 @@ export function reduce(session: Session, action: Action): Session {
         }),
       );
 
+    case 'PARTICIPANT_READY':
+      return {
+        ...session,
+        participants: session.participants.map((p) =>
+          p.id === action.participantId ? { ...p, ready: action.ready } : p,
+        ),
+      };
+
     case 'TEAMS_FORM': {
       return pushEvent(
         {
@@ -127,6 +160,10 @@ export function reduce(session: Session, action: Action): Session {
           actStartedAt: action.at,
           actDurationMs: act.durationMs,
           currentAuction: action.to === 'auction' ? session.currentAuction : undefined,
+          // ready is per-act; reset it when the act changes.
+          participants: session.participants.map((p) =>
+            p.ready ? { ...p, ready: false } : p,
+          ),
         },
         event('actAdvanced', { to: action.to }, action.at),
       );

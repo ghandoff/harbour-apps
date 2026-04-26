@@ -1,10 +1,10 @@
 import { LitElement, css, html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import type { Controller } from '@/state/controller';
-import type { Session } from '@/state/types';
+import type { Broadcast, Session } from '@/state/types';
 import { COPY } from '@/content/copy';
 import { getValue } from '@/content/values';
-import { totalParticipants } from '@/state/selectors';
+import { latestBroadcast, totalParticipants } from '@/state/selectors';
 import '@/components/countdown';
 import '@/components/value-card';
 import '@/components/identity-card';
@@ -15,17 +15,35 @@ export class VaWall extends LitElement {
   @property({ type: String }) code = 'DEMO';
 
   @state() private session?: Session;
+  @state() private shownBroadcast?: Broadcast;
   private unsub?: () => void;
+  private broadcastTimer: ReturnType<typeof setTimeout> | null = null;
 
   connectedCallback() {
     super.connectedCallback();
-    this.unsub = this.controller?.store.subscribe((s) => (this.session = s));
+    this.unsub = this.controller?.store.subscribe((s) => {
+      this.session = s;
+      this.maybeUpdateBroadcast(s);
+    });
     this.session = this.controller?.store.getState();
+    if (this.session) this.maybeUpdateBroadcast(this.session);
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
     this.unsub?.();
+    if (this.broadcastTimer) clearTimeout(this.broadcastTimer);
+  }
+
+  private maybeUpdateBroadcast(s: Session) {
+    const latest = latestBroadcast(s);
+    if (!latest) return;
+    if (latest.id === this.shownBroadcast?.id) return;
+    this.shownBroadcast = latest;
+    if (this.broadcastTimer) clearTimeout(this.broadcastTimer);
+    this.broadcastTimer = setTimeout(() => {
+      if (this.shownBroadcast?.id === latest.id) this.shownBroadcast = undefined;
+    }, 15_000);
   }
 
   static styles = css`
@@ -90,6 +108,107 @@ export class VaWall extends LitElement {
       gap: var(--space-5);
       padding: var(--space-5);
     }
+    .regather {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: var(--space-5);
+    }
+    .regather-header {
+      text-align: center;
+      margin-bottom: var(--space-6);
+    }
+    .regather-header h1 {
+      font: var(--type-display);
+      margin-bottom: var(--space-2);
+    }
+    .regather-header p {
+      color: var(--fg-muted);
+      max-width: 70ch;
+      margin: 0 auto;
+      line-height: 1.5;
+    }
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+      gap: var(--space-5);
+    }
+    .card-cell {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+      padding: var(--space-4);
+      background: var(--bg-card);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-card);
+    }
+    .card-cell .purpose {
+      color: var(--fg);
+      font-style: italic;
+      line-height: 1.5;
+      margin: 0;
+    }
+    .patterns {
+      margin-top: var(--space-6);
+      padding: var(--space-5);
+      background: var(--bg-card);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-card);
+    }
+    .patterns h2 {
+      font: var(--type-h1);
+      margin-bottom: var(--space-4);
+      text-align: center;
+    }
+    .patterns ul {
+      list-style: none;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: var(--space-3);
+      padding: 0;
+      margin: 0;
+    }
+    .patterns li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--space-3) var(--space-4);
+      background: var(--bg);
+      border-radius: var(--radius-sm);
+    }
+    .patterns .pattern-name {
+      font-weight: 700;
+      color: var(--wv-cadet-blue);
+    }
+    .patterns .pattern-count {
+      font: var(--type-mono);
+      font-weight: 700;
+      color: var(--wv-redwood);
+    }
+    .broadcast {
+      position: fixed;
+      left: 50%;
+      top: var(--space-5);
+      transform: translateX(-50%);
+      max-width: min(80vw, 960px);
+      background: var(--wv-cadet-blue);
+      color: var(--fg-inverse);
+      padding: var(--space-4) var(--space-5);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-card);
+      z-index: 10;
+      animation: va-spring-pulse var(--dur-base) var(--ease-spring);
+    }
+    .broadcast .label {
+      font: var(--type-small);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      opacity: 0.85;
+      margin-bottom: var(--space-1);
+    }
+    .broadcast .message {
+      font: var(--type-h2);
+      line-height: 1.3;
+    }
   `;
 
   private renderIdle() {
@@ -149,19 +268,55 @@ export class VaWall extends LitElement {
     for (const a of this.session.completedAuctions) {
       if (a.winnerTeamId) valueWinners.set(a.valueId, (valueWinners.get(a.valueId) ?? 0) + 1);
     }
+    const sortedTeams = [...this.session.teams];
     return html`
-      <div class="centre">
-        <h1 style="font: var(--type-display); margin-bottom: var(--space-5)">
-          patterns across the room
-        </h1>
-        <div class="grid">
-          ${Array.from(valueWinners.entries()).map(([valueId, count]) => {
-            const v = getValue(valueId);
-            return v
-              ? html`<va-card><h2>${v.name}</h2><p>${count} team${count === 1 ? '' : 's'}</p></va-card>`
-              : '';
-          })}
+      <div class="regather">
+        <header class="regather-header">
+          <h1>${COPY.wall.regatherHeading}</h1>
+          <p>${COPY.wall.regatherSubheading}</p>
+        </header>
+        <div class="card-grid">
+          ${sortedTeams.map(
+            (t) => html`
+              <div class="card-cell">
+                <va-identity-card .team=${t}></va-identity-card>
+                <p class="purpose">${t.purposeStatement ?? ''}</p>
+              </div>
+            `,
+          )}
         </div>
+        ${valueWinners.size > 0
+          ? html`
+              <section class="patterns">
+                <h2>${COPY.wall.patternsHeading}</h2>
+                <ul>
+                  ${Array.from(valueWinners.entries())
+                    .sort((a, b) => b[1] - a[1])
+                    .map(([valueId, count]) => {
+                      const v = getValue(valueId);
+                      return v
+                        ? html`<li>
+                            <span class="pattern-name">${v.name}</span>
+                            <span class="pattern-count"
+                              >${count} team${count === 1 ? '' : 's'}</span
+                            >
+                          </li>`
+                        : '';
+                    })}
+                </ul>
+              </section>
+            `
+          : ''}
+      </div>
+    `;
+  }
+
+  private renderBroadcastOverlay() {
+    if (!this.shownBroadcast) return html``;
+    return html`
+      <div class="broadcast" role="status" aria-live="polite">
+        <div class="label">${COPY.broadcast.label}</div>
+        <div class="message">${this.shownBroadcast.message}</div>
       </div>
     `;
   }
@@ -169,9 +324,11 @@ export class VaWall extends LitElement {
   render() {
     if (!this.session) return html`<p>loading…</p>`;
     const act = this.session.currentAct;
-    if (act === 'auction') return this.renderAuction();
-    if (act === 'reflection') return this.renderReflection();
-    if (act === 'regather') return this.renderRegather();
-    return this.renderIdle();
+    let body;
+    if (act === 'auction') body = this.renderAuction();
+    else if (act === 'reflection') body = this.renderReflection();
+    else if (act === 'regather') body = this.renderRegather();
+    else body = this.renderIdle();
+    return html`${this.renderBroadcastOverlay()}${body}`;
   }
 }

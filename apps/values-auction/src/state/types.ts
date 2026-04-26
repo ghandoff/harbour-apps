@@ -51,6 +51,7 @@ export interface Participant {
   joinedAt: number;
   lastSeenAt: number;
   archetype?: Archetype;
+  ready?: boolean;
   role: 'participant' | 'facilitator' | 'wall';
 }
 
@@ -98,6 +99,7 @@ export type Action =
   | { type: 'PARTICIPANT_JOIN'; participant: Participant }
   | { type: 'PARTICIPANT_SEEN'; participantId: string; at: number }
   | { type: 'ARCHETYPE_SELECT'; participantId: string; archetype: Archetype }
+  | { type: 'PARTICIPANT_READY'; participantId: string; ready: boolean }
   | { type: 'TEAMS_FORM'; teams: Team[]; assignments: Record<string, string> }
   | { type: 'ACT_ADVANCE'; to: ActId; at: number }
   | { type: 'ACT_EXTEND'; addMs: number }

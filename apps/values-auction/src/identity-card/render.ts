@@ -1,6 +1,7 @@
 import type { Team } from '@/state/types';
 import { getStartup } from '@/content/startups';
 import { getValue } from '@/content/values';
+import { COPY } from '@/content/copy';
 
 function slugify(s: string): string {
   return s
@@ -9,9 +10,15 @@ function slugify(s: string): string {
     .replace(/^-|-$/g, '');
 }
 
-function buildSvg(team: Team): string {
+interface SvgDoc {
+  svg: string;
+  width: number;
+  height: number;
+}
+
+function buildSvg(team: Team): SvgDoc {
   const startup = getStartup(team.startupId);
-  if (!startup) return '';
+  if (!startup) return { svg: '', width: 0, height: 0 };
   const purpose =
     team.purposeStatement && team.purposeStatement.trim().length > 0
       ? team.purposeStatement
@@ -19,6 +26,9 @@ function buildSvg(team: Team): string {
   const values = team.wonValues
     .map((id) => getValue(id)?.name)
     .filter((n): n is string => Boolean(n));
+  const prompts = COPY.reflection.prompts;
+  const answers = prompts.map((_, i) => (team.reflectionAnswers?.[i] ?? '').trim());
+  const hasAnswers = answers.some((a) => a.length > 0);
 
   const chips = values
     .map((name, idx) => {
@@ -31,14 +41,7 @@ function buildSvg(team: Team): string {
     })
     .join('');
 
-  return `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#ffebd2"/>
-      <stop offset="0.6" stop-color="#ffffff"/>
-    </linearGradient>
-  </defs>
+  const baseCard = `
   <rect width="1200" height="630" fill="url(#bg)"/>
   <rect x="32" y="32" width="1136" height="566" rx="24" fill="#ffffff" stroke="#273248" stroke-width="2"/>
   <text x="80" y="112" font-family="Inter, sans-serif" font-size="18" font-weight="700" fill="#b15043" letter-spacing="4">WINDED.VERTIGO · VALUES AUCTION</text>
@@ -50,8 +53,57 @@ function buildSvg(team: Team): string {
   </foreignObject>
   ${chips}
   <text x="80" y="572" font-family="Inter, sans-serif" font-size="14" fill="#273248" opacity="0.6">team ${escapeXml(team.colour)} · ${values.length} values locked in · ${team.credos} credos remaining</text>
+`;
+
+  if (!hasAnswers) {
+    const svg = `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffebd2"/>
+      <stop offset="0.6" stop-color="#ffffff"/>
+    </linearGradient>
+  </defs>
+  ${baseCard}
 </svg>
 `;
+    return { svg, width: 1200, height: 630 };
+  }
+
+  const blockHeight = 200;
+  const reflectionsTop = 660;
+  const reflectionsHeight = 80 + blockHeight * prompts.length + 40;
+  const totalHeight = 630 + reflectionsHeight;
+
+  const reflectionBlocks = prompts
+    .map((prompt, i) => {
+      const y = reflectionsTop + 80 + i * blockHeight;
+      const answer = answers[i] || '—';
+      return `
+  <text x="80" y="${y}" font-family="Inter, sans-serif" font-size="18" font-weight="700" fill="#b15043">${escapeXml(prompt)}</text>
+  <foreignObject x="80" y="${y + 16}" width="1040" height="${blockHeight - 50}">
+    <div xmlns="http://www.w3.org/1999/xhtml" style="font-family: Inter, sans-serif; font-size: 20px; color: #273248; line-height: 1.45; padding-top: 4px;">${escapeHtml(truncate(answer, 600))}</div>
+  </foreignObject>
+`;
+    })
+    .join('');
+
+  const svg = `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 ${totalHeight}" width="1200" height="${totalHeight}">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffebd2"/>
+      <stop offset="0.6" stop-color="#ffffff"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="${totalHeight}" fill="#ffffff"/>
+  ${baseCard}
+  <line x1="80" y1="630" x2="1120" y2="630" stroke="#273248" stroke-width="1" opacity="0.2"/>
+  <text x="80" y="${reflectionsTop + 30}" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#b15043" letter-spacing="3">REFLECTIONS</text>
+  ${reflectionBlocks}
+</svg>
+`;
+  return { svg, width: 1200, height: totalHeight };
 }
 
 function escapeXml(s: string): string {
@@ -71,7 +123,7 @@ function truncate(s: string, n: number): string {
   return s.length <= n ? s : s.slice(0, n - 1) + '…';
 }
 
-async function svgToPngBlob(svg: string, width = 1200, height = 630): Promise<Blob> {
+async function svgToPngBlob(svg: string, width: number, height: number): Promise<Blob> {
   return new Promise((resolve, reject) => {
     const blob = new Blob([svg], { type: 'image/svg+xml' });
     const url = URL.createObjectURL(blob);
@@ -102,8 +154,9 @@ async function svgToPngBlob(svg: string, width = 1200, height = 630): Promise<Bl
 }
 
 export async function exportIdentityCard(team: Team): Promise<void> {
-  const svg = buildSvg(team);
-  const png = await svgToPngBlob(svg);
+  const { svg, width, height } = buildSvg(team);
+  if (!svg) return;
+  const png = await svgToPngBlob(svg, width, height);
   const startup = getStartup(team.startupId);
   const filename = `${slugify(startup?.name ?? 'values-auction')}-${team.colour}.png`;
   const url = URL.createObjectURL(png);
