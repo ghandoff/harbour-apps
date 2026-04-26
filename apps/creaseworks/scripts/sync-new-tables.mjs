@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import { Client } from '@notionhq/client';
 import { sql } from '@vercel/postgres';
+import { queryDataSource } from '@windedvertigo/notion-adapter';
 
 const notion = new Client({ auth: process.env.NOTION_TOKEN.trim() });
 
@@ -8,9 +9,13 @@ async function queryAll(dbId) {
   const pages = [];
   let cursor;
   do {
-    const r = await notion.databases.query({ database_id: dbId, start_cursor: cursor, page_size: 100 });
-    pages.push(...r.results);
-    cursor = r.has_more ? r.next_cursor : undefined;
+    const r = await queryDataSource(notion, {
+      databaseId: dbId,
+      pageSize: 100,
+      ...(cursor !== undefined ? { startCursor: cursor } : {}),
+    });
+    pages.push(...r.pages);
+    cursor = r.hasMore ? (r.nextCursor ?? undefined) : undefined;
   } while (cursor);
   return pages;
 }

@@ -20,6 +20,7 @@
     "@windedvertigo/auth": "*",
     "@windedvertigo/characters": "*",
     "@windedvertigo/feedback": "*",
+    "@windedvertigo/notion-adapter": "*",
     "@windedvertigo/stripe": "*",
     "@windedvertigo/sync-images": "*",
     "@windedvertigo/tokens": "*",

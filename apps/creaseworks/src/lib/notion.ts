@@ -1,8 +1,6 @@
 import { Client } from "@notionhq/client";
-import type {
-  PageObjectResponse,
-  QueryDatabaseResponse,
-} from "@notionhq/client/build/src/api-endpoints";
+import type { PageObjectResponse } from "@notionhq/client/build/src/api-endpoints";
+import { queryDataSource } from "@windedvertigo/notion-adapter";
 
 /**
  * Lazy-initialised Notion client.
@@ -75,15 +73,13 @@ export async function queryAllPages(
 
   do {
     await delay(RATE_LIMIT_DELAY_MS);
-    const response: QueryDatabaseResponse = await client.databases.query({
-      database_id: databaseId,
-      start_cursor: cursor,
-      page_size: 100,
+    const response = await queryDataSource(client, {
+      databaseId,
+      pageSize: 100,
+      ...(cursor !== undefined ? { startCursor: cursor } : {}),
     });
-    pages.push(
-      ...(response.results as PageObjectResponse[]),
-    );
-    cursor = response.has_more ? (response.next_cursor ?? undefined) : undefined;
+    pages.push(...response.pages);
+    cursor = response.hasMore ? (response.nextCursor ?? undefined) : undefined;
   } while (cursor);
 
   return pages;

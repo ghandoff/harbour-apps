@@ -21,6 +21,7 @@
 import { readFileSync, writeFileSync } from "fs";
 import { resolve } from "path";
 import { Client } from "@notionhq/client";
+import { queryDataSource } from "@windedvertigo/notion-adapter";
 
 // ── load .env.local ──────────────────────────────────────────────────
 const envPath = resolve(process.cwd(), ".env.local");
@@ -186,23 +187,23 @@ async function fetchPlaydates(): Promise<Array<{ id: string; title: string }>> {
 
   do {
     await delay(350);
-    const response = await notion.databases.query({
-      database_id: PLAYDATES_DB,
-      start_cursor: cursor,
-      page_size: 100,
+    const response = await queryDataSource(notion, {
+      databaseId: PLAYDATES_DB,
+      pageSize: 100,
       filter: {
         property: "status",
         status: { equals: "ready" },
       },
+      ...(cursor !== undefined ? { startCursor: cursor } : {}),
     });
 
-    for (const page of response.results as any[]) {
+    for (const page of response.pages as any[]) {
       const titleParts = page.properties?.playdate?.title ?? [];
       const title = titleParts.map((t: any) => t.plain_text).join("").toLowerCase().trim();
       results.push({ id: page.id, title });
     }
 
-    cursor = response.has_more ? (response.next_cursor ?? undefined) : undefined;
+    cursor = response.hasMore ? (response.nextCursor ?? undefined) : undefined;
   } while (cursor);
 
   console.log(`[populate] found ${results.length} ready playdates`);
@@ -254,17 +255,17 @@ async function populateCollections(
   let cursor: string | undefined = undefined;
   do {
     await delay(350);
-    const response = await notion.databases.query({
-      database_id: dbId,
-      start_cursor: cursor,
-      page_size: 100,
+    const response = await queryDataSource(notion, {
+      databaseId: dbId,
+      pageSize: 100,
+      ...(cursor !== undefined ? { startCursor: cursor } : {}),
     });
-    for (const page of response.results as any[]) {
+    for (const page of response.pages as any[]) {
       const titleParts = page.properties?.collection?.title ?? [];
       const title = titleParts.map((t: any) => t.plain_text).join("").toLowerCase().trim();
       if (title) existing.set(title, page.id);
     }
-    cursor = response.has_more ? (response.next_cursor ?? undefined) : undefined;
+    cursor = response.hasMore ? (response.nextCursor ?? undefined) : undefined;
   } while (cursor);
 
   for (let i = 0; i < COLLECTIONS.length; i++) {
