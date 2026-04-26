@@ -51,6 +51,14 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
+    /**
+     * Two entries because path-to-regexp's `(?:\/(...))` capture for the
+     * negative-lookahead path is non-optional — it requires at least one
+     * character after the basePath slash, so a bare `/harbour/vertigo-vault`
+     * (the home route) silently skips the middleware. Adding the root
+     * matcher first ensures the home page also gets the nonce-CSP.
+     */
+    "/",
     {
       source: "/((?!_next/static|_next/image|images/|favicon\\.ico).*)",
       missing: [
