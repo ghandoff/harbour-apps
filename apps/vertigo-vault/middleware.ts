@@ -1,17 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
 
 /**
- * CSP proxy (Next.js 16 replaces middleware.ts with proxy.ts) —
- * generates a per-request nonce and sets the Content-Security-Policy
- * header. Next.js reads the nonce from the `x-nonce` request header
- * and automatically applies it to inline hydration scripts.
+ * CSP middleware — generates a per-request nonce and sets the
+ * Content-Security-Policy header. Next.js reads the nonce from the
+ * `x-nonce` request header and automatically applies it to inline
+ * hydration scripts.
  *
  * Using `'strict-dynamic'` (CSP Level 3):
  *   - Nonced scripts can dynamically load other scripts (covers Next.js chunks)
  *   - Source expressions like `'self'` and URL allowlists serve as CSP Level 2 fallbacks
  *   - `'unsafe-inline'` is no longer needed in script-src
+ *
+ * Why `middleware.ts` and not `proxy.ts`: Next.js 16.2.3 docs claim
+ * `proxy.ts` is the canonical convention, but the build pipeline emits
+ * `.next/server/middleware.js` from a `proxy.ts` source while leaving
+ * `.next/server/middleware-manifest.json` empty (`"middleware": {}`).
+ * Vercel's runtime only invokes middleware registered in that manifest,
+ * so a `proxy.ts` file is silently a no-op. Restoring the legacy
+ * `middleware.ts` filename + `export function middleware` makes the
+ * manifest populate correctly. Revisit if/when Next.js fixes proxy.ts
+ * manifest emission.
  */
-export function proxy(request: NextRequest) {
+export function middleware(request: NextRequest) {
   const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
 
   const csp = [
