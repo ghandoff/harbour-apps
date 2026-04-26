@@ -6,7 +6,7 @@ import { COPY } from '@/content/copy';
 import { ACTS } from '@/content/acts';
 import { VALUES } from '@/content/values';
 import { DEFAULT_AUCTION_MS, advanceAct, assignTeams } from '@/state/reducers';
-import { bidsPerMinute, silentTeams } from '@/state/selectors';
+import { bidsPerMinute, readyCount, silentTeams } from '@/state/selectors';
 import { startTicker } from '@/utils/timer';
 import '@/components/va-card';
 import '@/components/va-button';
@@ -72,7 +72,13 @@ export class VaFacilitator extends LitElement {
     if (this.controller) {
       this.unsub = this.controller.store.subscribe((s) => (this.session = s));
       this.session = this.controller.store.getState();
-      if (this.session.currentAct === 'arrival' && !this.session.startedAt) {
+      // only init when there's truly no session in progress.
+      // if a participant already joined, refreshing the facilitator must not wipe them.
+      if (
+        this.session.currentAct === 'arrival' &&
+        !this.session.startedAt &&
+        this.session.participants.length === 0
+      ) {
         this.controller.dispatch({
           type: 'SESSION_INIT',
           sessionId: this.code,
@@ -167,6 +173,19 @@ export class VaFacilitator extends LitElement {
     this.controller?.dispatch({ type: 'MUTE_TEAM', teamId, muted });
   }
 
+  private downloadAllCards() {
+    if (!this.session) return;
+    for (const t of this.session.teams) {
+      this.dispatchEvent(
+        new CustomEvent('va-download-card', {
+          detail: { teamId: t.id },
+          bubbles: true,
+          composed: true,
+        }),
+      );
+    }
+  }
+
   static styles = css`
     :host {
       display: grid;
@@ -175,6 +194,12 @@ export class VaFacilitator extends LitElement {
       padding: var(--space-5);
       min-height: 100vh;
       align-items: start;
+      box-sizing: border-box;
+    }
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
     }
     @media (max-width: 1100px) {
       :host {
@@ -327,6 +352,69 @@ export class VaFacilitator extends LitElement {
     .jump-confirm va-button {
       margin-top: var(--space-2);
     }
+    .session-end-note {
+      margin: 0;
+      padding: var(--space-3);
+      background: var(--bg);
+      border-left: 3px solid var(--wv-cadet-blue);
+      color: var(--fg);
+      font-weight: 700;
+      line-height: 1.4;
+    }
+    .deck-steps {
+      list-style: none;
+      counter-reset: step;
+      padding: 0;
+      margin: 0 0 var(--space-3);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+    }
+    .deck-steps li {
+      counter-increment: step;
+      padding: var(--space-2) var(--space-3);
+      background: var(--bg);
+      border-left: 3px solid rgba(39, 50, 72, 0.25);
+      font-size: 14px;
+      line-height: 1.4;
+      color: var(--fg);
+      position: relative;
+      padding-left: calc(var(--space-3) + 28px);
+    }
+    .deck-steps li::before {
+      content: counter(step);
+      position: absolute;
+      left: var(--space-3);
+      top: 50%;
+      transform: translateY(-50%);
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--wv-cadet-blue);
+      color: var(--fg-inverse);
+      font-weight: 700;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .deck-steps li[data-done] {
+      border-left-color: var(--wv-redwood);
+      color: var(--fg-muted);
+      text-decoration: line-through;
+    }
+    .deck-steps li[data-done]::before {
+      background: var(--wv-redwood);
+    }
+    .deck-warning {
+      margin-top: var(--space-3);
+      padding: var(--space-2) var(--space-3);
+      background: var(--bg);
+      border-left: 3px solid var(--wv-redwood);
+      color: var(--wv-redwood);
+      font-size: 14px;
+      line-height: 1.4;
+    }
   `;
 
   render() {
@@ -336,6 +424,8 @@ export class VaFacilitator extends LitElement {
     const participants = s.participants.filter((p) => p.role === 'participant');
     const bpm = bidsPerMinute(s, 60_000, this.tickNow);
     const silent = silentTeams(s, 60_000, this.tickNow);
+    const ready = readyCount(s);
+    const showReady = s.currentAct === 'scene' || s.currentAct === 'strategy';
 
     const availableValues = VALUES.filter((v) => s.valueDeck.includes(v.id));
 
@@ -403,14 +493,18 @@ export class VaFacilitator extends LitElement {
             ? html`<va-button variant="primary" @va-click=${() => this.startSession()}
                 >${COPY.facilitator.startSession}</va-button
               >`
-            : html`
-                <va-button variant="primary" @va-click=${() => this.advance()}
-                  >${COPY.facilitator.nextAct}</va-button
-                >
-                <va-button variant="ghost" @va-click=${() => this.extend()}
-                  >${COPY.facilitator.extend}</va-button
-                >
-              `}
+            : s.currentAct === 'regather'
+              ? html`<p class="session-end-note" role="status">
+                  ${COPY.facilitator.sessionComplete}
+                </p>`
+              : html`
+                  <va-button variant="primary" @va-click=${() => this.advance()}
+                    >${COPY.facilitator.nextAct}</va-button
+                  >
+                  <va-button variant="ghost" @va-click=${() => this.extend()}
+                    >${COPY.facilitator.extend}</va-button
+                  >
+                `}
         </div>
         ${s.actStartedAt
           ? html`<div style="margin-top: var(--space-3)">
@@ -434,6 +528,12 @@ export class VaFacilitator extends LitElement {
             <dd>${participants.length}</dd>
             <dt>teams formed</dt>
             <dd>${s.teams.length}</dd>
+            ${showReady
+              ? html`
+                  <dt>ready</dt>
+                  <dd>${ready} / ${participants.length}</dd>
+                `
+              : ''}
             <dt>bids / min</dt>
             <dd>${bpm}</dd>
             <dt>values remaining</dt>
@@ -489,49 +589,83 @@ export class VaFacilitator extends LitElement {
         </div>
       </section>
 
-      <!-- right: deck + auction control + tools -->
+      <!-- right: deck + auction control + tools (or session close on regather) -->
       <aside class="panel">
-        <h2>${COPY.facilitator.deckLabel}</h2>
-        <div class="deck">
-          ${availableValues.map(
-            (v) => html`
-              <button
-                type="button"
-                data-selected=${this.nextValueId === v.id}
-                @click=${() => (this.nextValueId = v.id)}
+        ${s.currentAct === 'regather'
+          ? html`
+              <h2>${COPY.facilitator.closeHeading}</h2>
+              <p style="color: var(--fg-muted); line-height: 1.5; margin-bottom: var(--space-4);">
+                ${COPY.facilitator.closeBody}
+              </p>
+              <va-button
+                variant="primary"
+                ?disabled=${s.teams.length === 0}
+                @va-click=${() => this.downloadAllCards()}
               >
-                ${v.name}
-              </button>
-            `,
-          )}
-          ${availableValues.length === 0
-            ? html`<p style="color: var(--fg-muted)">deck empty.</p>`
-            : ''}
-        </div>
-        <div class="actions">
-          ${!s.currentAuction
-            ? html`<va-button
-                variant="urgent"
-                ?disabled=${!this.nextValueId || s.currentAct !== 'auction'}
-                @va-click=${() => this.startAuction()}
-              >
-                ${COPY.facilitator.startAuction}
-              </va-button>`
-            : html`<va-button variant="ghost" @va-click=${() => this.endAuction()}
-                >end auction</va-button
-              >`}
-        </div>
+                ${COPY.facilitator.downloadAll(s.teams.length)}
+              </va-button>
+            `
+          : html`
+              <h2>${COPY.facilitator.deckLabel}</h2>
+              <ol class="deck-steps">
+                <li data-done=${this.nextValueId ? true : null}>
+                  ${COPY.facilitator.deckStep1}
+                </li>
+                <li
+                  data-done=${this.nextValueId && s.currentAct === 'auction' ? true : null}
+                >
+                  ${COPY.facilitator.deckStep2}
+                </li>
+                <li data-done=${s.currentAuction ? true : null}>
+                  ${COPY.facilitator.deckStep3}
+                </li>
+              </ol>
+              <div class="deck">
+                ${availableValues.map(
+                  (v) => html`
+                    <button
+                      type="button"
+                      data-selected=${this.nextValueId === v.id}
+                      @click=${() => (this.nextValueId = v.id)}
+                    >
+                      ${v.name}
+                    </button>
+                  `,
+                )}
+                ${availableValues.length === 0
+                  ? html`<p style="color: var(--fg-muted)">deck empty.</p>`
+                  : ''}
+              </div>
+              <div class="actions">
+                ${!s.currentAuction
+                  ? html`<va-button
+                      variant="urgent"
+                      ?disabled=${!this.nextValueId || s.currentAct !== 'auction'}
+                      @va-click=${() => this.startAuction()}
+                    >
+                      ${COPY.facilitator.startAuction}
+                    </va-button>`
+                  : html`<va-button variant="ghost" @va-click=${() => this.endAuction()}
+                      >end auction</va-button
+                    >`}
+              </div>
+              ${this.nextValueId && s.currentAct !== 'auction'
+                ? html`<p class="deck-warning" role="status">
+                    ${COPY.facilitator.deckNotInAuction}
+                  </p>`
+                : ''}
 
-        <div class="tools">
-          <h2>${COPY.facilitator.tools}</h2>
-          <va-button
-            size="sm"
-            variant="ghost"
-            ?disabled=${!s.currentAuction}
-            @va-click=${() => this.resetBid()}
-            >${COPY.facilitator.resetBid}</va-button
-          >
-        </div>
+              <div class="tools">
+                <h2>${COPY.facilitator.tools}</h2>
+                <va-button
+                  size="sm"
+                  variant="ghost"
+                  ?disabled=${!s.currentAuction}
+                  @va-click=${() => this.resetBid()}
+                  >${COPY.facilitator.resetBid}</va-button
+                >
+              </div>
+            `}
       </aside>
     `;
   }

@@ -57,3 +57,13 @@ export function totalParticipants(session: Session): number {
 export function teamMembers(session: Session, teamId: string) {
   return session.participants.filter((p) => p.teamId === teamId);
 }
+
+export function readyCount(session: Session): number {
+  return session.participants.filter(
+    (p) => p.role === 'participant' && p.ready === true,
+  ).length;
+}
+
+export function latestBroadcast(session: Session) {
+  return session.broadcasts[session.broadcasts.length - 1];
+}
