@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
 import { syncVaultActivities } from "@/lib/sync/vault-activities";
+import {
+  getImageFailureCount,
+  resetImageFailureCount,
+} from "@/lib/sync/sync-image";
 
 /** Allow up to 60s on Hobby, 300s on Pro. */
 export const maxDuration = 300;
@@ -24,11 +28,24 @@ export async function POST(request: Request) {
 
   try {
     const t0 = Date.now();
+    resetImageFailureCount();
     const count = await syncVaultActivities();
+    const imageFailures = getImageFailureCount();
     const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
 
-    console.log(`[cron/sync] vault sync complete: ${count} activities in ${elapsed}s`);
-    return NextResponse.json({ ok: true, count, elapsedSeconds: elapsed });
+    if (imageFailures > 0) {
+      console.warn(
+        `[cron/sync] vault sync complete: ${count} activities in ${elapsed}s, ${imageFailures} image failures`,
+      );
+    } else {
+      console.log(`[cron/sync] vault sync complete: ${count} activities in ${elapsed}s`);
+    }
+    return NextResponse.json({
+      ok: true,
+      count,
+      elapsedSeconds: elapsed,
+      imageFailures,
+    });
   } catch (err: any) {
     console.error("[cron/sync] vault sync failed:", err);
     return NextResponse.json(
