@@ -5,9 +5,13 @@ import { uid } from '@/utils/id';
 
 export function createTransport(clientId = uid('c')): Transport {
   const env = (import.meta.env as Record<string, string | undefined>) ?? {};
-  const mode = env.VITE_TRANSPORT ?? 'broadcast';
+  // production defaults to socket so participants on different devices can sync.
+  // broadcastchannel only works same-browser, which left phone joiners stuck.
+  const defaultMode = env.PROD ? 'socket' : 'broadcast';
+  const mode = env.VITE_TRANSPORT ?? defaultMode;
   if (mode === 'socket') {
-    const url = env.VITE_WS_URL ?? 'ws://localhost:8787';
+    const url =
+      env.VITE_WS_URL ?? 'wss://wv-values-auction-relay.windedvertigo.workers.dev/ws';
     return new SocketTransport(clientId, url);
   }
   return new BroadcastTransport(clientId);
