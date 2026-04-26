@@ -10,6 +10,9 @@ out/
 .env.local
 .env.*.local
 
+# Local-only inputs to scripts (e.g. seed-test recipient lists)
+*.local.json
+
 # OS files
 .DS_Store
 Thumbs.db

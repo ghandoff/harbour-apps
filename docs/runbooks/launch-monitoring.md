@@ -109,23 +109,46 @@ dig +short TXT _dmarc.windedvertigo.com
 dig +short TXT windedvertigo.com  # SPF
 dig +short TXT resend._domainkey.windedvertigo.com  # DKIM
 
-# Expected post-launch:
-# DMARC: v=DMARC1; p=quarantine; rua=mailto:dmarc@windedvertigo.com; pct=10
-# SPF:   v=spf1 +a +mx include:_spf.resend.com ~all
-# DKIM:  resend._domainkey returns valid key (currently does ✓)
+# Live as of 2026-04-26:
+# DMARC: v=DMARC1; p=none; rua=mailto:dmarc@windedvertigo.com; ruf=mailto:dmarc@windedvertigo.com; pct=100; aspf=r; adkim=r
+# SPF:   v=spf1 +a +mx include:_<dnssmarthost-token>.spf.dnssmarthost.net include:_spf.resend.com ~all
+# DKIM:  resend._domainkey returns valid key ✓
 ```
 
-## C2 findings — DNS gaps to address before launch
+## C2 status — DNS gaps closed 2026-04-26
 
-As of 2026-04-26:
+| Record | Status | Notes |
+|---|---|---|
+| SPF | ✅ `include:_spf.resend.com` added | shipped autonomously in the prior session; `dig +short TXT windedvertigo.com` confirms |
+| DMARC | ✅ `p=none; rua=...; pct=100; aspf=r; adkim=r` published | `dmarc@windedvertigo.com` alias on garrett@ also live (set up out-of-band). First aggregate reports expected from Google/Yahoo within 24–48h |
+| DKIM | ✅ resend selector valid | unchanged, healthy |
 
-| Record | Current | Recommended | Why |
-|---|---|---|---|
-| SPF | `~all` w/ dnssmarthost only | add `include:_spf.resend.com` | Resend emails fail SPF alignment without it |
-| DMARC | `p=none` no rua | `p=none; rua=mailto:dmarc@windedvertigo.com; pct=100` | First 30 days = monitor only, but need rua to see what receivers report |
-| DKIM | resend selector valid | (no change) | Healthy |
+DNS changes happen at Cloudflare zone `3b70c2ddcf9976faccb01d37ccf2e1ee`. Updates propagate in ~5 min.
 
-DNS changes happen at Cloudflare zone `3b70c2ddcf9976faccb01d37ccf2e1ee`. Updates propagate in ~5 min. After SPF update, send a test magic-link, then test deliverability via <https://www.mail-tester.com/> for a numeric quality score.
+### End-to-end magic-link verification
+
+After any DNS change touching SPF / DKIM / DMARC, run:
+
+```bash
+node scripts/trigger-magic-link.mjs --to=<address-you-control-on-gmail>
+# then in gmail: open the message → ⋮ → "show original"
+# → copy every "Authentication-Results:" line and paste back to claude
+```
+
+Parse the header for `spf=`, `dkim=`, `dmarc=`. DKIM-pass + DMARC-pass is the bar; SPF-pass alignment requires Resend's custom return-path CNAME (`bounces.windedvertigo.com → bounces.resend.com`), not yet wired — flagged as conditional follow-up if launch traffic surfaces deliverability issues.
+
+### C1 deliverability seed (~50 messages across 4 ISPs)
+
+Pre-launch confidence-builder. Sends 50 transactional emails (NOT magic-links — burner accounts shouldn't spawn user rows) across gmail/yahoo/icloud/outlook, then watches Resend bounce + complaint events for 48h.
+
+```bash
+# 1. populate scripts/c1-recipients.local.json with ≥10 addresses per provider
+# 2. source ~/.config/wv-agent/env.local  (RESEND_API_KEY)
+node scripts/c1-seed-send.mjs --campaign=c1-seed-2026-04-26
+node scripts/c1-seed-watch.mjs --campaign=c1-seed-2026-04-26   # 48h polling
+```
+
+Thresholds: ≥98% delivered overall, ≥95% per-provider, 0% complaint, all 4 providers represented. Slack red-alert via `WV_CLAW_WEBHOOK` when bounce >2% or complaint >0.1%.
 
 ## Auth.js debug toggle
 
