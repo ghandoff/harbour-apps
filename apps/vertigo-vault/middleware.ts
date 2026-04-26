@@ -32,6 +32,7 @@ export function middleware(request: NextRequest) {
     "img-src 'self' data: https:",
     "connect-src 'self' https://vitals.vercel-insights.com https://api.stripe.com",
     "frame-src https://js.stripe.com https://hooks.stripe.com",
+    "frame-ancestors 'none'",
     "worker-src 'self'",
     "base-uri 'self'",
     "form-action 'self'",
