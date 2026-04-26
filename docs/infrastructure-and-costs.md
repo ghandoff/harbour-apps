@@ -1,6 +1,6 @@
 # infrastructure, services, and cost management
 
-> last updated: 2026-04-03
+> last updated: 2026-04-25
 
 ## the $200 vercel bill — what happened
 
@@ -31,7 +31,8 @@ additionally, the GitHub Actions `sync-notion.yml` bot pushed daily commits that
 | **Vercel** | Pro | $20 + on-demand (capped at $10) | all apps |
 | **Neon** (postgres) | free or starter | $0-$19 | creaseworks, vertigo-vault, depth-chart |
 | **Stripe** | pay-per-transaction | variable | creaseworks, vertigo-vault |
-| **Cloudflare R2** | standard | ~$0 at low volume (free 10GB) | creaseworks (evidence photos) |
+| **Cloudflare R2** | standard | ~$0 at low volume (free 10GB) | creaseworks, vault, harbour, site (shared `creaseworks-evidence` bucket); ISR caches for harbour + depth-chart |
+| **Cloudflare Workers** | free / paid-as-needed | $0 at current volume | wv-site, wv-harbour-harbour, wv-harbour-depth-chart, plus 11 threshold-concept apps + paper-trail/mirror-log/raft-house/tidal-pool/deep-deck |
 | **Resend** (email) | free or starter | $0-$20 | creaseworks, vertigo-vault, depth-chart |
 | **Anthropic** (claude API) | pay-per-token | variable | pocket.prompts, depth-chart, vertigo-vault |
 | **Upstash Redis** (via Vercel KV) | free tier | $0 | pocket.prompts (token store) |
@@ -79,16 +80,41 @@ additionally, the GitHub Actions `sync-notion.yml` bot pushed daily commits that
 
 ---
 
+## cloudflare infrastructure (added 2026-04-25)
+
+### accounts
+- **garrett's CF account** — sole active account. hosts all Workers, R2 buckets, KV, Pages.
+- ~~**anotheroption account**~~ — emptied 2026-04-25 (R2 buckets migrated). safe to close any time.
+
+### R2 buckets (garrett account)
+| bucket | purpose | public URL |
+|---|---|---|
+| `creaseworks-evidence` | canonical image bucket — creaseworks evidence + vault + harbour tile images + site assets | `https://pub-60282cf378c248cf9317acfb691f6c99.r2.dev` |
+| `wv-harbour-cache` | OpenNext ISR cache for `wv-harbour-harbour` | (internal) |
+| `wv-depth-chart-cache` | OpenNext ISR cache for `wv-harbour-depth-chart` | (internal) |
+| `port-assets` | port (CRM) assets | (internal) |
+
+**old `pub-c685a810f5794314a106e0f249c740c9.r2.dev` is now broken** (lived on the migrated-out anotheroption account). update any remaining references to point at `pub-60282cf378c248cf9317acfb691f6c99.r2.dev`.
+
+### CF Workers in production (garrett account)
+- `wv-site` — replaces deleted Vercel `windedvertigo-site` project
+- `wv-harbour-harbour` — harbour hub
+- `wv-harbour-depth-chart` — direct routes for `windedvertigo.com/harbour/depth-chart/*`
+- 11 threshold-concept apps
+- `paper-trail`, `mirror-log`, `raft-house`, `tidal-pool`, `deep-deck`
+
+---
+
 ## vercel project status
 
 | project | git-connected | builds on push | notes |
 |---------|:---:|:---:|-------|
 | creaseworks | yes | yes (turbo-ignore) | main product, 3 cron jobs |
-| windedvertigo-site | yes | yes (turbo-ignore) | static site, proxies to other apps via rewrites |
+| ~~windedvertigo-site~~ | — | — | **deleted 2026-04-25** — migrated to CF Workers (`wv-site`). one fewer build per monorepo push. |
 | pocket-prompts | yes | yes (turbo-ignore) | serverless functions (Anthropic SDK) |
 | vertigo-vault | yes | yes (turbo-ignore) | Next.js + Neon + Stripe |
 | depth-chart | yes | yes (turbo-ignore) | Next.js + Anthropic SDK |
-| **harbour** | **disconnected** | no | harbour hub (tile grid + credibility), deploy via `scripts/deploy-harbour.sh` |
+| **harbour** | **migrated to CF Workers 2026-04-25** | no | now `wv-harbour-harbour` on Cloudflare Workers; deploy via `cd apps/harbour && npx opennextjs-cloudflare build && deploy` |
 | **nordic-sqr-rct** | **disconnected** | no | stable, deploy manually via `vercel --prod` |
 | **deep-deck** | **disconnected** | no | stable, deploy manually via `vercel --prod` |
 | **tidal-pool** | **disconnected** | no | Next.js + Notion (elements/scenarios DBs), deploy via `scripts/deploy-tidal-pool.sh` |
@@ -147,7 +173,7 @@ during active development sprints, avoid pushing after every small commit. inste
 - make multiple commits locally
 - push once when you have a logical chunk of work
 
-each push triggers ~6 builds (5 connected projects + turbo-ignore checks). pushing 3x instead of 15x saves ~72 wasted build attempts.
+each push triggers ~5 builds (4 connected projects after windedvertigo-site deletion 2026-04-25 + turbo-ignore checks). pushing 3x instead of 15x saves ~60 wasted build attempts.
 
 ### 2. use `[skip ci]` for non-code commits
 
@@ -185,7 +211,7 @@ the claude API charges are billed by Anthropic, not Vercel. pocket.prompts uses 
 
 - **pocket.prompts model**: must use `claude-opus-4-6` for intent detection. do not downgrade.
 - **shared auth cookies**: creaseworks and vertigo-vault share session cookies on `.windedvertigo.com`. changes to `AUTH_SECRET` in one will break sessions in the other.
-- **site rewrites**: the static site proxies `/harbour/*` to the harbour Vercel deployment. if harbour's URL changes, update `apps/site/vercel.json` rewrites.
+- **site rewrites**: the site (now on `wv-site` CF Worker) proxies `/harbour/*` to per-app workers. rewrites live in the sibling `ghandoff/windedvertigo` repo. if a harbour app's URL changes, update rewrites there and redeploy `wv-site`.
 - **neon connection pooling**: always use `POSTGRES_URL` (pooled) for app connections and `POSTGRES_URL_NON_POOLING` (direct) only for migrations.
 
 ---
@@ -214,3 +240,9 @@ triggered by github dependabot email about **CVE-2026-39363** (vite arbitrary fi
 **also verified:** 19/20 harbour apps have static CSP in `next.config.ts`. vertigo-vault uses **per-request CSP with nonce + strict-dynamic** in `proxy.ts` (stricter — gold standard).
 
 **next sweep due:** 07 july 2026 (quarterly), or sooner if dependabot pages.
+
+### 25 april 2026 — CF migration credential hygiene
+
+- **revoke when stable**: CF API token "Edit Cloudflare Workers" (Workers Scripts:Edit, R2:Edit, Pages:Edit) created today for autonomous deploys. fall back to `wrangler login` for normal flow once new CF Workers topology is stable.
+- **delete now**: DNS API token (cfut_H1x9...903e3, redacted — see vault/keepass for full value if revocation hasn't happened yet) — DNS work is settled, token no longer needed.
+- **close when convenient**: anotheroption Cloudflare account — emptied today (R2 migrated to garrett's account). nothing depends on it.
