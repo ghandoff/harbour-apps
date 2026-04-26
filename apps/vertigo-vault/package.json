@@ -13,6 +13,7 @@
     "@auth/core": "^0.41.0",
     "@windedvertigo/auth": "*",
     "@windedvertigo/stripe": "*",
+    "@windedvertigo/sync-images": "*",
     "@aws-sdk/client-s3": "^3.1013.0",
     "@notionhq/client": "^2.3.0",
     "@neondatabase/serverless": "^0.10.0",
