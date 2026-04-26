@@ -45,7 +45,11 @@ export interface EnrichTokenResult {
  * Configuration options for `createHarbourAuth()`.
  */
 export interface HarbourAuthOptions {
-  /** App name — used to construct basePath `/harbour/<appName>/api/auth`. */
+  /**
+   * App name — used to construct basePath `/harbour/<appName>/api/auth`.
+   * Pass an empty string for the harbour hub itself, which mounts at
+   * `/harbour/api/auth` (no sub-path segment).
+   */
   appName: string;
 
   /**

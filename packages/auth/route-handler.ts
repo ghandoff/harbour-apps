@@ -28,7 +28,10 @@ export function createAuthRouteHandler(
   appName: string,
   authConfig: NextAuthConfig,
 ) {
-  const basePath = `/harbour/${appName}`;
+  // Empty appName = harbour hub itself, mounted at /harbour (no sub-path).
+  // Each non-empty appName produces /harbour/<sub>. Matches the basePath
+  // logic in `config.ts`.
+  const basePath = appName ? `/harbour/${appName}` : `/harbour`;
 
   async function handler(req: NextRequest) {
     const url = new URL(req.url);

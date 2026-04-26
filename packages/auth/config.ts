@@ -28,8 +28,16 @@ import type { HarbourAuthOptions } from "./types";
 export function createHarbourAuth(options: HarbourAuthOptions) {
   const { appName, onFirstSignIn, enrichToken, refreshInterval } = options;
 
+  // Empty appName is reserved for the harbour hub itself, which mounts at
+  // /harbour (not /harbour/<sub>). Each non-empty appName produces the
+  // canonical /harbour/<sub>/api/auth basePath used by every nested app.
+  const basePath = appName ? `/harbour/${appName}/api/auth` : `/harbour/api/auth`;
+  // Used in log lines — falls back to "harbour" so the hub doesn't emit
+  // "[]" prefixes.
+  const logName = appName || "harbour";
+
   const authConfig: NextAuthConfig = {
-    basePath: `/harbour/${appName}/api/auth`,
+    basePath,
 
     providers: [
       Resend({
@@ -150,7 +158,7 @@ export function createHarbourAuth(options: HarbourAuthOptions) {
               token.refreshedAt = Date.now();
             } catch (err) {
               // If DB is temporarily unavailable, keep stale token
-              console.error(`[${appName}] jwt refresh failed, using stale token:`, err);
+              console.error(`[${logName}] jwt refresh failed, using stale token:`, err);
             }
           }
         }
