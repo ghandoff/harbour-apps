@@ -1,7 +1,7 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "wv-harbour-rhythm-lab",
-  "main": ".open-next/worker.js",
+  "main": "worker.ts",
   "account_id": "097c92553b268f8360b74f625f6d980a",
   "compatibility_date": "2025-04-01",
   "compatibility_flags": ["nodejs_compat"],
