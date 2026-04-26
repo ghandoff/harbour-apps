@@ -18,6 +18,7 @@
 import { readFileSync } from "fs";
 import { resolve } from "path";
 import { Client } from "@notionhq/client";
+import { queryDataSource } from "@windedvertigo/notion-adapter";
 
 // ── load .env.local ──────────────────────────────────────────────────
 const envPath = resolve(process.cwd(), ".env.local");
@@ -96,21 +97,21 @@ async function fetchAllReadyPlaydateIds(): Promise<string[]> {
 
   do {
     await delay(350);
-    const response = await notion.databases.query({
-      database_id: PLAYDATES_DB,
-      start_cursor: cursor,
-      page_size: 100,
+    const response = await queryDataSource(notion, {
+      databaseId: PLAYDATES_DB,
+      pageSize: 100,
       filter: {
         property: "status",
         status: { equals: "ready" },
       },
+      ...(cursor !== undefined ? { startCursor: cursor } : {}),
     });
 
-    for (const page of response.results) {
+    for (const page of response.pages) {
       ids.push(page.id);
     }
 
-    cursor = response.has_more ? (response.next_cursor ?? undefined) : undefined;
+    cursor = response.hasMore ? (response.nextCursor ?? undefined) : undefined;
   } while (cursor);
 
   console.log(`[link] found ${ids.length} ready playdates`);
