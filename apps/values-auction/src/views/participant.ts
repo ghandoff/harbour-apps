@@ -531,6 +531,17 @@ export class VaParticipant extends LitElement {
     .values-list strong {
       color: var(--wv-cadet-blue);
     }
+    .staging .values-preview {
+      max-height: 50vh;
+      overflow-y: auto;
+      text-align: left;
+      margin: 0 auto var(--space-6);
+      padding-right: var(--space-2);
+      scrollbar-width: thin;
+    }
+    .staging .values-preview .values-list li {
+      font-size: 0.95rem;
+    }
     .sector {
       margin-top: var(--space-4);
       padding-top: var(--space-4);
@@ -612,6 +623,7 @@ export class VaParticipant extends LitElement {
     if (!panel) return html``;
     const isLast = idx === total - 1;
     const buttonLabel = isLast ? COPY.staging.begin : COPY.staging.next;
+    const showValues = 'showValues' in panel && panel.showValues === true;
     return html`
       <section
         class="staging fade-in"
@@ -620,6 +632,21 @@ export class VaParticipant extends LitElement {
         <p class="step" aria-hidden="true">${panel.step} / ${String(total).padStart(2, '0')}</p>
         <h1>${panel.heading}</h1>
         <p class="body">${panel.body}</p>
+        ${showValues
+          ? html`
+              <div class="values-preview">
+                <ul class="values-list">
+                  ${VALUES.map(
+                    (v) => html`
+                      <li>
+                        <strong>${v.name}.</strong> <span>${v.description}</span>
+                      </li>
+                    `,
+                  )}
+                </ul>
+              </div>
+            `
+          : ''}
         <va-button variant="primary" size="lg" @va-click=${() => this.advanceStage()}>
           ${buttonLabel}
         </va-button>

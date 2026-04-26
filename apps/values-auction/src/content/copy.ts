@@ -24,6 +24,12 @@ export const COPY = {
         heading: 'every win shapes who you become.',
         body: 'every loss is a trade-off you chose. when the credos run out, they’re gone. choose with intent.',
       },
+      {
+        step: '04',
+        heading: 'these are the twenty values.',
+        body: 'read them now. you won’t see them again until the auction begins.',
+        showValues: true,
+      },
     ] as const,
     next: 'continue',
     begin: 'i’m ready',
