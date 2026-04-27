@@ -37,15 +37,9 @@ const PROBES = {
     }).catch(() => null);
     return r ? r.status === 200 : null;
   },
-  ANTHROPIC_API_KEY: async (key) => {
-    const r = await fetch("https://api.anthropic.com/v1/models", {
-      headers: {
-        "x-api-key": key,
-        "anthropic-version": "2023-06-01",
-      },
-    }).catch(() => null);
-    return r ? r.status === 200 : null;
-  },
+  // ANTHROPIC_API_KEY removed from audit scope: port migrated to AI Gateway
+  // (uses ANTHROPIC_AUTH_TOKEN + ANTHROPIC_BASE_URL). Stale ANTHROPIC_API_KEY
+  // values in old .env.local files are dead code, not drift.
   STRIPE_SECRET_KEY: async (key) => {
     const r = await fetch("https://api.stripe.com/v1/customers?limit=1", {
       headers: { Authorization: `Basic ${Buffer.from(key + ":").toString("base64")}` },
@@ -60,10 +54,15 @@ const PROBES = {
   R2_ACCESS_KEY_ID: null,
   R2_SECRET_ACCESS_KEY: null,
   AUTH_SECRET: null, // length-equality only; mismatch = SSO break
-  CRON_SECRET: null,
   STRIPE_WEBHOOK_SECRET: null,
   BLUESKY_APP_PASSWORD: null,
   BLUESKY_HANDLE: null,
+  // CRON_SECRET intentionally NOT included — it's per-app by design (each app
+  // validates its own env var against its own cron callbacks). Length mismatch
+  // across apps is expected, not drift.
+  // ANTHROPIC_API_KEY intentionally NOT included — port migrated to AI Gateway
+  // (uses ANTHROPIC_AUTH_TOKEN + ANTHROPIC_BASE_URL). The stale ANTHROPIC_API_KEY
+  // value in port/.env.local is dead code; production uses the AI Gateway path.
 };
 
 // ── Step 1: Harvest local .env.local files ───────────────────────────────
