@@ -36,8 +36,13 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Read raw body for signature verification
-  const body = await req.text();
+  // Read raw body for signature verification.
+  // Use arrayBuffer() rather than text() for Cloudflare Workers
+  // compatibility — text() with non-UTF-8 binary bytes can corrupt
+  // the payload and break Stripe's HMAC. We decode to a UTF-8 string
+  // only for the signature-verification call below.
+  const bodyBuffer = await req.arrayBuffer();
+  const body = new TextDecoder("utf-8").decode(bodyBuffer);
   const signature = req.headers.get("stripe-signature");
 
   if (!signature) {
