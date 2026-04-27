@@ -14,6 +14,7 @@ const { values } = parseArgs({
     campaign: { type: "string", default: `c1-seed-${new Date().toISOString().slice(0, 10)}` },
     "dry-run": { type: "boolean", default: false },
     recipients: { type: "string", default: "scripts/c1-recipients.local.json" },
+    "min-per": { type: "string", default: "10" },
   },
 });
 
@@ -55,12 +56,17 @@ const counts = recipients.reduce((acc, r) => {
 console.log(`recipients: ${recipients.length} total`);
 for (const [p, n] of Object.entries(counts)) console.log(`  ${p}: ${n}`);
 
-const minPer = 10;
-const missing = ["gmail", "yahoo", "icloud", "outlook"].filter((p) => (counts[p] ?? 0) < minPer);
-if (missing.length) {
-  console.error(`\nneed ≥${minPer} addresses each on: ${missing.join(", ")}`);
-  console.error("a skewed mix won't surface provider-specific spam routing");
+const minPer = Number(values["min-per"]);
+const targetProviders = ["gmail", "yahoo", "icloud", "outlook"];
+const present = targetProviders.filter((p) => (counts[p] ?? 0) > 0);
+const underMin = present.filter((p) => counts[p] < minPer);
+if (underMin.length) {
+  console.error(`\nproviders below --min-per=${minPer}: ${underMin.join(", ")}`);
   process.exit(1);
+}
+const absent = targetProviders.filter((p) => !present.includes(p));
+if (absent.length) {
+  console.warn(`\n⚠ no addresses on: ${absent.join(", ")} — those providers won't be tested`);
 }
 
 const stateDir = join(homedir(), ".config/wv-agent");
