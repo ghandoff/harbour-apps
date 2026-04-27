@@ -19,6 +19,7 @@
     "@neondatabase/serverless": "^0.10.0",
     "@windedvertigo/feedback": "*",
     "@windedvertigo/notion-adapter": "*",
+    "@windedvertigo/security": "*",
     "@windedvertigo/tokens": "*",
     "next": "^16.2.3",
     "next-auth": "^5.0.0-beta.30",
@@ -28,6 +29,7 @@
     "stripe": "^17.7.0"
   },
   "devDependencies": {
+    "@opennextjs/cloudflare": "^1.19.1",
     "@tailwindcss/postcss": "^4.0.0",
     "@types/node": "^22",
     "@types/react": "^19",
@@ -35,6 +37,7 @@
     "eslint": "^9.39.2",
     "eslint-config-next": "^16.1.6",
     "tailwindcss": "^4.0.0",
-    "typescript": "^5"
+    "typescript": "^5",
+    "wrangler": "^4.81.1"
   }
 }
