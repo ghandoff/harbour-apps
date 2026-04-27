@@ -79,22 +79,36 @@ The `wv-launch-smoke` Worker writes the latest run state to KV. Read it:
 
 ```bash
 export CLOUDFLARE_API_TOKEN=$(cat ~/.cf-token)
-npx wrangler kv key get --namespace-id=b67fcfef7da04135999738370da62c8f LATEST | jq
+npx wrangler kv key get --namespace-id=b67fcfef7da04135999738370da62c8f latest | jq
 ```
 
-KV value shape:
+KV value shape (per `apps/launch-smoke/src/index.ts`):
 ```json
 {
-  "ts": "2026-04-26T20:00:00Z",
-  "ok": 39,
-  "fail": 1,
-  "failures": [{"target": "...", "status": 504, "attempt": 3}]
+  "ranAt": "2026-04-26T20:00:00.000Z",
+  "totalMs": 18234,
+  "total": 40,
+  "green": 39,
+  "slow": 0,
+  "red": 1,
+  "results": [
+    { "label": "...", "status": 504, "red": true, "slow": false, "reasons": ["..."] }
+  ]
 }
 ```
 
-Force a manual run:
+The fetch handler also serves the latest run as JSON:
 ```bash
-curl https://wv-launch-smoke.windedvertigo.workers.dev/?force=1
+curl https://wv-launch-smoke.windedvertigo.workers.dev | jq
+```
+
+The Worker only runs probes on its cron trigger (`*/30 * * * *`), not
+on fetch. To force an immediate run for testing, use `wrangler` to
+invoke the scheduled trigger:
+```bash
+npx wrangler dev --test-scheduled --name wv-launch-smoke
+# then in another shell:
+curl "http://localhost:8787/__scheduled?cron=*/30+*+*+*+*"
 ```
 
 ## Resend deliverability
