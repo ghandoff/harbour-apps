@@ -20,7 +20,10 @@ import { glob } from "node:fs/promises";
 const HOME = homedir();
 
 // ── Probe definitions: per-secret API call to test value validity ────────
-// Each probe returns true if the key is valid, false if invalid, null if unprobeable.
+// Each probe takes (value, siblingEnv) and returns true if the value is valid,
+// false if invalid, null if unprobeable. siblingEnv is the parsed .env.local
+// the value came from — useful for OAuth refresh-token probes that need
+// client_id/secret from the same env scope.
 const PROBES = {
   RESEND_API_KEY: async (key) => {
     const r = await fetch("https://api.resend.com/domains", {
@@ -37,12 +40,31 @@ const PROBES = {
     }).catch(() => null);
     return r ? r.status === 200 : null;
   },
-  // ANTHROPIC_API_KEY removed from audit scope: port migrated to AI Gateway
-  // (uses ANTHROPIC_AUTH_TOKEN + ANTHROPIC_BASE_URL). Stale ANTHROPIC_API_KEY
-  // values in old .env.local files are dead code, not drift.
   STRIPE_SECRET_KEY: async (key) => {
     const r = await fetch("https://api.stripe.com/v1/customers?limit=1", {
       headers: { Authorization: `Basic ${Buffer.from(key + ":").toString("base64")}` },
+    }).catch(() => null);
+    return r ? r.status === 200 : null;
+  },
+  // OAuth refresh-token probe: port's invoice processor uses GMAIL_CLIENT_ID
+  // + GMAIL_CLIENT_SECRET (a separate OAuth client from GOOGLE_CLIENT_ID, which
+  // is for app sign-in). Probe fails (returns null) if the GMAIL_-prefixed
+  // siblings aren't present. POST to Google's token endpoint with the refresh
+  // token; expect 200 (fresh access_token returned) vs 400 invalid_grant.
+  GMAIL_REFRESH_TOKEN: async (refreshToken, siblingEnv) => {
+    const clientId = siblingEnv?.GMAIL_CLIENT_ID;
+    const clientSecret = siblingEnv?.GMAIL_CLIENT_SECRET;
+    if (!clientId || !clientSecret) return null; // can't probe without siblings
+    const body = new URLSearchParams({
+      client_id: clientId,
+      client_secret: clientSecret,
+      refresh_token: refreshToken,
+      grant_type: "refresh_token",
+    });
+    const r = await fetch("https://oauth2.googleapis.com/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body,
     }).catch(() => null);
     return r ? r.status === 200 : null;
   },
@@ -55,6 +77,7 @@ const PROBES = {
   R2_SECRET_ACCESS_KEY: null,
   AUTH_SECRET: null, // length-equality only; mismatch = SSO break
   STRIPE_WEBHOOK_SECRET: null,
+  RESEND_WEBHOOK_SECRET: null, // HMAC secret for Resend webhook signatures; no API to probe
   BLUESKY_APP_PASSWORD: null,
   BLUESKY_HANDLE: null,
   // CRON_SECRET intentionally NOT included — it's per-app by design (each app
@@ -153,17 +176,22 @@ async function audit() {
   console.log(`scanning ${envFiles.length} local .env.local files…`);
 
   // Collect per-secret: which files have it + length + probe result
+  // Also stash the file's full env so probes that need siblings (e.g. GMAIL
+  // refresh-token needs GOOGLE_CLIENT_ID + _SECRET) can access them.
   const localCopies = {};
   for (const file of envFiles) {
     const env = readEnvFile(file);
     for (const [name, value] of Object.entries(env)) {
       if (!(name in PROBES)) continue;
       localCopies[name] ??= [];
-      localCopies[name].push({ file, length: value.length, value });
+      localCopies[name].push({ file, length: value.length, value, siblingEnv: env });
     }
   }
 
-  // Probe each unique value per secret (de-dup so we don't hit vendor APIs N times)
+  // Probe each value per secret. Dedup by (value + relevant siblings) — simpler
+  // to just probe per-copy when siblings matter, since same-value-different-siblings
+  // produces different validity (e.g. a refresh token paired with rotated vs stale
+  // client_secret).
   for (const [name, copies] of Object.entries(localCopies)) {
     const probe = PROBES[name];
     if (!probe) {
@@ -173,8 +201,12 @@ async function audit() {
     } else {
       const seen = new Map();
       for (const c of copies) {
-        if (!seen.has(c.value)) seen.set(c.value, await probe(c.value));
-        c.probe = seen.get(c.value);
+        // Dedup key includes value only (probes that don't use siblings can dedup
+        // by value alone; probes that DO use siblings re-probe per copy intentionally).
+        const usesSiblings = probe.length >= 2;
+        const dedupKey = usesSiblings ? c.file : c.value;
+        if (!seen.has(dedupKey)) seen.set(dedupKey, await probe(c.value, c.siblingEnv));
+        c.probe = seen.get(dedupKey);
       }
     }
   }
