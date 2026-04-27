@@ -1,11 +1,10 @@
 import type { EventContext } from '@cloudflare/workers-types';
-import { makeRedis, apiHeaders, type Env } from '../../_shared/redis';
+import { apiHeaders, listKeys, type Env } from '../../_shared/kv';
 
 async function hashPin(pin: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(pin + 'st-salt-2026');
+  const data = new TextEncoder().encode(pin + 'st-salt-2026');
   const hash = await crypto.subtle.digest('SHA-256', data);
-  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+  return Array.from(new Uint8Array(hash)).map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
 export async function onRequestGet({ request, env }: EventContext<Env, any, any>): Promise<Response> {
@@ -14,60 +13,51 @@ export async function onRequestGet({ request, env }: EventContext<Env, any, any>
     const code = searchParams.get('code');
     const pin = searchParams.get('pin');
     const format = searchParams.get('format');
-
     if (!code || !pin) {
       return Response.json({ error: 'missing code or pin' }, { status: 400, headers: apiHeaders() });
     }
 
-    const redis = makeRedis(env);
-
-    const raw = await redis.get(`session:${code}`);
+    const raw = await env.SESSION_KV.get(`session:${code}`);
     if (!raw) {
       return Response.json({ error: 'session not found or expired' }, { status: 404, headers: apiHeaders() });
     }
 
-    const session = typeof raw === 'string' ? JSON.parse(raw) : raw as any;
-    const hashedPin = await hashPin(pin);
-    if (hashedPin !== session.facilitatorPin) {
+    const session = JSON.parse(raw);
+    if (await hashPin(pin) !== session.facilitatorPin) {
       return Response.json({ error: 'invalid pin' }, { status: 403, headers: apiHeaders() });
     }
 
-    // gather all data
-    const studentIds = await redis.smembers(`session:${code}:students`);
-    const exportData: {
-      sessionCode: string;
-      createdAt: string;
-      config: any;
-      participants: any[];
-    } = {
-      sessionCode: code,
-      createdAt: session.createdAt,
-      config: session.config,
-      participants: [],
-    };
+    const studentKeys = await listKeys(env.SESSION_KV, `student:${code}:`);
+    const participants = await Promise.all(
+      studentKeys.map(async (key) => {
+        const pid = key.slice(`student:${code}:`.length);
+        const studentRaw = await env.SESSION_KV.get(key);
+        const student = studentRaw ? JSON.parse(studentRaw) : { joinedAt: null, progress: {} };
 
-    for (const pid of studentIds) {
-      const studentRaw = await redis.get(`student:${code}:${pid}`);
-      const student = studentRaw
-        ? (typeof studentRaw === 'string' ? JSON.parse(studentRaw) : studentRaw as any)
-        : { joinedAt: null, progress: {} };
+        const eventKeys = await listKeys(env.SESSION_KV, `event:${code}:${pid}:`);
+        const events = (
+          await Promise.all(eventKeys.map((ek) => env.SESSION_KV.get(ek)))
+        )
+          .filter(Boolean)
+          .map((e) => JSON.parse(e!))
+          .sort((a, b) => a.timestamp.localeCompare(b.timestamp));
 
-      const eventsRaw = await redis.lrange(`events:${code}:${pid}`, 0, -1);
-      const events = eventsRaw.map((e: any) => typeof e === 'string' ? JSON.parse(e) : e);
+        return {
+          participantId: pid,
+          joinedAt: student.joinedAt,
+          currentScenario: student.currentScenario,
+          progress: student.progress,
+          events,
+        };
+      })
+    );
 
-      exportData.participants.push({
-        participantId: pid,
-        joinedAt: student.joinedAt,
-        currentScenario: student.currentScenario,
-        progress: student.progress,
-        events,
-      });
-    }
+    const exportData = { sessionCode: code, createdAt: session.createdAt, config: session.config, participants };
 
     if (format === 'csv') {
       const rows: string[][] = [['timestamp', 'participant_id', 'event_type', 'scenario', 'intervention_id', 'dosage', 'text_value']];
-      exportData.participants.forEach((p: any) => {
-        p.events.forEach((evt: any) => {
+      participants.forEach((p) => {
+        p.events.forEach((evt) => {
           rows.push([
             evt.timestamp || '',
             p.participantId,
@@ -79,25 +69,16 @@ export async function onRequestGet({ request, env }: EventContext<Env, any, any>
           ]);
         });
       });
-      const csv = rows.map(r => r.map(v => '"' + String(v).replace(/"/g, '""') + '"').join(',')).join('\n');
+      const csv = rows.map((r) => r.map((v) => '"' + String(v).replace(/"/g, '""') + '"').join(',')).join('\n');
       return new Response(csv, {
         status: 200,
-        headers: {
-          ...apiHeaders(),
-          'Content-Type': 'text/csv',
-          'Content-Disposition': `attachment; filename="session-${code}.csv"`,
-        },
+        headers: { ...apiHeaders(), 'Content-Type': 'text/csv', 'Content-Disposition': `attachment; filename="session-${code}.csv"` },
       });
     }
 
-    // default: JSON
     return new Response(JSON.stringify(exportData), {
       status: 200,
-      headers: {
-        ...apiHeaders(),
-        'Content-Type': 'application/json',
-        'Content-Disposition': `attachment; filename="session-${code}.json"`,
-      },
+      headers: { ...apiHeaders(), 'Content-Type': 'application/json', 'Content-Disposition': `attachment; filename="session-${code}.json"` },
     });
   } catch (err) {
     console.error('session/export error:', err);

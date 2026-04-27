@@ -2,7 +2,7 @@ import { defineConfig } from 'vite';
 import { resolve } from 'node:path';
 
 export default defineConfig({
-  base: '/harbour/values-auction/',
+  base: '/portfolio/assets/values-auction/',
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src'),

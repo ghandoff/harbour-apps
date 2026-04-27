@@ -1,46 +1,32 @@
 import type { EventContext } from '@cloudflare/workers-types';
-import { makeRedis, apiHeaders, type Env } from '../../_shared/redis';
+import { apiHeaders, type Env } from '../../_shared/kv';
 
 const TTL = 86400;
 
 export async function onRequestPost({ request, env }: EventContext<Env, any, any>): Promise<Response> {
   try {
     const body = await request.json() as { code?: string };
-    const { code } = body;
-    if (!code || !/^[A-Z0-9]{6}$/.test(code.toUpperCase())) {
+    if (!body.code || !/^[A-Z0-9]{6}$/.test(body.code.toUpperCase())) {
       return Response.json({ error: 'invalid session code' }, { status: 400, headers: apiHeaders() });
     }
 
-    const upperCode = code.toUpperCase();
-    const redis = makeRedis(env);
-
-    const raw = await redis.get(`session:${upperCode}`);
+    const upperCode = body.code.toUpperCase();
+    const raw = await env.SESSION_KV.get(`session:${upperCode}`);
     if (!raw) {
       return Response.json({ error: 'session not found or expired' }, { status: 404, headers: apiHeaders() });
     }
 
-    // generate participant ID
     const pid = crypto.randomUUID();
-
-    // register student
-    await redis.sadd(`session:${upperCode}:students`, pid);
-    await redis.expire(`session:${upperCode}:students`, TTL);
-
     const student = {
       joinedAt: new Date().toISOString(),
       currentScenario: null,
       progress: {},
     };
-    await redis.set(`student:${upperCode}:${pid}`, JSON.stringify(student), { ex: TTL });
+    await env.SESSION_KV.put(`student:${upperCode}:${pid}`, JSON.stringify(student), { expirationTtl: TTL });
 
-    const session = typeof raw === 'string' ? JSON.parse(raw) : raw;
-
+    const session = JSON.parse(raw);
     return Response.json(
-      {
-        participantId: pid,
-        sessionCode: upperCode,
-        config: (session as any).config || { collectReflections: true },
-      },
+      { participantId: pid, sessionCode: upperCode, config: session.config || { collectReflections: true } },
       { status: 200, headers: apiHeaders() }
     );
   } catch (err) {

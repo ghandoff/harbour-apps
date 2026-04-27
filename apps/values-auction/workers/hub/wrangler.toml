@@ -13,5 +13,4 @@ new_sqlite_classes = ["HubSession"]
 
 [[kv_namespaces]]
 binding = "EVENTS_KV"
-id = ""
-preview_id = ""
+id = "820ee98f1e3e4f3d886d1d81e4b70be5"

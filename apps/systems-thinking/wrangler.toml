@@ -1,7 +1,7 @@
 name = "systems-thinking"
-compatibility_date = "2024-09-23"
+compatibility_date = "2024-11-01"
 pages_build_output_dir = "."
 
-[vars]
-# Secrets set via: wrangler pages secret put UPSTASH_REDIS_REST_URL
-# Secrets set via: wrangler pages secret put UPSTASH_REDIS_REST_TOKEN
+[[kv_namespaces]]
+binding = "SESSION_KV"
+id = "ff5eb1afe81d481db7353b49c429c5c4"
