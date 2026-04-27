@@ -118,15 +118,29 @@ if (dry) {
 }
 
 // ── Step 3: Vercel project envs ──────────────────────────────────────────
+//
+// Vercel CLI quirk (verified 2026-04-26): on production + preview, vars are
+// "sensitive" by default and stdin-piped values get silently dropped (the
+// entry is created with an empty value). The non-interactive add for
+// sensitive envs MUST use --value <V>. The flag puts the value on argv,
+// briefly visible to `ps`. On a single-user dev machine this is acceptable;
+// on a shared/CI host, set the value via a tightly-permissioned temp file
+// or a Vercel REST API call instead.
+//
+// Development is NOT sensitive by default; stdin works there.
 for (const [project, cwd] of cfg.vercelProjects) {
   console.log(`\nvercel: ${project}`);
   for (const env of ["production", "preview", "development"]) {
     // Remove existing (ignore errors — may not exist)
     spawnSync("vercel", ["env", "rm", name, env, "--yes"], { cwd, stdio: ["ignore", "ignore", "ignore"] });
-    // Add via stdin (never on argv)
-    const addRes = spawnSync("vercel", ["env", "add", name, env], {
+    // Add: --value for sensitive (production/preview), stdin for development
+    const isSensitive = env === "production" || env === "preview";
+    const addArgs = isSensitive
+      ? ["env", "add", name, env, "--value", secretValue, "--force", "--yes"]
+      : ["env", "add", name, env, "--force", "--yes"];
+    const addRes = spawnSync("vercel", addArgs, {
       cwd,
-      input: secretValue,
+      input: isSensitive ? undefined : secretValue,
       encoding: "utf8",
     });
     if (addRes.status === 0) {
