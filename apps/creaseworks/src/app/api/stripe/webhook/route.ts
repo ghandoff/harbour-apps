@@ -21,6 +21,7 @@ import { grantEntitlement } from "@/lib/queries/entitlements";
 import { logAccess } from "@/lib/queries/audit";
 import { createInAppNotification } from "@/lib/queries/notifications";
 import { sql } from "@/lib/db";
+import { seenEvent, markEventSeen } from "@/lib/webhook-event-cache";
 import type Stripe from "stripe";
 
 export async function POST(req: NextRequest) {
@@ -58,6 +59,17 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // Event-id idempotency check (Track C of the macro stack-migration plan).
+  // First-line defence against Stripe re-delivering the same event. Runs
+  // BEFORE any DB write. The session-id check inside handleCheckoutCompleted
+  // remains as second-layer protection. On Redis/DB read failure seenEvent
+  // returns false so we fall through to the inner dedup — a transient cache
+  // outage must not block payment processing.
+  if (await seenEvent(event.id)) {
+    console.log(`webhook: event ${event.id} already processed, short-circuiting`);
+    return new NextResponse("dedup", { status: 200 });
+  }
+
   // Handle the event
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
@@ -66,13 +78,19 @@ export async function POST(req: NextRequest) {
       await handleCheckoutCompleted(session);
     } catch (err: any) {
       console.error("webhook handler error:", err);
-      // Return 500 so Stripe retries
+      // Return 500 so Stripe retries. Note: we do NOT markEventSeen on
+      // failure — we want Stripe to deliver again and re-trigger the
+      // handler.
       return NextResponse.json(
         { error: "handler failed" },
         { status: 500 },
       );
     }
   }
+
+  // Mark event as processed (7-day TTL). Done after the handler has
+  // succeeded (or skipped because event.type wasn't one we care about).
+  await markEventSeen(event.id);
 
   // Always return 200 for events we don't handle
   return NextResponse.json({ received: true });
