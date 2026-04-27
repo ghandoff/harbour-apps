@@ -1,15 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
 
 /**
- * CSP middleware — generates a per-request nonce and sets the
- * Content-Security-Policy header. Next.js reads the nonce from the
- * `x-nonce` request header and automatically applies it to inline
- * hydration scripts.
+ * Vault middleware — runs on Vercel only (the platform that hosts vault
+ * today).
  *
- * Using `'strict-dynamic'` (CSP Level 3):
- *   - Nonced scripts can dynamically load other scripts (covers Next.js chunks)
- *   - Source expressions like `'self'` and URL allowlists serve as CSP Level 2 fallbacks
- *   - `'unsafe-inline'` is no longer needed in script-src
+ * CSP nonce now emitted by worker.ts on CF Workers; this middleware
+ * runs on Vercel only.
+ *
+ * Historically this file generated a per-request nonce and set the
+ * Content-Security-Policy header. That code has moved to worker.ts
+ * (via @windedvertigo/security's wrapWithSecurityHeaders) ahead of the
+ * eventual CF Workers cutover, where Next.js's middleware doesn't get
+ * a chance to run for OpenNext-emitted handlers.
+ *
+ * For now on Vercel, the static CSP from next.config.ts headers() is
+ * authoritative — `'unsafe-inline'` falls back to Level-2 semantics
+ * until the Worker wrapper learns nonce support (see TODO in
+ * docs/security/cf-headers-wrapper.md).
+ *
+ * This file is intentionally retained (rather than deleted) because:
+ *   1. Auth.js / route-protection logic will land here next; the
+ *      structure is in place for that.
+ *   2. Removing it would require also stripping the matcher config and
+ *      re-wiring next.config.ts; keeping the no-op matcher avoids that
+ *      churn while the file is empty.
  *
  * Why `middleware.ts` and not `proxy.ts`: Next.js 16.2.3 docs claim
  * `proxy.ts` is the canonical convention, but the build pipeline emits
@@ -21,33 +35,9 @@ import { NextRequest, NextResponse } from "next/server";
  * manifest populate correctly. Revisit if/when Next.js fixes proxy.ts
  * manifest emission.
  */
-export function middleware(request: NextRequest) {
-  const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
-
-  const csp = [
-    "default-src 'self'",
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https://js.stripe.com`,
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    "font-src 'self' https://fonts.gstatic.com",
-    "img-src 'self' data: https:",
-    "connect-src 'self' https://vitals.vercel-insights.com https://api.stripe.com",
-    "frame-src https://js.stripe.com https://hooks.stripe.com",
-    "frame-ancestors 'none'",
-    "worker-src 'self'",
-    "base-uri 'self'",
-    "form-action 'self'",
-  ].join("; ");
-
-  const requestHeaders = new Headers(request.headers);
-  requestHeaders.set("x-nonce", nonce);
-  requestHeaders.set("Content-Security-Policy", csp);
-
-  const response = NextResponse.next({
-    request: { headers: requestHeaders },
-  });
-  response.headers.set("Content-Security-Policy", csp);
-
-  return response;
+export function middleware(_request: NextRequest) {
+  // No-op pass-through. Auth.js / route-protection logic will land here.
+  return NextResponse.next();
 }
 
 export const config = {
@@ -56,8 +46,7 @@ export const config = {
      * Two entries because path-to-regexp's `(?:\/(...))` capture for the
      * negative-lookahead path is non-optional — it requires at least one
      * character after the basePath slash, so a bare `/harbour/vertigo-vault`
-     * (the home route) silently skips the middleware. Adding the root
-     * matcher first ensures the home page also gets the nonce-CSP.
+     * (the home route) silently skips the middleware.
      */
     "/",
     {
