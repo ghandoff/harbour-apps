@@ -9,6 +9,7 @@ export class VaCountdown extends LitElement {
   @property({ type: Number }) durationMs = 0;
   @property({ type: Boolean }) ring = false;
   @property({ type: Boolean }) announceSeconds = false;
+  @property({ type: Boolean }) large = false;
 
   @state() private now = Date.now();
   private tick: TickHandle | null = null;
@@ -43,6 +44,10 @@ export class VaCountdown extends LitElement {
       font: var(--type-mono);
       font-weight: 700;
       color: var(--fg);
+    }
+    :host([large]) .label {
+      font-size: 48px;
+      letter-spacing: 0.04em;
     }
     .ring-wrap {
       position: relative;

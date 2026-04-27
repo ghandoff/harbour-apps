@@ -6,6 +6,7 @@ import { COPY } from '@/content/copy';
 import { ACTS } from '@/content/acts';
 import { VALUES } from '@/content/values';
 import { DEFAULT_AUCTION_MS, advanceAct, assignTeams } from '@/state/reducers';
+import { prevAct } from '@/content/acts';
 import { bidsPerMinute, readyCount, silentTeams } from '@/state/selectors';
 import { startTicker } from '@/utils/timer';
 import '@/components/va-card';
@@ -117,6 +118,12 @@ export class VaFacilitator extends LitElement {
 
   private extend() {
     this.controller?.dispatch({ type: 'ACT_EXTEND', addMs: 30_000 });
+  }
+
+  private goBack() {
+    if (!this.session) return;
+    const prev = prevAct(this.session.currentAct);
+    if (prev) this.controller?.dispatch({ type: 'ACT_ADVANCE', to: prev, at: Date.now() });
   }
 
   private formTeams() {
@@ -401,10 +408,10 @@ export class VaFacilitator extends LitElement {
     .deck-steps li[data-done] {
       border-left-color: var(--wv-redwood);
       color: var(--fg-muted);
-      text-decoration: line-through;
     }
     .deck-steps li[data-done]::before {
       background: var(--wv-redwood);
+      content: '✓';
     }
     .deck-warning {
       margin-top: var(--space-3);
@@ -504,6 +511,11 @@ export class VaFacilitator extends LitElement {
                   <va-button variant="ghost" @va-click=${() => this.extend()}
                     >${COPY.facilitator.extend}</va-button
                   >
+                  ${s.currentAct === 'scene'
+                    ? html`<va-button variant="secondary" @va-click=${() => this.goBack()}
+                        >${COPY.facilitator.goBack}</va-button
+                      >`
+                    : ''}
                 `}
         </div>
         ${s.actStartedAt
@@ -607,6 +619,18 @@ export class VaFacilitator extends LitElement {
             `
           : html`
               <h2>${COPY.facilitator.deckLabel}</h2>
+              ${s.currentAuction
+                ? html`
+                    <div style="display: flex; justify-content: center; margin-bottom: var(--space-4);">
+                      <va-countdown
+                        ring
+                        announceSeconds
+                        .startedAt=${s.currentAuction.startedAt}
+                        .durationMs=${s.currentAuction.durationMs}
+                      ></va-countdown>
+                    </div>
+                  `
+                : ''}
               <ol class="deck-steps">
                 <li data-done=${this.nextValueId ? true : null}>
                   ${COPY.facilitator.deckStep1}

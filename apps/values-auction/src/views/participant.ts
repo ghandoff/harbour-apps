@@ -917,9 +917,11 @@ export class VaParticipant extends LitElement {
 
   private renderCountdown() {
     if (!this.session?.actStartedAt) return html``;
+    const isStrategy = this.session.currentAct === 'strategy';
     return html`
-      <div style="display: flex; justify-content: flex-end; margin-bottom: var(--space-3);">
+      <div style="display: flex; justify-content: ${isStrategy ? 'center' : 'flex-end'}; margin-bottom: var(--space-3);">
         <va-countdown
+          ?large=${isStrategy}
           .startedAt=${this.session.actStartedAt}
           .durationMs=${this.session.actDurationMs}
         ></va-countdown>

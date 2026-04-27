@@ -3,7 +3,7 @@ import { customElement, property } from 'lit/decorators.js';
 
 @customElement('va-button')
 export class VaButton extends LitElement {
-  @property({ type: String, reflect: true }) variant: 'primary' | 'urgent' | 'ghost' =
+  @property({ type: String, reflect: true }) variant: 'primary' | 'urgent' | 'ghost' | 'secondary' =
     'primary';
   @property({ type: Boolean, reflect: true }) disabled = false;
   @property({ type: String }) size: 'sm' | 'md' | 'lg' = 'md';
@@ -36,6 +36,11 @@ export class VaButton extends LitElement {
       background: transparent;
       color: var(--fg);
       border: 1.5px solid var(--fg);
+    }
+    :host([variant='secondary']) button {
+      background: var(--bg-card);
+      color: var(--fg);
+      border: 1.5px solid rgba(26, 36, 56, 0.2);
     }
     button:hover:not(:disabled) {
       transform: translateY(-1px);

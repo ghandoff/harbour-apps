@@ -120,6 +120,7 @@ export const COPY = {
     nextAct: 'next act',
     sessionComplete: 'session complete — share identity cards, then close the room.',
     extend: '+30 sec',
+    goBack: '← go back',
     jumpConfirm:
       'you’re about to jump acts — this is irreversible for the session feel. continue?',
     continue: 'continue',

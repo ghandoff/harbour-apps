@@ -87,3 +87,9 @@ export function nextAct(id: ActId): ActId | null {
   const next = ACTS[current.index + 1];
   return next ? next.id : null;
 }
+
+export function prevAct(id: ActId): ActId | null {
+  const current = getAct(id);
+  const prev = ACTS[current.index - 1];
+  return prev ? prev.id : null;
+}
