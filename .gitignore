@@ -62,3 +62,4 @@ web-build/
 # Claude Code
 .claude/*
 !.claude/evergreen.md
+logs/
