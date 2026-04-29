@@ -1,6 +1,6 @@
 {
   "outputDirectory": ".",
-  "ignoreCommand": "npx turbo-ignore @windedvertigo/systems-thinking",
+  "ignoreCommand": "npx turbo-ignore @windedvertigo/lines-become-loops",
   "headers": [
     {
       "source": "/api/(.*)",
