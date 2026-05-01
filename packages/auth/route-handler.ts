@@ -63,8 +63,16 @@ export function createAuthRouteHandler(
       duplex: "half",
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return Auth(request, authConfig as any) as Promise<Response>;
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return (await Auth(request, authConfig as any)) as Response;
+    } catch (err) {
+      // Surface the real error to worker logs — Auth.js swallows most
+      // callback errors and redirects to ?error=Configuration without
+      // exposing the cause.
+      console.error("[harbour-auth][uncaught]", err);
+      throw err;
+    }
   }
 
   return { GET: handler, POST: handler };

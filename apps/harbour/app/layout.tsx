@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { Analytics } from "@vercel/analytics/next";
 import { FeedbackWidget } from "@windedvertigo/feedback";
 import { CharacterVariantProvider } from "@windedvertigo/characters/variant-context";
+import AuthSessionProvider from "@/components/session-provider";
 import "./globals.css";
 
 const inter = Inter({
@@ -67,14 +68,16 @@ export default async function RootLayout({
         </noscript>
       </head>
       <body className="bg-[var(--wv-cadet)] text-[var(--color-text-on-dark)] font-[family-name:var(--font-body)] antialiased">
-        <CharacterVariantProvider variant={grownupMode ? "adult" : "kid"}>
-          <a href="#main" className="skip-link">
-            Skip to content
-          </a>
-          {children}
-          <FeedbackWidget appSlug="harbour" />
-          <Analytics />
-        </CharacterVariantProvider>
+        <AuthSessionProvider>
+          <CharacterVariantProvider variant={grownupMode ? "adult" : "kid"}>
+            <a href="#main" className="skip-link">
+              Skip to content
+            </a>
+            {children}
+            <FeedbackWidget appSlug="harbour" />
+            <Analytics />
+          </CharacterVariantProvider>
+        </AuthSessionProvider>
       </body>
     </html>
   );
