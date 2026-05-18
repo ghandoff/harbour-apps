@@ -16,6 +16,35 @@
       "binding": "WORKER_SELF_REFERENCE",
       "service": "wv-harbour-creaseworks"
     }
+  ],
+
+  // workers_dev must be true so wv-harbour-creaseworks.windedvertigo.workers.dev
+  // remains reachable — the site proxy's beforeFiles rewrites target that URL for
+  // all non-auth /harbour/creaseworks/* traffic.
+  "workers_dev": true,
+
+  // Direct CF Workers Routes for the auth subtree.
+  // Same pattern as harbour and depth-chart: Auth.js's 302→Google must reach the
+  // browser directly. The site proxy's Next.js beforeFiles rewrites follow 302s
+  // server-side, consuming them and returning Google HTML at 200 instead.
+  // These zone-level routes bypass the proxy entirely for the auth subtree.
+  "routes": [
+    {
+      "pattern": "windedvertigo.com/harbour/creaseworks/api/auth",
+      "zone_id": "3b70c2ddcf9976faccb01d37ccf2e1ee"
+    },
+    {
+      "pattern": "windedvertigo.com/harbour/creaseworks/api/auth/*",
+      "zone_id": "3b70c2ddcf9976faccb01d37ccf2e1ee"
+    },
+    {
+      "pattern": "www.windedvertigo.com/harbour/creaseworks/api/auth",
+      "zone_id": "3b70c2ddcf9976faccb01d37ccf2e1ee"
+    },
+    {
+      "pattern": "www.windedvertigo.com/harbour/creaseworks/api/auth/*",
+      "zone_id": "3b70c2ddcf9976faccb01d37ccf2e1ee"
+    }
   ]
 
   // Auth secrets — set via: wrangler secret put AUTH_SECRET
