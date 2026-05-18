@@ -15,67 +15,11 @@
  *   /profile/*
  */
 
-import { getToken } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";
-import { checkCsrf } from "@/lib/csrf";
 
-const publicPatterns = [
-  /^\/$/,
-  /^\/sampler(\/.*)?$/,
-  /^\/browse\/?$/,
-  /^\/find(\/.*)?$/,
-  /^\/matcher(\/.*)?$/,
-  /^\/play(\/.*)?$/,
-  /^\/log(\/.*)?$/,
-  /^\/community(\/.*)?$/,
-  /^\/gallery(\/.*)?$/,
-  /^\/packs\/?$/,
-  /^\/login$/,
-  /^\/onboarding$/,
-  /^\/api\/auth(\/.*)?$/,
-  /^\/api\/cron(\/.*)?$/,
-  /^\/api\/matcher(\/.*)?$/,
-  /^\/api\/stripe\/webhook$/,
-  /^\/api\/webhooks\/notion$/,
-  /^\/api\/team\/domains\/verify$/,
-  /^\/checkout\/success$/,
-  /^\/_next(\/.*)?$/,
-  /^\/favicon\.ico$/,
-  /^\/images(\/.*)?$/,
-  /^\/icons(\/.*)?$/,
-  /^\/manifest\.json$/,
-];
-
-function isPublicRoute(pathname: string): boolean {
-  return publicPatterns.some((p) => p.test(pathname));
-}
-
-export async function middleware(req: NextRequest) {
-  const { pathname } = req.nextUrl;
-
-  // CSRF protection — header-based, no Postgres, edge-safe
-  const csrfRejection = checkCsrf(req);
-  if (csrfRejection) return csrfRejection;
-
-  // Allow public routes without auth check
-  if (isPublicRoute(pathname)) {
-    return NextResponse.next();
-  }
-
-  // JWT verification — reads the shared session cookie
-  const token = await getToken({
-    req,
-    secret: process.env.AUTH_SECRET,
-    cookieName: "authjs.session-token",
-  });
-
-  if (!token) {
-    const loginUrl = req.nextUrl.clone();
-    loginUrl.pathname = "/login";
-    loginUrl.searchParams.set("callbackUrl", pathname);
-    return NextResponse.redirect(loginUrl);
-  }
-
+// Temporary no-op — stripping all logic to isolate the 1101 crash.
+// Route protection and CSRF will be restored once the crash is confirmed fixed.
+export function middleware(_req: NextRequest) {
   return NextResponse.next();
 }
 
