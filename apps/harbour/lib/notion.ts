@@ -390,7 +390,7 @@ async function _fetchCredibility(): Promise<CredibilityData> {
   const p = PROPS.siteContent;
 
   // Paginated query — fetch only "harbour" page sections
-  let allPages: PageObjectResponse[] = [];
+  const allPages: PageObjectResponse[] = [];
   let startCursor: string | undefined;
   let round = 0;
 
