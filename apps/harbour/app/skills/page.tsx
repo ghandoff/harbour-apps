@@ -2,7 +2,7 @@ import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { DepthChart } from "@/components/depth-chart";
 import { ScrollReveal } from "@/components/scroll-reveal";
-import { fetchSkills } from "@/lib/notion";
+import { fetchSkills, type Skill } from "@/lib/notion";
 
 /** ISR: revalidate every hour so Notion edits appear without a redeploy. */
 export const revalidate = 3600;
@@ -14,7 +14,13 @@ export const metadata = {
 };
 
 export default async function SkillsPage() {
-  const skills = await fetchSkills();
+  // Tolerant: empty array if Notion is unreachable so the build still
+  // succeeds with a stale local token. Runtime ISR re-fetches with the
+  // valid Worker secret when the page is revalidated.
+  const skills = await fetchSkills().catch((err: unknown) => {
+    console.warn("[skills] fetchSkills failed, rendering with empty array:", err);
+    return [] as Skill[];
+  });
 
   return (
     <>

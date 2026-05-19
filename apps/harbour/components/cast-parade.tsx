@@ -37,7 +37,20 @@ import CharacterSlot, {
   type MudPose,
   type DripPose,
 } from "@windedvertigo/characters";
-import { useCharacterVariant } from "@windedvertigo/characters/variant-context";
+import type { CharacterVariant } from "@windedvertigo/characters/variant-context";
+
+/**
+ * Read the kid/adult cookie client-side. Returns "kid" by default —
+ * SSR always emits the kid variant, and hydration upgrades to "adult"
+ * if the cookie says so. Brief flash on the upgrade is acceptable for
+ * a decorative band; the trade-off buys back ISR caching for the
+ * landing because layout.tsx no longer needs to call cookies().
+ */
+function readVariantCookie(): CharacterVariant {
+  if (typeof document === "undefined") return "kid";
+  const match = document.cookie.match(/(?:^|;\s*)cw-ui-mode=([^;]+)/);
+  return match?.[1] === "grownup" ? "adult" : "kid";
+}
 
 type PoseCycler = {
   name: CharacterName;
@@ -62,11 +75,15 @@ const CYCLE_MS = 3000;
 const STAGGER_MS = 600;
 
 export function CastParade() {
-  // ambient register from the root-layout cookie-bootstrapped provider.
-  // harbour's layout reads cw-ui-mode server-side and wraps children in
-  // CharacterVariantProvider, so flipping kid/grownup in creaseworks
-  // /profile propagates here on the next render.
-  const characterVariant = useCharacterVariant();
+  // Client-side variant read. SSR sends "kid"; on mount we check the
+  // shared cw-ui-mode cookie and upgrade to "adult" if set. This lets
+  // the layout stay free of cookies() so the harbour landing remains
+  // ISR-eligible — see app/layout.tsx for the rationale.
+  const [characterVariant, setCharacterVariant] =
+    useState<CharacterVariant>("kid");
+  useEffect(() => {
+    setCharacterVariant(readVariantCookie());
+  }, []);
   // One tick per slot — we bump it on each slot's own timer so the stagger
   // isn't a derived offset from a single global tick (that would drift on
   // resume from a backgrounded tab). Each slot owns its cadence.
