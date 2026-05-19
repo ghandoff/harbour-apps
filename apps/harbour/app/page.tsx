@@ -6,15 +6,44 @@ import { CastParade } from "@/components/cast-parade";
 import { PierSection } from "@/components/pier-section";
 import { PierCTeaser } from "@/components/pier-c-teaser";
 import { DrydockWall } from "@/components/drydock-wall";
-import { fetchGames, fetchCredibility } from "@/lib/notion";
+import {
+  fetchGames,
+  fetchCredibility,
+  type Game,
+  type CredibilityData,
+} from "@/lib/notion";
 
 /** ISR: revalidate every hour so Notion edits appear without a redeploy. */
 export const revalidate = 3600;
 
+const EMPTY_CREDIBILITY: CredibilityData = {
+  sectionLabel: "",
+  sectionHeading: "",
+  credentials: [],
+  principles: [],
+  bio: null,
+  hero: null,
+  cta: null,
+  connection: null,
+};
+
 export default async function HarbourPage() {
+  // Tolerant fetches: if Notion is unavailable (stale local token at
+  // build time, transient outage at revalidate time), render with empty
+  // fallbacks so the page still ships. PIER_MAP/WAVE_MAP in pier-data.ts
+  // covers slug→pier mapping; here we just guarantee a valid shape.
   const [games, credibilityData] = await Promise.all([
-    fetchGames(),
-    fetchCredibility(),
+    fetchGames().catch((err: unknown) => {
+      console.warn("[page] fetchGames failed, rendering with empty array:", err);
+      return [] as Game[];
+    }),
+    fetchCredibility().catch((err: unknown) => {
+      console.warn(
+        "[page] fetchCredibility failed, rendering with defaults:",
+        err,
+      );
+      return EMPTY_CREDIBILITY;
+    }),
   ]);
 
   const pierA = games.filter((g) => g.pier.includes("leadership"));

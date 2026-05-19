@@ -1,9 +1,7 @@
 import { Inter } from "next/font/google";
 import type { Metadata } from "next";
-import { cookies } from "next/headers";
 import { Analytics } from "@vercel/analytics/next";
 import { FeedbackWidget } from "@windedvertigo/feedback";
-import { CharacterVariantProvider } from "@windedvertigo/characters/variant-context";
 import AuthSessionProvider from "@/components/session-provider";
 import "./globals.css";
 
@@ -47,24 +45,19 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // Read the shared kid/adult register cookie. Path was broadened to
-  // /harbour (see /api/preferences/route.ts) so harbour and creaseworks
-  // share the preference — if the user flips the toggle in creaseworks
-  // profile, the next harbour render picks it up without a refresh.
-  //
-  // NOTE: this `cookies()` read makes the route per-request dynamic,
-  // overriding `revalidate = 3600` on app/page.tsx. The page renders
-  // at request time, not from ISR cache. Recovering ISR here means
-  // refactoring CastParade's variant read to client-side; deferred
-  // until that's worth the kid/adult-flip-flicker trade-off.
-  const cookieStore = await cookies();
-  const grownupMode = cookieStore.get("cw-ui-mode")?.value === "grownup";
-
+  // NOTE: deliberately NOT reading the `cw-ui-mode` cookie here.
+  // Calling `cookies()` in a layout opts every route under it OUT of
+  // ISR, forcing per-request server rendering. Today the only consumer
+  // of that cookie in this app is CastParade — it now reads the cookie
+  // client-side itself (see components/cast-parade.tsx), so the layout
+  // stays static-eligible and `revalidate = 3600` on app/page.tsx can
+  // actually take effect. SSR always emits the kid variant; the cast
+  // hydrates to the user's preference on mount.
   return (
     <html lang="en" className={inter.variable}>
       <head>
@@ -78,14 +71,12 @@ export default async function RootLayout({
       </head>
       <body className="bg-[var(--wv-cadet)] text-[var(--color-text-on-dark)] font-[family-name:var(--font-body)] antialiased">
         <AuthSessionProvider>
-          <CharacterVariantProvider variant={grownupMode ? "adult" : "kid"}>
-            <a href="#main" className="skip-link">
-              Skip to content
-            </a>
-            {children}
-            <FeedbackWidget appSlug="harbour" />
-            <Analytics />
-          </CharacterVariantProvider>
+          <a href="#main" className="skip-link">
+            Skip to content
+          </a>
+          {children}
+          <FeedbackWidget appSlug="harbour" />
+          <Analytics />
         </AuthSessionProvider>
       </body>
     </html>
