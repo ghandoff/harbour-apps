@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "wv-harbour-vertigo-vault",
+  "name": "wv-vault",
   "main": "worker.ts",
   "account_id": "097c92553b268f8360b74f625f6d980a",
   "compatibility_date": "2025-04-01",
@@ -14,11 +14,11 @@
   "services": [
     {
       "binding": "WORKER_SELF_REFERENCE",
-      "service": "wv-harbour-vertigo-vault"
+      "service": "wv-vault"
     }
   ],
 
-  // workers_dev must be true so wv-harbour-vertigo-vault.windedvertigo.workers.dev
+  // workers_dev must be true so wv-vault.windedvertigo.workers.dev
   // remains reachable — the site proxy (ghandoff/windedvertigo) rewrites
   // /harbour/vertigo-vault/* traffic to that subdomain. Same pattern as
   // wv-harbour-creaseworks.

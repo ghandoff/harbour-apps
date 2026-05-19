@@ -75,7 +75,7 @@ export default {
     // fetch (the Worker self-handles); use the workers.dev URL so the
     // request looks well-formed.
     const url =
-      "https://wv-harbour-vertigo-vault.windedvertigo.workers.dev" +
+      "https://wv-vault.windedvertigo.workers.dev" +
       "/harbour/vertigo-vault/api/cron/sync";
 
     const work = (async () => {
