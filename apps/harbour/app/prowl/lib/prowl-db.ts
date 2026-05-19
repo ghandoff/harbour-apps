@@ -38,7 +38,7 @@ const INITIAL_STATE: ProwlState = {
 
 let memoryState: ProwlState = { ...INITIAL_STATE };
 
-const useNeon = () => !!process.env.POSTGRES_URL;
+const hasNeon = () => !!process.env.POSTGRES_URL;
 
 function sql() {
   return neon(process.env.POSTGRES_URL!);
@@ -47,7 +47,7 @@ function sql() {
 /* ── database helpers ─────────────────────────────────────────── */
 
 export async function ensureTable() {
-  if (!useNeon()) return;
+  if (!hasNeon()) return;
   const db = sql();
   await db`
     CREATE TABLE IF NOT EXISTS prowl_state (
@@ -64,7 +64,7 @@ export async function ensureTable() {
 }
 
 export async function getState(): Promise<ProwlState> {
-  if (!useNeon()) return { ...memoryState };
+  if (!hasNeon()) return { ...memoryState };
 
   const db = sql();
   const rows = await db`
@@ -80,7 +80,7 @@ export async function getState(): Promise<ProwlState> {
 export async function updateState(
   mutate: (current: ProwlState) => ProwlState
 ): Promise<ProwlState> {
-  if (!useNeon()) {
+  if (!hasNeon()) {
     memoryState = mutate(memoryState);
     return { ...memoryState };
   }
@@ -103,7 +103,7 @@ export async function updateState(
 }
 
 export async function resetState(): Promise<ProwlState> {
-  if (!useNeon()) {
+  if (!hasNeon()) {
     memoryState = { ...INITIAL_STATE };
     return { ...memoryState };
   }
