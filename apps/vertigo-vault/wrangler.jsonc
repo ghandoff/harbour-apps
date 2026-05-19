@@ -1,0 +1,83 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "wv-vault",
+  "main": "worker.ts",
+  "account_id": "097c92553b268f8360b74f625f6d980a",
+  "compatibility_date": "2025-04-01",
+  "compatibility_flags": ["nodejs_compat"],
+
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "wv-vault"
+    }
+  ],
+
+  // workers_dev must be true so wv-vault.windedvertigo.workers.dev
+  // remains reachable — the site proxy (ghandoff/windedvertigo) rewrites
+  // /harbour/vertigo-vault/* traffic to that subdomain. Same pattern as
+  // wv-harbour-creaseworks.
+  "workers_dev": true,
+
+  // Daily cron at 06:00 UTC — replaces the Vercel cron previously declared
+  // in vercel.json. The scheduled() handler in worker.ts dispatches to the
+  // existing /api/cron/sync POST route (CRON_SECRET-gated).
+  "triggers": {
+    "crons": ["0 6 * * *"]
+  },
+
+  // Direct CF Workers Routes for the auth subtree.
+  // Same pattern as creaseworks/harbour/depth-chart: Auth.js's 302→Google
+  // must reach the browser directly. The site proxy's Next.js beforeFiles
+  // rewrites follow 302s server-side, consuming them and returning Google
+  // HTML at 200 instead. These zone-level routes bypass the proxy for the
+  // auth subtree; all other /harbour/vertigo-vault/* traffic still flows
+  // through the site proxy via workers_dev.
+  "routes": [
+    {
+      "pattern": "windedvertigo.com/harbour/vertigo-vault/api/auth",
+      "zone_id": "3b70c2ddcf9976faccb01d37ccf2e1ee"
+    },
+    {
+      "pattern": "windedvertigo.com/harbour/vertigo-vault/api/auth/*",
+      "zone_id": "3b70c2ddcf9976faccb01d37ccf2e1ee"
+    },
+    {
+      "pattern": "www.windedvertigo.com/harbour/vertigo-vault/api/auth",
+      "zone_id": "3b70c2ddcf9976faccb01d37ccf2e1ee"
+    },
+    {
+      "pattern": "www.windedvertigo.com/harbour/vertigo-vault/api/auth/*",
+      "zone_id": "3b70c2ddcf9976faccb01d37ccf2e1ee"
+    }
+  ],
+
+  "vars": {
+    "WORKERS_AUTH_PAGES_BASEPATH": "/harbour/vertigo-vault",
+    "AUTH_TRUST_HOST": "true",
+    "AUTH_URL": "https://windedvertigo.com/harbour/vertigo-vault/api/auth"
+  }
+
+  // Secrets set via `wrangler secret put <KEY>`:
+  //   AUTH_SECRET (must match creaseworks for shared .windedvertigo.com cookies)
+  //   POSTGRES_URL
+  //   NOTION_TOKEN
+  //   RESEND_API_KEY
+  //   EMAIL_FROM
+  //   GOOGLE_CLIENT_ID
+  //   GOOGLE_CLIENT_SECRET
+  //   STRIPE_SECRET_KEY
+  //   STRIPE_WEBHOOK_SECRET
+  //   CRON_SECRET
+  //   R2_ACCOUNT_ID
+  //   R2_ACCESS_KEY_ID
+  //   R2_SECRET_ACCESS_KEY
+  //   R2_BUCKET_NAME
+  //   R2_PUBLIC_URL
+  //   INITIAL_ADMIN_EMAIL
+}

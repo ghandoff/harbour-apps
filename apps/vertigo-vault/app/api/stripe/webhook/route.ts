@@ -11,7 +11,6 @@
 
 import { NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe/client";
-import { db } from "@/lib/db";
 import { createPurchase, getPurchaseByStripeSessionId } from "@/lib/queries/purchases";
 import { grantEntitlement, grantUserEntitlement } from "@/lib/queries/entitlements";
 import { sendPurchaseConfirmationEmail } from "@/lib/email";
@@ -33,7 +32,10 @@ export async function POST(req: Request) {
 
   let event;
   try {
-    event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+    // constructEventAsync uses SubtleCrypto (available on CF Workers).
+    // The sync constructEvent variant requires Node crypto which Workers
+    // don't polyfill even with nodejs_compat.
+    event = await stripe.webhooks.constructEventAsync(body, signature, webhookSecret);
   } catch (err) {
     console.error("[webhook] signature verification failed:", err);
     return NextResponse.json({ error: "invalid signature" }, { status: 400 });
@@ -67,14 +69,18 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "missing metadata" }, { status: 400 });
     }
 
-    // ── Atomic purchase + entitlement grant ─────────────────────────
-    // Acquire a dedicated client so BEGIN/COMMIT/ROLLBACK all run on the
-    // same connection. The pool-level sql.query() can dispatch each call
-    // to a different connection, breaking transaction isolation.
-    const client = await db.connect();
+    // Sequential writes under the Neon HTTP driver — no BEGIN/COMMIT.
+    // Neon's HTTP transport is stateless per query (no persistent client
+    // to acquire), which is what makes it CF-Workers-safe but also rules
+    // out the prior pool-based BEGIN/COMMIT pattern. Correctness rests on
+    // (a) Stripe redelivering on any non-2xx response, and (b) the
+    // idempotency check above short-circuiting once the purchase row exists.
+    // If grantEntitlement fails after createPurchase, we return 500 and
+    // Stripe retries — but the purchase row is now present, so the retry
+    // will skip via the idempotency check, leaving an orphan purchase
+    // without an entitlement. Same tradeoff packages/stripe/webhook.ts
+    // (used by creaseworks + deep-deck) already accepts.
     try {
-      await client.query("BEGIN");
-
       const purchaseId = await createPurchase({
         orgId: orgId || null,
         packCatalogueId: catalogueId,
@@ -85,25 +91,19 @@ export async function POST(req: Request) {
         paymentRef: session.payment_intent as string | null,
         stripeSessionId: session.id,
         stripePaymentIntentId: session.payment_intent as string | null,
-      }, client);
+      });
 
-      // Grant entitlement — org-level if orgId present, user-level otherwise
       if (orgId) {
-        await grantEntitlement(orgId, packCacheId, purchaseId, null, client);
+        await grantEntitlement(orgId, packCacheId, purchaseId);
       } else {
-        await grantUserEntitlement(userId, packCacheId, null, purchaseId, client);
+        await grantUserEntitlement(userId, packCacheId, null, purchaseId);
       }
-
-      await client.query("COMMIT");
 
       console.log(
         `[webhook] purchase ${purchaseId} for pack ${packCacheId}`,
         orgId ? `(org: ${orgId})` : `(user: ${userId})`,
       );
 
-      // ── Confirmation email (fire-and-forget) ───────────────────────
-      // Send after the transaction commits so the user gets a receipt.
-      // Failures are logged but don't affect the webhook response.
       const customerEmail =
         session.customer_details?.email ?? session.customer_email;
 
@@ -118,14 +118,11 @@ export async function POST(req: Request) {
         });
       }
     } catch (err) {
-      await client.query("ROLLBACK");
-      console.error("[webhook] transaction failed, rolled back:", err);
+      console.error("[webhook] purchase write failed:", err);
       return NextResponse.json(
         { error: "purchase processing failed" },
         { status: 500 },
       );
-    } finally {
-      client.release();
     }
   }
 

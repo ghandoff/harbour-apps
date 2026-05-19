@@ -5,14 +5,17 @@ import {
   resetImageFailureCount,
 } from "@/lib/sync/sync-image";
 
-/** Allow up to 60s on Hobby, 300s on Pro. */
-export const maxDuration = 300;
-
 /**
  * POST /api/cron/sync
  *
- * Called by the Vercel cron (daily at 06:00 UTC) or manually.
- * Protected by CRON_SECRET to prevent public access.
+ * Daily at 06:00 UTC. Invoked by the CF Workers scheduled() handler in
+ * worker.ts (cron trigger declared in wrangler.jsonc → triggers.crons).
+ * Also reachable directly via curl with a valid CRON_SECRET bearer for
+ * manual runs.
+ *
+ * CF Workers have a 30s CPU budget per request — see the round cap in
+ * lib/notion.ts queryAllPages. If the sync grows past that, split into
+ * chunks or move to a Durable Object queue.
  */
 export async function POST(request: Request) {
   const cronSecret = process.env.CRON_SECRET;

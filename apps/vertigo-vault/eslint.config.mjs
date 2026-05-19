@@ -21,6 +21,11 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // CF Workers entry — imports from gitignored .open-next/worker.js and
+    // is excluded from tsc the same way; lint has nothing useful to say
+    // about the OpenNext shim.
+    "worker.ts",
+    ".open-next/**",
   ]),
   // Relax rules that are too strict for the current codebase.
   // These can be tightened incrementally as the code improves.
