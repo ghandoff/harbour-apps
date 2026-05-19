@@ -28,12 +28,18 @@ set -uo pipefail  # do NOT use -e — we want to continue on app-level failures
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
-if [ ! -f "$HOME/.cf-token" ]; then
-  echo "ERROR: ~/.cf-token not found. Create a CF API token first." >&2
-  exit 2
+# Accept token from env var OR ~/.cf-token (env var takes precedence).
+# This lets the script run unchanged in shells that already export
+# CLOUDFLARE_API_TOKEN (e.g. via ~/.zshrc) without requiring the
+# token to also be written to disk.
+if [ -z "${CLOUDFLARE_API_TOKEN:-}" ]; then
+  if [ ! -f "$HOME/.cf-token" ]; then
+    echo "ERROR: CLOUDFLARE_API_TOKEN env var not set and ~/.cf-token not found." >&2
+    exit 2
+  fi
+  CLOUDFLARE_API_TOKEN="$(cat "$HOME/.cf-token")"
 fi
 export CLOUDFLARE_API_TOKEN
-CLOUDFLARE_API_TOKEN="$(cat "$HOME/.cf-token")"
 
 # Per-app fully-qualified worker URLs for header verification
 declare -a APPS=(
