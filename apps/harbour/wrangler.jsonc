@@ -34,6 +34,14 @@
     }
   ],
 
+  // Cron trigger: nightly Notion snapshot to R2 (creaseworks-evidence bucket,
+  // under `harbour-snapshots/YYYY-MM-DD.json`). Handler in worker.ts self-fetches
+  // /api/cron/snapshot-notion with the CRON_SECRET. 02:30 UTC is off-peak for
+  // all primary timezones we serve.
+  "triggers": {
+    "crons": ["30 2 * * *"]
+  },
+
   // Direct CF Workers Routes for auth endpoints — these bypass the site proxy
   // (wv-site Worker at windedvertigo.com/*) so that Auth.js's 302-to-Google
   // reaches the browser rather than being followed server-side by Next.js rewrites.

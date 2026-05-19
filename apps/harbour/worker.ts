@@ -49,7 +49,7 @@ export { DOQueueHandler, DOShardedTagCache, BucketCachePurge };
 //   - delegates to OpenNext's handler for the actual request
 //   - overlays the 5 standard security headers on the response
 //   - injects the harbour CSP if the inner response didn't set its own
-export default wrapWithSecurityHeaders(openNextHandler, {
+const wrapped = wrapWithSecurityHeaders(openNextHandler, {
   csp: HARBOUR_DEFAULT_CSP,
   // Bypass injection on Cloudflare's image pipeline internal paths.
   // Static assets bound at `assets.binding = "ASSETS"` are served by the
@@ -57,3 +57,39 @@ export default wrapWithSecurityHeaders(openNextHandler, {
   // all — this skip is belt-and-braces for cdn-cgi paths only.
   skipPaths: [/^\/cdn-cgi\//],
 });
+
+// CF cron trigger handler — fires per the `triggers.crons` schedule in
+// wrangler.jsonc. We use WORKER_SELF_REFERENCE to self-call the snapshot
+// route with the CRON_SECRET so the route logic lives in one place
+// (the Next.js handler), accessible both to the cron AND to manual curl.
+interface ScheduledEnv {
+  CRON_SECRET?: string;
+  WORKER_SELF_REFERENCE?: { fetch: typeof fetch };
+}
+interface ScheduledCtx {
+  waitUntil(p: Promise<unknown>): void;
+}
+
+export default {
+  fetch: wrapped.fetch.bind(wrapped),
+  async scheduled(_event: ScheduledEvent, env: ScheduledEnv, ctx: ScheduledCtx) {
+    if (!env.CRON_SECRET || !env.WORKER_SELF_REFERENCE) return;
+    ctx.waitUntil(
+      env.WORKER_SELF_REFERENCE.fetch(
+        "https://wv-harbour-harbour.windedvertigo.workers.dev/harbour/api/cron/snapshot-notion",
+        {
+          method: "POST",
+          headers: { Authorization: `Bearer ${env.CRON_SECRET}` },
+        },
+      ).then(async (res) => {
+        if (!res.ok) {
+          console.error(
+            "[scheduled] snapshot-notion failed",
+            res.status,
+            await res.text().catch(() => ""),
+          );
+        }
+      }),
+    );
+  },
+};
