@@ -1,65 +1,66 @@
 /**
- * Load test: Rubric Co-Builder — 20 rooms × 15 participants (300 concurrent)
+ * Load test: Rubric Co-Builder — full end-to-end flow
  *
- * Phases:
- *   1. create rooms  — 20 × POST /api/rooms
- *   2. join          — 300 × POST /api/rooms/[code]/join (concurrent burst)
- *   3. poll          — 300 × GET  /api/rooms/[code] (baseline snapshot latency)
- *   4. propose       — rooms advance to "propose"; each participant proposes one criterion
- *   5. vote          — rooms advance to "vote"; each participant fires maxVotes+OVER_VOTE
- *                      concurrent requests to probe the TOCTOU race in votes/route.ts
+ * Simulates 20 rooms × 15 participants going through every phase from lobby → commit.
+ * All rooms run in parallel; within each room one participant acts as facilitator
+ * (advances state), others poll and react.  A configurable fraction of participants
+ * drop out randomly after joining, verifying the room can still reach commit.
+ *
+ * Answers three questions:
+ *  1. Can each participant move from one step to the next?
+ *  2. Does state sync reach every participant within one poll cycle?
+ *  3. Can a room complete regardless of dropouts?
+ *
+ * Phase 5 also fires maxVotes+OVER_VOTE concurrent vote requests per participant
+ * to probe the TOCTOU race in votes/route.ts.
  *
  * Usage (from monorepo root):
  *   node load-tests/rubric-co-builder.mjs
  *
  * Env overrides:
- *   BASE_URL=http://localhost:3030   (default)
+ *   BASE_URL=http://localhost:3030
  *   ROOMS=20
  *   PER_ROOM=15
- *   OVER_VOTE=1   extra votes beyond maxVotes to fire for race probing (default 1)
+ *   DROPOUT_RATE=0.2        fraction of participants that drop out after joining
+ *   POLL_INTERVAL_MS=500    how often participants poll for state changes
+ *   STEP_DWELL_MS=2000      how long facilitator waits at each step before advancing
+ *   OVER_VOTE=1             extra votes beyond maxVotes to probe the race
  */
 
 const BASE_URL = process.env.BASE_URL ?? "http://localhost:3030";
 const ROOMS = Number(process.env.ROOMS) || 20;
 const PER_ROOM = Number(process.env.PER_ROOM) || 15;
+const DROPOUT_RATE = Number(process.env.DROPOUT_RATE) || 0.2;
+const POLL_INTERVAL_MS = Number(process.env.POLL_INTERVAL_MS) || 500;
+const STEP_DWELL_MS = Number(process.env.STEP_DWELL_MS) || 2000;
 const OVER_VOTE = Number(process.env.OVER_VOTE) || 1;
 
-function sleep(ms) {
-  return new Promise((r) => setTimeout(r, ms));
-}
+function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
+function jitter(ms) { return Math.random() * ms; }
 
-// ── timing helpers ────────────────────────────────────────────────────────────
+// ── timing / stats ────────────────────────────────────────────────────────────
 
 function pct(arr, p) {
   if (!arr.length) return "N/A";
-  const sorted = [...arr].sort((a, b) => a - b);
-  const idx = p >= 100 ? sorted.length - 1 : Math.floor((sorted.length * p) / 100);
-  return sorted[idx].toFixed(0) + "ms";
+  const s = [...arr].sort((a, b) => a - b);
+  return s[p >= 100 ? s.length - 1 : Math.floor(s.length * p / 100)].toFixed(0) + "ms";
 }
 
-function summarise(label, timings) {
+function row(label, timings) {
   const ok = timings.filter((t) => t.ok);
-  const failed = timings.filter((t) => !t.ok);
+  const bad = timings.filter((t) => !t.ok);
   const ms = ok.map((t) => t.ms);
-  const failedStatuses = failed.reduce((acc, t) => {
-    const key = t.status ? String(t.status) : "network";
-    acc[key] = (acc[key] ?? 0) + 1;
-    return acc;
-  }, {});
-  const failStr = failed.length
-    ? `  failed=${failed.length} (${JSON.stringify(failedStatuses)})`
+  const badStr = bad.length
+    ? `  fail=${bad.length}(${JSON.stringify(bad.reduce((a, t) => { a[t.status || "net"] = (a[t.status || "net"] ?? 0) + 1; return a; }, {}))})`
     : "";
   console.log(
-    `  ${label.padEnd(16)}` +
-      `  ok=${String(ok.length).padStart(4)}${failStr}` +
-      (ms.length
-        ? `  p50=${pct(ms, 50)}  p95=${pct(ms, 95)}  p99=${pct(ms, 99)}  max=${pct(ms, 100)}`
-        : ""),
+    `  ${label.padEnd(22)}  ok=${String(ok.length).padStart(4)}${badStr}` +
+    (ms.length ? `  p50=${pct(ms, 50)}  p95=${pct(ms, 95)}  p99=${pct(ms, 99)}  max=${pct(ms, 100)}` : ""),
   );
-  return { ok: ok.length, failed: failed.length, failedStatuses, ms };
+  return { ok: ok.length, fail: bad.length, ms };
 }
 
-// ── http helper ───────────────────────────────────────────────────────────────
+// ── http ──────────────────────────────────────────────────────────────────────
 
 async function req(method, path, body) {
   const t0 = performance.now();
@@ -76,205 +77,352 @@ async function req(method, path, body) {
   }
 }
 
-// ── phase 1: create rooms ─────────────────────────────────────────────────────
+// ── participant action map ────────────────────────────────────────────────────
+// called once per participant when they first detect a new state.
 
-async function phase1CreateRooms() {
-  console.log(`\nphase 1 — create ${ROOMS} rooms`);
-  const results = await Promise.allSettled(
-    Array.from({ length: ROOMS }, (_, i) =>
-      req("POST", "/api/rooms", {
-        learning_outcome: `loadtest outcome ${i + 1}: apply threshold concepts under load`,
-        project_description: `loadtest project ${i + 1}: a research report demonstrating conceptual understanding`,
-      }),
-    ),
-  );
-  const rooms = [];
-  const timings = [];
-  for (const r of results) {
-    if (r.status !== "fulfilled") { timings.push({ ok: false, status: 0, ms: 0 }); continue; }
-    const { ok, status, ms, json } = r.value;
-    timings.push({ ok, status, ms });
-    if (ok && json?.code) rooms.push(json.code);
+async function participantAct(participantId, roomCode, state, snap, timings, overVoteTimings) {
+  const pid = participantId;
+  const code = roomCode;
+  const push = (t) => timings.push(t);
+
+  if (state === "propose") {
+    const t = await req("POST", `/api/rooms/${code}/criteria`, {
+      name: `criterion-${pid.slice(0, 6)}`,
+      good_description: "demonstrates clear understanding of the learning outcome.",
+    });
+    push({ op: "propose", ok: t.ok, status: t.status, ms: t.ms });
+    return;
   }
-  summarise("POST /rooms", timings);
-  if (rooms.length < ROOMS) {
-    console.error(`  only ${rooms.length}/${ROOMS} rooms created — aborting`);
-    process.exit(1);
+
+  if (state === "vote" || state === "vote3") {
+    const round = state === "vote3" ? 3 : 1;
+    const criteria = snap.criteria.filter((c) => c.status !== "rejected");
+    const ballotSize = criteria.length;
+    const maxVotes = Math.min(3, Math.max(1, ballotSize - 1));
+    const toCast = Math.min(maxVotes + OVER_VOTE, criteria.length);
+    // fire all requests concurrently to probe the TOCTOU race
+    await Promise.all(
+      criteria.slice(0, toCast).map((c, idx) =>
+        req("POST", `/api/rooms/${code}/votes`, {
+          participant_id: pid, criterion_id: c.id, round,
+        }).then(({ ok, status, ms }) => {
+          const target = state === "vote" && idx >= maxVotes ? overVoteTimings : timings;
+          target.push({ op: state, ok, status, ms });
+        }),
+      ),
+    );
+    return;
   }
-  return rooms;
+
+  if (state === "scale") {
+    const criteria = snap.criteria.filter((c) => c.status !== "rejected");
+    for (const c of criteria.slice(0, 2)) {
+      const t = await req("PATCH", `/api/rooms/${code}/scale-responses`, {
+        participant_id: pid, criterion_id: c.id, level: 4,
+        descriptor: "the work exemplifies sophisticated and consistent understanding.",
+      });
+      push({ op: "scale", ok: t.ok, status: t.status, ms: t.ms });
+    }
+    return;
+  }
+
+  if (state === "vote2") {
+    const others = snap.scale_responses.filter((sr) => sr.participant_id !== pid);
+    for (const sr of others.slice(0, 2)) {
+      const t = await req("POST", `/api/rooms/${code}/scale-response-votes`, {
+        participant_id: pid, scale_response_id: sr.id,
+      });
+      push({ op: "vote2", ok: t.ok, status: t.status, ms: t.ms });
+    }
+    return;
+  }
+
+  if (state === "ai_ladder_propose") {
+    const t = await req("POST", `/api/rooms/${code}/ai-proposals`, {
+      participant_id: pid, level: 2,
+      rationale: "ai assists but critical thinking must remain with the student.",
+    });
+    push({ op: "ai-propose", ok: t.ok, status: t.status, ms: t.ms });
+    return;
+  }
+
+  if (state === "ai_ladder") {
+    const t = await req("POST", `/api/rooms/${code}/ai-votes`, {
+      participant_id: pid, level: 2,
+    });
+    push({ op: "ai-vote", ok: t.ok, status: t.status, ms: t.ms });
+    return;
+  }
+
+  if (state === "pledge") {
+    for (let slot = 1; slot <= 4; slot++) {
+      const t = await req("PATCH", `/api/rooms/${code}/pledge-responses`, {
+        participant_id: pid, slot_index: slot,
+        content: "i commit to using ai as a thinking partner, not a replacement.",
+      });
+      push({ op: "pledge", ok: t.ok, status: t.status, ms: t.ms });
+    }
+    return;
+  }
+
+  if (state === "pledge_vote") {
+    const others = snap.pledge_responses.filter((pr) => pr.participant_id !== pid);
+    for (const pr of others.slice(0, 4)) {
+      const t = await req("POST", `/api/rooms/${code}/pledge-response-votes`, {
+        participant_id: pid, pledge_response_id: pr.id,
+      });
+      push({ op: "pledge-vote", ok: t.ok, status: t.status, ms: t.ms });
+    }
+    return;
+  }
 }
 
-// ── phase 2: join ─────────────────────────────────────────────────────────────
+// ── participant poll loop ─────────────────────────────────────────────────────
 
-async function phase2Join(rooms) {
-  console.log(`\nphase 2 — join (${ROOMS * PER_ROOM} participants, ${PER_ROOM}/room)`);
+async function runParticipant(participant, roomCtx, timings, overVoteTimings, syncLags, stopFlag) {
+  const { participantId, roomCode, dropped } = participant;
+  if (dropped) return;
 
-  const results = await Promise.allSettled(
-    rooms.flatMap((code) =>
-      Array.from({ length: PER_ROOM }, () => req("POST", `/api/rooms/${code}/join`)),
-    ),
+  let lastSeenState = null;
+  const actedFor = new Set();
+
+  while (!stopFlag.done) {
+    await sleep(POLL_INTERVAL_MS + jitter(POLL_INTERVAL_MS * 0.3));
+
+    const t0 = performance.now();
+    const { ok, status, ms, json } = await req("GET", `/api/rooms/${roomCode}`);
+    timings.push({ op: "poll", ok, status, ms });
+
+    if (!ok || !json?.room) continue;
+
+    const state = json.room.state;
+
+    if (state !== lastSeenState) {
+      const lag = Date.now() - (roomCtx.stateAdvancedAt[state] ?? Date.now());
+      syncLags.push({ state, lag });
+      lastSeenState = state;
+
+      if (!actedFor.has(state)) {
+        actedFor.add(state);
+        await participantAct(participantId, roomCode, state, json, timings, overVoteTimings).catch(() => {});
+      }
+    }
+
+    if (state === "commit") break;
+  }
+}
+
+// ── facilitator (drives state machine) ───────────────────────────────────────
+
+async function runFacilitator(roomCode, roomCtx, timings) {
+  const advance = async (state) => {
+    const t = await req("PATCH", `/api/rooms/${roomCode}`, { state });
+    timings.push({ op: `adv:${state}`, ok: t.ok, status: t.status, ms: t.ms });
+    roomCtx.stateAdvancedAt[state] = Date.now();
+  };
+
+  const tally = async (endpoint) => {
+    const t = await req("POST", `/api/rooms/${roomCode}/${endpoint}`);
+    timings.push({ op: endpoint, ok: t.ok, status: t.status, ms: t.ms });
+    // tally endpoints auto-advance the state — record the new state from the response
+    // or fall back to a re-fetch
+    if (t.json?.advanced_to) roomCtx.stateAdvancedAt[t.json.advanced_to] = Date.now();
+    return t.json;
+  };
+
+  // lobby → frame → propose → vote
+  await sleep(200);
+  await advance("frame");
+  await sleep(STEP_DWELL_MS);
+  await advance("propose");
+  await sleep(STEP_DWELL_MS);
+  await advance("vote");
+  await sleep(STEP_DWELL_MS);
+
+  // vote → tally → criteria_gate
+  await tally("tally");
+  roomCtx.stateAdvancedAt["criteria_gate"] = Date.now();
+  await sleep(500);
+
+  // criteria_gate: select all non-rejected criteria, then advance to scale
+  const { json: snap1 } = await req("GET", `/api/rooms/${roomCode}`);
+  const selectedIds = (snap1?.criteria ?? []).filter((c) => c.status !== "rejected").map((c) => c.id);
+  const fc = await req("POST", `/api/rooms/${roomCode}/facilitator-choice`, { selected_ids: selectedIds });
+  timings.push({ op: "facilitator-choice", ok: fc.ok, status: fc.status, ms: fc.ms });
+  await advance("scale");
+  await sleep(STEP_DWELL_MS);
+
+  // scale → vote2
+  await advance("vote2");
+  await sleep(STEP_DWELL_MS);
+
+  // vote2 → tally2 → ai_ladder_propose
+  await tally("tally2");
+  roomCtx.stateAdvancedAt["ai_ladder_propose"] = Date.now();
+  await sleep(STEP_DWELL_MS);
+
+  // ai_ladder_propose → ai-tally → ai_ladder
+  await tally("ai-tally");
+  roomCtx.stateAdvancedAt["ai_ladder"] = Date.now();
+  await sleep(STEP_DWELL_MS);
+
+  // ai_ladder → ai-tally → vote3
+  await tally("ai-tally");
+  roomCtx.stateAdvancedAt["vote3"] = Date.now();
+  await sleep(STEP_DWELL_MS);
+
+  // vote3 → ai-tally → pledge
+  await tally("ai-tally");
+  roomCtx.stateAdvancedAt["pledge"] = Date.now();
+
+  // set pledge slot content so participants can respond
+  for (let i = 1; i <= 4; i++) {
+    await req("PATCH", `/api/rooms/${roomCode}/pledge`, {
+      slot_index: i, content: `slot ${i}: describe your commitment to responsible ai use.`,
+    });
+  }
+  await sleep(STEP_DWELL_MS);
+
+  // pledge → pledge_vote
+  await advance("pledge_vote");
+  await sleep(STEP_DWELL_MS);
+
+  // pledge_vote → tally-pledge → commit
+  await tally("tally-pledge");
+  roomCtx.stateAdvancedAt["commit"] = Date.now();
+}
+
+// ── per-room orchestration ────────────────────────────────────────────────────
+
+async function runRoom(roomIdx, timings, overVoteTimings, syncLags) {
+  // create room
+  const create = await req("POST", "/api/rooms", {
+    learning_outcome: `loadtest outcome ${roomIdx + 1}: apply threshold concepts under load`,
+    project_description: `loadtest project ${roomIdx + 1}: a research report demonstrating conceptual understanding`,
+  });
+  timings.push({ op: "create", ok: create.ok, status: create.status, ms: create.ms });
+  if (!create.ok || !create.json?.code) return { completed: false, code: null, joined: 0, dropped: 0 };
+
+  const code = create.json.code;
+
+  // join all participants
+  const joinResults = await Promise.allSettled(
+    Array.from({ length: PER_ROOM }, () => req("POST", `/api/rooms/${code}/join`)),
   );
   const participants = [];
-  const timings = [];
-  for (let i = 0; i < results.length; i++) {
-    const code = rooms[Math.floor(i / PER_ROOM)];
-    const r = results[i];
-    if (r.status !== "fulfilled") { timings.push({ ok: false, status: 0, ms: 0 }); continue; }
-    const { ok, status, ms, json } = r.value;
-    timings.push({ ok, status, ms });
-    if (ok && json?.participant_id) participants.push({ roomCode: code, participantId: json.participant_id });
-  }
-  summarise("POST /join", timings);
-  if (participants.length < ROOMS * PER_ROOM) {
-    console.warn(`  warning: only ${participants.length}/${ROOMS * PER_ROOM} participants joined`);
-  }
-  return participants;
-}
-
-// ── phase 3: poll ─────────────────────────────────────────────────────────────
-
-async function phase3Poll(rooms, label) {
-  const results = await Promise.allSettled(
-    rooms.flatMap((code) =>
-      Array.from({ length: PER_ROOM }, () => req("GET", `/api/rooms/${code}`)),
-    ),
-  );
-  const timings = results.map((r) =>
-    r.status === "fulfilled"
-      ? { ok: r.value.ok, status: r.value.status, ms: r.value.ms }
-      : { ok: false, status: 0, ms: 0 },
-  );
-  return summarise(label ?? "GET /rooms", timings);
-}
-
-// ── phase 4: propose ──────────────────────────────────────────────────────────
-
-async function phase4Propose(rooms, participants) {
-  console.log(`\nphase 4 — propose (advance to "propose"; each participant proposes 1 criterion)`);
-
-  await Promise.allSettled(
-    rooms.map((code) => req("PATCH", `/api/rooms/${code}`, { state: "propose" })),
-  );
-
-  const results = await Promise.allSettled(
-    participants.map((p, i) =>
-      req("POST", `/api/rooms/${p.roomCode}/criteria`, {
-        name: `criterion ${i + 1}`,
-        good_description: "the work clearly demonstrates understanding of the core concept.",
-      }),
-    ),
-  );
-  const timings = results.map((r) =>
-    r.status === "fulfilled"
-      ? { ok: r.value.ok, status: r.value.status, ms: r.value.ms }
-      : { ok: false, status: 0, ms: 0 },
-  );
-  summarise("POST /criteria", timings);
-
-  // re-fetch snapshots to capture all criteria IDs (seeds + proposed)
-  const snaps = await Promise.all(rooms.map((code) => req("GET", `/api/rooms/${code}`)));
-  const criteriaByRoom = {};
-  for (let i = 0; i < rooms.length; i++) {
-    criteriaByRoom[rooms[i]] = snaps[i]?.json?.criteria?.map((c) => c.id) ?? [];
-  }
-  return criteriaByRoom;
-}
-
-// ── phase 5: vote burst ───────────────────────────────────────────────────────
-
-async function phase5Vote(rooms, participants, criteriaByRoom) {
-  console.log(`\nphase 5 — vote burst (advance to "vote"; fire maxVotes+${OVER_VOTE} concurrent per participant)`);
-
-  await Promise.allSettled(
-    rooms.map((code) => req("PATCH", `/api/rooms/${code}`, { state: "vote" })),
-  );
-
-  // brief pause so all state updates are visible before the burst
-  await sleep(200);
-
-  const withinTimings = [];
-  const overTimings = [];
-
-  await Promise.allSettled(
-    participants.flatMap((p) => {
-      const criteria = criteriaByRoom[p.roomCode] ?? [];
-      if (!criteria.length) return [];
-      const ballotSize = criteria.length;
-      const maxVotes = Math.min(3, Math.max(1, ballotSize - 1));
-      const toCast = Math.min(maxVotes + OVER_VOTE, criteria.length);
-
-      return criteria.slice(0, toCast).map((cid, idx) =>
-        req("POST", `/api/rooms/${p.roomCode}/votes`, {
-          participant_id: p.participantId,
-          criterion_id: cid,
-          round: 1,
-        }).then(({ ok, status, ms }) => {
-          const t = { ok, status, ms };
-          if (idx < maxVotes) withinTimings.push(t);
-          else overTimings.push(t);
-        }),
-      );
-    }),
-  );
-
-  summarise("POST /votes (quota)", withinTimings);
-
-  if (overTimings.length) {
-    summarise("POST /votes (over)", overTimings);
-    const racedThrough = overTimings.filter((t) => t.status === 201).length;
-    if (racedThrough > 0) {
-      console.log(
-        `\n  !! TOCTOU RACE CONFIRMED: ${racedThrough} over-quota votes returned 201` +
-          ` (should all be 409)`,
-      );
-    } else {
-      console.log(`  over-quota votes: ${overTimings.length} total — all returned 409 (no race at this concurrency)`);
+  for (const r of joinResults) {
+    if (r.status !== "fulfilled" || !r.value.ok) {
+      timings.push({ op: "join", ok: false, status: r.value?.status ?? 0, ms: r.value?.ms ?? 0 });
+      continue;
     }
-    return { withinTimings, overTimings, racedThrough };
+    timings.push({ op: "join", ok: true, status: r.value.status, ms: r.value.ms });
+    participants.push({ participantId: r.value.json.participant_id, roomCode: code });
   }
-  return { withinTimings, overTimings, racedThrough: 0 };
+
+  // randomly drop some participants
+  let droppedCount = 0;
+  for (const p of participants) {
+    if (Math.random() < DROPOUT_RATE) {
+      p.dropped = true;
+      droppedCount++;
+    }
+  }
+
+  const roomCtx = { stateAdvancedAt: {}, currentState: "lobby" };
+  const stopFlag = { done: false };
+
+  // run facilitator and participant poll loops concurrently
+  const pollLoops = participants.map((p) =>
+    runParticipant(p, roomCtx, timings, overVoteTimings, syncLags, stopFlag),
+  );
+
+  await Promise.allSettled([
+    runFacilitator(code, roomCtx, timings).then(() => { stopFlag.done = true; }),
+    ...pollLoops,
+  ]);
+
+  // verify final state
+  const { json: final } = await req("GET", `/api/rooms/${code}`);
+  const completed = final?.room?.state === "commit";
+  return { completed, code, joined: participants.length, dropped: droppedCount };
 }
 
 // ── main ──────────────────────────────────────────────────────────────────────
 
 async function main() {
-  console.log(`\nRubric Co-Builder load test`);
+  console.log(`\nRubric Co-Builder — full end-to-end load test`);
   console.log(`BASE_URL=${BASE_URL}`);
   console.log(`${ROOMS} rooms × ${PER_ROOM} participants = ${ROOMS * PER_ROOM} virtual users`);
-  console.log(`vote probe: maxVotes + ${OVER_VOTE} concurrent requests per participant\n`);
+  console.log(`dropout rate: ${(DROPOUT_RATE * 100).toFixed(0)}%   poll interval: ${POLL_INTERVAL_MS}ms   step dwell: ${STEP_DWELL_MS}ms`);
+  console.log(`vote race probe: maxVotes + ${OVER_VOTE} concurrent per participant\n`);
+
+  const allTimings = [];
+  const overVoteTimings = [];
+  const syncLags = [];
 
   const totalStart = performance.now();
 
-  const rooms = await phase1CreateRooms();
-  const participants = await phase2Join(rooms);
-
-  console.log(`\nphase 3 — poll baseline (${ROOMS * PER_ROOM} GET /rooms/[code])`);
-  const baseline = await phase3Poll(rooms, "GET /rooms");
-
-  const criteriaByRoom = await phase4Propose(rooms, participants);
-
-  // run phase 5 and a concurrent poll to measure latency under write pressure
-  let pollBurstStats = null;
-  const [voteResult] = await Promise.all([
-    phase5Vote(rooms, participants, criteriaByRoom),
-    (async () => {
-      await sleep(50); // let vote burst start first
-      console.log(`\nphase 3b — poll during vote burst (${ROOMS * PER_ROOM} requests)`);
-      pollBurstStats = await phase3Poll(rooms, "GET /rooms");
-    })(),
-  ]);
+  const roomResults = await Promise.allSettled(
+    Array.from({ length: ROOMS }, (_, i) =>
+      runRoom(i, allTimings, overVoteTimings, syncLags),
+    ),
+  );
 
   const totalMs = performance.now() - totalStart;
 
-  console.log("\n── Summary ──────────────────────────────────────────────────────");
-  console.log(`total wall time:       ${(totalMs / 1000).toFixed(1)}s`);
-  console.log(`participants joined:   ${participants.length} / ${ROOMS * PER_ROOM}`);
-  console.log(`TOCTOU races:          ${voteResult.racedThrough}`);
-  console.log("");
-  console.log(`poll p95 — baseline: ${pct(baseline.ms, 95)}  during vote burst: ${pct(pollBurstStats?.ms ?? [], 95)}`);
+  // ── per-operation summary ────────────────────────────────────────────────
+  console.log("── Per-operation latency ────────────────────────────────────────");
+  const byOp = {};
+  for (const t of allTimings) {
+    if (!byOp[t.op]) byOp[t.op] = [];
+    byOp[t.op].push(t);
+  }
+  for (const [op, ts] of Object.entries(byOp)) row(op, ts);
+
+  if (overVoteTimings.length) {
+    console.log("");
+    console.log("── Vote race probe ──────────────────────────────────────────────");
+    row("vote (within quota)", allTimings.filter((t) => t.op === "vote"));
+    row("vote (over quota)",   overVoteTimings);
+    const raced = overVoteTimings.filter((t) => t.status === 201).length;
+    if (raced > 0) {
+      console.log(`\n  !! TOCTOU CONFIRMED: ${raced} over-quota votes returned 201`);
+    } else {
+      console.log(`  over-quota votes: all 409 (no race at this concurrency)`);
+    }
+  }
+
+  // ── sync lag ─────────────────────────────────────────────────────────────
+  console.log("\n── Sync lag (PATCH → participant detects new state) ─────────────");
+  const lagByState = {};
+  for (const { state, lag } of syncLags) {
+    if (!lagByState[state]) lagByState[state] = [];
+    lagByState[state].push(lag);
+  }
+  for (const [state, lags] of Object.entries(lagByState)) {
+    const all = lags.filter((l) => l >= 0);
+    if (!all.length) continue;
+    console.log(`  ${state.padEnd(22)}  n=${String(all.length).padStart(4)}  p50=${pct(all, 50)}  p95=${pct(all, 95)}  max=${pct(all, 100)}`);
+  }
+
+  // ── room completion ───────────────────────────────────────────────────────
+  console.log("\n── Room outcomes ────────────────────────────────────────────────");
+  let completed = 0, totalJoined = 0, totalDropped = 0;
+  for (const r of roomResults) {
+    if (r.status !== "fulfilled") continue;
+    if (r.value.completed) completed++;
+    totalJoined += r.value.joined ?? 0;
+    totalDropped += r.value.dropped ?? 0;
+  }
+  const activeUsers = totalJoined - totalDropped;
+  console.log(`  rooms reaching commit:  ${completed} / ${ROOMS}`);
+  console.log(`  participants joined:    ${totalJoined} / ${ROOMS * PER_ROOM}`);
+  console.log(`  participants dropped:   ${totalDropped}  (active: ${activeUsers})`);
+
+  console.log(`\n  total wall time: ${(totalMs / 1000).toFixed(1)}s`);
   console.log("─────────────────────────────────────────────────────────────────\n");
 
-  console.log("verification query (run against test branch to confirm TOCTOU):");
+  console.log("verification query (Neon test branch — confirms TOCTOU at DB level):");
   console.log(`
   select participant_id, round, count(*) as n
   from rubric_cobuilder.votes
@@ -288,14 +436,7 @@ async function main() {
   group by 1, 2 having count(*) > 3;
 `);
 
-  // exit 1 only on unexpected failures (exclude anticipated 409s on over-quota votes)
-  const unexpected =
-    voteResult.withinTimings.filter((t) => !t.ok && t.status !== 409).length +
-    voteResult.overTimings.filter((t) => !t.ok && t.status !== 409 && t.status !== 201).length;
-  process.exit(unexpected > 0 ? 1 : 0);
+  process.exit(completed < ROOMS ? 1 : 0);
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+main().catch((err) => { console.error(err); process.exit(1); });
