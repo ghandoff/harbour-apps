@@ -6,6 +6,7 @@ import { createHarbourAuth } from "@windedvertigo/auth";
  */
 const { handlers, auth, signIn, signOut, authConfig } = createHarbourAuth({
   appName: "mirror-log",
+  allowedEmailDomains: ["windedvertigo.com"],
 });
 
 export { handlers, auth, signIn, signOut, authConfig };

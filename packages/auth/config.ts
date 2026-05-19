@@ -26,7 +26,7 @@ import type { HarbourAuthOptions } from "./types";
  * ```
  */
 export function createHarbourAuth(options: HarbourAuthOptions) {
-  const { appName, onFirstSignIn, enrichToken, refreshInterval } = options;
+  const { appName, onFirstSignIn, enrichToken, refreshInterval, allowedEmailDomains } = options;
 
   // Empty appName is reserved for the harbour hub itself, which mounts at
   // /harbour (not /harbour/<sub>). Each non-empty appName produces the
@@ -48,6 +48,9 @@ export function createHarbourAuth(options: HarbourAuthOptions) {
         clientId: process.env.GOOGLE_CLIENT_ID!,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
         allowDangerousEmailAccountLinking: true,
+        // Narrow the Google account-picker UI to the first allowed domain (hd hint).
+        // This is UX-only — the actual enforcement is in the signIn callback below.
+        ...(allowedEmailDomains?.length === 1 ? { authorization: { params: { hd: allowedEmailDomains[0] } } } : {}),
       }),
     ],
 
@@ -81,7 +84,18 @@ export function createHarbourAuth(options: HarbourAuthOptions) {
 
     callbacks: {
       async signIn({ user }) {
-        return !!user.email;
+        if (!user.email) return false;
+        // Domain restriction — enforced when allowedEmailDomains is configured.
+        // Remove (or pass an empty array) when opening to external users for
+        // public sign-up; access will then be gated by subscription tier instead.
+        if (allowedEmailDomains && allowedEmailDomains.length > 0) {
+          const domain = user.email.split("@")[1]?.toLowerCase();
+          if (!allowedEmailDomains.map((d) => d.toLowerCase()).includes(domain ?? "")) {
+            console.warn(`[${logName}] sign-in rejected — domain not allowed: ${domain}`);
+            return false;
+          }
+        }
+        return true;
       },
 
       async jwt({ token, user, account, profile }) {

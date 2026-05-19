@@ -18,6 +18,7 @@ import { getUserTier } from "@/lib/queries/accessibility";
  */
 const { handlers, auth, signIn, signOut, authConfig } = createHarbourAuth({
   appName: "creaseworks",
+  allowedEmailDomains: ["windedvertigo.com"],
 
   async onFirstSignIn(userId: string, email: string) {
     // Auto-join org based on verified email domains

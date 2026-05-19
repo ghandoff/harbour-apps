@@ -72,6 +72,23 @@ export interface HarbourAuthOptions {
    * creaseworks: 300_000 (5 min), vertigo-vault: 60_000 (1 min)
    */
   refreshInterval?: number;
+
+  /**
+   * Restrict sign-in to specific email domains.
+   *
+   * When set, only email addresses ending in one of the listed domains
+   * (e.g. ["windedvertigo.com"]) may authenticate. Google's `hd` hint
+   * is also set to the first domain as a UI hint to narrow the account
+   * picker. Non-matching emails are rejected before any DB write occurs.
+   *
+   * Omit (or pass an empty array) to allow any email — appropriate
+   * when public sign-up is enabled and access is gated by subscription
+   * tier rather than email domain.
+   *
+   * All harbour apps should use ["windedvertigo.com"] until public
+   * launch. Remove when opening to external users.
+   */
+  allowedEmailDomains?: string[];
 }
 
 // Augment next-auth module types so consuming apps get typed sessions

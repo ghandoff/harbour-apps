@@ -18,6 +18,7 @@ import { getUserTier } from "@/lib/queries/accessibility";
  */
 const { handlers, auth, signIn, signOut, authConfig } = createHarbourAuth({
   appName: "vertigo-vault",
+  allowedEmailDomains: ["windedvertigo.com"],
 
   async onFirstSignIn(userId: string, email: string) {
     await autoJoinOrg(userId, email);
