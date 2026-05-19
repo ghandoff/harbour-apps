@@ -16,7 +16,15 @@ export async function POST(
   if (!isValidRoomCode(normalised)) {
     return NextResponse.json({ error: "invalid code" }, { status: 400 });
   }
-  const result = await getStore().tallyScaleResponseVotes(
+  const store = getStore();
+  const snapshot = await store.getSnapshot(normalised);
+  if (!snapshot) {
+    return NextResponse.json({ error: "room not found" }, { status: 404 });
+  }
+  if (snapshot.room.state !== "vote2") {
+    return NextResponse.json({ already_advanced: true, state: snapshot.room.state });
+  }
+  const result = await store.tallyScaleResponseVotes(
     normalised,
     "ai_ladder_propose",
   );

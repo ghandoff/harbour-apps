@@ -47,8 +47,14 @@ export async function POST(
 
   const ballotSize = snapshot.criteria.filter((c) => c.status !== "rejected").length;
   const maxVotes = maxVotesFor(ballotSize);
-  const count = await store.countVotesForParticipant(participantId, snapshot.room.id, round);
-  if (count >= maxVotes) {
+  const result = await store.castVoteIfUnderLimit(
+    participantId,
+    criterionId,
+    snapshot.room.id,
+    round,
+    maxVotes,
+  );
+  if (result === "over_limit") {
     return NextResponse.json(
       {
         error: `you've used all ${maxVotes} dot${maxVotes === 1 ? "" : "s"}. remove one first.`,
@@ -56,11 +62,10 @@ export async function POST(
       { status: 409 },
     );
   }
-  const vote = await store.castVote(participantId, criterionId, round);
-  if (!vote) {
+  if (!result) {
     return NextResponse.json({ error: "couldn't cast vote" }, { status: 400 });
   }
-  return NextResponse.json(vote, { status: 201 });
+  return NextResponse.json(result, { status: 201 });
 }
 
 export async function DELETE(

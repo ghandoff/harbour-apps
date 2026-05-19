@@ -26,6 +26,11 @@ export async function POST(
     return NextResponse.json({ error: "room not found" }, { status: 404 });
   }
 
+  const validStates = ["ai_ladder_propose", "ai_ladder", "vote3"] as const;
+  if (!validStates.includes(snapshot.room.state as typeof validStates[number])) {
+    return NextResponse.json({ already_advanced: true, state: snapshot.room.state });
+  }
+
   if (snapshot.room.state === "ai_ladder_propose") {
     await store.updateRoomState(normalised, "ai_ladder");
     return NextResponse.json({ advanced_to: "ai_ladder" });

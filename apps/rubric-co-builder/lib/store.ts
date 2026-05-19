@@ -61,6 +61,15 @@ export type Store = {
   castVote(participantId: string, criterionId: string, round: 1 | 2 | 3): Promise<Vote | null>;
   removeVote(participantId: string, criterionId: string, round: 1 | 2 | 3): Promise<boolean>;
   countVotesForParticipant(participantId: string, roomId: string, round: 1 | 2 | 3): Promise<number>;
+  // atomic: locks the participant row, checks the count, inserts if under limit.
+  // returns the vote (new or existing), "over_limit", or null (participant/criterion not found).
+  castVoteIfUnderLimit(
+    participantId: string,
+    criterionId: string,
+    roomId: string,
+    round: 1 | 2 | 3,
+    maxVotes: number,
+  ): Promise<Vote | null | "over_limit">;
 
   tallySelection(
     code: string,
@@ -449,6 +458,33 @@ function memoryStore(): Store {
           roomCriteriaIds.has(v.criterion_id) &&
           v.round === round,
       ).length;
+    },
+
+    async castVoteIfUnderLimit(participantId, criterionId, roomId, round, maxVotes) {
+      const key = voteKey(participantId, criterionId, round);
+      if (db.votes.has(key)) return db.votes.get(key)!;
+      const participant = db.participants.get(participantId);
+      const criterion = db.criteria.get(criterionId);
+      if (!participant || !criterion) return null;
+      const roomCriteriaIds = new Set(
+        [...db.criteria.values()].filter((c) => c.room_id === roomId).map((c) => c.id),
+      );
+      const currentCount = [...db.votes.values()].filter(
+        (v) =>
+          v.participant_id === participantId &&
+          roomCriteriaIds.has(v.criterion_id) &&
+          v.round === round,
+      ).length;
+      if (currentCount >= maxVotes) return "over_limit";
+      const vote: Vote = {
+        id: uuid(),
+        participant_id: participantId,
+        criterion_id: criterionId,
+        round,
+        created_at: new Date().toISOString(),
+      };
+      db.votes.set(key, vote);
+      return vote;
     },
 
     async tallySelection(code, round, nextState) {
@@ -1240,6 +1276,52 @@ function neonStore(url: string): Store {
       return count as number;
     },
 
+    async castVoteIfUnderLimit(participantId, criterionId, roomId, round, maxVotes) {
+      // Lock the participant row so concurrent requests for the same participant
+      // are serialised at the DB level — eliminates the TOCTOU race.
+      const rows = await sql`
+        with lock as (
+          select id from rubric_cobuilder.participants
+          where id = ${participantId}
+          for update
+        ),
+        cnt as (
+          select count(*)::int as c
+          from rubric_cobuilder.votes v
+          join rubric_cobuilder.criteria cr on cr.id = v.criterion_id
+          where v.participant_id = ${participantId}
+            and cr.room_id = ${roomId}
+            and coalesce(v.round, 1) = ${round}
+        )
+        insert into rubric_cobuilder.votes (participant_id, criterion_id, round)
+        select ${participantId}, ${criterionId}, ${round}
+        from lock
+        where (select c from cnt) < ${maxVotes}
+        on conflict (participant_id, criterion_id, round) do nothing
+        returning id, participant_id, criterion_id, round, created_at
+      `;
+      if (rows.length > 0) {
+        const row = rows[0] as Record<string, unknown>;
+        return { ...row, round: (row.round as number) ?? round } as Vote;
+      }
+      // empty RETURNING: either already voted this criterion, over limit, or no participant
+      const [existing] = await sql`
+        select id, participant_id, criterion_id,
+               coalesce(round, 1)::int as round, created_at
+        from rubric_cobuilder.votes
+        where participant_id = ${participantId}
+          and criterion_id = ${criterionId}
+          and coalesce(round, 1) = ${round}
+        limit 1
+      `;
+      if (existing) return existing as Vote;
+      const [participantRow] = await sql`
+        select id from rubric_cobuilder.participants where id = ${participantId} limit 1
+      `;
+      if (!participantRow) return null;
+      return "over_limit";
+    },
+
     async tallySelection(code, round, nextState) {
       const [room] = await sql`
         select id from rubric_cobuilder.rooms where code = ${code} limit 1
@@ -1323,11 +1405,11 @@ function neonStore(url: string): Store {
         }
       }
 
-      // advance state
+      // advance state; noop if already advanced (idempotent under concurrent tally calls)
       await sql`
         update rubric_cobuilder.rooms
         set state = ${nextState}, step_started_at = now()
-        where id = ${roomId}
+        where id = ${roomId} and state != ${nextState}
       `;
 
       const selected = (await sql`
@@ -1448,7 +1530,7 @@ function neonStore(url: string): Store {
         update rubric_cobuilder.rooms
         set state = 'pledge', step_started_at = now(),
             timer_end = null, timer_duration = null
-        where id = ${room.id}
+        where id = ${room.id} and state != 'pledge'
       `;
       return { ceiling };
     },
@@ -1548,7 +1630,7 @@ function neonStore(url: string): Store {
         update rubric_cobuilder.rooms
         set state = 'commit', step_started_at = now(),
             timer_end = null, timer_duration = null
-        where id = ${room.id}
+        where id = ${room.id} and state != 'commit'
       `;
 
       return { winners };
@@ -1718,7 +1800,7 @@ function neonStore(url: string): Store {
         update rubric_cobuilder.rooms
         set state = ${nextState}, step_started_at = now(),
             timer_end = null, timer_duration = null
-        where id = ${roomId}
+        where id = ${roomId} and state != ${nextState}
       `;
 
       return { winners };
