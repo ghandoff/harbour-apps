@@ -14,6 +14,7 @@ import type {
   QueryDataSourceParameters,
   QueryDataSourceResponse,
 } from "@notionhq/client/build/src/api-endpoints";
+import { PIER_MAP, WAVE_MAP, type Pier, type Wave } from "./pier-data";
 
 // ── client ────────────────────────────────────────────────
 const notion = new Client({ auth: process.env.NOTION_TOKEN });
@@ -90,6 +91,8 @@ const PROPS = {
     href: "Href",
     status: "Status",
     order: "Order",
+    pier: "Pier",
+    wave: "Launch Wave",
   },
   depthChart: {
     name: "Name",
@@ -131,6 +134,8 @@ export interface Game {
   href: string;
   status: "live" | "coming-soon";
   order: number;
+  pier: Pier[];
+  wave: Wave;
 }
 
 export interface Skill {
@@ -290,6 +295,11 @@ async function _fetchGames(): Promise<Game[]> {
     const status = getSelect(props[p.status]) || "live";
     const featuresRaw = getText(props[p.features]);
 
+    // Pier/Wave: prefer Notion values; fall back to code-owned maps
+    // so the landing keeps rendering if a column gets renamed.
+    const pierFromNotion = getMultiSelect(props[p.pier]) as Pier[];
+    const waveFromNotion = getSelect(props[p.wave]) as Wave | "";
+
     games.push({
       slug,
       name,
@@ -311,6 +321,8 @@ async function _fetchGames(): Promise<Game[]> {
       href: getUrl(props[p.href]),
       status: status as "live" | "coming-soon",
       order: getNumber(props[p.order]) ?? 0,
+      pier: pierFromNotion.length ? pierFromNotion : (PIER_MAP[slug] ?? []),
+      wave: waveFromNotion || (WAVE_MAP[slug] ?? "coming-soon"),
     });
   }
 
