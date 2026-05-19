@@ -34,6 +34,24 @@
     }
   ],
 
+  // Cloudflare native Rate Limiting binding for /api/harbour/register-interest.
+  // Globally consistent counts (unlike module-scoped state which is per-isolate).
+  // 5 requests per 60s per key (where the key is the client IP). The
+  // `unsafe` namespace is required while this API is in beta.
+  "unsafe": {
+    "bindings": [
+      {
+        "name": "REGISTER_INTEREST_LIMITER",
+        "type": "ratelimit",
+        "namespace_id": "1001",
+        "simple": {
+          "limit": 5,
+          "period": 10
+        }
+      }
+    ]
+  },
+
   // Cron trigger: nightly Notion snapshot to R2 (creaseworks-evidence bucket,
   // under `harbour-snapshots/YYYY-MM-DD.json`). Handler in worker.ts self-fetches
   // /api/cron/snapshot-notion with the CRON_SECRET. 02:30 UTC is off-peak for

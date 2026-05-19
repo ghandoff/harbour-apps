@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 
 /**
  * POST /harbour/api/harbour/register-interest
@@ -90,26 +91,34 @@ async function resolveAudienceId(name: string): Promise<string> {
 }
 
 // ── rate limit ────────────────────────────────────────────
-// Per-IP token bucket: 5 requests per 60 seconds. State is module-scoped
-// so it's per-isolate; CF spreads traffic across isolates so this is
-// best-effort, not strictly accurate — sufficient to deter scripted
-// abuse without standing up a Durable Object for global state.
-const RATE_LIMIT = { capacity: 5, refillMs: 60_000 };
-const buckets = new Map<string, { tokens: number; refillAt: number }>();
+// Cloudflare's native rate-limit binding gives globally consistent
+// counts across isolates. Configured in wrangler.jsonc unsafe.bindings:
+// REGISTER_INTEREST_LIMITER → 5 requests / 60s per key.
+//
+// Falls back to "allow" if the binding is unavailable (e.g. local
+// `next dev` outside the Worker runtime) — same UX as the old
+// best-effort module-scoped bucket when CF binding wasn't present.
+interface RateLimiter {
+  limit(input: { key: string }): Promise<{ success: boolean }>;
+}
 
-function takeToken(ip: string): boolean {
-  const now = Date.now();
-  const bucket = buckets.get(ip);
-  if (!bucket || now >= bucket.refillAt) {
-    buckets.set(ip, {
-      tokens: RATE_LIMIT.capacity - 1,
-      refillAt: now + RATE_LIMIT.refillMs,
-    });
+async function takeToken(ip: string): Promise<boolean> {
+  try {
+    const ctx = getCloudflareContext();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const limiter = (ctx.env as any).REGISTER_INTEREST_LIMITER as
+      | RateLimiter
+      | undefined;
+    if (!limiter) return true;
+    const { success } = await limiter.limit({ key: ip });
+    return success;
+  } catch (err) {
+    // Binding access failed (e.g. unavailable in local dev) — fail
+    // open so we don't block real submissions. Worker logs surface
+    // any genuine outage via wrangler tail.
+    console.warn("[register-interest] rate limiter unavailable:", err);
     return true;
   }
-  if (bucket.tokens <= 0) return false;
-  bucket.tokens -= 1;
-  return true;
 }
 
 function getClientIp(request: Request): string {
@@ -136,7 +145,7 @@ function notifySlack(message: string): void {
 
 export async function POST(request: Request) {
   const ip = getClientIp(request);
-  if (!takeToken(ip)) {
+  if (!(await takeToken(ip))) {
     return NextResponse.json(
       { error: "rate limited — try again in a minute" },
       { status: 429, headers: { "retry-after": "60" } },
