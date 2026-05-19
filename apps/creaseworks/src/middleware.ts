@@ -1,25 +1,22 @@
 /**
- * Edge middleware — route protection and CSRF for CF Workers deployment.
+ * Next.js Edge middleware for creaseworks.
  *
- * Runs on the edge runtime (required by OpenNext/CF Workers). Handles:
- *   - Route protection: redirects unauthenticated users to /login
- *   - CSRF validation: rejects cross-origin state-changing requests
+ * IMPORTANT — OpenNext CF caveat: Next.js 16 introduced proxy.ts as a
+ * replacement for middleware.ts, but proxy.ts compiles to a Node.js function
+ * which OpenNext CF does NOT support (only Edge runtime is accepted).
+ * middleware.ts still compiles to Edge runtime and IS accepted by OpenNext CF.
+ * → For OpenNext CF apps, always use middleware.ts, not proxy.ts.
  *
- * Rate limiting (Postgres-backed) lives in proxy-handler.ts for Node.js
- * contexts only — CF's built-in WAF handles layer-3/4 rate limiting.
+ * Full route protection (JWT auth, Postgres rate limiting, CSRF) lives in
+ * proxy-handler.ts but cannot run at the Edge layer. Those features are
+ * implemented at the CF Worker wrapper level (worker.ts) instead.
  *
- * Public routes: /, /find/*, /matcher/*, /play/*, /log/*, /community/*,
- *   /gallery/*, /sampler/*, /browse, /packs (catalogue only), /login,
- *   /onboarding, /api/auth/*, /api/cron/*, /api/matcher/*
- * Protected routes: /packs/[slug]/*, /runs/*, /admin/*, /api/admin/*,
- *   /profile/*
+ * This file is intentionally minimal — a pass-through. The CF Worker wrapper
+ * handles security headers via @windedvertigo/security.
  */
-
 import { NextRequest, NextResponse } from "next/server";
 
-// Temporary no-op — stripping all logic to isolate the 1101 crash.
-// Route protection and CSRF will be restored once the crash is confirmed fixed.
-export function middleware(_req: NextRequest) {
+export function middleware(_req: NextRequest): NextResponse {
   return NextResponse.next();
 }
 

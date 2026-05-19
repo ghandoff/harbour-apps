@@ -92,6 +92,7 @@ document answers in `docs/infrastructure-and-costs.md` before committing to a ne
 - **CSS: never hardcode hex values** — use CSS custom properties from `packages/tokens/`. brand palette: `--wv-cadet` (#273248), `--wv-redwood` (#b15043), `--wv-sienna` (#cb7858), `--wv-champagne` (#ffebd2).
 - **`next lint` is broken in Next.js 16** — all apps use `"lint": "eslint"` directly. ESLint 9 flat config (`eslint.config.mjs`) with `defineConfig()` + `globalIgnores()`.
 - **Next.js 15+ async params**: `params` and `searchParams` are Promises. server components use `await params`, client components use React 19's `use(params)`.
+- **Next.js 16 proxy.ts vs middleware.ts — OpenNext CF caveat**: Next.js 16 introduced `proxy.ts` (exports `proxy` + `config`) as a replacement for `middleware.ts`. **However**, `proxy.ts` compiles to a Node.js function which OpenNext CF rejects ("Node.js middleware is not currently supported"). `middleware.ts` compiles to Edge runtime which OpenNext CF accepts. **Rule for all CF-deployed apps in this repo**: always use `middleware.ts`, never `proxy.ts`. Vercel-deployed apps can use either. The full-featured `proxy-handler.ts` (Postgres rate limiting, CSRF) cannot run at Edge layer regardless — those features belong in `worker.ts` at the CF Worker level, not in middleware.
 
 ---
 
