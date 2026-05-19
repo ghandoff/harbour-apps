@@ -18,8 +18,6 @@ import {
   VAULT_PRACTITIONER_COLUMNS,
   VAULT_INTERNAL_COLUMNS,
 } from "@/lib/security/column-selectors";
-import { checkEntitlement } from "./entitlements";
-
 export type VaultAccessTier = "teaser" | "entitled" | "practitioner" | "internal";
 
 /**
@@ -34,9 +32,20 @@ const VAULT_PACK_SLUGS = {
 /**
  * Resolve the highest vault access tier for a user.
  *
- * Checks entitlements against the two vault packs (practitioner first,
- * since it supersedes explorer). Falls back to teaser if neither is owned.
  * Internal users (admin / windedvertigo.com team) always get full access.
+ * Unauthenticated visitors get teaser — returns before any DB round-trip,
+ * so PRME free-access traffic pays zero DB cost here.
+ *
+ * For authenticated users this used to do up to 3 sequential neon-HTTP
+ * queries (pack-id lookup + checkEntitlement(practitioner) + checkEntitlement(explorer)),
+ * each ~30–80ms = 90–240ms in DB time alone. We now resolve both packs +
+ * their active-entitlement state in a single join, saving 2 round-trips
+ * for every signed-in pageview.
+ *
+ * The query returns one row per active entitlement that matches either
+ * vault pack and is owned by the caller's user OR org. We pick the
+ * highest tier present (practitioner supersedes explorer) to preserve
+ * the previous tier-precedence semantics exactly.
  */
 export async function resolveVaultTier(
   orgId: string | null,
@@ -46,27 +55,33 @@ export async function resolveVaultTier(
   if (isInternal) return "internal";
   if (!orgId && !userId) return "teaser";
 
-  // Look up vault pack IDs from packs_cache
-  const packs = await sql`
-    SELECT id, slug FROM packs_cache
-    WHERE slug IN (${VAULT_PACK_SLUGS.explorer}, ${VAULT_PACK_SLUGS.practitioner})
-  `;
-  const packMap = new Map(packs.rows.map((r: any) => [r.slug as string, r.id as string]));
+  // Single round-trip: join packs_cache → entitlements, filter to the two
+  // vault pack slugs, active rows only, owned by this user OR org.
+  // The org/user predicates each gate on the parameter being non-null so a
+  // missing identifier never matches a row with a NULL on the other side.
+  const result = await sql.query(
+    `SELECT pc.slug
+       FROM packs_cache pc
+       JOIN entitlements e ON e.pack_cache_id = pc.id
+      WHERE pc.slug IN ($1, $2)
+        AND e.revoked_at IS NULL
+        AND (e.expires_at IS NULL OR e.expires_at > NOW())
+        AND (
+          ($3::uuid IS NOT NULL AND e.org_id = $3)
+          OR
+          ($4::uuid IS NOT NULL AND e.user_id = $4)
+        )`,
+    [
+      VAULT_PACK_SLUGS.explorer,
+      VAULT_PACK_SLUGS.practitioner,
+      orgId,
+      userId,
+    ],
+  );
 
-  // Check practitioner first (supersedes explorer)
-  const practitionerPackId = packMap.get(VAULT_PACK_SLUGS.practitioner);
-  if (practitionerPackId) {
-    const hasPractitioner = await checkEntitlement(orgId, practitionerPackId, userId);
-    if (hasPractitioner) return "practitioner";
-  }
-
-  // Check explorer
-  const explorerPackId = packMap.get(VAULT_PACK_SLUGS.explorer);
-  if (explorerPackId) {
-    const hasExplorer = await checkEntitlement(orgId, explorerPackId, userId);
-    if (hasExplorer) return "entitled";
-  }
-
+  const owned = new Set(result.rows.map((r: { slug: string }) => r.slug));
+  if (owned.has(VAULT_PACK_SLUGS.practitioner)) return "practitioner";
+  if (owned.has(VAULT_PACK_SLUGS.explorer)) return "entitled";
   return "teaser";
 }
 
