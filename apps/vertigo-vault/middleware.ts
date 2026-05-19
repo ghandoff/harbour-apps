@@ -11,18 +11,19 @@ import { NextRequest, NextResponse } from "next/server";
  *   - Source expressions like `'self'` and URL allowlists serve as CSP Level 2 fallbacks
  *   - `'unsafe-inline'` is no longer needed in script-src
  *
- * Why `middleware.ts` and not `proxy.ts`: Next.js 16.2.3 docs claim
- * `proxy.ts` is the canonical convention, but the build pipeline emits
- * `.next/server/middleware.js` from a `proxy.ts` source while leaving
- * `.next/server/middleware-manifest.json` empty (`"middleware": {}`).
- * Vercel's runtime only invokes middleware registered in that manifest,
- * so a `proxy.ts` file is silently a no-op. Restoring the legacy
- * `middleware.ts` filename + `export function middleware` makes the
- * manifest populate correctly. Revisit if/when Next.js fixes proxy.ts
- * manifest emission.
+ * Why `middleware.ts` and not `proxy.ts`: Next.js 16's `proxy.ts`
+ * compiles to a Node.js function, which OpenNext on CF Workers rejects
+ * ("Node.js middleware is not currently supported"). `middleware.ts`
+ * compiles to Edge runtime, which OpenNext-CF accepts. See
+ * docs/research/middleware-vs-proxy-nextjs16-opennext.md for the
+ * source-code-verified rationale. Rule for all CF-deployed apps in
+ * this repo: always use middleware.ts, never proxy.ts.
  */
 export function middleware(request: NextRequest) {
-  const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
+  // btoa instead of Buffer — middleware runs on the Edge runtime under
+  // OpenNext-CF, where Web crypto and atob/btoa are guaranteed but
+  // Buffer is not.
+  const nonce = btoa(crypto.randomUUID());
 
   const csp = [
     "default-src 'self'",
@@ -30,7 +31,7 @@ export function middleware(request: NextRequest) {
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com",
     "img-src 'self' data: https:",
-    "connect-src 'self' https://vitals.vercel-insights.com https://api.stripe.com",
+    "connect-src 'self' https://api.stripe.com",
     "frame-src https://js.stripe.com https://hooks.stripe.com",
     "frame-ancestors 'none'",
     "worker-src 'self'",

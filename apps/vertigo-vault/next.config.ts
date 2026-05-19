@@ -1,33 +1,24 @@
 import type { NextConfig } from "next";
 
+/**
+ * Vault Next.js config.
+ *
+ * Note: the `headers()` block was removed during the CF Workers
+ * migration (2026-05). OpenNext on CF does NOT honour Next.js's
+ * `next.config.ts` `headers()` at runtime. Static security headers
+ * (HSTS, X-Frame-Options, etc.) are injected by `worker.ts` via
+ * `@windedvertigo/security`. Per-request CSP with a nonce continues
+ * to be set in `middleware.ts`.
+ */
 const nextConfig: NextConfig = {
   basePath: "/harbour/vertigo-vault",
   poweredByHeader: false,
-  transpilePackages: ["@windedvertigo/tokens", "@windedvertigo/auth", "@windedvertigo/stripe", "@windedvertigo/feedback"],
-
-  /**
-   * Security headers — non-CSP headers live here as static config.
-   * CSP is set per-request in proxy.ts with a nonce so we can
-   * use `'strict-dynamic'` instead of `'unsafe-inline'` in script-src.
-   */
-  async headers() {
-    return [
-      {
-        source: "/(.*)",
-        headers: [
-          { key: "X-Frame-Options", value: "DENY" },
-          { key: "X-Content-Type-Options", value: "nosniff" },
-          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
-          { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
-          {
-            key: "Strict-Transport-Security",
-            value: "max-age=63072000; includeSubDomains; preload",
-          },
-        ],
-      },
-    ];
-  },
+  transpilePackages: [
+    "@windedvertigo/tokens",
+    "@windedvertigo/auth",
+    "@windedvertigo/stripe",
+    "@windedvertigo/feedback",
+  ],
 };
 
 export default nextConfig;
