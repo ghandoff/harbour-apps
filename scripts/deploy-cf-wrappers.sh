@@ -4,8 +4,11 @@
 # Per-app sequence:
 #   1. cd apps/<app>
 #   2. npx opennextjs-cloudflare build
-#   3. npx wrangler deploy
-#   4. curl -sI <worker URL> + assert all 6 security headers present
+#   3. node packages/security/scripts/write-assets-headers.mjs /harbour/<app>
+#      → writes .open-next/assets/_headers so CF's Static Assets binding
+#        caches content-hashed _next/static/* for a year
+#   4. npx wrangler deploy
+#   5. curl -sI <worker URL> + assert all 6 security headers present
 #
 # Designed to run unattended after Claude has prepped each app's worker.ts,
 # tsconfig.json, wrangler.jsonc, and package.json. Each app is independent;
@@ -113,7 +116,17 @@ deploy_one() {
     return 1
   fi
 
-  # 2. Deploy
+  # 2. Write _headers so CF's Static Assets binding caches the content-
+  #    hashed _next/static/* files for a year instead of forcing every
+  #    chunk to re-validate on every navigation. Without this step the
+  #    default Cache-Control is `public, max-age=0, must-revalidate`.
+  echo "[$app] write-assets-headers..." | tee -a "$LOG"
+  if ! node "$REPO_ROOT/packages/security/scripts/write-assets-headers.mjs" "/harbour/$app" >> "$LOG" 2>&1; then
+    echo "[$app] FAIL — write-assets-headers error (see $LOG)" | tee -a "$LOG"
+    return 1
+  fi
+
+  # 3. Deploy
   echo "[$app] deploy..." | tee -a "$LOG"
   if ! npx wrangler deploy >> "$LOG" 2>&1; then
     echo "[$app] FAIL — deploy error (see $LOG)" | tee -a "$LOG"
