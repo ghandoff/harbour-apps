@@ -56,12 +56,21 @@ export default async function RootLayout({
   // /harbour (see /api/preferences/route.ts) so harbour and creaseworks
   // share the preference — if the user flips the toggle in creaseworks
   // profile, the next harbour render picks it up without a refresh.
+  //
+  // NOTE: this `cookies()` read makes the route per-request dynamic,
+  // overriding `revalidate = 3600` on app/page.tsx. The page renders
+  // at request time, not from ISR cache. Recovering ISR here means
+  // refactoring CastParade's variant read to client-side; deferred
+  // until that's worth the kid/adult-flip-flicker trade-off.
   const cookieStore = await cookies();
   const grownupMode = cookieStore.get("cw-ui-mode")?.value === "grownup";
 
   return (
     <html lang="en" className={inter.variable}>
       <head>
+        {/* Preconnect to the R2 host that serves harbour tile cover
+            images — saves the TLS handshake on the first paint. */}
+        <link rel="preconnect" href="https://pub-60282cf378c248cf9317acfb691f6c99.r2.dev" crossOrigin="" />
         {/* Progressive enhancement: show all content if JS is disabled */}
         <noscript>
           <style>{`.fade-up, .card-stagger { opacity: 1 !important; transform: none !important; }`}</style>
