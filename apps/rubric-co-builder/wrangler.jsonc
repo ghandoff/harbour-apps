@@ -1,0 +1,48 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "wv-harbour-rubric-co-builder",
+  "main": "worker.ts",
+  "account_id": "097c92553b268f8360b74f625f6d980a",
+  "compatibility_date": "2025-04-01",
+  "compatibility_flags": ["nodejs_compat"],
+
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "wv-harbour-rubric-co-builder"
+    }
+  ],
+
+  // Direct CF Workers routes — bypass the site router so this app is served
+  // at windedvertigo.com/harbour/rubric-co-builder/* without a rewrite in
+  // the ghandoff/windedvertigo site repo.
+  "routes": [
+    {
+      "pattern": "windedvertigo.com/harbour/rubric-co-builder",
+      "zone_id": "3b70c2ddcf9976faccb01d37ccf2e1ee"
+    },
+    {
+      "pattern": "windedvertigo.com/harbour/rubric-co-builder/*",
+      "zone_id": "3b70c2ddcf9976faccb01d37ccf2e1ee"
+    },
+    {
+      "pattern": "www.windedvertigo.com/harbour/rubric-co-builder",
+      "zone_id": "3b70c2ddcf9976faccb01d37ccf2e1ee"
+    },
+    {
+      "pattern": "www.windedvertigo.com/harbour/rubric-co-builder/*",
+      "zone_id": "3b70c2ddcf9976faccb01d37ccf2e1ee"
+    }
+  ]
+
+  // Secrets — set via: wrangler secret put POSTGRES_URL
+  //                     wrangler secret put ANTHROPIC_API_KEY
+  // For local dev, create .dev.vars with:
+  //   POSTGRES_URL=...
+  //   ANTHROPIC_API_KEY=...
+}

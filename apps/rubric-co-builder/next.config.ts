@@ -1,13 +1,11 @@
 import type { NextConfig } from "next";
 
-// basePath is only applied in production (via NEXT_PUBLIC_BASE_PATH set in
-// Vercel env). local dev serves at `/` so the preview panel just works.
-const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
-
 const config: NextConfig = {
-  basePath,
+  basePath: "/harbour/rubric-co-builder",
   reactStrictMode: true,
   poweredByHeader: false,
+  // Note: headers() is not honoured by OpenNext on CF Workers.
+  // Security headers are injected by worker.ts via @windedvertigo/security.
   headers: async () => [
     {
       source: "/(.*)",
