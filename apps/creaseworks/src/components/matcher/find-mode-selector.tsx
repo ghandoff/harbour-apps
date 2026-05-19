@@ -23,11 +23,11 @@ interface FindModeSelectorProps {
 
 const SPRING = "cubic-bezier(0.34, 1.56, 0.64, 1)";
 
-const MODES: { key: FindMode; href: string; emoji: string; label: string; description: string }[] = [
-  { key: "classic", href: "/find?mode=classic", emoji: "📋", label: "classic picker", description: "tap what you have" },
-  { key: "rooms", href: "/find", emoji: "🏠", label: "explore rooms", description: "look around a place" },
-  { key: "challenge", href: "/find?mode=challenge", emoji: "⏱️", label: "challenge", description: "how much can you notice?" },
-  { key: "hunt", href: "/find?mode=hunt", emoji: "🗺️", label: "scavenger hunt", description: "go find your stuff!" },
+const MODES: { key: FindMode; href: string; emoji: string; label: string; description: string; accent: string; corners: string }[] = [
+  { key: "classic", href: "/find?mode=classic", emoji: "📋", label: "classic picker", description: "tap what you have",      accent: "var(--wv-cornflower)", corners: "22px 28px 18px 26px" },
+  { key: "rooms",   href: "/find",              emoji: "🏠", label: "explore rooms",  description: "look around a place",     accent: "var(--wv-teal)",        corners: "26px 20px 28px 22px" },
+  { key: "challenge", href: "/find?mode=challenge", emoji: "⏱️", label: "challenge",  description: "how much can you notice?", accent: "var(--wv-seafoam)",     corners: "20px 26px 24px 28px" },
+  { key: "hunt",    href: "/find?mode=hunt",    emoji: "🗺️", label: "scavenger hunt", description: "go find your stuff!",     accent: "var(--wv-periwinkle)",  corners: "28px 22px 26px 20px" },
 ];
 
 export default function FindModeSelector({
@@ -41,22 +41,21 @@ export default function FindModeSelector({
           <Link
             key={mode.key}
             href={mode.href}
-            className="rounded-xl px-3 py-3 text-center active:scale-[0.96] flex flex-col items-center gap-1"
+            className="px-3 py-3 text-center active:scale-[0.96] flex flex-col items-center gap-1"
             style={{
-              // UDL fix: inactive tabs were rgba-white-on-tint with 1.05:1
-              // affordance. Now: solid white card + cadet border so the
-              // tab reads as a real object against the phase tint.
-              backgroundColor: active
-                ? "var(--wv-sienna)"
-                : "var(--wv-white)",
-              color: active
-                ? "var(--wv-white)"
-                : "var(--color-text-on-cream)",
-              opacity: active ? 1 : 0.9,
-              transition: `all 200ms ${SPRING}`,
+              // kid tile vocabulary: cream bg, squircle corners, per-mode accent.
+              // Active: filled accent bg + white text (same pattern as mph-tile--on).
+              backgroundColor: active ? mode.accent : "var(--wv-cream)",
+              color: active ? "var(--wv-white)" : "var(--wv-cadet)",
+              borderRadius: mode.corners,
               border: active
-                ? "1.5px solid var(--wv-sienna)"
-                : "1.5px solid rgba(39, 50, 72, 0.12)",
+                ? `2px solid ${mode.accent}`
+                : "1.5px solid rgba(39, 50, 72, 0.08)",
+              boxShadow: active
+                ? `0 4px 0 rgba(39, 50, 72, 0.1), 0 0 0 3px color-mix(in srgb, ${mode.accent} 20%, transparent)`
+                : "0 2px 0 rgba(39, 50, 72, 0.08)",
+              fontFamily: "var(--font-nunito), ui-sans-serif, system-ui, sans-serif",
+              transition: `all 200ms ${SPRING}`,
               WebkitTapHighlightColor: "transparent",
             }}
           >

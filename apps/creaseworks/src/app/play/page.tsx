@@ -30,6 +30,7 @@ import CollectionCard from "@/components/ui/collection-card";
 import PlaybookSearch from "@/components/playbook-search";
 import { PlaydateCard } from "@/components/ui/playdate-card";
 import StartHereCard from "@/components/start-here-card";
+import { FoldHero } from "./fold-hero";
 
 export const dynamic = "force-dynamic";
 
@@ -44,16 +45,8 @@ export default async function PlayPage() {
 
   return (
     <main className="min-h-screen px-6 pt-16 pb-24 sm:pb-16 max-w-5xl mx-auto">
-      {/* ── page header ── */}
-      <header className="mb-10">
-        <h1 className="text-3xl font-semibold tracking-tight font-serif mb-2">
-          fold
-        </h1>
-        <p className="text-cadet/60 max-w-lg text-sm">
-          shape insight into experiment — explore collections and playdates
-          to find your next creative moment.
-        </p>
-      </header>
+      {/* ── page header — client island for character variant hook ── */}
+      <FoldHero />
 
       {/* ── playbook section (authenticated users only) ── */}
       {session && (

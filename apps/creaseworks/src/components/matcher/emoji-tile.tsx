@@ -162,7 +162,8 @@ export function EmojiTile({
 
       {characterName ? (
         <span
-          className="et-icon inline-flex items-center justify-center"
+          key={`char-${selected}`}
+          className="et-icon et-char-pop inline-flex items-center justify-center"
           aria-hidden="true"
           style={{ width: cfg.imgPx, height: cfg.imgPx }}
         >
@@ -319,6 +320,18 @@ export function EmojiTile({
           60%  { transform: scale(1.3); }
           to   { transform: scale(1); }
         }
+        /* one-shot spring bounce on character icon — re-triggered by key
+           prop change on .et-char-pop when selected state flips.         */
+        .et-char-pop {
+          animation: charPop 320ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+        @keyframes charPop {
+          0%   { scale: 1; }
+          30%  { scale: 1.25; }
+          60%  { scale: 0.9; }
+          80%  { scale: 1.05; }
+          100% { scale: 1; }
+        }
         @media (prefers-reduced-motion: reduce) {
           .et-tile {
             animation: none;
@@ -329,6 +342,7 @@ export function EmojiTile({
           .et-tile:active:not(:disabled) { scale: 1; }
           .et-tile[data-selected] { scale: 1; }
           .et-tap { animation: none !important; }
+          .et-char-pop { animation: none; }
           @keyframes etCheckPop { from, to { transform: scale(1); } }
         }
       `}</style>

@@ -1,8 +1,12 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
 import type { ReactNode } from "react";
 import CardActionSlot from "./card-action-slot";
 import { PlaydateIllustration } from "../playdate-illustration";
+import CharacterSlot, { resolveCharacterFromForm } from "@windedvertigo/characters";
+import { useCharacterVariant } from "@windedvertigo/characters/variant-context";
 
 export interface PlaydateMaterial {
   id: string;
@@ -138,6 +142,7 @@ export function PlaydateCard({
   visibleFields,
   materials,
 }: PlaydateCardProps) {
+  const characterVariant = useCharacterVariant();
   const badge = progressTier ? TIER_BADGE[progressTier] : null;
   const isBeginner = frictionDial !== null && frictionDial <= 2 && startIn120s;
 
@@ -195,7 +200,23 @@ export function PlaydateCard({
         {/* material icons row — small visual "what do I need?" */}
         {show("materials") && materials && materials.length > 0 && (
           <div className="flex items-center gap-1 mb-2.5 flex-wrap">
-            {materials.slice(0, 5).map((mat) => {
+            {materials.slice(0, 5).map((mat, idx) => {
+              // Primary material (first): try to resolve a character host first.
+              if (idx === 0) {
+                const char = resolveCharacterFromForm(mat.form_primary, mat.title);
+                if (char) {
+                  return (
+                    <span
+                      key={mat.id}
+                      className="inline-flex items-center justify-center rounded-md"
+                      style={{ width: 32, height: 32, backgroundColor: "rgba(39, 50, 72, 0.04)" }}
+                      title={mat.title}
+                    >
+                      <CharacterSlot character={char} size={28} animate={false} variant={characterVariant} />
+                    </span>
+                  );
+                }
+              }
               const iconPath = mat.icon
                 ? `/harbour/creaseworks/icons/materials/${mat.icon}.png`
                 : null;

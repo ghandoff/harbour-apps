@@ -115,7 +115,7 @@ export default function MaterialPickerHero({ materials }: MaterialPickerHeroProp
               ["--in-delay" as string]: `${i * 50}ms`,
             }}
           >
-            <span className="mph-icon-wrap">
+            <span className="mph-icon-wrap" key={`icon-${m.id}-${isSelected}`}>
               {(() => {
                 // Resolve character host from form_primary first, then title fallback.
                 // Returns null for crate/mud/drip until those characters are built,
@@ -278,6 +278,8 @@ export default function MaterialPickerHero({ materials }: MaterialPickerHeroProp
           justify-content: center;
           width: 48px;
           height: 48px;
+          /* charPop fires on every mount — key prop re-mounts on toggle */
+          animation: charPop 320ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
         }
 
         .mph-emoji {
@@ -450,6 +452,16 @@ export default function MaterialPickerHero({ materials }: MaterialPickerHeroProp
           to   { opacity: 1; transform: translateY(0); }
         }
 
+        /* one-shot spring bounce on character when tile is selected/deselected.
+           re-triggered by the key prop change on .mph-icon-wrap.              */
+        @keyframes charPop {
+          0%   { scale: 1; }
+          30%  { scale: 1.25; }
+          60%  { scale: 0.9; }
+          80%  { scale: 1.05; }
+          100% { scale: 1; }
+        }
+
         @media (prefers-reduced-motion: reduce) {
           button.mph-tile:not([type="submit"]):not(.wv-header-signout) {
             animation: none;
@@ -469,6 +481,7 @@ export default function MaterialPickerHero({ materials }: MaterialPickerHeroProp
           }
           .mph-tile--on .mph-accent-chip { transform: none; }
           .mph-actions { animation: none; }
+          .mph-icon-wrap { animation: none; }
         }
       `}</style>
     </div>

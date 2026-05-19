@@ -28,6 +28,10 @@ export function FilterSection({
       className="rounded-2xl border-2 transition-all duration-300"
       style={{
         borderColor: hasItems ? "rgba(177, 80, 67, 0.25)" : "rgba(39, 50, 72, 0.08)",
+        // accent left-border pulses redwood when items are selected — same
+        // pattern as PlaydateCard's functionAccentColor borderLeftColor.
+        borderLeftWidth: hasItems ? 4 : 2,
+        borderLeftColor: hasItems ? "var(--wv-redwood)" : "rgba(39, 50, 72, 0.08)",
         backgroundColor: hasItems ? "rgba(255, 246, 232, 0.95)" : "rgba(255, 246, 232, 0.7)",
         boxShadow: hasItems ? "0 2px 12px rgba(177, 80, 67, 0.07)" : "0 1px 4px rgba(39, 50, 72, 0.06)",
       }}
@@ -47,7 +51,10 @@ export function FilterSection({
             }}>{emoji}</span>
           )}
           <div className="min-w-0">
-            <h2 className="text-sm font-bold truncate" style={{ color: "var(--wv-cadet)" }}>{title}</h2>
+            <h2
+              className="text-sm font-bold truncate"
+              style={{ color: "var(--wv-cadet)", fontFamily: "var(--font-nunito), ui-sans-serif, system-ui, sans-serif" }}
+            >{title}</h2>
             {subtitle && !open && (
               <p className="text-xs truncate mt-0.5" style={{ color: "var(--wv-cadet)", opacity: 0.45 }}>{subtitle}</p>
             )}
