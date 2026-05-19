@@ -1,0 +1,61 @@
+# Detect drift between the Notion harbour-games DB and the PIER_MAP /
+# WAVE_MAP fallback in apps/harbour/lib/pier-data.ts. Runs on every PR
+# that touches harbour-related code, and on a weekly cron so we catch
+# Notion-side additions someone made directly in the dashboard.
+#
+# Security note: the only secret referenced is NOTION_TOKEN, exposed
+# via `env:` (the safe pattern). No untrusted github.event.* input is
+# interpolated into `run:` commands — workflow-injection-safe.
+#
+# Requires a NOTION_TOKEN repo secret with read access to the
+# harbour-games database (id 8e3f3364b2654640a91ed0f38b091a07).
+# The token does NOT need write access — the script is read-only.
+#
+# Soft-fail (continue-on-error): drift surfaces in the Actions log as
+# a warning but doesn't block PRs. Tightenable to a hard fail by
+# removing the continue-on-error once the team is ready for that
+# enforcement level.
+
+name: harbour pier coverage
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'apps/harbour/lib/pier-data.ts'
+      - 'apps/harbour/scripts/check-pier-coverage.mjs'
+      - '.github/workflows/harbour-pier-coverage.yml'
+  schedule:
+    # Mondays 09:00 UTC — start of working week, fresh signal in inbox.
+    - cron: '0 9 * * 1'
+  workflow_dispatch: # allow manual trigger from the Actions UI
+
+jobs:
+  check-pier-coverage:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/harbour
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install workspace dependencies
+        # @notionhq/client is hoisted at the root; install from there so
+        # the workspace symlinks resolve for the harbour app.
+        run: npm ci
+        working-directory: .
+
+      - name: Check pier coverage
+        continue-on-error: true # soft-fail until the team is ready to gate
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+        run: node scripts/check-pier-coverage.mjs
