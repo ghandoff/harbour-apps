@@ -89,7 +89,46 @@ async function resolveAudienceId(name: string): Promise<string> {
   return created.data.id;
 }
 
+// ── rate limit ────────────────────────────────────────────
+// Per-IP token bucket: 5 requests per 60 seconds. State is module-scoped
+// so it's per-isolate; CF spreads traffic across isolates so this is
+// best-effort, not strictly accurate — sufficient to deter scripted
+// abuse without standing up a Durable Object for global state.
+const RATE_LIMIT = { capacity: 5, refillMs: 60_000 };
+const buckets = new Map<string, { tokens: number; refillAt: number }>();
+
+function takeToken(ip: string): boolean {
+  const now = Date.now();
+  const bucket = buckets.get(ip);
+  if (!bucket || now >= bucket.refillAt) {
+    buckets.set(ip, {
+      tokens: RATE_LIMIT.capacity - 1,
+      refillAt: now + RATE_LIMIT.refillMs,
+    });
+    return true;
+  }
+  if (bucket.tokens <= 0) return false;
+  bucket.tokens -= 1;
+  return true;
+}
+
+function getClientIp(request: Request): string {
+  return (
+    request.headers.get("cf-connecting-ip") ||
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    "unknown"
+  );
+}
+
 export async function POST(request: Request) {
+  const ip = getClientIp(request);
+  if (!takeToken(ip)) {
+    return NextResponse.json(
+      { error: "rate limited — try again in a minute" },
+      { status: 429, headers: { "retry-after": "60" } },
+    );
+  }
+
   let body: { email?: unknown; context?: unknown; appSlug?: unknown };
   try {
     body = await request.json();
