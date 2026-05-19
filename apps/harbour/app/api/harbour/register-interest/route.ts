@@ -120,6 +120,20 @@ function getClientIp(request: Request): string {
   );
 }
 
+// ── slack alerting ────────────────────────────────────────
+// Fire-and-forget post to the feedback webhook on Resend failures so
+// we hear about email delivery breakage before a user complains.
+// Mirrors packages/feedback/api-handler.ts swallow-on-failure pattern.
+function notifySlack(message: string): void {
+  const url = process.env.SLACK_FEEDBACK_WEBHOOK_URL;
+  if (!url) return;
+  fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text: `🪝 *[harbour register-interest]* ${message}` }),
+  }).catch(() => {});
+}
+
 export async function POST(request: Request) {
   const ip = getClientIp(request);
   if (!takeToken(ip)) {
@@ -164,6 +178,10 @@ export async function POST(request: Request) {
     // we treat it as success since the contact is already in the audience.
     if (contactResult.error && contactResult.error.name !== "validation_error") {
       console.warn("[register-interest] contact create returned error:", contactResult.error);
+      notifySlack(
+        `contact create failed: ${contactResult.error.name} — ${contactResult.error.message}` +
+          ` (audience=${audienceName}, context=${context})`,
+      );
     }
 
     const copy = CONFIRMATION_COPY[context];
@@ -180,9 +198,15 @@ export async function POST(request: Request) {
     });
     if (emailResult.error) {
       console.warn("[register-interest] confirmation email failed:", emailResult.error);
+      notifySlack(
+        `confirmation email failed: ${emailResult.error.name ?? "unknown"} — ` +
+          `${emailResult.error.message ?? ""} (context=${context})`,
+      );
     }
   } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
     console.error("[register-interest] resend error:", err);
+    notifySlack(`resend pipeline threw: ${msg} (context=${context})`);
     // Swallow: the user has done their part. We'd rather record the
     // submission attempt than block the UX on a transient Resend issue.
   }
