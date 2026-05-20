@@ -7,24 +7,10 @@ import { isFacilitatorAuthorized } from "@/lib/facilitator-token";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const VALID_STATES: RoomState[] = [
-  "lobby",
-  "frame",
-  "propose",
-  "vote",
-  "criteria_gate",
-  "scale",
-  "vote2",
-  "vote3",
-  "calibrate",
-  "ai_ladder_propose",
-  "ai_ladder",
-  "pledge",
-  "pledge_vote",
-  "commit",
-];
-
-// strictly ordered — used to enforce forward-only transitions
+// single source of truth — valid target states AND forward-only ordering.
+// "calibrate" was removed (legacy state, not in the current session flow).
+// rooms already persisted at an unknown state can still advance: if
+// currentIdx === -1 the forward check does not fire, so they can proceed.
 const STATE_ORDER: RoomState[] = [
   "lobby",
   "frame",
@@ -80,7 +66,7 @@ export async function PATCH(
   }
 
   const { state, from_state } = (body ?? {}) as { state?: string; from_state?: string };
-  if (!state || !VALID_STATES.includes(state as RoomState)) {
+  if (!state || !STATE_ORDER.includes(state as RoomState)) {
     return NextResponse.json({ error: "invalid state" }, { status: 400 });
   }
 
