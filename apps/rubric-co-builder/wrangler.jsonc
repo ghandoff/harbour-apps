@@ -1,0 +1,47 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "wv-harbour-rubric-co-builder",
+  "main": "worker.ts",
+  "account_id": "097c92553b268f8360b74f625f6d980a",
+  "compatibility_date": "2025-04-01",
+  "compatibility_flags": ["nodejs_compat"],
+
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "wv-harbour-rubric-co-builder"
+    }
+  ],
+
+  // Direct CF Workers routes — bypass the site proxy so traffic for
+  // /harbour/co-rubric/* reaches this Worker without going through the
+  // windedvertigo Next.js rewriter.
+  "routes": [
+    {
+      "pattern": "windedvertigo.com/harbour/co-rubric",
+      "zone_id": "3b70c2ddcf9976faccb01d37ccf2e1ee"
+    },
+    {
+      "pattern": "windedvertigo.com/harbour/co-rubric/*",
+      "zone_id": "3b70c2ddcf9976faccb01d37ccf2e1ee"
+    },
+    {
+      "pattern": "www.windedvertigo.com/harbour/co-rubric",
+      "zone_id": "3b70c2ddcf9976faccb01d37ccf2e1ee"
+    },
+    {
+      "pattern": "www.windedvertigo.com/harbour/co-rubric/*",
+      "zone_id": "3b70c2ddcf9976faccb01d37ccf2e1ee"
+    }
+  ]
+
+  // Secrets — set via: wrangler secret put POSTGRES_URL
+  // Required: POSTGRES_URL
+  // Optional: FACILITATOR_SECRET (defaults to demo key if unset),
+  //           ANTHROPIC_API_KEY (enables AI artefact generation)
+}
