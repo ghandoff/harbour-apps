@@ -43,11 +43,13 @@ const ASSIGNMENTS = {
 const PIER_OPTIONS = ["leadership", "classroom", "family", "drydock"];
 const WAVE_OPTIONS = ["wave-1", "wave-2", "coming-soon"];
 
-// ── 1. add the properties to the DB ───────────────────────
-async function addProperties() {
-  console.log("[1/3] adding Pier + Launch Wave properties to DB…");
-  await notion.databases.update({
-    database_id: DATABASE_ID,
+// ── 1. add the properties to the data source ──────────────
+// Notion v5 split databases (metadata) from data sources (rows + schema).
+// Properties are added via dataSources.update, not databases.update.
+async function addProperties(dataSourceId) {
+  console.log("[1/3] adding Pier + Launch Wave properties to data source…");
+  await notion.dataSources.update({
+    data_source_id: dataSourceId,
     properties: {
       Pier: {
         multi_select: {
@@ -95,9 +97,8 @@ function getSlug(page) {
 }
 
 // ── 3. update each page with its pier/wave ────────────────
-async function backfillRows() {
+async function backfillRows(dataSourceId) {
   console.log("[2/3] fetching all rows…");
-  const dataSourceId = await getDataSourceId();
 
   const pages = [];
   for await (const page of paginatePages(dataSourceId)) pages.push(page);
@@ -139,8 +140,9 @@ async function backfillRows() {
 
 (async () => {
   try {
-    await addProperties();
-    await backfillRows();
+    const dataSourceId = await getDataSourceId();
+    await addProperties(dataSourceId);
+    await backfillRows(dataSourceId);
   } catch (err) {
     console.error("seed failed:", err);
     process.exit(1);
