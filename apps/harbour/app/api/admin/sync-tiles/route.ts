@@ -115,7 +115,7 @@ export async function POST(req: NextRequest) {
 
     const coverUrl = extractCoverUrl(page);
     let source: "notion" | "static" = "notion";
-    let fetchUrl = coverUrl;
+    const fetchUrl = coverUrl;
 
     // No Notion cover — fall back to the static asset bundled in the worker.
     // This keeps the R2 bucket the single source of truth for tiles even

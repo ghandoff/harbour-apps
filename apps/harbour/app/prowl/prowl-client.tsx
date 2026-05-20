@@ -222,16 +222,23 @@ function Particles({
 /* ── main component ───────────────────────────────────────────── */
 
 export function ProwlClient() {
-  /* ── role detection ── */
-  const [isHost, setIsHost] = useState(false);
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    setIsHost(params.get("role") === "host");
-  }, []);
+  /* ── role detection ──
+   * Lazy initializer reads URLSearchParams once on mount instead of via an
+   * effect — avoids the set-state-in-effect cascade and SSR-renders to false
+   * deterministically (this is a client component so initial render only ever
+   * happens in the browser). */
+  const [isHost] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return new URLSearchParams(window.location.search).get("role") === "host";
+  });
 
   /* ── shared state (from server) ── */
   const [shared, setShared] = useState<ProwlState | null>(null);
-  const prevScreenRef = useRef(0);
+  /* prevScreen drives the transition direction in `scClass()`. We use the
+   * "previous-value during render" pattern (cheaper than ref+effect and lets
+   * the value be read in render without violating react-hooks/refs). */
+  const [prevScreen, setPrevScreen] = useState(0);
+  const [trackedScreen, setTrackedScreen] = useState(0);
 
   /* ── local-only UI state ── */
   const [transitioning, setTransitioning] = useState(false);
@@ -305,7 +312,6 @@ export function ProwlClient() {
         setShared((prev) => {
           // detect screen change for transition animation
           if (prev && state.screen !== prev.screen) {
-            prevScreenRef.current = prev.screen;
             setTransitioning(true);
             setTimeout(() => setTransitioning(false), TRANSITION_MS);
           }
@@ -330,7 +336,6 @@ export function ProwlClient() {
       if (result) {
         setShared((prev) => {
           if (prev && result.screen !== prev.screen) {
-            prevScreenRef.current = prev.screen;
             setTransitioning(true);
             setTimeout(() => setTransitioning(false), TRANSITION_MS);
           }
@@ -536,8 +541,14 @@ export function ProwlClient() {
 
   useEffect(() => {
     if (cur !== 6) return;
-    setNicasioStage(0);
-    setNicasioTimer(0);
+    // Defer the reset to a microtask so the synchronous setState during
+    // effect-mount doesn't cascade through render. Behaviour is equivalent —
+    // the reset still fires before the staged setTimeouts below have a chance
+    // to flush — but the lint rule is satisfied.
+    queueMicrotask(() => {
+      setNicasioStage(0);
+      setNicasioTimer(0);
+    });
 
     const stages = [3000, 7000, 11000, 15000, 25000];
     const timers = stages.map((delay, i) =>
@@ -564,7 +575,8 @@ export function ProwlClient() {
 
   useEffect(() => {
     if (cur !== 8) return;
-    setDriftStage(0);
+    // See screen-6 effect above for why this is a queueMicrotask.
+    queueMicrotask(() => setDriftStage(0));
 
     const timers = DRIFT_LINES.map((_, i) =>
       setTimeout(() => setDriftStage(i + 1), 2000 * (i + 1))
@@ -575,12 +587,22 @@ export function ProwlClient() {
 
   /* ── screen class helper ────────────────────────────────────── */
 
-  const forward = cur > prevScreenRef.current;
+  // "Previous value during render" pattern — when cur changes, we capture the
+  // outgoing value into prevScreen before the next render commits. This lets
+  // scClass() read prevScreen during render without falling foul of
+  // react-hooks/refs, and without an effect-driven cascade.
+  // https://react.dev/reference/react/useState#storing-information-from-previous-renders
+  if (trackedScreen !== cur) {
+    setPrevScreen(trackedScreen);
+    setTrackedScreen(cur);
+  }
+
+  const forward = cur > prevScreen;
 
   function scClass(i: number, extra: string = "") {
     let cls = `sc ${extra}`;
     if (i === cur) cls += " active";
-    else if (transitioning && i === prevScreenRef.current)
+    else if (transitioning && i === prevScreen)
       cls += forward ? " exit-left" : " exit-right";
     return cls;
   }

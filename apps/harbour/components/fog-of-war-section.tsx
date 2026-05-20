@@ -85,12 +85,14 @@ export function FogOfWarSection({ pierSlug, children }: FogOfWarSectionProps) {
   useEffect(() => {
     if (prefersReducedMotion()) {
       // Honour reduced motion: skip the dim phase entirely.
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- one-shot mount-time init that depends on a browser API (matchMedia), can't be expressed as a lazy useState initializer because the visited/dim branch below also needs to run. Behaviour is observably correct.
       setState("lit");
       return;
     }
 
     const visited = readVisited();
     visitedRef.current = visited;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- see above; one-shot mount-time init keyed on pierSlug.
     setState(visited.has(pierSlug) ? "visited" : "dim");
   }, [pierSlug]);
 
@@ -105,6 +107,7 @@ export function FogOfWarSection({ pierSlug, children }: FogOfWarSectionProps) {
     if (!node) return;
     if (typeof IntersectionObserver === "undefined") {
       // No IO support → fall back to lit immediately.
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- environment-capability check; refactoring to lazy init would defeat the per-section observer setup that follows. Behaviour is observably correct.
       setState("lit");
       return;
     }
