@@ -10,7 +10,6 @@ import type {
   CalibrationScore,
   Criterion,
   PledgeResponse,
-  PledgeResponseVote,
   PledgeSlot,
   Room,
   RoomState,
@@ -112,7 +111,6 @@ export function HostRoom({ code }: { code: string }) {
     ai_use_proposal_votes,
     pledge_slots,
     pledge_responses,
-    pledge_response_votes,
   } = snapshot;
 
   const authHeaders = useCallback(
@@ -230,7 +228,6 @@ export function HostRoom({ code }: { code: string }) {
             ai_use_proposal_votes={ai_use_proposal_votes ?? []}
             pledge_slots={pledge_slots}
             pledge_responses={pledge_responses ?? []}
-            pledge_response_votes={pledge_response_votes ?? []}
             participants_count={participants_count}
             onResolveChoice={resolveChoice}
             onConfirmGate={confirmGate}
@@ -449,7 +446,6 @@ type HostBodyProps = {
   ai_use_proposal_votes: AiUseProposalVote[];
   pledge_slots: PledgeSlot[];
   pledge_responses: PledgeResponse[];
-  pledge_response_votes: PledgeResponseVote[];
   participants_count: number;
   onResolveChoice: (selectedIds: string[]) => void;
   onConfirmGate: (selectedIds: string[]) => void;
@@ -469,7 +465,6 @@ function HostBody({
   ai_use_proposal_votes,
   pledge_slots,
   pledge_responses,
-  pledge_response_votes,
   participants_count,
   onResolveChoice,
   onConfirmGate,

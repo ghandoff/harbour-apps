@@ -119,7 +119,6 @@ export function StudentRoom({ code }: { code: string }) {
     ai_use_proposal_votes,
     pledge_slots,
     pledge_responses,
-    pledge_response_votes,
   } = snapshot;
 
   const canEdit = participantId !== null;
