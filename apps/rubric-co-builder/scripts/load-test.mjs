@@ -118,6 +118,11 @@ function makeStore() {
       } finally { release(); }
     },
 
+    removeVote(pid, cid, round) {
+      const key = `${pid}:${cid}:${round}`;
+      votes.delete(key);
+    },
+
     voteCount(pid, roomId, round) { return countVotes(pid, roomId, round); },
 
     // OLD tally: no state guard
@@ -149,14 +154,17 @@ function makeStore() {
       return { status: 200, state: to };
     },
 
-    // NEW state advance: auth + forward-only
-    advanceNew(code, to, token) {
+    // NEW state advance: auth + forward-only + from_state guard
+    advanceNew(code, to, token, fromState = null) {
       if (!verifyToken(code, token)) return { status: 401 };
       const room = findRoom(code);
       if (!room) return { status: 404 };
+      if (fromState !== null && room.state !== fromState) {
+        return { status: 409, reason: "from_state_mismatch", current: room.state };
+      }
       const cur = STATE_ORDER.indexOf(room.state);
       const req = STATE_ORDER.indexOf(to);
-      if (req !== -1 && cur !== -1 && req <= cur) return { status: 409, current: room.state };
+      if (req !== -1 && cur !== -1 && req <= cur) return { status: 409, reason: "backward", current: room.state };
       room.state = to;
       return { status: 200, state: to };
     },
@@ -164,6 +172,45 @@ function makeStore() {
     getToken(code) { return generateToken(code.toUpperCase()); },
     checkAuth(code, token) { return verifyToken(code, token); },
     getRoom(code) { return findRoom(code); },
+    getRoundForState(code) {
+      const room = findRoom(code);
+      if (!room) return 1;
+      if (room.state === "vote2") return 2;
+      if (room.state === "vote3") return 3;
+      return 1;
+    },
+
+    // OLD: accepts client-supplied round (the bug)
+    async castVoteOldRound(pid, cid, roomId, clientRound, roomCode, maxVotes) {
+      const room = findRoom(roomCode);
+      if (!room) return null;
+      // old code: uses client-supplied round if valid, else derives from state
+      const round = [1, 2, 3].includes(clientRound) ? clientRound : (room.state === "vote2" ? 2 : room.state === "vote3" ? 3 : 1);
+      const key = `${pid}:${cid}:${round}`;
+      if (votes.has(key)) return votes.get(key);
+      const count = countVotes(pid, roomId, round);
+      if (count >= maxVotes) return "over_limit";
+      const v = { pid, cid, round };
+      votes.set(key, v);
+      return v;
+    },
+
+    // NEW: ignores client-supplied round, always derives from room state
+    async castVoteNewRound(pid, cid, roomId, roomCode, maxVotes) {
+      const release = await lock.acquire(`v:${pid}:${roomId}`);
+      try {
+        const room = findRoom(roomCode);
+        if (!room) return null;
+        const round = room.state === "vote2" ? 2 : room.state === "vote3" ? 3 : 1;
+        const key = `${pid}:${cid}:${round}`;
+        if (votes.has(key)) return votes.get(key);
+        const count = countVotes(pid, roomId, round);
+        if (count >= maxVotes) return "over_limit";
+        const v = { pid, cid, round };
+        votes.set(key, v);
+        return v;
+      } finally { release(); }
+    },
   };
 }
 
@@ -497,6 +544,154 @@ async function s13_required_criterion_delete() {
   assert(`optional → deleted (${nonRequiredDeleted}/${ROOMS})`, nonRequiredDeleted === ROOMS);
 }
 
+// ─── NEW: client round override attack ───────────────────────────────────────
+// participant in vote1 room sends round=2 in the body.
+// old code: accepts it and casts a round-2 vote
+// new code: ignores it, casts round-1 vote
+async function s14_round_override() {
+  const ROOMS = 20;
+  let oldBleed = 0, newBleed = 0;
+
+  await Promise.all(Array.from({ length: ROOMS }, async () => {
+    const s = makeStore();
+    const code = "RO";
+    const room = s.createRoom(code, "vote"); // round 1 phase
+    const crits = Array.from({ length: 3 }, () => s.addCriterion(room.id));
+
+    const p = s.addParticipant(code);
+
+    // attacker supplies round=2 while room is in "vote" (round 1)
+    for (const c of crits) {
+      await s.castVoteOldRound(p.id, c.id, room.id, 2, code, 3);
+    }
+    // old code: votes landed in round 2
+    if (s.voteCount(p.id, room.id, 2) > 0) oldBleed++;
+
+    const p2 = s.addParticipant(code);
+    for (const c of crits) {
+      await s.castVoteNewRound(p2.id, c.id, room.id, code, 3);
+    }
+    // new code: votes land in round 1 (the actual current round)
+    if (s.voteCount(p2.id, room.id, 2) > 0) newBleed++;
+  }));
+
+  console.log(`\n${B("new — client round override attack")} ${DIM(`(${ROOMS} rooms)`)}`);
+  assert("old code: round bleeds into round 2", oldBleed > 0, `${oldBleed}/${ROOMS} rooms affected`);
+  assert("new code: no round bleed", newBleed === 0, `${newBleed}/${ROOMS} rooms affected`);
+}
+
+// ─── NEW: vote idempotency (same criterion twice) ─────────────────────────────
+async function s15_vote_idempotency() {
+  const ROOMS = 20;
+  let quotaUnchanged = 0;
+
+  await Promise.all(Array.from({ length: ROOMS }, async () => {
+    const s = makeStore();
+    const code = "VI";
+    const room = s.createRoom(code, "vote");
+    const crit = s.addCriterion(room.id);
+    const p = s.addParticipant(code);
+
+    // cast the same vote twice concurrently
+    await Promise.all([
+      s.castVoteNew(p.id, crit.id, room.id, 1, 3),
+      s.castVoteNew(p.id, crit.id, room.id, 1, 3),
+    ]);
+
+    // should still only count as 1 dot
+    if (s.voteCount(p.id, room.id, 1) === 1) quotaUnchanged++;
+  }));
+
+  console.log(`\n${B("new — vote idempotency (same criterion twice)")} ${DIM(`(${ROOMS} rooms)`)}`);
+  assert(`duplicate vote counts once (${quotaUnchanged}/${ROOMS})`, quotaUnchanged === ROOMS);
+}
+
+// ─── NEW: vote retract then re-cast ──────────────────────────────────────────
+async function s16_vote_retract_revote() {
+  const ROOMS = 20;
+  let recastOk = 0, quotaCorrect = 0;
+
+  await Promise.all(Array.from({ length: ROOMS }, async () => {
+    const s = makeStore();
+    const code = "VR";
+    const room = s.createRoom(code, "vote");
+    const [c1, c2, c3, c4] = Array.from({ length: 4 }, () => s.addCriterion(room.id));
+    const p = s.addParticipant(code);
+
+    // cast 3 votes (max quota)
+    await s.castVoteNew(p.id, c1.id, room.id, 1, 3);
+    await s.castVoteNew(p.id, c2.id, room.id, 1, 3);
+    await s.castVoteNew(p.id, c3.id, room.id, 1, 3);
+
+    // 4th vote should be over_limit
+    const overflow = await s.castVoteNew(p.id, c4.id, room.id, 1, 3);
+
+    // retract one vote
+    s.removeVote(p.id, c1.id, 1);
+
+    // now c4 should succeed
+    const recast = await s.castVoteNew(p.id, c4.id, room.id, 1, 3);
+
+    if (overflow === "over_limit") quotaCorrect++;
+    if (recast && recast !== "over_limit") recastOk++;
+  }));
+
+  console.log(`\n${B("new — vote retract + re-cast")} ${DIM(`(${ROOMS} rooms)`)}`);
+  assert(`overflow blocked before retract (${quotaCorrect}/${ROOMS})`, quotaCorrect === ROOMS);
+  assert(`re-cast succeeds after retract (${recastOk}/${ROOMS})`, recastOk === ROOMS);
+}
+
+// ─── NEW: tally2/tally3 called on wrong state ─────────────────────────────────
+async function s17_tally_wrong_round() {
+  const ROOMS = 20;
+  let t2Rejected = 0, t3Rejected = 0;
+
+  await Promise.all(Array.from({ length: ROOMS }, async () => {
+    const s = makeStore();
+    const code = "WR";
+
+    // tally2 called when room is at "vote" (not vote2)
+    s.createRoom(code, "vote");
+    const r2 = await s.tallyNew(code, "vote2", "vote3");
+    if (r2.already_advanced) t2Rejected++;
+
+    // tally3 called when room is at "vote2" (not vote3)
+    s.createRoom("WR2", "vote2");
+    const r3 = await s.tallyNew("WR2", "vote3", "pledge");
+    if (r3.already_advanced) t3Rejected++;
+  }));
+
+  console.log(`\n${B("new — tally2/tally3 called on wrong state")} ${DIM(`(${ROOMS} rooms)`)}`);
+  assert(`tally2 on vote state → already_advanced (${t2Rejected}/${ROOMS})`, t2Rejected === ROOMS);
+  assert(`tally3 on vote2 state → already_advanced (${t3Rejected}/${ROOMS})`, t3Rejected === ROOMS);
+}
+
+// ─── NEW: from_state concurrent race ─────────────────────────────────────────
+// two concurrent PATCH /room requests both carrying from_state=vote.
+// only the winner should advance; the second hits a from_state mismatch.
+async function s18_from_state_race() {
+  const ROOMS = 20;
+  let onlyOneWon = 0;
+
+  await Promise.all(Array.from({ length: ROOMS }, async () => {
+    const s = makeStore();
+    const code = "FS";
+    s.createRoom(code, "vote");
+    const tok = s.getToken(code);
+
+    const [r1, r2] = await Promise.all([
+      Promise.resolve(s.advanceNew(code, "criteria_gate", tok, "vote")),
+      Promise.resolve(s.advanceNew(code, "criteria_gate", tok, "vote")),
+    ]);
+
+    const successes = [r1, r2].filter(r => r.status === 200).length;
+    if (successes === 1) onlyOneWon++;
+  }));
+
+  console.log(`\n${B("new — from_state concurrent race")} ${DIM(`(${ROOMS} rooms)`)}`);
+  assert(`exactly one winner (${onlyOneWon}/${ROOMS})`, onlyOneWon === ROOMS);
+}
+
 // ─── main ─────────────────────────────────────────────────────────────────────
 async function main() {
   console.log(`\n${B("rubric-co-builder load test")}  ${DIM(new Date().toISOString())}`);
@@ -517,6 +712,11 @@ async function main() {
   await s11_backward_with_from_state();
   await s12_slow_participant();
   await s13_required_criterion_delete();
+  await s14_round_override();
+  await s15_vote_idempotency();
+  await s16_vote_retract_revote();
+  await s17_tally_wrong_round();
+  await s18_from_state_race();
 
   console.log(`\n${DIM("─".repeat(70))}`);
   if (totalFail === 0) {

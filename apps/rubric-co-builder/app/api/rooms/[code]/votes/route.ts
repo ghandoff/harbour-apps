@@ -39,11 +39,8 @@ export async function POST(
     return NextResponse.json({ error: "room not found" }, { status: 404 });
   }
 
-  // determine round from room state (client also sends it as a hint, but server is authoritative)
-  const round: 1 | 2 | 3 =
-    typeof o.round === "number" && [1, 2, 3].includes(o.round)
-      ? (o.round as 1 | 2 | 3)
-      : roundForState(snapshot.room.state);
+  // round is always derived from current room state — never trust client-supplied value
+  const round: 1 | 2 | 3 = roundForState(snapshot.room.state);
 
   const ballotSize = snapshot.criteria.filter((c) => c.status !== "rejected").length;
   const maxVotes = maxVotesFor(ballotSize);
@@ -80,21 +77,14 @@ export async function DELETE(
   const url = new URL(req.url);
   const participantId = url.searchParams.get("participant_id") ?? "";
   const criterionId = url.searchParams.get("criterion_id") ?? "";
-  const roundParam = url.searchParams.get("round");
 
   if (!participantId || !criterionId) {
     return NextResponse.json({ error: "missing ids" }, { status: 400 });
   }
 
   const store = getStore();
-  // determine round
-  let round: 1 | 2 | 3 = 1;
-  if (roundParam && ["1", "2", "3"].includes(roundParam)) {
-    round = Number(roundParam) as 1 | 2 | 3;
-  } else {
-    const snapshot = await store.getSnapshot(normalised);
-    if (snapshot) round = roundForState(snapshot.room.state);
-  }
+  const snapshot = await store.getSnapshot(normalised);
+  const round: 1 | 2 | 3 = snapshot ? roundForState(snapshot.room.state) : 1;
 
   await store.removeVote(participantId, criterionId, round);
   return NextResponse.json({ ok: true });
