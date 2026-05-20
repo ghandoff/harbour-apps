@@ -68,10 +68,19 @@ function makeStore() {
       rooms.set(code, r);
       return r;
     },
-    addCriterion(roomId) {
-      const c = { id: uid(), room_id: roomId };
+    addCriterion(roomId, required = false) {
+      const c = { id: uid(), room_id: roomId, required };
       criteria.set(c.id, c);
       return c;
+    },
+
+    // NEW: delete with required guard
+    deleteCriterion(id) {
+      const c = criteria.get(id);
+      if (!c) return false;
+      if (c.required) return "required";
+      criteria.delete(id);
+      return true;
     },
     addParticipant(code) {
       const room = findRoom(code);
@@ -464,6 +473,30 @@ async function s12_slow_participant() {
     "POST /votes has no state guard — by design");
 }
 
+// ─── NEW: required criterion deletion blocked ─────────────────────────────────
+async function s13_required_criterion_delete() {
+  const ROOMS = 20;
+  let requiredBlocked = 0, nonRequiredDeleted = 0;
+
+  await Promise.all(Array.from({ length: ROOMS }, async () => {
+    const s = makeStore();
+    const code = "RC";
+    const room = s.createRoom(code, "propose");
+    const required = s.addCriterion(room.id, true);   // required=true
+    const optional = s.addCriterion(room.id, false);  // required=false
+
+    const r1 = s.deleteCriterion(required.id);
+    const r2 = s.deleteCriterion(optional.id);
+
+    if (r1 === "required") requiredBlocked++;
+    if (r2 === true) nonRequiredDeleted++;
+  }));
+
+  console.log(`\n${B("new — required criterion deletion blocked")} ${DIM(`(${ROOMS} rooms)`)}`);
+  assert(`required → 409 blocked (${requiredBlocked}/${ROOMS})`, requiredBlocked === ROOMS);
+  assert(`optional → deleted (${nonRequiredDeleted}/${ROOMS})`, nonRequiredDeleted === ROOMS);
+}
+
 // ─── main ─────────────────────────────────────────────────────────────────────
 async function main() {
   console.log(`\n${B("rubric-co-builder load test")}  ${DIM(new Date().toISOString())}`);
@@ -483,6 +516,7 @@ async function main() {
   await s10_staggered();
   await s11_backward_with_from_state();
   await s12_slow_participant();
+  await s13_required_criterion_delete();
 
   console.log(`\n${DIM("─".repeat(70))}`);
   if (totalFail === 0) {

@@ -51,7 +51,7 @@ export type Store = {
   createRoom(input: CreateRoomInput): Promise<Room>;
   createCriterion(input: CreateCriterionInput): Promise<Criterion>;
   updateCriterion(id: string, patch: UpdateCriterionInput): Promise<Criterion | null>;
-  deleteCriterion(id: string): Promise<boolean>;
+  deleteCriterion(id: string): Promise<boolean | "required">;
   setCriterionStatus(id: string, status: "selected" | "rejected"): Promise<Criterion | null>;
   getSnapshot(code: string): Promise<RoomSnapshot | null>;
   updateRoomState(code: string, state: RoomState): Promise<Room | null>;
@@ -315,6 +315,7 @@ function memoryStore(): Store {
     async deleteCriterion(id) {
       const existing = db.criteria.get(id);
       if (!existing) return false;
+      if (existing.required) return "required";
       db.criteria.delete(id);
       for (const [k, v] of db.votes) if (v.criterion_id === id) db.votes.delete(k);
       for (const [k, s] of db.scales) if (s.criterion_id === id) db.scales.delete(k);
@@ -1061,9 +1062,16 @@ function neonStore(url: string): Store {
 
     async deleteCriterion(id) {
       const rows = await sql`
-        delete from rubric_cobuilder.criteria where id = ${id} returning id
+        delete from rubric_cobuilder.criteria
+        where id = ${id} and required = false
+        returning id
       `;
-      return rows.length > 0;
+      if (rows.length > 0) return true;
+      const check = await sql`
+        select required from rubric_cobuilder.criteria where id = ${id}
+      `;
+      if (check.length === 0) return false;
+      return "required";
     },
 
     async setCriterionStatus(id, status) {
