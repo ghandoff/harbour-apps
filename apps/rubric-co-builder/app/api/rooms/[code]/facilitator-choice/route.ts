@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getStore } from "@/lib/store";
 import { isValidRoomCode } from "@/lib/room-code";
 import { DEFAULT_DESCRIPTORS, SCALE_LEVELS } from "@/lib/types";
+import { isFacilitatorAuthorized } from "@/lib/facilitator-token";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -15,6 +16,9 @@ export async function POST(
   const normalised = code.toUpperCase();
   if (!isValidRoomCode(normalised)) {
     return NextResponse.json({ error: "invalid code" }, { status: 400 });
+  }
+  if (!(await isFacilitatorAuthorized(req, normalised))) {
+    return NextResponse.json({ error: "facilitator token required" }, { status: 401 });
   }
   let body: unknown;
   try {

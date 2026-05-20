@@ -76,6 +76,11 @@ const STATE_ORDER: RoomState[] = [
 
 export function HostRoom({ code }: { code: string }) {
   const state = useRoom(code);
+  const [facilitatorToken] = useState(() =>
+    typeof window !== "undefined"
+      ? (window.sessionStorage.getItem(`rcb:host:${code}`) ?? "")
+      : "",
+  );
 
   if (state.status === "loading") {
     return (
@@ -117,67 +122,85 @@ export function HostRoom({ code }: { code: string }) {
     pledge_response_votes,
   } = snapshot;
 
+  const authHeaders = useCallback(
+    (extra?: Record<string, string>) => ({
+      "content-type": "application/json",
+      ...(facilitatorToken ? { authorization: `Bearer ${facilitatorToken}` } : {}),
+      ...extra,
+    }),
+    [facilitatorToken],
+  );
+
   const advance = useCallback(async (to: RoomState, fromState?: RoomState) => {
     await fetch(apiPath(`/api/rooms/${code}`), {
       method: "PATCH",
-      headers: { "content-type": "application/json" },
+      headers: authHeaders(),
       body: JSON.stringify({ state: to, ...(fromState ? { from_state: fromState } : {}) }),
     });
-  }, [code]);
+  }, [code, authHeaders]);
 
   const startTimer = useCallback(async (durationSeconds: number) => {
     await fetch(apiPath(`/api/rooms/${code}/timer`), {
       method: "PATCH",
-      headers: { "content-type": "application/json" },
+      headers: authHeaders(),
       body: JSON.stringify({ duration: durationSeconds }),
     });
-  }, [code]);
+  }, [code, authHeaders]);
 
   const cancelTimer = useCallback(async () => {
     await fetch(apiPath(`/api/rooms/${code}/timer`), {
       method: "PATCH",
-      headers: { "content-type": "application/json" },
+      headers: authHeaders(),
       body: JSON.stringify({ duration: null }),
     });
-  }, [code]);
+  }, [code, authHeaders]);
 
   const tally = useCallback(async (round: 1 | 2 | 3) => {
     const endpoint =
       round === 1 ? "tally" : round === 2 ? "tally2" : "tally3";
-    const res = await fetch(apiPath(`/api/rooms/${code}/${endpoint}`), { method: "POST" });
+    const res = await fetch(apiPath(`/api/rooms/${code}/${endpoint}`), {
+      method: "POST",
+      headers: authHeaders(),
+    });
     if (!res.ok) throw new Error(`tally failed (${res.status})`);
-  }, [code]);
+  }, [code, authHeaders]);
 
   const aiTally = useCallback(async () => {
-    const res = await fetch(apiPath(`/api/rooms/${code}/ai-tally`), { method: "POST" });
+    const res = await fetch(apiPath(`/api/rooms/${code}/ai-tally`), {
+      method: "POST",
+      headers: authHeaders(),
+    });
     if (!res.ok) throw new Error(`ai-tally failed (${res.status})`);
-  }, [code]);
+  }, [code, authHeaders]);
 
   const pledgeTally = useCallback(async () => {
-    const res = await fetch(apiPath(`/api/rooms/${code}/tally-pledge`), { method: "POST" });
+    const res = await fetch(apiPath(`/api/rooms/${code}/tally-pledge`), {
+      method: "POST",
+      headers: authHeaders(),
+    });
     if (!res.ok) throw new Error(`pledge tally failed (${res.status})`);
-  }, [code]);
+  }, [code, authHeaders]);
 
   const resolveChoice = useCallback(async (selectedIds: string[]) => {
     await fetch(apiPath(`/api/rooms/${code}/facilitator-choice`), {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: authHeaders(),
       body: JSON.stringify({ selected_ids: selectedIds }),
     });
-  }, [code]);
+  }, [code, authHeaders]);
 
   const confirmGate = useCallback(async (selectedIds: string[]) => {
     await fetch(apiPath(`/api/rooms/${code}/facilitator-choice`), {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: authHeaders(),
       body: JSON.stringify({ selected_ids: selectedIds }),
     });
     await fetch(apiPath(`/api/rooms/${code}`), {
       method: "PATCH",
-      headers: { "content-type": "application/json" },
+      headers: authHeaders(),
       body: JSON.stringify({ state: "scale" }),
     });
-  }, [code]);
+  }, [code, authHeaders]);
 
   const surface: "white" | "champagne" =
     room.state === "lobby" || room.state === "frame" || room.state === "commit"
@@ -205,7 +228,7 @@ export function HostRoom({ code }: { code: string }) {
           onCancelTimer={cancelTimer}
         />
 
-        <FacilitatorNudgeEditor code={code} currentNudge={room.facilitator_nudge} />
+        <FacilitatorNudgeEditor code={code} currentNudge={room.facilitator_nudge} facilitatorToken={facilitatorToken} />
 
         <div className="pointer-events-none opacity-95">
           <HostBody
