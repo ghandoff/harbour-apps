@@ -10,7 +10,8 @@ export async function POST(
   { params }: { params: Promise<{ code: string }> },
 ) {
   const { code } = await params;
-  if (!isValidRoomCode(code.toUpperCase())) {
+  const normalised = code.toUpperCase();
+  if (!isValidRoomCode(normalised)) {
     return NextResponse.json({ error: "invalid code" }, { status: 400 });
   }
   let body: unknown;
@@ -25,7 +26,12 @@ export async function POST(
   if (!participantId || !proposalId) {
     return NextResponse.json({ error: "missing ids" }, { status: 400 });
   }
-  const vote = await getStore().castAiProposalVote(participantId, proposalId);
+  const store = getStore();
+  const inRoom = await store.participantExists(participantId, normalised);
+  if (!inRoom) {
+    return NextResponse.json({ error: "not a participant in this room" }, { status: 403 });
+  }
+  const vote = await store.castAiProposalVote(participantId, proposalId);
   if (!vote) {
     return NextResponse.json({ error: "couldn't cast vote" }, { status: 400 });
   }

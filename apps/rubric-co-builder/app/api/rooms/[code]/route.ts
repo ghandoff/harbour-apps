@@ -2,26 +2,11 @@ import { NextResponse } from "next/server";
 import { getStore } from "@/lib/store";
 import { isValidRoomCode } from "@/lib/room-code";
 import type { RoomState } from "@/lib/types";
+import { STATE_ORDER } from "@/lib/types";
+import { isFacilitatorAuthorized } from "@/lib/facilitator-token";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-const VALID_STATES: RoomState[] = [
-  "lobby",
-  "frame",
-  "propose",
-  "vote",
-  "criteria_gate",
-  "scale",
-  "vote2",
-  "vote3",
-  "calibrate",
-  "ai_ladder_propose",
-  "ai_ladder",
-  "pledge",
-  "pledge_vote",
-  "commit",
-];
 
 export async function GET(
   _req: Request,
@@ -50,6 +35,10 @@ export async function PATCH(
     return NextResponse.json({ error: "invalid code" }, { status: 400 });
   }
 
+  if (!(await isFacilitatorAuthorized(req, normalised))) {
+    return NextResponse.json({ error: "facilitator token required" }, { status: 401 });
+  }
+
   let body: unknown;
   try {
     body = await req.json();
@@ -58,25 +47,28 @@ export async function PATCH(
   }
 
   const { state, from_state } = (body ?? {}) as { state?: string; from_state?: string };
-  if (!state || !VALID_STATES.includes(state as RoomState)) {
+  if (!state || !STATE_ORDER.includes(state as RoomState)) {
     return NextResponse.json({ error: "invalid state" }, { status: 400 });
   }
 
-  // if from_state is provided, only advance if the room is still in that state
-  // (prevents timer-expiry races where multiple clients call advance simultaneously)
-  // snapshot errors (e.g. transient db issue) fall through so the update still runs
-  if (from_state) {
-    try {
-      const snapshot = await getStore().getSnapshot(normalised);
-      if (!snapshot) {
-        return NextResponse.json({ error: "room not found" }, { status: 404 });
-      }
-      if (snapshot.room.state !== from_state) {
-        return NextResponse.json({ code: snapshot.room.code, state: snapshot.room.state });
-      }
-    } catch {
-      // snapshot fetch failed — skip race-guard and attempt the update
-    }
+  // always fetch snapshot to enforce forward-only guard
+  const snapshot = await getStore().getSnapshot(normalised);
+  if (!snapshot) {
+    return NextResponse.json({ error: "room not found" }, { status: 404 });
+  }
+
+  const currentIdx = STATE_ORDER.indexOf(snapshot.room.state);
+  const requestedIdx = STATE_ORDER.indexOf(state as RoomState);
+  if (requestedIdx !== -1 && currentIdx !== -1 && requestedIdx <= currentIdx) {
+    return NextResponse.json(
+      { error: "state can only move forward", current: snapshot.room.state },
+      { status: 409 },
+    );
+  }
+
+  // from_state race guard: if caller says "only advance if still in X" and we've already moved, return current
+  if (from_state && snapshot.room.state !== from_state) {
+    return NextResponse.json({ code: snapshot.room.code, state: snapshot.room.state });
   }
 
   const updated = await getStore().updateRoomState(normalised, state as RoomState);

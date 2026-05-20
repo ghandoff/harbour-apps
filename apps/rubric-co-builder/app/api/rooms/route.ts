@@ -3,6 +3,7 @@ import { getStore } from "@/lib/store";
 import { generateRoomCode } from "@/lib/room-code";
 import { SEED_CRITERIA } from "@/lib/types";
 import { generateArtefact } from "@/lib/generate-artefact";
+import { generateFacilitatorToken } from "@/lib/facilitator-token";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -113,5 +114,6 @@ export async function POST(req: Request) {
     }
   });
 
-  return NextResponse.json({ code: room.code }, { status: 201 });
+  const facilitator_token = await generateFacilitatorToken(room.code);
+  return NextResponse.json({ code: room.code, facilitator_token }, { status: 201 });
 }

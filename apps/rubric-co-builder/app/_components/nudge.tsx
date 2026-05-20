@@ -6,11 +6,12 @@ import { apiPath } from "@/lib/paths";
 type EditorProps = {
   code: string;
   currentNudge: string | null;
+  facilitatorToken?: string;
 };
 
 // host-side editor. lets the facilitator pin or clear a clarifying question
 // that every student sees at the top of their screen.
-export function FacilitatorNudgeEditor({ code, currentNudge }: EditorProps) {
+export function FacilitatorNudgeEditor({ code, currentNudge, facilitatorToken }: EditorProps) {
   const [draft, setDraft] = useState(currentNudge ?? "");
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<"idle" | "saved" | "cleared">("idle");
@@ -26,7 +27,10 @@ export function FacilitatorNudgeEditor({ code, currentNudge }: EditorProps) {
     try {
       await fetch(apiPath(`/api/rooms/${code}/nudge`), {
         method: "PATCH",
-        headers: { "content-type": "application/json" },
+        headers: {
+          "content-type": "application/json",
+          ...(facilitatorToken ? { authorization: `Bearer ${facilitatorToken}` } : {}),
+        },
         body: JSON.stringify({ text }),
       });
       setStatus(text.trim().length > 0 ? "saved" : "cleared");

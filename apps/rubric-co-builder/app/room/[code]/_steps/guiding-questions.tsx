@@ -27,11 +27,6 @@ const QUESTIONS: Record<RoomState, string[]> = {
     "which wording is specific enough that you'd know how to hit it?",
     "where did the class quietly raise the bar — does that feel right?",
   ],
-  vote3: [
-    "after the discussion, has your thinking shifted — and if so, toward what?",
-    "which rung feels honest — not aspirational, not permissive, but honest?",
-    "which ceiling would you explain without embarrassment to a future employer?",
-  ],
   scale: [
     "what does this look like when it only barely passes?",
     "what’s the leap from emerging to proficient — in one concrete sentence?",
@@ -56,11 +51,6 @@ const QUESTIONS: Record<RoomState, string[]> = {
     "what specific tool are you actually picturing?",
     "what would make you confident enough to disclose it to the reader?",
     "what would a future you regret not writing down here?",
-  ],
-  pledge_vote: [
-    "which version captures the spirit the room agreed on?",
-    "which one is specific enough to actually guide the work?",
-    "which phrasing would you feel comfortable showing to a marker?",
   ],
   commit: [],
 };

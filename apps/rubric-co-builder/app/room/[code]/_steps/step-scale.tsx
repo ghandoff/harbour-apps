@@ -197,6 +197,7 @@ function ScaleCell({
 }) {
   const [value, setValue] = useState(myDescriptor ?? "");
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const dirtyRef = useRef(false);
 
   useEffect(() => {
@@ -208,8 +209,9 @@ function ScaleCell({
   async function save() {
     if (!canEdit || !participantId) return;
     setSaving(true);
+    setSaveError(null);
     try {
-      await fetch(apiPath(`/api/rooms/${code}/scale-responses`), {
+      const res = await fetch(apiPath(`/api/rooms/${code}/scale-responses`), {
         method: "PATCH",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
@@ -219,6 +221,9 @@ function ScaleCell({
           descriptor: value,
         }),
       });
+      if (!res.ok) setSaveError("couldn't save. try again?");
+    } catch {
+      setSaveError("the network blinked.");
     } finally {
       setSaving(false);
       dirtyRef.current = false;
@@ -233,6 +238,8 @@ function ScaleCell({
         </p>
         {saving ? (
           <span className="text-xs text-[color:var(--color-cadet)]/50">saving…</span>
+        ) : saveError ? (
+          <span className="text-xs text-[color:var(--color-redwood)]">{saveError}</span>
         ) : null}
       </div>
       {canEdit ? (

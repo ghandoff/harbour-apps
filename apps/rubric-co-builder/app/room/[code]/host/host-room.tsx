@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRoom } from "@/lib/use-room";
-import { Wordmark } from "@/app/_components/wordmark";
 import { apiPath } from "@/lib/paths";
 import type {
   AiUseProposal,
@@ -11,7 +10,6 @@ import type {
   CalibrationScore,
   Criterion,
   PledgeResponse,
-  PledgeResponseVote,
   PledgeSlot,
   Room,
   RoomState,
@@ -20,7 +18,7 @@ import type {
   ScaleResponseVote,
   Vote,
 } from "@/lib/types";
-import { roundForState } from "@/lib/types";
+import { roundForState, STATE_ORDER } from "@/lib/types";
 
 function useCountdown(timerEnd: string | null): number | null {
   const [remaining, setRemaining] = useState<number | null>(null);
@@ -51,36 +49,23 @@ import { StepScaleVote } from "../_steps/step-scale-vote";
 import { StepCalibrate } from "../_steps/step-calibrate";
 import { StepAiPropose } from "../_steps/step-ai-propose";
 import { StepAiLadder } from "../_steps/step-ai-ladder";
-import { StepAiVote } from "../_steps/step-ai-vote";
 import { StepPledge } from "../_steps/step-pledge";
-import { StepPledgeVote } from "../_steps/step-pledge-vote";
 import { StepCommit } from "../_steps/step-commit";
 import { JoinQR } from "@/app/_components/join-qr";
 import { FacilitatorNudgeEditor } from "@/app/_components/nudge";
 
-const STATE_ORDER: RoomState[] = [
-  "lobby",
-  "frame",
-  "propose",
-  "vote",
-  "criteria_gate",
-  "scale",
-  "vote2",
-  "ai_ladder_propose",
-  "ai_ladder",
-  "vote3",
-  "pledge",
-  "pledge_vote",
-  "commit",
-];
 
 export function HostRoom({ code }: { code: string }) {
   const state = useRoom(code);
+  const [facilitatorToken] = useState(() =>
+    typeof window !== "undefined"
+      ? (window.sessionStorage.getItem(`rcb:host:${code}`) ?? "")
+      : "",
+  );
 
   if (state.status === "loading") {
     return (
       <main className="min-h-screen flex flex-col items-center justify-center gap-3">
-        <Wordmark />
         <div className="w-8 h-8 rounded-full border-2 border-[color:var(--color-cadet)]/20 border-t-[color:var(--color-cadet)] animate-spin" />
         <p className="text-[color:var(--color-cadet)]/70">spinning up the room…</p>
       </main>
@@ -90,7 +75,6 @@ export function HostRoom({ code }: { code: string }) {
   if (state.status === "error" && !state.snapshot) {
     return (
       <main className="min-h-screen flex items-center justify-center px-6">
-        <Wordmark />
         <div className="max-w-md text-center">
           <h1 className="text-3xl font-bold mb-3">something wobbled.</h1>
           <p className="text-[color:var(--color-cadet)]/80">{state.error}</p>
@@ -114,70 +98,79 @@ export function HostRoom({ code }: { code: string }) {
     ai_use_proposal_votes,
     pledge_slots,
     pledge_responses,
-    pledge_response_votes,
   } = snapshot;
+
+  const authHeaders = useCallback(
+    (extra?: Record<string, string>) => ({
+      "content-type": "application/json",
+      ...(facilitatorToken ? { authorization: `Bearer ${facilitatorToken}` } : {}),
+      ...extra,
+    }),
+    [facilitatorToken],
+  );
 
   const advance = useCallback(async (to: RoomState, fromState?: RoomState) => {
     await fetch(apiPath(`/api/rooms/${code}`), {
       method: "PATCH",
-      headers: { "content-type": "application/json" },
+      headers: authHeaders(),
       body: JSON.stringify({ state: to, ...(fromState ? { from_state: fromState } : {}) }),
     });
-  }, [code]);
+  }, [code, authHeaders]);
 
   const startTimer = useCallback(async (durationSeconds: number) => {
     await fetch(apiPath(`/api/rooms/${code}/timer`), {
       method: "PATCH",
-      headers: { "content-type": "application/json" },
+      headers: authHeaders(),
       body: JSON.stringify({ duration: durationSeconds }),
     });
-  }, [code]);
+  }, [code, authHeaders]);
 
   const cancelTimer = useCallback(async () => {
     await fetch(apiPath(`/api/rooms/${code}/timer`), {
       method: "PATCH",
-      headers: { "content-type": "application/json" },
+      headers: authHeaders(),
       body: JSON.stringify({ duration: null }),
     });
-  }, [code]);
+  }, [code, authHeaders]);
 
-  const tally = useCallback(async (round: 1 | 2 | 3) => {
-    const endpoint =
-      round === 1 ? "tally" : round === 2 ? "tally2" : "tally3";
-    const res = await fetch(apiPath(`/api/rooms/${code}/${endpoint}`), { method: "POST" });
+  const tally = useCallback(async (round: 1 | 2) => {
+    const endpoint = round === 1 ? "tally" : "tally2";
+    const res = await fetch(apiPath(`/api/rooms/${code}/${endpoint}`), {
+      method: "POST",
+      headers: authHeaders(),
+    });
     if (!res.ok) throw new Error(`tally failed (${res.status})`);
-  }, [code]);
+  }, [code, authHeaders]);
 
   const aiTally = useCallback(async () => {
-    const res = await fetch(apiPath(`/api/rooms/${code}/ai-tally`), { method: "POST" });
+    const res = await fetch(apiPath(`/api/rooms/${code}/ai-tally`), {
+      method: "POST",
+      headers: authHeaders(),
+    });
     if (!res.ok) throw new Error(`ai-tally failed (${res.status})`);
-  }, [code]);
+  }, [code, authHeaders]);
 
-  const pledgeTally = useCallback(async () => {
-    const res = await fetch(apiPath(`/api/rooms/${code}/tally-pledge`), { method: "POST" });
-    if (!res.ok) throw new Error(`pledge tally failed (${res.status})`);
-  }, [code]);
 
   const resolveChoice = useCallback(async (selectedIds: string[]) => {
     await fetch(apiPath(`/api/rooms/${code}/facilitator-choice`), {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: authHeaders(),
       body: JSON.stringify({ selected_ids: selectedIds }),
     });
-  }, [code]);
+  }, [code, authHeaders]);
 
   const confirmGate = useCallback(async (selectedIds: string[]) => {
     await fetch(apiPath(`/api/rooms/${code}/facilitator-choice`), {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: authHeaders(),
       body: JSON.stringify({ selected_ids: selectedIds }),
     });
     await fetch(apiPath(`/api/rooms/${code}`), {
       method: "PATCH",
-      headers: { "content-type": "application/json" },
+      headers: authHeaders(),
       body: JSON.stringify({ state: "scale" }),
     });
-  }, [code]);
+  }, [code, authHeaders]);
 
   const surface: "white" | "champagne" =
     room.state === "lobby" || room.state === "frame" || room.state === "commit"
@@ -200,12 +193,11 @@ export function HostRoom({ code }: { code: string }) {
           onAdvance={advance}
           onTally={tally}
           onAiTally={aiTally}
-          onPledgeTally={pledgeTally}
           onStartTimer={startTimer}
           onCancelTimer={cancelTimer}
         />
 
-        <FacilitatorNudgeEditor code={code} currentNudge={room.facilitator_nudge} />
+        <FacilitatorNudgeEditor code={code} currentNudge={room.facilitator_nudge} facilitatorToken={facilitatorToken} />
 
         <div className="pointer-events-none opacity-95">
           <HostBody
@@ -222,7 +214,6 @@ export function HostRoom({ code }: { code: string }) {
             ai_use_proposal_votes={ai_use_proposal_votes ?? []}
             pledge_slots={pledge_slots}
             pledge_responses={pledge_responses ?? []}
-            pledge_response_votes={pledge_response_votes ?? []}
             participants_count={participants_count}
             onResolveChoice={resolveChoice}
             onConfirmGate={confirmGate}
@@ -247,7 +238,6 @@ function HostControls({
   onAdvance,
   onTally,
   onAiTally,
-  onPledgeTally,
   onStartTimer,
   onCancelTimer,
 }: {
@@ -256,9 +246,8 @@ function HostControls({
   timerEnd: string | null;
   timerDuration: number | null;
   onAdvance: (s: RoomState, fromState?: RoomState) => void;
-  onTally: (round: 1 | 2 | 3) => Promise<void>;
+  onTally: (round: 1 | 2) => Promise<void>;
   onAiTally: () => Promise<void>;
-  onPledgeTally: () => Promise<void>;
   onStartTimer: (seconds: number) => Promise<void>;
   onCancelTimer: () => Promise<void>;
 }) {
@@ -296,8 +285,7 @@ function HostControls({
 
   const isTallyState = current === "vote" || current === "vote2";
   const isGateState = current === "criteria_gate";
-  const isAiTallyState = current === "ai_ladder_propose" || current === "ai_ladder" || current === "vote3";
-  const isPledgeTallyState = current === "pledge_vote";
+  const isAiTallyState = current === "ai_ladder_propose" || current === "ai_ladder";
   const tallyRound = current === "vote" ? 1 : 2;
 
   async function wrap(action: () => Promise<void>, label: string) {
@@ -320,11 +308,7 @@ function HostControls({
   const aiTallyLabel =
     current === "ai_ladder_propose"
       ? { idle: "close proposals & open vote", busy: "opening vote…" }
-      : current === "vote3"
-      ? { idle: "tally AI vote & move to pledge", busy: "tallying…" }
-      : { idle: "lock ceiling & move to vote3", busy: "locking ceiling…" };
-
-  const pledgeTallyLabel = { idle: "tally pledge & move to commit", busy: "tallying…" };
+      : { idle: "lock ceiling & move to pledge", busy: "locking ceiling…" };
 
   const timerActive = timerEnd !== null && remaining !== null && remaining > 0;
   const isUrgent = remaining !== null && remaining <= 30 && remaining > 0;
@@ -354,14 +338,6 @@ function HostControls({
               className="bg-[color:var(--color-sienna)] text-white px-4 py-2 rounded text-sm font-medium hover:opacity-90 disabled:opacity-60 disabled:cursor-wait"
             >
               {pending === "ai-tally" ? aiTallyLabel.busy : aiTallyLabel.idle}
-            </button>
-          ) : isPledgeTallyState ? (
-            <button
-              onClick={() => wrap(onPledgeTally, "pledge-tally")}
-              disabled={pending !== null}
-              className="bg-[color:var(--color-sienna)] text-white px-4 py-2 rounded text-sm font-medium hover:opacity-90 disabled:opacity-60 disabled:cursor-wait"
-            >
-              {pending === "pledge-tally" ? pledgeTallyLabel.busy : pledgeTallyLabel.idle}
             </button>
           ) : isGateState ? null : next ? (
             <button
@@ -456,7 +432,6 @@ type HostBodyProps = {
   ai_use_proposal_votes: AiUseProposalVote[];
   pledge_slots: PledgeSlot[];
   pledge_responses: PledgeResponse[];
-  pledge_response_votes: PledgeResponseVote[];
   participants_count: number;
   onResolveChoice: (selectedIds: string[]) => void;
   onConfirmGate: (selectedIds: string[]) => void;
@@ -476,7 +451,6 @@ function HostBody({
   ai_use_proposal_votes,
   pledge_slots,
   pledge_responses,
-  pledge_response_votes,
   participants_count,
   onResolveChoice,
   onConfirmGate,
@@ -509,7 +483,7 @@ function HostBody({
     case "propose":
       return (
         <Collapsible label={`proposals — ${criteria.length} criteri${criteria.length === 1 ? "on" : "a"}`} autoExpand={criteria.length}>
-          <StepPropose code={code} criteria={criteria} canEdit={false} />
+          <StepPropose code={code} criteria={criteria} canEdit={false} participantId={null} />
         </Collapsible>
       );
     case "criteria_gate":
@@ -544,20 +518,6 @@ function HostBody({
               onResolve={onResolveChoice}
             />
           </>
-        </Collapsible>
-      );
-    case "vote3":
-      return (
-        <Collapsible
-          label={`AI use vote — ${ai_use_votes.length} votes cast`}
-          autoExpand={ai_use_votes.length}
-        >
-          <StepAiVote
-            code={code}
-            aiUseVotes={ai_use_votes}
-            participantId={null}
-            participantsCount={participants_count}
-          />
         </Collapsible>
       );
     case "vote2":
@@ -657,21 +617,6 @@ function HostBody({
           />
         </Collapsible>
       );
-    case "pledge_vote":
-      return (
-        <Collapsible
-          label={`pledge vote — ${pledge_response_votes.length} dot${pledge_response_votes.length === 1 ? "" : "s"}`}
-          autoExpand={pledge_response_votes.length}
-        >
-          <StepPledgeVote
-            code={code}
-            pledgeResponses={pledge_responses}
-            pledgeResponseVotes={pledge_response_votes}
-            participantId={null}
-            participantsCount={participants_count}
-          />
-        </Collapsible>
-      );
     case "commit":
       return (
         <Collapsible label="commit — final rubric">
@@ -683,6 +628,7 @@ function HostBody({
             proposals={ai_use_proposals}
             proposalVotes={ai_use_proposal_votes}
             slots={pledge_slots}
+            pledgeResponses={pledge_responses}
           />
         </Collapsible>
       );
@@ -746,7 +692,7 @@ function TiebreakerPanel({
 }: {
   criteria: Criterion[];
   votes: Vote[];
-  round: 1 | 2 | 3;
+  round: 1 | 2;
   onResolve: (selectedIds: string[]) => void;
 }) {
   const [resolving, setResolving] = useState(false);

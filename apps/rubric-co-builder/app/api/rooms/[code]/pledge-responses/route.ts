@@ -29,7 +29,12 @@ export async function PATCH(
       { status: 400 },
     );
   }
-  const result = await getStore().upsertPledgeResponse(
+  const store = getStore();
+  const inRoom = await store.participantExists(participantId, code.toUpperCase());
+  if (!inRoom) {
+    return NextResponse.json({ error: "not a participant in this room" }, { status: 403 });
+  }
+  const result = await store.upsertPledgeResponse(
     code.toUpperCase(),
     participantId,
     slotIndex as 1 | 2 | 3 | 4,

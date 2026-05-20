@@ -6,12 +6,10 @@ export type RoomState =
   | "criteria_gate"  // facilitator reviews vote-1 results and picks which criteria advance
   | "scale"
   | "vote2"  // vote on per-student scale_responses (round 2)
-  | "vote3"  // final binding AI use rung vote (cast after ai_ladder discussion)
   | "calibrate"  // kept for backward compat with rooms created before the rework
   | "ai_ladder_propose"  // each student posts a level + rationale
   | "ai_ladder"  // everyone votes on the proposals
   | "pledge"
-  | "pledge_vote"  // vote on per-student pledge responses (like vote2 for scale)
   | "commit";
 
 export type AiUseLevel = 0 | 1 | 2 | 3 | 4;
@@ -273,8 +271,12 @@ export const PLEDGE_SLOTS: Array<{
   },
 ];
 
+export const STATE_ORDER: RoomState[] = [
+  "lobby", "frame", "propose", "vote", "criteria_gate", "scale",
+  "vote2", "ai_ladder_propose", "ai_ladder", "pledge", "commit",
+];
+
 export function roundForState(state: RoomState): 1 | 2 | 3 {
   if (state === "vote2") return 2;
-  if (state === "vote3") return 3;
   return 1;
 }

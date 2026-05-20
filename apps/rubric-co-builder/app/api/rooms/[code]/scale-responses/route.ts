@@ -27,7 +27,12 @@ export async function PATCH(
   if (!participantId || !criterionId || ![1, 2, 3, 4].includes(level)) {
     return NextResponse.json({ error: "missing participant_id, criterion_id, or level" }, { status: 400 });
   }
-  const result = await getStore().upsertScaleResponse(
+  const store = getStore();
+  const inRoom = await store.participantExists(participantId, code.toUpperCase());
+  if (!inRoom) {
+    return NextResponse.json({ error: "not a participant in this room" }, { status: 403 });
+  }
+  const result = await store.upsertScaleResponse(
     participantId,
     criterionId,
     level as 1 | 2 | 3 | 4,

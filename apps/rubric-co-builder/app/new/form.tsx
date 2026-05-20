@@ -75,7 +75,11 @@ export function NewRoomForm({ seeds }: Props) {
         setSubmitting(false);
         return;
       }
-      const { code } = (await res.json()) as { code: string };
+      const { code, facilitator_token } = (await res.json()) as {
+        code: string;
+        facilitator_token: string;
+      };
+      window.sessionStorage.setItem(`rcb:host:${code}`, facilitator_token);
       router.push(`/room/${code}/host`);
     } catch {
       setError("the network blinked. try again?");

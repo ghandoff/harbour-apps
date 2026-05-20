@@ -50,7 +50,7 @@ export function StepPledge({
     <div className="space-y-6">
       <header className="space-y-3 max-w-3xl">
         <p className="text-xs tracking-widest text-[color:var(--color-cadet)]/70">
-          step 5.5b — integrity pledge
+          step 6 — integrity pledge
         </p>
         <div className="inline-flex items-center gap-2 rounded-full bg-[color:var(--color-cadet)] text-white px-4 py-2 text-sm">
           <span className="font-bold">ceiling · level {ceiling}</span>
@@ -61,7 +61,7 @@ export function StepPledge({
           four slots. fill them in your own words. the ceiling above is the lid —
           nothing in the pledge can push past it.
           {participantId
-            ? " after everyone writes, you'll vote on the best wording for each slot."
+            ? " once everyone writes their responses, the facilitator will move the room to commit."
             : " the facilitator sees all responses side by side."}
         </p>
         {!participantId && (
@@ -172,6 +172,7 @@ function PledgeResponseCell({
 }) {
   const [value, setValue] = useState(myContent ?? "");
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const dirtyRef = useRef(false);
 
   useEffect(() => {
@@ -183,8 +184,9 @@ function PledgeResponseCell({
   async function save() {
     if (!participantId) return;
     setSaving(true);
+    setSaveError(null);
     try {
-      await fetch(apiPath(`/api/rooms/${code}/pledge-responses`), {
+      const res = await fetch(apiPath(`/api/rooms/${code}/pledge-responses`), {
         method: "PATCH",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
@@ -193,6 +195,9 @@ function PledgeResponseCell({
           content: value,
         }),
       });
+      if (!res.ok) setSaveError("couldn't save. try again?");
+    } catch {
+      setSaveError("the network blinked.");
     } finally {
       setSaving(false);
       dirtyRef.current = false;
@@ -210,6 +215,8 @@ function PledgeResponseCell({
         </label>
         {saving ? (
           <span className="text-xs text-[color:var(--color-cadet)]/50">saving…</span>
+        ) : saveError ? (
+          <span className="text-xs text-[color:var(--color-redwood)]">{saveError}</span>
         ) : null}
       </div>
       <textarea

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getStore } from "@/lib/store";
 import { isValidRoomCode } from "@/lib/room-code";
+import { isFacilitatorAuthorized } from "@/lib/facilitator-token";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -12,6 +13,9 @@ export async function PATCH(
   const { code, id } = await params;
   if (!isValidRoomCode(code.toUpperCase())) {
     return NextResponse.json({ error: "invalid code" }, { status: 400 });
+  }
+  if (!(await isFacilitatorAuthorized(req, code.toUpperCase()))) {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
   let body: unknown;
   try {
@@ -48,8 +52,11 @@ export async function DELETE(
   if (!isValidRoomCode(code.toUpperCase())) {
     return NextResponse.json({ error: "invalid code" }, { status: 400 });
   }
-  const ok = await getStore().deleteCriterion(id);
-  if (!ok) {
+  const result = await getStore().deleteCriterion(id);
+  if (result === "required") {
+    return NextResponse.json({ error: "required criteria cannot be removed" }, { status: 409 });
+  }
+  if (!result) {
     return NextResponse.json({ error: "criterion not found" }, { status: 404 });
   }
   return NextResponse.json({ ok: true });

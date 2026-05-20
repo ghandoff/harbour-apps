@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { AiUseLevel, AiUseProposal } from "@/lib/types";
 import { AI_USE_LEVELS } from "@/lib/types";
 import { apiPath } from "@/lib/paths";
@@ -29,12 +29,22 @@ export function StepAiPropose({
   const [level, setLevel] = useState<AiUseLevel | null>(mine?.level ?? null);
   const [rationale, setRationale] = useState<string>(mine?.rationale ?? "");
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  // participantId loads asynchronously; sync local state once the existing proposal arrives
+  useEffect(() => {
+    if (mine && level === null) {
+      setLevel(mine.level);
+      setRationale((prev: string) => prev || mine.rationale || "");
+    }
+  }, [mine]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function save(nextLevel: AiUseLevel, nextRationale: string) {
     if (!participantId) return;
     setSaving(true);
+    setSaveError(null);
     try {
-      await fetch(apiPath(`/api/rooms/${code}/ai-proposals`), {
+      const res = await fetch(apiPath(`/api/rooms/${code}/ai-proposals`), {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
@@ -43,6 +53,9 @@ export function StepAiPropose({
           rationale: nextRationale,
         }),
       });
+      if (!res.ok) setSaveError("couldn't save. try again?");
+    } catch {
+      setSaveError("the network blinked. try again?");
     } finally {
       setSaving(false);
     }
@@ -92,6 +105,9 @@ export function StepAiPropose({
                 : "pick a rung on the right to post."}
               {saving ? " · saving…" : ""}
             </p>
+            {saveError ? (
+              <p className="text-xs text-[color:var(--color-redwood)]">{saveError}</p>
+            ) : null}
           </>
         ) : (
           <p className="text-sm text-[color:var(--color-cadet)]/60">
