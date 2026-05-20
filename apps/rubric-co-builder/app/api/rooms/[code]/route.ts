@@ -21,9 +21,7 @@ const STATE_ORDER: RoomState[] = [
   "vote2",
   "ai_ladder_propose",
   "ai_ladder",
-  "vote3",
   "pledge",
-  "pledge_vote",
   "commit",
 ];
 

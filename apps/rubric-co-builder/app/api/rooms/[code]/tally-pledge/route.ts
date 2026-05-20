@@ -25,7 +25,7 @@ export async function POST(
   if (!snapshot) {
     return NextResponse.json({ error: "room not found" }, { status: 404 });
   }
-  if (snapshot.room.state !== "pledge_vote") {
+  if ((snapshot.room.state as string) !== "pledge_vote") {
     return NextResponse.json({ already_advanced: true, state: snapshot.room.state });
   }
   const result = await store.tallyPledgeVotes(normalised);

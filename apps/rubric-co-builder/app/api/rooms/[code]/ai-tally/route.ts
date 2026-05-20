@@ -9,8 +9,7 @@ export const dynamic = "force-dynamic";
 // POST /api/rooms/[code]/ai-tally
 // reads the current room state:
 //  - ai_ladder_propose → advance to ai_ladder (open the proposal-vote ballot)
-//  - ai_ladder         → tally proposal votes, lock the ceiling, advance to vote3
-//  - vote3             → tally direct AI use votes, advance to pledge
+//  - ai_ladder         → tally proposal votes, lock the ceiling, advance to pledge
 // falls back to the legacy level-ladder tally if no proposals have been posted.
 export async function POST(
   req: Request,
@@ -30,7 +29,7 @@ export async function POST(
     return NextResponse.json({ error: "room not found" }, { status: 404 });
   }
 
-  const validStates = ["ai_ladder_propose", "ai_ladder", "vote3"] as const;
+  const validStates = ["ai_ladder_propose", "ai_ladder"] as const;
   if (!validStates.includes(snapshot.room.state as typeof validStates[number])) {
     return NextResponse.json({ already_advanced: true, state: snapshot.room.state });
   }
@@ -40,15 +39,7 @@ export async function POST(
     return NextResponse.json({ advanced_to: "ai_ladder" });
   }
 
-  if (snapshot.room.state === "vote3") {
-    const result = await store.tallyAiVote(normalised);
-    if (!result) {
-      return NextResponse.json({ error: "couldn't tally" }, { status: 400 });
-    }
-    return NextResponse.json(result);
-  }
-
-  // ai_ladder: tally proposals, advance to vote3 for final direct vote
+  // ai_ladder: tally proposals, lock the ceiling, advance to pledge
   const hasProposals = (snapshot.ai_use_proposals?.length ?? 0) > 0;
   const result = hasProposals
     ? await store.tallyAiProposals(normalised)
@@ -56,6 +47,6 @@ export async function POST(
   if (!result) {
     return NextResponse.json({ error: "couldn't tally" }, { status: 400 });
   }
-  await store.updateRoomState(normalised, "vote3");
+  await store.updateRoomState(normalised, "pledge");
   return NextResponse.json(result);
 }

@@ -6,6 +6,7 @@ import type {
   AiUseProposalVote,
   AiUseVote,
   Criterion,
+  PledgeResponse,
   PledgeSlot,
   Room,
   Scale,
@@ -25,6 +26,7 @@ type Props = {
   proposals?: AiUseProposal[];
   proposalVotes?: AiUseProposalVote[];
   slots: PledgeSlot[];
+  pledgeResponses?: PledgeResponse[];
 };
 
 export function StepCommit({
@@ -35,6 +37,7 @@ export function StepCommit({
   proposals,
   proposalVotes,
   slots,
+  pledgeResponses = [],
 }: Props) {
   const [copyMsg, setCopyMsg] = useState<string | null>(null);
   const selected = useMemo(
@@ -51,8 +54,8 @@ export function StepCommit({
   const rung = levelMeta(ceiling);
 
   const markdown = useMemo(
-    () => buildMarkdown(room, selected, scales, ceiling, rung.name, slots),
-    [room, selected, scales, ceiling, rung.name, slots],
+    () => buildMarkdown(room, selected, scales, ceiling, rung.name, slots, pledgeResponses),
+    [room, selected, scales, ceiling, rung.name, slots, pledgeResponses],
   );
 
   async function copyMarkdown() {
@@ -86,7 +89,11 @@ export function StepCommit({
   }
 
   function printPdf() {
-    window.print();
+    try {
+      window.print();
+    } catch {
+      // some environments block window.print(); markdown download is the fallback
+    }
   }
 
   return (
@@ -110,7 +117,7 @@ export function StepCommit({
           <button onClick={copyLink} className="btn-secondary text-sm">
             copy link
           </button>
-          <button onClick={printPdf} className="btn-secondary text-sm">
+          <button type="button" onClick={printPdf} className="btn-secondary text-sm">
             print / save as pdf
           </button>
           {copyMsg ? (
@@ -213,20 +220,38 @@ export function StepCommit({
 
         <dl className="space-y-4">
           {PLEDGE_SLOTS.map(({ index, label, placeholder }) => {
-            const slot = slots.find((s) => s.slot_index === index);
-            const content = slot?.content?.trim() ?? "";
+            const responses = pledgeResponses
+              .filter((r) => r.slot_index === index && r.content?.trim())
+              .map((r) => r.content.trim());
+            // fall back to canonical slot if no individual responses
+            const slotContent = slots.find((s) => s.slot_index === index)?.content?.trim() ?? "";
             return (
               <div key={index} className="rounded bg-[color:var(--color-champagne)]/30 p-4">
-                <dt className="font-semibold text-[color:var(--color-cadet)] mb-1">
+                <dt className="font-semibold text-[color:var(--color-cadet)] mb-2">
                   {label}
                 </dt>
-                <dd className="text-sm leading-relaxed whitespace-pre-wrap text-[color:var(--color-cadet)]/90">
-                  {content || (
-                    <span className="opacity-50 italic">
-                      [not filled in — {placeholder}]
-                    </span>
-                  )}
-                </dd>
+                {responses.length > 0 ? (
+                  <dd>
+                    <ul className="space-y-2">
+                      {responses.map((text, i) => (
+                        <li
+                          key={i}
+                          className="text-sm leading-relaxed whitespace-pre-wrap text-[color:var(--color-cadet)]/90 pl-3 border-l-2 border-[color:var(--color-sienna)]/30"
+                        >
+                          {text}
+                        </li>
+                      ))}
+                    </ul>
+                  </dd>
+                ) : slotContent ? (
+                  <dd className="text-sm leading-relaxed whitespace-pre-wrap text-[color:var(--color-cadet)]/90">
+                    {slotContent}
+                  </dd>
+                ) : (
+                  <dd className="text-sm italic opacity-50">
+                    [not filled in — {placeholder}]
+                  </dd>
+                )}
               </div>
             );
           })}
@@ -247,6 +272,7 @@ function buildMarkdown(
   ceiling: number,
   ceilingName: string,
   slots: PledgeSlot[],
+  pledgeResponses: PledgeResponse[],
 ): string {
   const lines: string[] = [];
   lines.push(`# rubric + AI-use contract — ${room.project_description}`);
@@ -277,10 +303,19 @@ function buildMarkdown(
   lines.push(`**ceiling:** level ${ceiling} — ${ceilingName}`);
   lines.push("");
   for (const { index, label } of PLEDGE_SLOTS) {
-    const content = slots.find((s) => s.slot_index === index)?.content?.trim() ?? "";
+    const responses = pledgeResponses
+      .filter((r) => r.slot_index === index && r.content?.trim())
+      .map((r) => r.content.trim());
+    const slotContent = slots.find((s) => s.slot_index === index)?.content?.trim() ?? "";
     lines.push(`### ${label}`);
     lines.push("");
-    lines.push(content || "_[not filled in]_");
+    if (responses.length > 0) {
+      for (const text of responses) {
+        lines.push(`- ${text}`);
+      }
+    } else {
+      lines.push(slotContent || "_[not filled in]_");
+    }
     lines.push("");
   }
   lines.push("---");

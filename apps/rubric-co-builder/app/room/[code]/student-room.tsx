@@ -12,9 +12,7 @@ import { StepScaleVote } from "./_steps/step-scale-vote";
 import { StepCalibrate } from "./_steps/step-calibrate";
 import { StepAiPropose } from "./_steps/step-ai-propose";
 import { StepAiLadder } from "./_steps/step-ai-ladder";
-import { StepAiVote } from "./_steps/step-ai-vote";
 import { StepPledge } from "./_steps/step-pledge";
-import { StepPledgeVote } from "./_steps/step-pledge-vote";
 import { StepCommit } from "./_steps/step-commit";
 import { GuidingQuestions } from "./_steps/guiding-questions";
 import { FacilitatorNudgeBanner } from "@/app/_components/nudge";
@@ -174,16 +172,6 @@ export function StudentRoom({ code }: { code: string }) {
         />
       );
     }
-    if (room.state === "vote3") {
-      return (
-        <StepAiVote
-          code={code}
-          aiUseVotes={ai_use_votes ?? []}
-          participantId={participantId}
-          participantsCount={participants_count}
-        />
-      );
-    }
     if (room.state === "vote2") {
       return (
         <StepScaleVote
@@ -257,17 +245,6 @@ export function StudentRoom({ code }: { code: string }) {
         />
       );
     }
-    if (room.state === "pledge_vote") {
-      return (
-        <StepPledgeVote
-          code={code}
-          pledgeResponses={pledge_responses ?? []}
-          pledgeResponseVotes={pledge_response_votes ?? []}
-          participantId={participantId}
-          participantsCount={participants_count}
-        />
-      );
-    }
     return (
       <StepCommit
         room={room}
@@ -277,6 +254,7 @@ export function StudentRoom({ code }: { code: string }) {
         proposals={ai_use_proposals ?? []}
         proposalVotes={ai_use_proposal_votes ?? []}
         slots={pledge_slots}
+        pledgeResponses={pledge_responses ?? []}
       />
     );
   })();

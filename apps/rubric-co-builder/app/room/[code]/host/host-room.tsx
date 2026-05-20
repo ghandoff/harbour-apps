@@ -50,9 +50,7 @@ import { StepScaleVote } from "../_steps/step-scale-vote";
 import { StepCalibrate } from "../_steps/step-calibrate";
 import { StepAiPropose } from "../_steps/step-ai-propose";
 import { StepAiLadder } from "../_steps/step-ai-ladder";
-import { StepAiVote } from "../_steps/step-ai-vote";
 import { StepPledge } from "../_steps/step-pledge";
-import { StepPledgeVote } from "../_steps/step-pledge-vote";
 import { StepCommit } from "../_steps/step-commit";
 import { JoinQR } from "@/app/_components/join-qr";
 import { FacilitatorNudgeEditor } from "@/app/_components/nudge";
@@ -67,9 +65,7 @@ const STATE_ORDER: RoomState[] = [
   "vote2",
   "ai_ladder_propose",
   "ai_ladder",
-  "vote3",
   "pledge",
-  "pledge_vote",
   "commit",
 ];
 
@@ -170,13 +166,6 @@ export function HostRoom({ code }: { code: string }) {
     if (!res.ok) throw new Error(`ai-tally failed (${res.status})`);
   }, [code, authHeaders]);
 
-  const pledgeTally = useCallback(async () => {
-    const res = await fetch(apiPath(`/api/rooms/${code}/tally-pledge`), {
-      method: "POST",
-      headers: authHeaders(),
-    });
-    if (!res.ok) throw new Error(`pledge tally failed (${res.status})`);
-  }, [code, authHeaders]);
 
   const resolveChoice = useCallback(async (selectedIds: string[]) => {
     await fetch(apiPath(`/api/rooms/${code}/facilitator-choice`), {
@@ -220,7 +209,6 @@ export function HostRoom({ code }: { code: string }) {
           onAdvance={advance}
           onTally={tally}
           onAiTally={aiTally}
-          onPledgeTally={pledgeTally}
           onStartTimer={startTimer}
           onCancelTimer={cancelTimer}
         />
@@ -267,7 +255,6 @@ function HostControls({
   onAdvance,
   onTally,
   onAiTally,
-  onPledgeTally,
   onStartTimer,
   onCancelTimer,
 }: {
@@ -278,7 +265,6 @@ function HostControls({
   onAdvance: (s: RoomState, fromState?: RoomState) => void;
   onTally: (round: 1 | 2 | 3) => Promise<void>;
   onAiTally: () => Promise<void>;
-  onPledgeTally: () => Promise<void>;
   onStartTimer: (seconds: number) => Promise<void>;
   onCancelTimer: () => Promise<void>;
 }) {
@@ -316,8 +302,7 @@ function HostControls({
 
   const isTallyState = current === "vote" || current === "vote2";
   const isGateState = current === "criteria_gate";
-  const isAiTallyState = current === "ai_ladder_propose" || current === "ai_ladder" || current === "vote3";
-  const isPledgeTallyState = current === "pledge_vote";
+  const isAiTallyState = current === "ai_ladder_propose" || current === "ai_ladder";
   const tallyRound = current === "vote" ? 1 : 2;
 
   async function wrap(action: () => Promise<void>, label: string) {
@@ -340,11 +325,7 @@ function HostControls({
   const aiTallyLabel =
     current === "ai_ladder_propose"
       ? { idle: "close proposals & open vote", busy: "opening vote…" }
-      : current === "vote3"
-      ? { idle: "tally AI vote & move to pledge", busy: "tallying…" }
-      : { idle: "lock ceiling & move to vote3", busy: "locking ceiling…" };
-
-  const pledgeTallyLabel = { idle: "tally pledge & move to commit", busy: "tallying…" };
+      : { idle: "lock ceiling & move to pledge", busy: "locking ceiling…" };
 
   const timerActive = timerEnd !== null && remaining !== null && remaining > 0;
   const isUrgent = remaining !== null && remaining <= 30 && remaining > 0;
@@ -374,14 +355,6 @@ function HostControls({
               className="bg-[color:var(--color-sienna)] text-white px-4 py-2 rounded text-sm font-medium hover:opacity-90 disabled:opacity-60 disabled:cursor-wait"
             >
               {pending === "ai-tally" ? aiTallyLabel.busy : aiTallyLabel.idle}
-            </button>
-          ) : isPledgeTallyState ? (
-            <button
-              onClick={() => wrap(onPledgeTally, "pledge-tally")}
-              disabled={pending !== null}
-              className="bg-[color:var(--color-sienna)] text-white px-4 py-2 rounded text-sm font-medium hover:opacity-90 disabled:opacity-60 disabled:cursor-wait"
-            >
-              {pending === "pledge-tally" ? pledgeTallyLabel.busy : pledgeTallyLabel.idle}
             </button>
           ) : isGateState ? null : next ? (
             <button
@@ -529,7 +502,7 @@ function HostBody({
     case "propose":
       return (
         <Collapsible label={`proposals — ${criteria.length} criteri${criteria.length === 1 ? "on" : "a"}`} autoExpand={criteria.length}>
-          <StepPropose code={code} criteria={criteria} canEdit={false} />
+          <StepPropose code={code} criteria={criteria} canEdit={false} participantId={null} />
         </Collapsible>
       );
     case "criteria_gate":
@@ -564,20 +537,6 @@ function HostBody({
               onResolve={onResolveChoice}
             />
           </>
-        </Collapsible>
-      );
-    case "vote3":
-      return (
-        <Collapsible
-          label={`AI use vote — ${ai_use_votes.length} votes cast`}
-          autoExpand={ai_use_votes.length}
-        >
-          <StepAiVote
-            code={code}
-            aiUseVotes={ai_use_votes}
-            participantId={null}
-            participantsCount={participants_count}
-          />
         </Collapsible>
       );
     case "vote2":
@@ -677,21 +636,6 @@ function HostBody({
           />
         </Collapsible>
       );
-    case "pledge_vote":
-      return (
-        <Collapsible
-          label={`pledge vote — ${pledge_response_votes.length} dot${pledge_response_votes.length === 1 ? "" : "s"}`}
-          autoExpand={pledge_response_votes.length}
-        >
-          <StepPledgeVote
-            code={code}
-            pledgeResponses={pledge_responses}
-            pledgeResponseVotes={pledge_response_votes}
-            participantId={null}
-            participantsCount={participants_count}
-          />
-        </Collapsible>
-      );
     case "commit":
       return (
         <Collapsible label="commit — final rubric">
@@ -703,6 +647,7 @@ function HostBody({
             proposals={ai_use_proposals}
             proposalVotes={ai_use_proposal_votes}
             slots={pledge_slots}
+            pledgeResponses={pledge_responses}
           />
         </Collapsible>
       );
