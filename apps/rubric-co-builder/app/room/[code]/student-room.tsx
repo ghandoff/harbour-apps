@@ -17,7 +17,6 @@ import { StepPledge } from "./_steps/step-pledge";
 import { StepPledgeVote } from "./_steps/step-pledge-vote";
 import { StepCommit } from "./_steps/step-commit";
 import { GuidingQuestions } from "./_steps/guiding-questions";
-import { Wordmark } from "@/app/_components/wordmark";
 import { FacilitatorNudgeBanner } from "@/app/_components/nudge";
 import type { RoomState } from "@/lib/types";
 
@@ -88,7 +87,6 @@ export function StudentRoom({ code }: { code: string }) {
   if (state.status === "loading") {
     return (
       <main className="min-h-screen flex flex-col items-center justify-center gap-3">
-        <Wordmark />
         <div className="w-8 h-8 rounded-full border-2 border-[color:var(--color-cadet)]/20 border-t-[color:var(--color-cadet)] animate-spin" />
         <p className="text-[color:var(--color-cadet)]/70">joining room…</p>
       </main>
@@ -98,7 +96,6 @@ export function StudentRoom({ code }: { code: string }) {
   if (state.status === "error" && !state.snapshot) {
     return (
       <main className="min-h-screen flex items-center justify-center px-6">
-        <Wordmark />
         <div className="max-w-md text-center">
           <h1 className="text-3xl font-bold mb-3">no room at that code.</h1>
           <p className="text-[color:var(--color-cadet)]/80">
@@ -162,7 +159,7 @@ export function StudentRoom({ code }: { code: string }) {
       );
     }
     if (room.state === "propose") {
-      return <StepPropose code={code} criteria={criteria} canEdit={canEdit} />;
+      return <StepPropose code={code} criteria={criteria} canEdit={canEdit} participantId={participantId} />;
     }
     if (room.state === "vote") {
       const ballot = criteria.filter((c) => c.status !== "rejected");

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Wordmark } from "@/app/_components/wordmark";
 import { apiPath } from "@/lib/paths";
 
 const STORAGE_KEY = "rcb:participant";
@@ -57,7 +56,6 @@ export function JoinRoom({ code }: { code: string }) {
   if (status === "error") {
     return (
       <main className="min-h-screen flex items-center justify-center px-6">
-        <Wordmark />
         <div className="max-w-md text-center">
           <h1 className="text-3xl font-bold mb-3">can&apos;t get you in.</h1>
           <p className="text-[color:var(--color-cadet)]/80">{error}</p>
@@ -68,7 +66,6 @@ export function JoinRoom({ code }: { code: string }) {
 
   return (
     <main className="min-h-screen flex items-center justify-center">
-      <Wordmark />
       <p className="text-[color:var(--color-cadet)]/70">joining room {code}…</p>
     </main>
   );

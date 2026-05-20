@@ -1,6 +1,5 @@
 "use client";
 
-import { Wordmark } from "@/app/_components/wordmark";
 import type { RoomState } from "@/lib/types";
 
 const STATE_LABELS: Record<RoomState, string> = {
@@ -36,7 +35,6 @@ export function StepShell({
   const bg = surface === "champagne" ? "surface-champagne" : "";
   return (
     <main className={`min-h-screen w-full px-6 py-10 ${bg}`}>
-      <Wordmark />
       <header className="max-w-6xl mx-auto mb-8 flex items-center justify-between gap-4">
         <p className="text-xs tracking-widest text-[color:var(--color-cadet)]/70">
           {role} view · step {STATE_LABELS[state] ?? state}

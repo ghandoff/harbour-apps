@@ -8,9 +8,10 @@ type Props = {
   code: string;
   criteria: Criterion[];
   canEdit: boolean;
+  participantId: string | null;
 };
 
-export function StepPropose({ code, criteria, canEdit }: Props) {
+export function StepPropose({ code, criteria, canEdit, participantId }: Props) {
   const [name, setName] = useState("");
   const [good, setGood] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -25,7 +26,7 @@ export function StepPropose({ code, criteria, canEdit }: Props) {
       const res = await fetch(apiPath(`/api/rooms/${code}/criteria`), {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ name, good_description: good }),
+        body: JSON.stringify({ participant_id: participantId, name, good_description: good }),
       });
       if (!res.ok) {
         const d = (await res.json().catch(() => null)) as { error?: string } | null;
@@ -54,6 +55,7 @@ export function StepPropose({ code, criteria, canEdit }: Props) {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
+        participant_id: participantId,
         name: nextName,
         good_description: nextGood,
         version_of: original.id,

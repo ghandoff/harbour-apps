@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRoom } from "@/lib/use-room";
-import { Wordmark } from "@/app/_components/wordmark";
 import { apiPath } from "@/lib/paths";
 import type {
   AiUseProposal,
@@ -85,7 +84,6 @@ export function HostRoom({ code }: { code: string }) {
   if (state.status === "loading") {
     return (
       <main className="min-h-screen flex flex-col items-center justify-center gap-3">
-        <Wordmark />
         <div className="w-8 h-8 rounded-full border-2 border-[color:var(--color-cadet)]/20 border-t-[color:var(--color-cadet)] animate-spin" />
         <p className="text-[color:var(--color-cadet)]/70">spinning up the room…</p>
       </main>
@@ -95,7 +93,6 @@ export function HostRoom({ code }: { code: string }) {
   if (state.status === "error" && !state.snapshot) {
     return (
       <main className="min-h-screen flex items-center justify-center px-6">
-        <Wordmark />
         <div className="max-w-md text-center">
           <h1 className="text-3xl font-bold mb-3">something wobbled.</h1>
           <p className="text-[color:var(--color-cadet)]/80">{state.error}</p>
