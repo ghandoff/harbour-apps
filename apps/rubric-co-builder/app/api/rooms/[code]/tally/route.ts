@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getStore } from "@/lib/store";
 import { isValidRoomCode } from "@/lib/room-code";
 import { isFacilitatorAuthorized } from "@/lib/facilitator-token";
+import { STATE_ORDER } from "@/lib/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -25,6 +26,11 @@ export async function POST(
     return NextResponse.json({ error: "room not found" }, { status: 404 });
   }
   if (snapshot.room.state !== "vote") {
+    const currentIdx = STATE_ORDER.indexOf(snapshot.room.state);
+    const voteIdx = STATE_ORDER.indexOf("vote");
+    if (currentIdx < voteIdx) {
+      return NextResponse.json({ error: "room is not yet in vote state" }, { status: 400 });
+    }
     return NextResponse.json({ already_advanced: true, state: snapshot.room.state });
   }
   const result = await store.tallySelection(normalised, 1, "criteria_gate");

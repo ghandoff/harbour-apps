@@ -271,6 +271,11 @@ export const PLEDGE_SLOTS: Array<{
   },
 ];
 
+export const STATE_ORDER: RoomState[] = [
+  "lobby", "frame", "propose", "vote", "criteria_gate", "scale",
+  "vote2", "ai_ladder_propose", "ai_ladder", "pledge", "commit",
+];
+
 export function roundForState(state: RoomState): 1 | 2 | 3 {
   if (state === "vote2") return 2;
   return 1;

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getStore } from "@/lib/store";
 import { isValidRoomCode } from "@/lib/room-code";
 import { isFacilitatorAuthorized } from "@/lib/facilitator-token";
+import { STATE_ORDER } from "@/lib/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -26,6 +27,11 @@ export async function POST(
     return NextResponse.json({ error: "room not found" }, { status: 404 });
   }
   if (snapshot.room.state !== "vote2") {
+    const currentIdx = STATE_ORDER.indexOf(snapshot.room.state);
+    const vote2Idx = STATE_ORDER.indexOf("vote2");
+    if (currentIdx < vote2Idx) {
+      return NextResponse.json({ error: "room is not yet in vote2 state" }, { status: 400 });
+    }
     return NextResponse.json({ already_advanced: true, state: snapshot.room.state });
   }
   const result = await store.tallyScaleResponseVotes(

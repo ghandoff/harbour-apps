@@ -2,28 +2,11 @@ import { NextResponse } from "next/server";
 import { getStore } from "@/lib/store";
 import { isValidRoomCode } from "@/lib/room-code";
 import type { RoomState } from "@/lib/types";
+import { STATE_ORDER } from "@/lib/types";
 import { isFacilitatorAuthorized } from "@/lib/facilitator-token";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-// single source of truth — valid target states AND forward-only ordering.
-// "calibrate" was removed (legacy state, not in the current session flow).
-// rooms already persisted at an unknown state can still advance: if
-// currentIdx === -1 the forward check does not fire, so they can proceed.
-const STATE_ORDER: RoomState[] = [
-  "lobby",
-  "frame",
-  "propose",
-  "vote",
-  "criteria_gate",
-  "scale",
-  "vote2",
-  "ai_ladder_propose",
-  "ai_ladder",
-  "pledge",
-  "commit",
-];
 
 export async function GET(
   _req: Request,

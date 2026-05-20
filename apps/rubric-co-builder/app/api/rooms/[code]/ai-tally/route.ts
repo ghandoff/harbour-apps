@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getStore } from "@/lib/store";
 import { isValidRoomCode } from "@/lib/room-code";
 import { isFacilitatorAuthorized } from "@/lib/facilitator-token";
+import { STATE_ORDER } from "@/lib/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -31,6 +32,11 @@ export async function POST(
 
   const validStates = ["ai_ladder_propose", "ai_ladder"] as const;
   if (!validStates.includes(snapshot.room.state as typeof validStates[number])) {
+    const currentIdx = STATE_ORDER.indexOf(snapshot.room.state);
+    const firstValidIdx = STATE_ORDER.indexOf("ai_ladder_propose");
+    if (currentIdx < firstValidIdx) {
+      return NextResponse.json({ error: "room is not yet in ai_ladder_propose state" }, { status: 400 });
+    }
     return NextResponse.json({ already_advanced: true, state: snapshot.room.state });
   }
 
