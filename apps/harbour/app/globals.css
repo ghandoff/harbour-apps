@@ -172,3 +172,103 @@ html {
     transform: none;
   }
 }
+
+/* ── boardwalks: pier sections rendered as horizontal "decks" ──── */
+/* Each pier section gets:
+ *   .boardwalk-plank — subtle wood-grain texture via alternating stripe
+ *   .boardwalk-label — oversized lowercase pier name running parallel to
+ *                      the deck (the "you-are-on-pier-X" landmark)
+ *   .fog-section / .fog-section.lit — fog-of-war reveal (default dim,
+ *                      lights up via JS once the section scrolls into
+ *                      view). Borrowed from Roll20's Explorer Mode.
+ *
+ * Brand constraints honoured:
+ *   • cadet (#273248) is the page background; planks are very subtle
+ *     light-on-cadet stripes so the deck reads as architecture, not noise
+ *   • champagne is font colour only — never used as a deck background
+ *   • all copy is lowercase; pier labels lean into oversized typography
+ *     as visual architecture (per category 12 of the design research)
+ */
+
+.boardwalk-plank {
+  /* Alternating-stripe gradient suggests wooden planks running along
+   * the boardwalk's length. Stripe period ~ 96px which reads as planks
+   * at a reasonable viewing scale. Very low opacity so it doesn't fight
+   * the cards on top. */
+  background-image:
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.018) 0 96px,
+      rgba(255, 255, 255, 0.035) 96px 99px,
+      rgba(255, 255, 255, 0.018) 99px 195px,
+      rgba(0, 0, 0, 0.06)       195px 198px
+    );
+  /* A subtle bottom-edge "water shadow" — suggests the boardwalk ends
+   * and the water begins below. */
+  box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.06),
+              inset 0 -32px 48px -32px rgba(0, 0, 0, 0.25);
+}
+
+.boardwalk-label {
+  /* Oversized lowercase typography that reads as a landmark / sign
+   * at the head of the pier. Slightly translucent so it feels printed
+   * onto the boards, not floating above them. */
+  font-size: clamp(2.5rem, 7vw, 5rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 0.95;
+  color: var(--color-text-on-dark);
+  opacity: 0.92;
+  text-transform: lowercase;
+}
+
+.boardwalk-label-sub {
+  font-size: clamp(0.875rem, 1.4vw, 1.0625rem);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-text-on-dark-muted);
+  margin-bottom: 0.5rem;
+}
+
+/* ── fog-of-war ───────────────────────────────────────────────── */
+/* SSR-friendly: section is "lit" by default (no JS = no fog). On mount
+ * the FogOfWarSection client wrapper sets data-fog-state="dim" if the
+ * pier hasn't been visited this device, or "visited" if it has been.
+ * IntersectionObserver flips to "lit" once the section enters the
+ * viewport, and the visited state persists in localStorage. */
+
+.fog-section {
+  transition:
+    filter 0.65s ease,
+    opacity 0.65s ease;
+}
+
+.fog-section[data-fog-state="dim"] {
+  filter: saturate(0.35) brightness(0.78);
+  opacity: 0.92;
+}
+
+.fog-section[data-fog-state="visited"] {
+  /* Roll20 "you've been here before" — slightly desaturated, but
+   * brighter than full dim. The pier is "remembered." */
+  filter: saturate(0.7) brightness(0.92);
+  opacity: 0.96;
+}
+
+.fog-section[data-fog-state="lit"] {
+  filter: none;
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fog-section {
+    /* Honour reduced-motion: skip the fog effect entirely. */
+    transition: none;
+    filter: none !important;
+    opacity: 1 !important;
+  }
+}
+
+/* Defensive: if JS never runs (no-JS browsers, screen readers), the
+ * default state has no data-fog-state attribute and renders fully lit.
+ * The transition is also a no-op without state changes. */

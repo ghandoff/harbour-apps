@@ -6,6 +6,7 @@ import { CastParade } from "@/components/cast-parade";
 import { PierSection } from "@/components/pier-section";
 import { PierCTeaser } from "@/components/pier-c-teaser";
 import { DrydockWall } from "@/components/drydock-wall";
+import { FogOfWarSection } from "@/components/fog-of-war-section";
 import {
   fetchGames,
   fetchCredibility,
@@ -106,29 +107,42 @@ export default async function HarbourPage() {
         </section>
 
         {/* ── Pier A — leadership ─────────────────────────────── */}
-        <PierSection
-          pier="pier-a"
-          label="pier a — leadership"
-          audience="for workplace facilitators, l&d teams, and sustainability professionals. tools you can run with a group on monday morning."
-          games={pierA}
-        />
+        {/* Wrapped in fog-of-war: dim by default, lights up on scroll-in
+         * and persists via localStorage. SSR shows fully lit; the dim is
+         * applied client-side post-mount. Honours prefers-reduced-motion. */}
+        <FogOfWarSection pierSlug="pier-a">
+          <PierSection
+            pier="pier-a"
+            label="pier a — leadership"
+            shortLabel="leadership"
+            audience="for workplace facilitators, l&d teams, and sustainability professionals. tools you can run with a group on monday morning."
+            games={pierA}
+          />
+        </FogOfWarSection>
 
         {/* ── Pier B — classroom ──────────────────────────────── */}
-        <PierSection
-          pier="pier-b"
-          label="pier b — classroom"
-          audience="for prme faculty, mba educators, and certificate programmes. tools that map onto a syllabus and survive a semester."
-          games={pierB}
-        />
+        <FogOfWarSection pierSlug="pier-b">
+          <PierSection
+            pier="pier-b"
+            label="pier b — classroom"
+            shortLabel="classroom"
+            audience="for prme faculty, mba educators, and certificate programmes. tools that map onto a syllabus and survive a semester."
+            games={pierB}
+          />
+        </FogOfWarSection>
 
         {/* ── cast parade — connective tissue into pier c ─────── */}
         <CastParade />
 
         {/* ── Pier C — family (wave 2 teaser) ─────────────────── */}
-        <PierCTeaser games={pierC} />
+        <FogOfWarSection pierSlug="pier-c">
+          <PierCTeaser games={pierC} />
+        </FogOfWarSection>
 
         {/* ── Drydock — coming-soon micro-apps ────────────────── */}
-        <DrydockWall games={drydock} />
+        <FogOfWarSection pierSlug="drydock">
+          <DrydockWall games={drydock} />
+        </FogOfWarSection>
 
         {/* ── Credibility zone ─────────────────────────────────── */}
         <CredibilityZone data={credibilityData} />
