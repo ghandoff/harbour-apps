@@ -17,3 +17,6 @@
 next-env.d.ts
 .open-next
 .env*.local
+
+# placeholder tile generator output — see scripts/generate-placeholder-tiles.mjs
+dist/
