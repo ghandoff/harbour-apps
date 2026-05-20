@@ -1,0 +1,723 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Harbour landing — visual architecture research</title>
+<style>
+  :root {
+    --bg: #fbf6ec;
+    --paper: #fff;
+    --ink: #1f2a3a;
+    --muted: #5c6a7d;
+    --rule: #e3dccd;
+    --cadet: #273248;
+    --redwood: #b15043;
+    --sienna: #cb7858;
+    --champagne: #c98f55;
+    --code-bg: #f1e8d4;
+    --pick-bg: #fdf4e3;
+    --pick-border: #cb7858;
+  }
+  *,*::before,*::after { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font: 17px/1.7 -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", "Helvetica Neue", Arial, sans-serif;
+    margin: 0;
+    padding: 0 1.25rem;
+  }
+  main {
+    max-width: 760px;
+    margin: 3rem auto 6rem;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 3rem 3.5rem;
+    box-shadow: 0 2px 0 rgba(0,0,0,.02), 0 8px 24px rgba(31,42,58,.06);
+  }
+  @media (max-width: 720px) {
+    main { padding: 1.75rem 1.25rem; margin: 1rem auto 3rem; }
+    body { font-size: 16px; }
+  }
+  h1, h2, h3, h4 {
+    color: var(--cadet);
+    line-height: 1.25;
+    margin-top: 2.2em;
+    margin-bottom: .6em;
+    font-weight: 700;
+  }
+  h1 { font-size: 2rem; margin-top: 0; letter-spacing: -.01em; }
+  h2 { font-size: 1.5rem; border-bottom: 1px solid var(--rule); padding-bottom: .35em; }
+  h3 { font-size: 1.2rem; color: var(--redwood); }
+  h4 { font-size: 1rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+  p { margin: 0 0 1em; }
+  ul, ol { padding-left: 1.4em; margin: 0 0 1em; }
+  li { margin-bottom: .3em; }
+  a {
+    color: var(--redwood);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+    text-decoration-color: rgba(177,80,67,.4);
+    transition: text-decoration-color .15s;
+  }
+  a:hover { text-decoration-color: var(--redwood); }
+  strong { color: var(--cadet); }
+  code {
+    background: var(--code-bg);
+    padding: .12em .35em;
+    border-radius: 3px;
+    font: .92em/1.4 "SF Mono", Menlo, Consolas, monospace;
+    color: var(--cadet);
+  }
+  pre {
+    background: var(--code-bg);
+    padding: 1em 1.2em;
+    border-radius: 6px;
+    overflow-x: auto;
+    font: .9em/1.5 "SF Mono", Menlo, Consolas, monospace;
+  }
+  pre code { background: none; padding: 0; }
+  blockquote {
+    border-left: 4px solid var(--sienna);
+    margin: 1em 0;
+    padding: .25em 0 .25em 1.2em;
+    color: var(--ink);
+    font-style: italic;
+  }
+  hr {
+    border: 0;
+    border-top: 1px solid var(--rule);
+    margin: 3rem 0;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1em 0;
+    font-size: .94em;
+  }
+  th, td {
+    text-align: left;
+    padding: .55em .75em;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+  }
+  th { background: var(--code-bg); font-weight: 600; color: var(--cadet); }
+  .pick {
+    background: var(--pick-bg);
+    border-left: 4px solid var(--pick-border);
+    padding: 1em 1.25em;
+    margin: 1em 0;
+    border-radius: 0 6px 6px 0;
+  }
+  .pick strong { font-size: 1.05em; }
+  .rating {
+    color: var(--sienna);
+    letter-spacing: .15em;
+    font-size: .95em;
+  }
+  .meta {
+    color: var(--muted);
+    font-size: .92em;
+    margin-bottom: 2rem;
+  }
+  nav.toc {
+    background: var(--bg);
+    border: 1px solid var(--rule);
+    padding: 1.2em 1.5em;
+    margin: 2em 0;
+    border-radius: 6px;
+  }
+  nav.toc h4 { margin-top: 0; }
+  nav.toc ol { margin-bottom: 0; }
+  nav.toc a { text-decoration: none; }
+  nav.toc a:hover { text-decoration: underline; }
+  .effort {
+    display: inline-block;
+    background: var(--cadet);
+    color: var(--paper);
+    padding: .15em .55em;
+    border-radius: 3px;
+    font-size: .8em;
+    font-weight: 600;
+    letter-spacing: .03em;
+    margin-right: .5em;
+  }
+  .effort.low { background: #6b8e6b; }
+  .effort.med { background: var(--sienna); }
+  .effort.high { background: var(--redwood); }
+  @media print {
+    body { background: #fff; }
+    main { box-shadow: none; border: none; padding: 0; }
+    a { color: var(--ink); }
+    nav.toc { page-break-after: always; }
+  }
+</style>
+</head>
+<body>
+<main>
+
+<h1>Harbour landing — visual architecture research</h1>
+<p class="meta">19 May 2026 · for Garrett · ahead of the 28 May PRME launch</p>
+
+<p><strong>Goal:</strong> decide how the pier IA should <em>look</em> — it currently reads as a vertical list of cards, not a harbour.</p>
+
+<nav class="toc">
+  <h4>contents</h4>
+  <ol>
+    <li><a href="#tldr">TL;DR — my three picks</a></li>
+    <li><a href="#how-to-use">How to use this doc</a></li>
+    <li><a href="#cat-1">Spatial / illustrated map navigation ★★★</a></li>
+    <li><a href="#cat-2">Horizontal "rails" / Netflix rows ★★★</a></li>
+    <li><a href="#cat-3">Bento grid (modular tile mosaic) ★★★</a></li>
+    <li><a href="#cat-4">Audience self-selector ("I am a…") ★★</a></li>
+    <li><a href="#cat-5">Pillar columns ★★</a></li>
+    <li><a href="#cat-6">Magazine / editorial section layout ★★</a></li>
+    <li><a href="#cat-7">Gaming launcher dashboards ★★</a></li>
+    <li><a href="#cat-8">Tabbed / segmented control zones ★</a></li>
+    <li><a href="#cat-9">Scrollytelling / narrative scroll ★</a></li>
+    <li><a href="#cat-10">3D / WebGL "world" navigation ★</a></li>
+    <li><a href="#cat-11">Hub-and-spoke / radial centre ★</a></li>
+    <li><a href="#cat-12">Brutalist / typography-led ★</a></li>
+    <li><a href="#cat-13"><strong>Fog of war / exploration reveal (NEW) ★★★</strong></a></li>
+    <li><a href="#synth">My synthesised recommendation</a></li>
+    <li><a href="#graphics">Graphics we'd need to create</a></li>
+    <li><a href="#phasing">Implementation phasing</a></li>
+    <li><a href="#questions">Decision questions for you</a></li>
+    <li><a href="#sources">Sources cited</a></li>
+  </ol>
+</nav>
+
+<h2 id="tldr">TL;DR — my three picks</h2>
+
+<p>Out of 13 categories of multi-portal homepage design I looked at, three are the strongest fit for what you're trying to do:</p>
+
+<div class="pick">
+  <p>🥇 <strong>Fog-of-war exploration over an illustrated harbour map (NEW, added 19 May)</strong> — top-down illustrated harbour, but each pier is initially dim and "lights up" as the visitor scrolls or hovers. Combines categories 1 and 13. Closest mental model: Roll20's "Explorer Mode" + Animal Crossing's island reveal. Strongest because it leans <em>all the way</em> into the metaphor — you don't just see the harbour, you <em>walk</em> the harbour. <span class="effort high">EFFORT: HIGH</span> SVG + scroll-tied JS, but the scroll engine itself is small.</p>
+</div>
+
+<div class="pick">
+  <p>🥈 <strong>Horizontal "boardwalk" rails per pier</strong> — each pier becomes a single-row Netflix-style horizontal scroll along a stylised wooden planking band, with the pier label in oversized lowercase running parallel to the boardwalk. Strongest because it's the cheapest visual layer that <em>feels</em> like piers. <span class="effort med">EFFORT: MEDIUM</span> Pure CSS.</p>
+</div>
+
+<div class="pick">
+  <p>🥉 <strong>Bento grid per pier with strong inter-pier water dividers</strong> — keep the 2-col grid inside each pier but separate piers with full-bleed wave/water dividers, and give each pier a distinct background tint. Ships in 4 hours and looks intentional. <span class="effort low">EFFORT: LOW</span></p>
+</div>
+
+<p><strong>If you want me to be opinionated given the 10-day window:</strong> ship #2 (boardwalks) for May 28, then layer #1+#13 (fog-of-war map) on top in mid-June as a phase-two enhancement. The boardwalks give 80% of the metaphor at 20% of the production cost <em>this week</em>; the fog-of-war map is the version that wins design awards, but needs more time than we have before PRME lands.</p>
+
+<h2 id="how-to-use">How to use this doc</h2>
+<ul>
+  <li>13 categories ordered roughly from highest-to-lowest fit for the harbour metaphor (with the new fog-of-war pattern slotted last in the list but ranked #1 in picks).</li>
+  <li>Each has 2-4 concrete examples with URLs you can click.</li>
+  <li>"Harbour fit" rating: ★★★ strong, ★★ usable with modification, ★ poor fit.</li>
+  <li>"Effort" tells you what you'd need to build/commission.</li>
+</ul>
+
+<hr/>
+
+<h2 id="cat-1">1. Spatial / illustrated map navigation <span class="rating">★★★</span></h2>
+<p>The reader sees the <em>place</em> before navigating into any specific room. Each clickable region is a literal location on an illustrated map. This is the most literal expression of the harbour metaphor.</p>
+
+<h4>Examples</h4>
+<ul>
+  <li><a href="https://disneyworld.disney.go.com/maps/" target="_blank" rel="noopener">Walt Disney World theme park maps</a> — the canonical example. Four parks shown as illustrated icons; hover or tap reveals attractions. The <em>map</em> establishes territory before the menu becomes a list.</li>
+  <li><a href="https://animal-crossing.com/new-horizons/" target="_blank" rel="noopener">Animal Crossing: New Horizons island map</a> — top-down isometric, building-by-building. Sets the rule that exploration is a verb.</li>
+  <li><a href="https://rodhunt.com/different-types-styles-uses-of-illustrated-3d-isometric-maps-created-by-rod-hunt/" target="_blank" rel="noopener">Rod Hunt illustrated maps</a> — commercial illustrator who has done this for parks, campuses, and brand portals for 30 years. Useful as a reference style if we commission custom work.</li>
+  <li><a href="https://icograms.com/" target="_blank" rel="noopener">Icograms Designer</a> — DIY isometric map builder if we want to prototype before commissioning. Stock icon library + simple drag-drop.</li>
+</ul>
+
+<h4>Why it could work for the harbour</h4>
+<p>The metaphor is <em>waiting</em> to be made literal. A top-down view of the harbour with three piers visibly jutting into water (plus a drydock area on land) reads instantly. Click the pier to scroll to the section, or click an individual game tile on the pier to launch the app.</p>
+
+<h4>Why it might not</h4>
+<p>Production cost. A <em>good</em> illustrated harbour map takes a real illustrator 1-3 weeks. A bad one undermines the brand. AI-generated alternatives often look generic — but a tasteful flat/isometric SVG done in your existing palette could land in 2-3 days.</p>
+
+<h4>Effort</h4>
+<ul>
+  <li><strong>Stock-style isometric (1-2 days):</strong> Use icograms.com or Vecteezy to source pier/water/boardwalk elements, compose in Figma, export SVG.</li>
+  <li><strong>Custom illustration (1-3 weeks):</strong> Commission an illustrator. £400-£1,500 depending on detail.</li>
+  <li><strong>Generative + hand-cleanup (3-5 days):</strong> Midjourney/Sora draft, illustrator cleanup to match your palette. Risky on brand consistency.</li>
+</ul>
+
+<hr/>
+
+<h2 id="cat-2">2. Horizontal "rails" / Netflix rows <span class="rating">★★★</span></h2>
+<p>A single row per category that scrolls horizontally. Hugely effective at communicating "there are many things here, organised by group" without needing a single decision from the visitor upfront.</p>
+
+<h4>Examples</h4>
+<ul>
+  <li><a href="https://www.netflix.com/" target="_blank" rel="noopener">Netflix homepage</a> — the canonical pattern. Each row is a category; horizontal scroll within row, vertical scroll between rows.</li>
+  <li><a href="https://open.spotify.com/" target="_blank" rel="noopener">Spotify Home</a> — same pattern, mood-keyed rather than personalised.</li>
+  <li><a href="https://tv.apple.com/" target="_blank" rel="noopener">Apple TV+ landing</a> — softer styling but the same row architecture, with hero cards that span 2-3 row positions for editorial emphasis.</li>
+  <li><a href="https://www.disneyplus.com/" target="_blank" rel="noopener">Disney+ profile homepage</a> — explicit branded "shelves" for Pixar, Marvel, Star Wars — each feels like a distinct sub-property within one site.</li>
+</ul>
+
+<h4>How it would translate to harbour</h4>
+<ul>
+  <li>Pier A becomes a horizontal rail labelled "pier a — leadership" with each Wave-1 app as a card scrolling sideways.</li>
+  <li>Pier B is the next rail down.</li>
+  <li>CastParade between Pier B and Pier C stays as decorative tissue.</li>
+  <li>Pier C is a special hybrid (waitlist hero + 3 character preview cards, treated as a "coming soon" shelf).</li>
+  <li>Drydock is a denser final rail of low-opacity tiles.</li>
+</ul>
+
+<h4>Harbour-specific styling lever</h4>
+<p>Each "rail" is rendered on a stylised wooden boardwalk — a CSS-only horizontal band with subtle plank texture (linear gradients perpendicular to scroll direction). The pier <em>label</em> sits at the start of the rail in oversized lowercase type that reads parallel to the boards. The water (page background) lives between rails.</p>
+
+<h4>Why it works for piers specifically</h4>
+<p>A pier IS a horizontal structure. A vertical 2-column grid actively fights the metaphor. A horizontal rail mirrors the physical shape.</p>
+
+<h4>Why it might not</h4>
+<p>Horizontal scroll is sometimes accessibility-hostile on touchscreens (especially when nested inside vertical scroll). Mitigation: always show "next" / "previous" arrow buttons + keyboard navigation + ensure each card is reachable without scroll (e.g., snap to grid on smaller screens, fall back to wrap on the smallest).</p>
+
+<h4>Effort</h4>
+<p><span class="effort med">EFFORT: MEDIUM</span> No custom illustrations. ~2-3 days of CSS work.</p>
+
+<hr/>
+
+<h2 id="cat-3">3. Bento grid (modular tile mosaic) <span class="rating">★★★</span></h2>
+<p>Asymmetric grid of differently-sized tiles. Each tile is roughly self-contained but the <em>composition</em> of varied sizes creates visual hierarchy without any explicit titles or sections.</p>
+
+<h4>Examples</h4>
+<ul>
+  <li><a href="https://www.apple.com/mac-mini/" target="_blank" rel="noopener">Apple M-series Mac mini page</a> — the canonical 2023+ bento.</li>
+  <li><a href="https://linear.app/features" target="_blank" rel="noopener">Linear features page</a> — bento layout where every tile is a product capability.</li>
+  <li><a href="https://www.notion.so/" target="_blank" rel="noopener">Notion homepage</a> — uses bentos for template previews mixed with testimonials and features.</li>
+  <li><a href="https://bentogrids.com/" target="_blank" rel="noopener">Bentogrids.com</a> — gallery of current bento implementations.</li>
+</ul>
+
+<h4>How it would translate to harbour</h4>
+<p>Each pier becomes its own bento section. Pier A is a 2x2 or 3x2 bento with one "hero" tile (e.g., vault) sized larger than the rest. Within each pier, the bento creates visual interest the current uniform 2-col grid lacks. Piers separated by full-bleed wave/water graphics.</p>
+
+<h4>Why it works</h4>
+<ul>
+  <li>67% of SaaS top-100 homepages on ProductHunt now use bento. It's the current vernacular.</li>
+  <li>47% longer dwell time vs. uniform grids (per <a href="https://senorit.de/en/blog/bento-grid-design-trend-2025" target="_blank" rel="noopener">Senorit's 2026 analysis</a>).</li>
+  <li>It lets you give <em>editorial</em> emphasis to the most important app per pier without a separate "featured" callout.</li>
+</ul>
+
+<h4>Why it might not</h4>
+<p>Bentos can feel generic if all four piers look the same. Mitigation: give each pier a distinct tonal background + a unique tile-size composition so the <em>shape</em> of each pier reads differently. Pier A heavy on landscape tiles, Pier B more square, Pier C tall (characters need vertical space).</p>
+
+<h4>Effort</h4>
+<p><span class="effort low">EFFORT: LOW</span> Tailwind grid + per-pier size config. ~1 day.</p>
+
+<hr/>
+
+<h2 id="cat-4">4. Audience self-selector ("I am a…") <span class="rating">★★</span></h2>
+<p>A pre-content gate. The visitor declares who they are; the homepage then morphs to show them their pier first. You actually already have a thin version of this at <code>/harbour/start</code>.</p>
+
+<h4>Examples</h4>
+<ul>
+  <li><a href="https://www.workday.com/" target="_blank" rel="noopener">Workday "what's your role?"</a></li>
+  <li><a href="https://www.ibm.com/cloud" target="_blank" rel="noopener">IBM persona-based home (Cloud)</a></li>
+  <li><a href="https://blog.hubspot.com/blog/tabid/6307/bid/32434/how-to-design-a-persona-centric-website-experience.aspx" target="_blank" rel="noopener">Hubspot 2011 case study</a> — the foundational pattern.</li>
+  <li><a href="https://www.instrumentl.com/" target="_blank" rel="noopener">Instrumentl</a> — separate pages for nonprofits vs. consultants.</li>
+</ul>
+
+<h4>How it would translate to harbour</h4>
+<p>Strengthen <code>/harbour/start</code> from afterthought to the <em>default</em> first-visit experience. New visitors land there; returning visitors land directly on <code>/harbour</code>. After picking a pier on <code>/start</code>, the user is taken to a <em>focused</em> page showing only their pier, with the other piers as small footer cards.</p>
+
+<h4>Why it works</h4>
+<p>Solves the "page is too long" problem by making the long page the <em>secondary</em> experience. PRME educators on May 28 land on <code>/start</code>, pick "i teach in higher-ed", and immediately see Pier B as a full-page experience rather than the third section down.</p>
+
+<h4>Why it might not</h4>
+<p>Adds friction (one extra click before content). Not all visitors fit cleanly into one persona. Mitigation: don't <em>gate</em> the main page — keep <code>/harbour</code> as the all-in-one entry. Just promote <code>/start</code> more prominently in the Hero.</p>
+
+<h4>Effort</h4>
+<p><span class="effort low">EFFORT: LOW-MED</span> The <code>/start</code> page exists; making it the first-visit default needs a cookie + redirect. Per-pier focused pages ~1 day per pier.</p>
+
+<hr/>
+
+<h2 id="cat-5">5. Pillar columns ("what we do" verticals) <span class="rating">★★</span></h2>
+<p>Three or four vertical columns side-by-side, each representing one product line. Like a Greek temple — same-height pillars, each labelled.</p>
+
+<h4>Examples</h4>
+<ul>
+  <li><a href="https://www.ideo.com/" target="_blank" rel="noopener">IDEO</a> — pillared sections for main service offerings.</li>
+  <li><a href="https://stripe.com/products" target="_blank" rel="noopener">Stripe products page</a> — pillars per product family.</li>
+  <li><a href="https://www.pentagram.com/" target="_blank" rel="noopener">Pentagram</a> — pillared work categories, each visually distinct.</li>
+  <li><a href="https://www.notion.so/teams" target="_blank" rel="noopener">Notion "for every team"</a> — pillars for engineering, design, product.</li>
+</ul>
+
+<h4>How it would translate to harbour</h4>
+<p>The three piers as three columns, side-by-side at desktop, stacked on mobile. Each column visually mimics a pier shape (taller-than-wide, with a "head" at top where the pier label lives, "body" where the cards live, "tip" extending downward into water). Drydock becomes a fourth column or a footer band.</p>
+
+<h4>Why it works</h4>
+<p>This is genuinely <em>pier-shaped</em> (tall vertical structures jutting from a baseline). It allows side-by-side comparison — a visitor can see Pier A, B, and C at a glance without scrolling.</p>
+
+<h4>Why it might not</h4>
+<p>Three columns of content at desktop means each has only ~33% width — Pier A's 4-5 apps would feel cramped. And on mobile it collapses back to a vertical list, losing the pier feel.</p>
+
+<h4>Effort</h4>
+<p><span class="effort low">EFFORT: LOW</span> CSS grid + responsive collapse. ~1 day.</p>
+
+<hr/>
+
+<h2 id="cat-6">6. Magazine / editorial section layout <span class="rating">★★</span></h2>
+<p>The NYT homepage approach: each "section" of the page is a self-contained editorial unit with its own headline, lead image, and supporting items. Visual variety comes from differently-styled sections.</p>
+
+<h4>Examples</h4>
+<ul>
+  <li><a href="https://www.nytimes.com/" target="_blank" rel="noopener">NYT homepage</a> — textbook reference.</li>
+  <li><a href="https://www.theatlantic.com/" target="_blank" rel="noopener">The Atlantic</a> — looser but same instinct.</li>
+  <li><a href="https://www.theverge.com/" target="_blank" rel="noopener">The Verge</a> — modernised with strong inter-section colour blocks.</li>
+  <li><a href="https://pudding.cool/" target="_blank" rel="noopener">The Pudding</a> — editorial-driven section structure for data stories.</li>
+</ul>
+
+<h4>How it would translate to harbour</h4>
+<p>Each pier renders as a <em>section</em> with its own micro-design language: Pier A is "newspaper-classical" (serif headers, clean grid), Pier B is "academic journal" (numbered, footnoted feel), Pier C is "kids' magazine" (playful, illustrated, character-heavy).</p>
+
+<h4>Why it could work</h4>
+<p>Each pier becomes its own world without expensive custom illustration — typography and layout do the heavy lifting.</p>
+
+<h4>Why it might not</h4>
+<p>Risks looking incoherent if the styles are too different. Brand consistency matters more than maximally differentiated piers.</p>
+
+<h4>Effort</h4>
+<p><span class="effort med">EFFORT: MEDIUM</span> Multiple typography systems = more CSS + more design decisions. ~3 days.</p>
+
+<hr/>
+
+<h2 id="cat-7">7. Gaming launcher dashboards <span class="rating">★★</span></h2>
+<p>The Steam / Epic / Battle.net approach: a single dense screen showing what's available, what's installed, what's new, with filtering by category. Optimised for users who already know what they want.</p>
+
+<h4>Examples</h4>
+<ul>
+  <li><a href="https://store.steampowered.com/" target="_blank" rel="noopener">Steam home page</a> — left sidebar filter, central row-based content.</li>
+  <li><a href="https://store.epicgames.com/" target="_blank" rel="noopener">Epic Games Store</a> — sparser, more curated, hero carousel + grid below.</li>
+  <li><a href="https://windowsforum.com/threads/xbox-mode-coming-to-windows-11-console-style-gaming-ui-rolls-out-april-30.416268/" target="_blank" rel="noopener">Xbox Mode dashboard (Windows 11, April 2026)</a> — controller-first, large tiles, aggregated library.</li>
+  <li><a href="https://www.gog.com/galaxy" target="_blank" rel="noopener">GOG Galaxy / Playnite</a> — unified library across stores. "Many sources, one surface."</li>
+</ul>
+
+<h4>How it would translate to harbour</h4>
+<p>Add a filter bar at the top (<code>All / Pier A / Pier B / Pier C / Drydock</code>), keep the vertical structure below, but treat the page like a <em>library</em>.</p>
+
+<h4>Why it could work</h4>
+<p>PRME educators arriving via certification might think of this as "the harbour library" — a place to browse what's available.</p>
+
+<h4>Why it might not</h4>
+<p>Loses the metaphor. Piers exist to <em>segment</em>, not just filter. A unified library tells you everything is equivalent — which contradicts the audience-zoning rationale.</p>
+
+<h4>Effort</h4>
+<p><span class="effort low">EFFORT: LOW</span> Filter chips + JS visibility toggles. Half a day.</p>
+
+<hr/>
+
+<h2 id="cat-8">8. Tabbed / segmented control zones <span class="rating">★</span></h2>
+<p>A single content area with tabs or segmented controls that switch between pier views. Mobile-app navigation translated to web.</p>
+
+<h4>Examples</h4>
+<ul>
+  <li><a href="https://music.apple.com/" target="_blank" rel="noopener">Apple Music tabs</a></li>
+  <li><a href="https://linear.app/product" target="_blank" rel="noopener">Linear product page tabs</a></li>
+  <li><a href="https://www.figma.com/community" target="_blank" rel="noopener">Figma Community</a></li>
+</ul>
+
+<h4>Why this is probably wrong for harbour</h4>
+<p>Tabs hide content. If a PRME educator lands and the default tab is Pier A (leadership), they might never realise Pier B exists for them. Tabs work when users come with intent; they fail when users come to discover.</p>
+
+<h4>Why it might still work</h4>
+<p>On <em>mobile</em>, tabs are sometimes the only way to fit four sections without infinite scroll.</p>
+
+<hr/>
+
+<h2 id="cat-9">9. Scrollytelling / narrative scroll <span class="rating">★</span></h2>
+<p>A long-form scroll-driven experience where the layout changes as you scroll.</p>
+
+<h4>Examples</h4>
+<ul>
+  <li><a href="https://www.nytimes.com/projects/2012/snow-fall/" target="_blank" rel="noopener">NYT Snow Fall (2012)</a> — the canonical example.</li>
+  <li><a href="https://pudding.cool/" target="_blank" rel="noopener">Pudding visual essays</a></li>
+  <li><a href="https://www.nationalgeographic.com/" target="_blank" rel="noopener">National Geographic immersive features</a></li>
+</ul>
+
+<h4>How it would translate to harbour</h4>
+<p>The visitor scrolls and the harbour reveals itself — first sky, then water, then Pier A, then Pier B. Heavy use of position-sticky and scroll-triggered animations.</p>
+
+<h4>Why it probably shouldn't be the main pier IA</h4>
+<ul>
+  <li>Slow to build and animate. Bad for return visitors who just want to launch creaseworks.</li>
+  <li>Accessibility — scroll-driven animation often fails screen readers and reduced-motion preferences.</li>
+  <li>Production cost is high (1-2 weeks of motion design + dev).</li>
+</ul>
+
+<h4>Effort</h4>
+<p><span class="effort high">EFFORT: HIGH</span></p>
+
+<hr/>
+
+<h2 id="cat-10">10. 3D / WebGL "world" navigation <span class="rating">★</span></h2>
+<p>A literal 3D environment the visitor explores. The most aggressive interpretation of "the harbour."</p>
+
+<h4>Examples</h4>
+<ul>
+  <li><a href="https://bruno-simon.com/" target="_blank" rel="noopener">Bruno Simon portfolio</a> — drive a car around a 3D landscape.</li>
+  <li><a href="https://www.apple.com/apple-vision-pro/" target="_blank" rel="noopener">Apple Vision Pro experience pages</a></li>
+  <li><a href="https://sketchfab.com/" target="_blank" rel="noopener">Sketchfab</a></li>
+  <li><a href="https://threejs-journey.com/" target="_blank" rel="noopener">Three.js journey examples</a></li>
+</ul>
+
+<h4>Why this is probably wrong for harbour today</h4>
+<ul>
+  <li>Months of production time.</li>
+  <li>Heavy bundle size — destroys the cache-headers win.</li>
+  <li>Accessibility-hostile by default.</li>
+</ul>
+
+<h4>When it might be right</h4>
+<p>Phase 3, post-launch, as an <em>alternate</em> entry point — <code>/harbour/explore</code> could be the 3D version while <code>/harbour</code> stays as the fast utility.</p>
+
+<hr/>
+
+<h2 id="cat-11">11. Hub-and-spoke / radial centre <span class="rating">★</span></h2>
+<p>A central "harbour" point with piers radiating outward as spokes.</p>
+
+<h4>Why this is probably wrong for harbour</h4>
+<p>Radial layouts don't fit responsive viewports. They look brilliant on a 1440px desktop and break on every other size.</p>
+
+<hr/>
+
+<h2 id="cat-12">12. Brutalist / typography-led <span class="rating">★</span></h2>
+<p>Strip out imagery; let oversized lowercase type carry the page. Type as architecture.</p>
+
+<h4>Examples</h4>
+<ul>
+  <li><a href="https://www.pentagram.com/" target="_blank" rel="noopener">Pentagram</a> — type-led, work case studies in giant title cards.</li>
+  <li><a href="https://www.are.na/" target="_blank" rel="noopener">Are.na</a> — minimal, typography-driven channel browsing.</li>
+</ul>
+
+<h4>How it would translate to harbour</h4>
+<p>"pier a — leadership" as 96-point lowercase Inter (or chunkier display face), with app names underneath at 24pt. Almost no imagery. Brand colour blocks separate piers.</p>
+
+<h4>Why it could work</h4>
+<p>Your brand voice is already strongly typographic — going hard on type is <em>on-brand</em>. Cheapest of all directions.</p>
+
+<h4>Why it might not</h4>
+<p>Doesn't actually solve the "feels like a vertical list" complaint — it just makes the list bigger.</p>
+
+<h4>Effort</h4>
+<p><span class="effort low">EFFORT: VERY LOW</span> Half a day of CSS.</p>
+
+<hr/>
+
+<h2 id="cat-13">13. Fog of war / exploration reveal <span class="rating">★★★</span> <em style="color: var(--sienna); font-weight: 600;">NEW</em></h2>
+
+<p>Areas of a map are initially dim or obscured; they "light up" as the visitor explores — scrolls, hovers, or otherwise interacts. Borrowed wholesale from tabletop RPGs and video games where progressive map reveal is part of the experience itself. <strong>This was your suggestion — Roll20's Explorer Mode applied to a website.</strong></p>
+
+<h4>Examples — the originating mechanic</h4>
+<ul>
+  <li><a href="https://wiki.roll20.net/Fog_of_War" target="_blank" rel="noopener">Roll20 Fog of War</a> — the standard tabletop tool. GM manually reveals rooms as players enter them.</li>
+  <li><a href="https://wiki.roll20.net/Advanced_Fog_of_War" target="_blank" rel="noopener">Roll20 Advanced Fog of War</a> — dynamic version where each token's individual path is recorded and revealed automatically.</li>
+  <li><a href="https://pages.roll20.net/dynamic-lighting" target="_blank" rel="noopener">Roll20 Dynamic Lighting + Explorer Mode</a> — once a token sees an area, it stays revealed in a dimmer sepia tone. "Been there, can remember it, but can't see what's happening there right now."</li>
+  <li><a href="https://thegameswiki.com/crimson-desert/wiki/fog-of-war-and-map-discovery" target="_blank" rel="noopener">Crimson Desert</a> — world map is almost entirely hidden until explored on foot or horseback. Discovery is the verb.</li>
+</ul>
+
+<h4>Examples — fog-of-war applied to web/UX</h4>
+<ul>
+  <li><a href="https://github.com/wblachut/fog-of-war" target="_blank" rel="noopener">Fog of War web demo (React + HTML Canvas)</a> — open-source web app that simulates the mechanic. Two canvas layers: map below, fog above; the cursor "uncovers" the map as it moves. Pattern is portable.</li>
+  <li><a href="https://animal-crossing.com/new-horizons/" target="_blank" rel="noopener">Animal Crossing: New Horizons</a> — the island map starts fully visible BUT individual buildings/landmarks light up as you walk past them for the first time. Bridges the "exploration reveals content" gesture into a friendly tone (no sense of menace, just discovery).</li>
+  <li><a href="https://bruno-simon.com/" target="_blank" rel="noopener">Bruno Simon's 3D portfolio</a> — sections of his portfolio are <em>genuinely</em> hidden until you drive your car into them. Most extreme version of the pattern on the web.</li>
+</ul>
+
+<h4>How it would translate to harbour</h4>
+
+<p>Combine with <strong>category 1 (illustrated map)</strong>. Layered approach:</p>
+
+<ul>
+  <li><strong>Layer 1 — the harbour at rest:</strong> top-down illustrated harbour SVG fills the hero. At first paint, the entire scene is rendered in a muted, washed-out palette. The three piers are <em>visible</em> as silhouettes but dim — you can see there are docks but not what's on them.</li>
+  <li><strong>Layer 2 — exploration:</strong> as the visitor scrolls (or, on a static page, as they hover over a pier), the section "lights up" — the pier's tone warms, the cards on it become visible and crisp, and the labels become legible. The cast parade between Pier B and Pier C becomes the literal <em>animation point</em> where things move.</li>
+  <li><strong>Layer 3 — memory:</strong> once a pier has been "visited" (scrolled into view, or clicked), it stays lit even when you scroll away. Mirrors Roll20's Explorer Mode — "I've been here before, I remember." Stored client-side in localStorage so returning visitors see their previous path.</li>
+  <li><strong>Pier C as the lighthouse:</strong> Pier C ("opening end of june") could literally be the part of the harbour with a working lighthouse — even when dim, the light sweeps across the harbour, periodically illuminating the other piers in brief flashes. Subtle teaser that draws the eye toward what's coming.</li>
+  <li><strong>Drydock as off-water:</strong> the drydock is on land, behind the piers. Rendered in even more muted tones. Each drydock app "lights up" individually as you scroll into that section, but doesn't get the warmth of the working piers — emphasising "not yet" rather than "for you."</li>
+</ul>
+
+<h4>Why it's the most powerful direction</h4>
+<ul>
+  <li><strong>The metaphor stops being decorative and becomes mechanical.</strong> Right now "pier" is a word in a header; with this, a pier is a thing you literally walk down. The page rewards exploration with content.</li>
+  <li><strong>Encourages the right behaviour.</strong> A PRME educator landing on May 28 sees the whole harbour dim. They scroll, and Pier B lights up specifically for them — they understand instantly "this is mine" without an explicit audience selector.</li>
+  <li><strong>Returning visitors get continuity.</strong> The lit-up state persists. A returning visitor sees what they've already explored and what they haven't. It builds a relationship with the page across visits.</li>
+  <li><strong>It's playable.</strong> The harbour is winded.vertigo's "playful learning ecosystem" — making the landing itself a small piece of play is on-brand in a way no other category here is.</li>
+</ul>
+
+<h4>Why it might not work — the accessibility and mobile concerns you flagged</h4>
+
+<p>These are real and need explicit answers:</p>
+
+<ul>
+  <li><strong>Screen readers:</strong> a screen reader doesn't "scroll past" a pier — it reads the DOM. So the content must be <em>fully present in the DOM at first paint</em>, with the fog effect being purely visual via CSS opacity/filter. Screen-reader users get the full content as a linear document; visual users get the exploration overlay. The fog is decoration, never content.</li>
+  <li><strong>Keyboard navigation:</strong> Tab-key traversal needs to "reveal" piers as a side-effect of focus moving into them. Implement focus-triggered reveal in addition to scroll/hover. Keyboard users still get the discovery feeling.</li>
+  <li><strong>Reduced-motion preferences:</strong> the page must respect <code>prefers-reduced-motion</code>. Users with that setting see the full harbour lit from the start — no fog effect at all. Same content, no animation.</li>
+  <li><strong>Mobile touchscreens:</strong> hover doesn't exist. On mobile, the reveal happens purely on scroll-into-view (which is the dominant interaction on mobile anyway). No worse than the current behaviour.</li>
+  <li><strong>Slow connections:</strong> the SVG illustration could be heavy. Mitigation: ship a low-res silhouette first (~5KB), then progressively enhance with the full illustration. Or do the entire effect with CSS filters on a single SVG, which loads in one request.</li>
+  <li><strong>UDL (Universal Design for Learning):</strong> the underlying content is identical regardless of the fog state. A user who never moves their mouse still gets every word, every card, every link — just with all sections dimmer. That's UDL-compliant: equivalent content, multiple modes of access.</li>
+</ul>
+
+<h4>Effort</h4>
+<p><span class="effort high">EFFORT: HIGH</span> Needs:</p>
+<ol>
+  <li>The illustrated harbour SVG (same dependency as category 1 — see graphics section).</li>
+  <li>A small JavaScript module (~150 lines) that tracks which piers have been "visited" via IntersectionObserver, persists state in localStorage, and toggles a CSS class on each pier section.</li>
+  <li>CSS for the dimmed state, the lit state, the transition between them, and the "explored but currently off-screen" Roll20-style memory state.</li>
+  <li>Reduced-motion + screen-reader fallback behaviour.</li>
+</ol>
+<p><strong>Realistic timeline:</strong> 5-8 working days end-to-end if we have the SVG already. Most of that is illustration + interaction polish, not the JS itself.</p>
+
+<h4>The compromise version (if 5-8 days is too long)</h4>
+<p>Ship the fog-of-war <em>without</em> the illustrated map: use the current boardwalk rails (category 2) but apply the dimming/lighting effect to each rail individually. Pier A starts dim; scroll into it and the boardwalk lights up. Cheaper graphics (just CSS), same psychological hook. About 2-3 days. Less impressive than the full map version, but the <em>mechanic</em> is preserved and that's where the magic lives.</p>
+
+<hr/>
+
+<h2 id="synth">My synthesised recommendation</h2>
+
+<p>The fog-of-war suggestion changes my recommendation. Two-phase plan:</p>
+
+<div class="pick">
+  <p><strong>Phase 1 — ship for May 28 (10 days):</strong> Boardwalk rails (category 2) + tonal backgrounds per pier (subset of category 3) + the lightweight fog-of-war effect applied to each rail (category 13 compromise version). Each pier starts dim; scrolling into it lights it up; once visited, it stays lit.</p>
+  <p>Costs ~3-4 days of work. Lands the metaphor without requiring custom illustration.</p>
+</div>
+
+<div class="pick">
+  <p><strong>Phase 2 — ship mid-June (post-launch):</strong> Commission the illustrated harbour map. Replace the textual hero with the SVG. The full fog-of-war effect then operates on the map itself — piers literally light up as visitors explore. This is the version that wins design awards.</p>
+  <p>Costs the illustrator's fee (£400-£1,500) and ~1 week of dev work to integrate.</p>
+</div>
+
+<p>This sequencing is honest about the May 28 timeline: a fog-of-war over CSS boardwalks is ~80% as evocative as the full map version, ships in time, and the second phase upgrades the experience without throwing away the first phase's work.</p>
+
+<hr/>
+
+<h2 id="graphics">Graphics we'd need to create</h2>
+
+<p>For phase 1 (boardwalks + light fog-of-war), you need:</p>
+<ol>
+  <li><strong>Plank texture (CSS-only)</strong> — a linear-gradient SVG that creates wood-grain bands. ~30 lines of CSS, no asset needed.</li>
+  <li><strong>Wave divider (SVG)</strong> — one reusable SVG of a stylised wave shape used between piers. ~40 lines of SVG. I can write this inline.</li>
+  <li><strong>Dim/lit state CSS</strong> — `filter: saturate(.3) brightness(.7)` for dim, full saturation for lit. Pure CSS.</li>
+  <li><strong>Optional: pier-end marker (SVG)</strong> — a small lighthouse, buoy, or flag at the "end" of each boardwalk. You pick; I draw.</li>
+</ol>
+
+<p>For phase 2 (illustrated map), you additionally need:</p>
+<ol start="5">
+  <li><strong>Top-down harbour SVG</strong> — three piers visible, water surrounding, a sandy/wooded drydock zone. Roughly 2400×1200px at 2x, or scalable SVG. 3-7 days of illustrator work, or 1-2 days of stock-isometric composition if we DIY. I'd lean toward commissioning — AI-generated illustrations rarely match a specific brand palette without significant cleanup.</li>
+</ol>
+
+<hr/>
+
+<h2 id="phasing">Implementation phasing</h2>
+
+<table>
+<thead><tr><th>Phase</th><th>Scope</th><th>Effort</th><th>Ship by</th></tr></thead>
+<tbody>
+<tr><td><strong>1.</strong></td><td>Boardwalk rails + plank texture + wave dividers + per-pier tonal background</td><td>2-3 days</td><td>23 May</td></tr>
+<tr><td><strong>2.</strong></td><td>Pier C visual upgrade (bigger characters, "june" countdown badge)</td><td>1 day</td><td>24 May</td></tr>
+<tr><td><strong>3.</strong></td><td>Lightweight fog-of-war on boardwalks (scroll-triggered dim → lit, localStorage memory)</td><td>1-2 days</td><td>26 May</td></tr>
+<tr><td><strong>4.</strong></td><td><code>/start</code> as preferred first-touch (cookie-driven default)</td><td>half day</td><td>27 May</td></tr>
+<tr><td><strong>5. (post-launch)</strong></td><td>Commission illustrated harbour map + integrate as full fog-of-war hero</td><td>2-3 weeks</td><td>mid-June</td></tr>
+</tbody>
+</table>
+
+<hr/>
+
+<h2 id="questions">Decision questions for you</h2>
+
+<ol>
+  <li><strong>Phase 1 direction:</strong> boardwalks + light fog-of-war (my pick), or boardwalks alone, or skip straight to commissioning the illustrated map and ship the bigger version even if it slips past May 28?</li>
+  <li><strong>If boardwalks: pier label parallel to the planks (more pier-like, harder to read) or above as a section header (safer)?</strong></li>
+  <li><strong>Pier-end marker:</strong> lighthouse (guidance), buoy (playful), flag (territory), or none?</li>
+  <li><strong>Per-pier backgrounds:</strong> strong tonal shift (distinct zones, risks fragmenting brand) or subtle (unified, risks reading as undifferentiated)?</li>
+  <li><strong>Make <code>/start</code> the first-visit default?</strong> PRME educators land on <code>/start</code>, pick "I teach in higher-ed", and immediately see Pier B as a focused page.</li>
+  <li><strong>Commission an illustrator for phase 5?</strong> If yes, I'll write the brief and source illustrators. If no, we either DIY with stock isometrics or skip the map entirely.</li>
+  <li><strong>For the fog-of-war: how aggressive should "dim" be?</strong> Options: heavily desaturated (Roll20-style, almost monochrome) → subtly faded (just a hint of dimness). Aggressive is more dramatic but risks first-time visitors thinking the page is broken.</li>
+</ol>
+
+<hr/>
+
+<h2 id="implementable">What I can implement directly</h2>
+<ul>
+  <li>Boardwalks (#2) → 2-day PR. No external dependencies.</li>
+  <li>Bento-grid per pier (#3) → 1-day PR.</li>
+  <li>Tonal backgrounds per pier → half-day PR.</li>
+  <li><code>/start</code> as default → half-day PR with a cookie redirect.</li>
+  <li>Wave divider SVG → I can write the SVG inline.</li>
+  <li>Lightweight fog-of-war on rails → 1-2 day PR after boardwalks ship.</li>
+  <li>Illustrated harbour map → I can't draw it. I can prep an illustrator brief, or compose a stock-isometric draft if you want to DIY.</li>
+</ul>
+
+<hr/>
+
+<h2 id="sources">Sources cited</h2>
+
+<h4>Spatial / illustrated maps</h4>
+<ul>
+  <li><a href="https://numiko.com/insights/best-museum-and-gallery-websites-2026" target="_blank" rel="noopener">Best museum websites 2026 — Numiko</a></li>
+  <li><a href="https://3dinteractivemaps.com/marina-maps/" target="_blank" rel="noopener">3D interactive marina maps</a></li>
+  <li><a href="https://escapekeygraphics.com/illustration-portfolio/sunset-harbour-illustrated-map/" target="_blank" rel="noopener">Sunset Harbour illustrated map case study</a></li>
+  <li><a href="https://rodhunt.com/different-types-styles-uses-of-illustrated-3d-isometric-maps-created-by-rod-hunt/" target="_blank" rel="noopener">Rod Hunt illustrated maps</a></li>
+  <li><a href="https://icograms.com/" target="_blank" rel="noopener">Icograms Designer</a></li>
+</ul>
+
+<h4>Netflix-style horizontal rails</h4>
+<ul>
+  <li><a href="https://createbytes.com/insights/netflix-design-analysis-ui-ux-review" target="_blank" rel="noopener">Netflix design deep dive — CreateBytes</a></li>
+  <li><a href="https://medium.com/@didinjamaludin/build-a-netflix-style-homepage-with-tailwind-css-3c2389065b12" target="_blank" rel="noopener">Building Netflix-style horizontal scrolling with Tailwind</a></li>
+  <li><a href="https://blog.hubspot.com/website/horizontal-scrolling" target="_blank" rel="noopener">Horizontal scrolling in web design done well</a></li>
+</ul>
+
+<h4>Bento grids</h4>
+<ul>
+  <li><a href="https://studiomeyer.io/en/blog/bento-grid-layouts" target="_blank" rel="noopener">Bento Grid Layouts 2026 — Studio Meyer</a></li>
+  <li><a href="https://www.saasframe.io/blog/designing-bento-grids-that-actually-work-a-2026-practical-guide" target="_blank" rel="noopener">SaaSFrame's 2026 practical bento guide</a></li>
+  <li><a href="https://mukeshkdesigns.com/blogs/bento-grid-design-inspiration/" target="_blank" rel="noopener">40+ bento examples — Mukesh K Designs</a></li>
+  <li><a href="https://bentogrids.com/" target="_blank" rel="noopener">Bentogrids.com gallery</a></li>
+  <li><a href="https://senorit.de/en/blog/bento-grid-design-trend-2025" target="_blank" rel="noopener">Bento Grid Design 2026 — Senorit</a></li>
+</ul>
+
+<h4>Audience self-selector / persona-driven</h4>
+<ul>
+  <li><a href="https://blog.hubspot.com/blog/tabid/6307/bid/32434/how-to-design-a-persona-centric-website-experience.aspx" target="_blank" rel="noopener">Persona-centric website design — HubSpot</a></li>
+  <li><a href="https://searchengineland.com/restructure-website-personas-guide-452132" target="_blank" rel="noopener">Restructure a website around personas — Search Engine Land</a></li>
+</ul>
+
+<h4>Museum / exhibition</h4>
+<ul>
+  <li><a href="https://www.oomphinc.com/insights/museum-navigation-design/" target="_blank" rel="noopener">Designing accessible museum navigation — Oomph</a></li>
+  <li><a href="https://weblium.com/blog/10-best-museum-website-examples/" target="_blank" rel="noopener">Best museum website examples — Weblium</a></li>
+</ul>
+
+<h4>Scrollytelling</h4>
+<ul>
+  <li><a href="https://www.vev.design/blog/scrollytelling-examples/" target="_blank" rel="noopener">11 scrollytelling examples — Vev</a></li>
+  <li><a href="https://reallygooddesigns.com/scrollytelling-website-examples/" target="_blank" rel="noopener">21 scrollytelling website examples</a></li>
+  <li><a href="https://webflow.com/blog/scrollytelling-guide" target="_blank" rel="noopener">Webflow's scrollytelling guide</a></li>
+</ul>
+
+<h4>Gaming launchers</h4>
+<ul>
+  <li><a href="https://plarium.com/en/blog/best-game-launchers/" target="_blank" rel="noopener">14 best game launchers 2026 — Plarium</a></li>
+  <li><a href="https://windowsforum.com/threads/xbox-mode-coming-to-windows-11-console-style-gaming-ui-rolls-out-april-30.416268/" target="_blank" rel="noopener">Xbox Mode rolling to Windows 11</a></li>
+</ul>
+
+<h4>Fog of war / exploration reveal (NEW)</h4>
+<ul>
+  <li><a href="https://wiki.roll20.net/Fog_of_War" target="_blank" rel="noopener">Roll20 Fog of War — wiki</a></li>
+  <li><a href="https://wiki.roll20.net/Advanced_Fog_of_War" target="_blank" rel="noopener">Roll20 Advanced Fog of War — wiki</a></li>
+  <li><a href="https://help.roll20.net/hc/en-us/articles/360037774513-Fog-of-War-Classic-VTT" target="_blank" rel="noopener">Roll20 Fog of War help docs</a></li>
+  <li><a href="https://pages.roll20.net/dynamic-lighting" target="_blank" rel="noopener">Roll20 Dynamic Lighting + Explorer Mode</a></li>
+  <li><a href="https://blog.roll20.net/posts/jumpgate-update-lighting-updates/" target="_blank" rel="noopener">Roll20 Jumpgate update (recent UI improvements to fog-of-war)</a></li>
+  <li><a href="https://github.com/wblachut/fog-of-war" target="_blank" rel="noopener">Fog of War web demo (open-source React + Canvas)</a></li>
+  <li><a href="https://thegameswiki.com/crimson-desert/wiki/fog-of-war-and-map-discovery" target="_blank" rel="noopener">Crimson Desert fog-of-war + map discovery</a></li>
+</ul>
+
+<h4>Landing page / multi-product</h4>
+<ul>
+  <li><a href="https://unbounce.com/landing-page-examples/best-landing-page-examples/" target="_blank" rel="noopener">40 best landing pages of 2026 — Unbounce</a></li>
+  <li><a href="https://www.seedprod.com/product-landing-page-examples/" target="_blank" rel="noopener">10 best product landing pages 2026 — SeedProd</a></li>
+  <li><a href="https://colorlib.com/wp/landing-page-examples/" target="_blank" rel="noopener">Best landing page examples 2026 — Colorlib</a></li>
+</ul>
+
+</main>
+</body>
+</html>
