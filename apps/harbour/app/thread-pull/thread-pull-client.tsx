@@ -156,10 +156,16 @@ function reducer(state: MapSession, action: MapAction): MapSession {
 /* ── hooks ────────────────────────────────────────────────────── */
 
 function useReducedMotion(): boolean {
-  const [reduced, setReduced] = useState(false);
+  // Lazy initializer reads the media query once at mount (this is a client
+  // component, so SSR can't reach this code path). The effect then only
+  // subscribes to *changes* — no synchronous setState in the effect body,
+  // which clears react-hooks/set-state-in-effect.
+  const [reduced, setReduced] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  });
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setReduced(mq.matches);
     const handler = (e: MediaQueryListEvent) => setReduced(e.matches);
     mq.addEventListener("change", handler);
     return () => mq.removeEventListener("change", handler);

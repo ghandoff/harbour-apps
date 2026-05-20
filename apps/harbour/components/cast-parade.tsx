@@ -79,11 +79,14 @@ export function CastParade() {
   // shared cw-ui-mode cookie and upgrade to "adult" if set. This lets
   // the layout stay free of cookies() so the harbour landing remains
   // ISR-eligible — see app/layout.tsx for the rationale.
-  const [characterVariant, setCharacterVariant] =
-    useState<CharacterVariant>("kid");
-  useEffect(() => {
-    setCharacterVariant(readVariantCookie());
-  }, []);
+  //
+  // We read the cookie via a lazy useState initializer (browser-only, since
+  // this is a client component) rather than from an effect — same observable
+  // result, but avoids react-hooks/set-state-in-effect.
+  const [characterVariant] = useState<CharacterVariant>(() => {
+    if (typeof document === "undefined") return "kid";
+    return readVariantCookie();
+  });
   // One tick per slot — we bump it on each slot's own timer so the stagger
   // isn't a derived offset from a single global tick (that would drift on
   // resume from a backgrounded tab). Each slot owns its cadence.
