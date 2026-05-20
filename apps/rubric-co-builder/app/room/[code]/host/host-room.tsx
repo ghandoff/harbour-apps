@@ -18,7 +18,7 @@ import type {
   ScaleResponseVote,
   Vote,
 } from "@/lib/types";
-import { roundForState } from "@/lib/types";
+import { roundForState, STATE_ORDER } from "@/lib/types";
 
 function useCountdown(timerEnd: string | null): number | null {
   const [remaining, setRemaining] = useState<number | null>(null);
@@ -54,19 +54,6 @@ import { StepCommit } from "../_steps/step-commit";
 import { JoinQR } from "@/app/_components/join-qr";
 import { FacilitatorNudgeEditor } from "@/app/_components/nudge";
 
-const STATE_ORDER: RoomState[] = [
-  "lobby",
-  "frame",
-  "propose",
-  "vote",
-  "criteria_gate",
-  "scale",
-  "vote2",
-  "ai_ladder_propose",
-  "ai_ladder",
-  "pledge",
-  "commit",
-];
 
 export function HostRoom({ code }: { code: string }) {
   const state = useRoom(code);
@@ -146,9 +133,8 @@ export function HostRoom({ code }: { code: string }) {
     });
   }, [code, authHeaders]);
 
-  const tally = useCallback(async (round: 1 | 2 | 3) => {
-    const endpoint =
-      round === 1 ? "tally" : round === 2 ? "tally2" : "tally3";
+  const tally = useCallback(async (round: 1 | 2) => {
+    const endpoint = round === 1 ? "tally" : "tally2";
     const res = await fetch(apiPath(`/api/rooms/${code}/${endpoint}`), {
       method: "POST",
       headers: authHeaders(),
@@ -260,7 +246,7 @@ function HostControls({
   timerEnd: string | null;
   timerDuration: number | null;
   onAdvance: (s: RoomState, fromState?: RoomState) => void;
-  onTally: (round: 1 | 2 | 3) => Promise<void>;
+  onTally: (round: 1 | 2) => Promise<void>;
   onAiTally: () => Promise<void>;
   onStartTimer: (seconds: number) => Promise<void>;
   onCancelTimer: () => Promise<void>;
@@ -706,7 +692,7 @@ function TiebreakerPanel({
 }: {
   criteria: Criterion[];
   votes: Vote[];
-  round: 1 | 2 | 3;
+  round: 1 | 2;
   onResolve: (selectedIds: string[]) => void;
 }) {
   const [resolving, setResolving] = useState(false);

@@ -50,7 +50,7 @@ export function StepPledge({
     <div className="space-y-6">
       <header className="space-y-3 max-w-3xl">
         <p className="text-xs tracking-widest text-[color:var(--color-cadet)]/70">
-          step 5.5b — integrity pledge
+          step 6 — integrity pledge
         </p>
         <div className="inline-flex items-center gap-2 rounded-full bg-[color:var(--color-cadet)] text-white px-4 py-2 text-sm">
           <span className="font-bold">ceiling · level {ceiling}</span>
@@ -61,7 +61,7 @@ export function StepPledge({
           four slots. fill them in your own words. the ceiling above is the lid —
           nothing in the pledge can push past it.
           {participantId
-            ? " after everyone writes, you'll vote on the best wording for each slot."
+            ? " once everyone writes their responses, the facilitator will move the room to commit."
             : " the facilitator sees all responses side by side."}
         </p>
         {!participantId && (
