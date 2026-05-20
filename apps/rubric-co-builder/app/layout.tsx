@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { FeedbackWidget } from "@windedvertigo/feedback";
 import "./globals.css";
 
 const inter = Inter({
@@ -28,6 +29,7 @@ export default function RootLayout({
           skip to content
         </a>
         <div id="main" tabIndex={-1}>{children}</div>
+        <FeedbackWidget appSlug="co-rubric" />
       </body>
     </html>
   );

@@ -57,9 +57,22 @@ const INACTIVE_BG: React.CSSProperties = {
 
 interface FeedbackWidgetProps {
   appSlug: string;
+  /**
+   * Where to POST the feedback payload.
+   *
+   * Defaults to `/harbour/<appSlug>/api/feedback` — assumes the host
+   * app is a Next.js app with its own `/api/feedback` route handler
+   * (the common case for harbour CF Worker apps).
+   *
+   * Override to point at a centralised endpoint (e.g. the harbour
+   * hub's `/harbour/api/feedback`) for static apps that have no
+   * backend of their own. The vanilla widget bundle uses this
+   * override out of the box.
+   */
+  endpoint?: string;
 }
 
-export function FeedbackWidget({ appSlug }: FeedbackWidgetProps) {
+export function FeedbackWidget({ appSlug, endpoint }: FeedbackWidgetProps) {
   const [open, setOpen] = useState(false);
   const [feedbackType, setFeedbackType] = useState<FeedbackType | null>(null);
   const [severity, setSeverity] = useState<number | null>(null);
@@ -104,8 +117,10 @@ export function FeedbackWidget({ appSlug }: FeedbackWidgetProps) {
       platform: navigator.platform || "unknown",
     };
 
+    const url = endpoint ?? `/harbour/${appSlug}/api/feedback`;
+
     try {
-      await fetch(`/harbour/${appSlug}/api/feedback`, {
+      await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -123,7 +138,7 @@ export function FeedbackWidget({ appSlug }: FeedbackWidgetProps) {
     } finally {
       setSubmitting(false);
     }
-  }, [appSlug, feedbackType, severity, comment]);
+  }, [appSlug, endpoint, feedbackType, severity, comment]);
 
   /* ── floating button (closed state) ──────────────────────── */
   if (!open) {
