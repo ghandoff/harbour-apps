@@ -172,6 +172,7 @@ function PledgeResponseCell({
 }) {
   const [value, setValue] = useState(myContent ?? "");
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const dirtyRef = useRef(false);
 
   useEffect(() => {
@@ -183,8 +184,9 @@ function PledgeResponseCell({
   async function save() {
     if (!participantId) return;
     setSaving(true);
+    setSaveError(null);
     try {
-      await fetch(apiPath(`/api/rooms/${code}/pledge-responses`), {
+      const res = await fetch(apiPath(`/api/rooms/${code}/pledge-responses`), {
         method: "PATCH",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
@@ -193,6 +195,9 @@ function PledgeResponseCell({
           content: value,
         }),
       });
+      if (!res.ok) setSaveError("couldn't save. try again?");
+    } catch {
+      setSaveError("the network blinked.");
     } finally {
       setSaving(false);
       dirtyRef.current = false;
@@ -210,6 +215,8 @@ function PledgeResponseCell({
         </label>
         {saving ? (
           <span className="text-xs text-[color:var(--color-cadet)]/50">saving…</span>
+        ) : saveError ? (
+          <span className="text-xs text-[color:var(--color-redwood)]">{saveError}</span>
         ) : null}
       </div>
       <textarea
