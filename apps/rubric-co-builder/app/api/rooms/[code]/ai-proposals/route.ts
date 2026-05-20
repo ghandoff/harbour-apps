@@ -29,7 +29,12 @@ export async function POST(
   if (!participantId || ![0, 1, 2, 3, 4].includes(levelNum)) {
     return NextResponse.json({ error: "missing participant or level" }, { status: 400 });
   }
-  const proposal = await getStore().upsertAiProposal(
+  const store = getStore();
+  const inRoom = await store.participantExists(participantId, normalised);
+  if (!inRoom) {
+    return NextResponse.json({ error: "not a participant in this room" }, { status: 403 });
+  }
+  const proposal = await store.upsertAiProposal(
     participantId,
     normalised,
     levelNum as AiUseLevel,
