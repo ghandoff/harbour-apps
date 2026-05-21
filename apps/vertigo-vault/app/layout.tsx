@@ -23,19 +23,30 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "website",
-    title: "vertigo.vault — winded.vertigo",
+    title: "vertigo.vault — group activities, energizers, and reflective exercises",
     description:
       "a curated collection of learning activities, energizers, and reflections designed to spark curiosity, collaboration, and creative thinking.",
     url: "/harbour/vertigo-vault",
-    siteName: "winded.vertigo",
-    images: [{ url: "/images/logo.png", width: 512, height: 512 }],
+    siteName: "winded.vertigo · harbour",
+    // 1200×720 tile lives on R2 alongside the rest of the harbour series.
+    // Bumps twitter:card from summary (square) to summary_large_image so
+    // the shareable preview matches the other PRME-launch apps.
+    images: [
+      {
+        url: "https://pub-60282cf378c248cf9317acfb691f6c99.r2.dev/harbour-tiles/vertigo-vault.png",
+        width: 1200,
+        height: 720,
+      },
+    ],
   },
   twitter: {
-    card: "summary",
-    title: "vertigo.vault — winded.vertigo",
+    card: "summary_large_image",
+    title: "vertigo.vault — group activities, energizers, and reflective exercises",
     description:
       "a curated collection of learning activities, energizers, and reflections designed to spark curiosity, collaboration, and creative thinking.",
-    images: ["/images/logo.png"],
+    images: [
+      "https://pub-60282cf378c248cf9317acfb691f6c99.r2.dev/harbour-tiles/vertigo-vault.png",
+    ],
   },
   icons: {
     icon: [
