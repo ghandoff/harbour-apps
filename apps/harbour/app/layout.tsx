@@ -21,19 +21,29 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "website",
-    title: "the harbour — winded.vertigo",
+    title: "the harbour — three piers, one harbour",
     description:
-      "winded.vertigo is a learning design collective building evidence-based educational experiences for global organisations including the UN, IDB, Sesame Workshop, and UNICEF.",
+      "playful tools for facilitators, classrooms, and families. winded.vertigo is a learning design collective building evidence-based educational experiences for the UN, IDB, Sesame Workshop, and UNICEF.",
     url: "/harbour",
-    siteName: "winded.vertigo",
-    images: [{ url: "/images/logo.png", width: 512, height: 512 }],
+    siteName: "winded.vertigo · harbour",
+    // 1200×720 social card on R2 — same generator as the per-app tiles
+    // so the hub reads as part of the series, not a separate brand.
+    images: [
+      {
+        url: "https://pub-60282cf378c248cf9317acfb691f6c99.r2.dev/harbour-tiles/harbour-hub.png",
+        width: 1200,
+        height: 720,
+      },
+    ],
   },
   twitter: {
-    card: "summary",
-    title: "the harbour — winded.vertigo",
+    card: "summary_large_image",
+    title: "the harbour — three piers, one harbour",
     description:
-      "winded.vertigo is a learning design collective building evidence-based educational experiences for global organisations including the UN, IDB, Sesame Workshop, and UNICEF.",
-    images: ["/images/logo.png"],
+      "playful tools for facilitators, classrooms, and families.",
+    images: [
+      "https://pub-60282cf378c248cf9317acfb691f6c99.r2.dev/harbour-tiles/harbour-hub.png",
+    ],
   },
   icons: {
     icon: [

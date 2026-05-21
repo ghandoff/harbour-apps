@@ -123,6 +123,22 @@ const MOTIFS = {
         <line x1="20"  y1="240" x2="140" y2="240" opacity="0.3"/>
       </g>`,
   },
+  "harbour-hub": {
+    accent: SIENNA,
+    // Three piers reaching out into the water — the IA mechanic
+    // visualised. Each "pier" is a horizontal bar with a small dot at the
+    // sea-end suggesting a pylon. The hub gets a slightly busier motif
+    // because it's the cover for the whole landing.
+    svg: `
+      <g transform="translate(820,420)" stroke="${SIENNA}" fill="none" stroke-linecap="round">
+        <line x1="0"   y1="40"  x2="300" y2="40"  stroke-width="8" opacity="0.95"/>
+        <circle cx="300" cy="40"  r="10" fill="${SIENNA}" stroke="none"/>
+        <line x1="0"   y1="130" x2="260" y2="130" stroke-width="8" opacity="0.75"/>
+        <circle cx="260" cy="130" r="10" fill="${SIENNA}" stroke="none"/>
+        <line x1="0"   y1="220" x2="220" y2="220" stroke-width="8" opacity="0.55"/>
+        <circle cx="220" cy="220" r="10" fill="${SIENNA}" stroke="none"/>
+      </g>`,
+  },
 };
 
 /** Content per tile — formatted wordmark (with lowercase dots between
@@ -151,6 +167,10 @@ const TILES = {
   "cuts-catalogue": {
     wordmark: ["cuts", "catalogue"],
     tagline: "a vocabulary of narrative pacing cuts",
+  },
+  "harbour-hub": {
+    wordmark: ["the", "harbour"],
+    tagline: "three piers, one harbour · winded.vertigo",
   },
 };
 

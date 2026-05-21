@@ -8,6 +8,11 @@ import UserMenu from "@/components/ui/user-menu";
 export const dynamic = "force-dynamic";
 
 const BASE_URL = "https://windedvertigo.com/harbour/vertigo-vault";
+// Per Next.js metadata semantics, a page's `openGraph` REPLACES the
+// layout's (not deep-merge) — so the harbour tile lives at the page
+// level too. Same URL as the layout fallback; one R2 object serves both.
+const OG_IMAGE =
+  "https://pub-60282cf378c248cf9317acfb691f6c99.r2.dev/harbour-tiles/vertigo-vault.png";
 
 export const metadata: Metadata = {
   title: "vertigo.vault — group activities, energizers & reflective exercises",
@@ -20,13 +25,15 @@ export const metadata: Metadata = {
     description:
       "browse a curated collection of group activities, energizers, and reflective exercises. filter by type or duration, then unlock step-by-step guides.",
     url: BASE_URL,
-    siteName: "winded.vertigo",
+    siteName: "winded.vertigo · harbour",
+    images: [{ url: OG_IMAGE, width: 1200, height: 720 }],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "vertigo.vault — group activities & energizers",
     description:
       "browse a curated collection of group activities, energizers, and reflective exercises.",
+    images: [OG_IMAGE],
   },
 };
 
