@@ -65,7 +65,14 @@ export default async function RootLayout({
           </a>
           <HarbourNav currentApp="depth-chart" user={session?.user} />
           {children}
-          <FeedbackWidget appSlug="depth-chart" />
+          {/* depth-chart's own /api/feedback route serves assessment-rating
+              submissions (task_id + plan_id + rating). The bug-widget can't
+              share that path — point it at the harbour hub endpoint, which
+              is the same one the vanilla widget on every static app uses. */}
+          <FeedbackWidget
+            appSlug="depth-chart"
+            endpoint="/harbour/api/feedback"
+          />
         </AuthSessionProvider>
       </body>
     </html>
