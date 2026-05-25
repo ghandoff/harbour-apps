@@ -60,18 +60,17 @@ export function createFeedbackHandler(defaultAppSlug: string) {
       const icon = feedback_type === "bug" ? "🔴" : feedback_type === "confusing" ? "🟡" : feedback_type === "idea" ? "💡" : "💬";
       const text = `${icon} *[${app_slug}]* ${feedback_type} (${severity}/5)${comment ? `\n> ${comment}` : ""}${route ? `\n_${route}_` : ""}`;
 
+      // Routing precedence (post-tidy-up — winded.vertigo unified bot):
+      //   1) SLACK_BOT_TOKEN + SLACK_FEEDBACK_CHANNEL — preferred, single
+      //      bot identity across all projects, channel routed per-worker.
+      //   2) SLACK_FEEDBACK_WEBHOOK_URL — legacy fallback while we migrate
+      //      workers off webhooks. Delete once all workers have the bot
+      //      token + channel ID set.
+      //   3) Log a warning if neither is configured.
       let slack_status: number | null = null;
       let slack_body: string | null = null;
       try {
-        if (slackUrl) {
-          const res = await fetch(slackUrl, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ text }),
-          });
-          slack_status = res.status;
-          if (!res.ok) slack_body = (await res.text()).slice(0, 300);
-        } else if (slackToken && slackChannel) {
+        if (slackToken && slackChannel) {
           const res = await fetch("https://slack.com/api/chat.postMessage", {
             method: "POST",
             headers: {
@@ -79,6 +78,14 @@ export function createFeedbackHandler(defaultAppSlug: string) {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({ channel: slackChannel, text }),
+          });
+          slack_status = res.status;
+          if (!res.ok) slack_body = (await res.text()).slice(0, 300);
+        } else if (slackUrl) {
+          const res = await fetch(slackUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text }),
           });
           slack_status = res.status;
           if (!res.ok) slack_body = (await res.text()).slice(0, 300);
