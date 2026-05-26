@@ -11,9 +11,21 @@ import { sql } from "@/lib/db";
 import { createCheckoutSession } from "@/lib/stripe/checkout";
 import { parseJsonBody } from "@/lib/validation";
 
-const VALID_PACK_SLUGS = ["vault-explorer", "vault-practitioner"];
+// Explorer is the only sellable pack at harbour launch. Practitioner
+// videos are still in production — the UI surfaces are converted to
+// "coming soon" in this same PR, and we narrow the API whitelist here
+// as defense-in-depth so a bookmarked URL, a stale cached frontend, or
+// a hand-crafted POST can't bypass the UI hide and take a real $19.99.
+// When videos ship: add "vault-practitioner" back to VALID_PACK_SLUGS.
+const VALID_PACK_SLUGS = ["vault-explorer"];
 
-/** Pack pricing — cents */
+// Slugs we recognize but explicitly refuse to sell right now. Returning a
+// distinct 4xx with a useful message helps support diagnose stale clients
+// vs. real input errors.
+const NOT_YET_AVAILABLE_SLUGS = new Set(["vault-practitioner"]);
+
+/** Pack pricing — cents. Practitioner price is kept here for the day
+ *  we re-enable it; it has no effect while the slug is gated above. */
 const PACK_PRICES: Record<string, { cents: number; title: string }> = {
   "vault-explorer": { cents: 999, title: "Vault Explorer Pack" },
   "vault-practitioner": { cents: 1999, title: "Vault Practitioner Pack" },
@@ -30,7 +42,25 @@ export async function POST(req: Request) {
 
   const { packSlug } = body as { packSlug?: string };
 
-  if (!packSlug || !VALID_PACK_SLUGS.includes(packSlug)) {
+  if (!packSlug) {
+    return NextResponse.json(
+      { error: "invalid pack slug" },
+      { status: 400 },
+    );
+  }
+
+  if (NOT_YET_AVAILABLE_SLUGS.has(packSlug)) {
+    return NextResponse.json(
+      {
+        error: "not yet available",
+        message:
+          "the practitioner pack will be available once video walkthroughs are produced. the explorer pack is available now.",
+      },
+      { status: 400 },
+    );
+  }
+
+  if (!VALID_PACK_SLUGS.includes(packSlug)) {
     return NextResponse.json(
       { error: "invalid pack slug" },
       { status: 400 },

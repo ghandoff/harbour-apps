@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getSession } from "@/lib/auth-helpers";
 import { resolveVaultTier, getVaultActivityCount } from "@/lib/queries/vault";
-import PurchaseButton from "@/components/ui/purchase-button";
+import { ComingSoonBlock } from "@/components/ui/coming-soon";
 
 export const dynamic = "force-dynamic";
 
@@ -64,7 +64,9 @@ export default async function PractitionerPackPage() {
       "@type": "Offer",
       price: "19.99",
       priceCurrency: "USD",
-      availability: "https://schema.org/InStock",
+      // Practitioner videos aren't produced yet — mark as PreOrder so SEO
+      // crawlers don't index this as "in stock" while it's coming-soon.
+      availability: "https://schema.org/PreOrder",
       url: `${BASE_URL}/practitioner`,
     },
     category: "Educational Resources",
@@ -124,7 +126,7 @@ export default async function PractitionerPackPage() {
           </span>
         </div>
         <p className="text-xs mb-4" style={{ color: "var(--vault-text-muted)" }}>
-          includes everything in the explorer pack ($9.99 value)
+          will include everything in the explorer pack ($9.99 value)
         </p>
 
         {isAlreadyPractitioner ? (
@@ -135,11 +137,10 @@ export default async function PractitionerPackPage() {
             ✓ you already have access to this pack
           </div>
         ) : (
-          <PurchaseButton
-            packSlug="vault-practitioner"
-            label="get the practitioner pack"
-            className="w-full rounded-lg px-5 py-3 text-sm font-medium text-white"
-            style={{ backgroundColor: "var(--vault-accent)" }}
+          <ComingSoonBlock
+            emoji="🎬"
+            title="practitioner pack"
+            description="video walkthroughs are in production. the explorer pack ($9.99) unlocks full guides and materials for every activity in the meantime."
           />
         )}
       </div>
@@ -225,13 +226,33 @@ export default async function PractitionerPackPage() {
         </div>
       </section>
 
+      {/* explorer fallback CTA — practitioner isn't sellable yet, so don't
+          leave the visitor without a path forward. */}
+      {!isAlreadyPractitioner && (
+        <section className="mb-8 text-center">
+          <p
+            className="text-sm mb-3"
+            style={{ color: "var(--vault-text-muted)" }}
+          >
+            available now: the explorer pack unlocks the full activity library.
+          </p>
+          <Link
+            href="/explorer"
+            className="inline-block rounded-lg px-5 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90"
+            style={{ backgroundColor: "#6b8e6b" }}
+          >
+            see the explorer pack →
+          </Link>
+        </section>
+      )}
+
       {/* footer */}
       <footer
         className="mt-16 pt-6 border-t text-center"
         style={{ borderColor: "var(--vault-border)" }}
       >
         <p className="text-xs" style={{ color: "var(--vault-text-muted)" }}>
-          purchases are handled securely through{" "}
+          when ready, purchases will be handled securely through{" "}
           <a
             href="https://stripe.com"
             className="underline"
@@ -240,7 +261,7 @@ export default async function PractitionerPackPage() {
           >
             Stripe
           </a>
-          . your access is granted instantly after payment.
+          .
         </p>
       </footer>
     </main>

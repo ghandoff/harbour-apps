@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getSession } from "@/lib/auth-helpers";
 import { resolveVaultTier, getVaultActivityCount } from "@/lib/queries/vault";
 import PurchaseButton from "@/components/ui/purchase-button";
+import { ComingSoonBlock } from "@/components/ui/coming-soon";
 
 export const dynamic = "force-dynamic";
 
@@ -29,8 +30,14 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function ExplorerPackPage() {
+interface ExplorerPageProps {
+  searchParams: Promise<{ from?: string }>;
+}
+
+export default async function ExplorerPackPage({ searchParams }: ExplorerPageProps) {
   const session = await getSession();
+  const params = await searchParams;
+  const fromPractitioner = params.from === "practitioner";
 
   const accessTier = await resolveVaultTier(
     session?.orgId ?? null,
@@ -84,6 +91,26 @@ export default async function ExplorerPackPage() {
       >
         &larr; back to vault
       </Link>
+
+      {/* from=practitioner — explains why we redirected here */}
+      {fromPractitioner && (
+        <div
+          className="mb-6 rounded-lg px-4 py-3 text-sm"
+          style={{
+            backgroundColor: "rgba(175,79,65,0.08)",
+            border: "1px solid rgba(175,79,65,0.18)",
+            color: "var(--vault-text)",
+          }}
+          role="status"
+        >
+          <span style={{ marginRight: "0.5rem" }}>🎬</span>
+          you tried to open a practitioner-tier activity. video walkthroughs
+          are{" "}
+          <span style={{ color: "var(--vault-accent)" }}>coming soon</span>{" "}
+          — meanwhile, the explorer pack unlocks the full activity guide and
+          materials for every activity in the vault.
+        </div>
+      )}
 
       {/* hero */}
       <div className="mb-10">
@@ -166,36 +193,14 @@ export default async function ExplorerPackPage() {
         </div>
       </section>
 
-      {/* upsell to practitioner */}
-      <section
-        className="rounded-xl border p-6 mb-8"
-        style={{
-          borderColor: "rgba(175,79,65,0.2)",
-          background: "linear-gradient(to bottom, rgba(175,79,65,0.06), rgba(175,79,65,0.02))",
-        }}
-      >
-        <div className="flex items-start gap-3">
-          <span className="text-lg leading-none mt-0.5">🎓</span>
-          <div>
-            <h2
-              className="text-sm font-semibold mb-1"
-              style={{ color: "rgba(232,237,243,0.8)" }}
-            >
-              want more?
-            </h2>
-            <p className="text-sm mb-3" style={{ color: "var(--vault-text-muted)" }}>
-              the practitioner pack adds play catalyst coaching prompts and video
-              walkthroughs — everything in the explorer pack, plus expert-level guidance.
-            </p>
-            <Link
-              href="/practitioner"
-              className="text-sm font-medium underline transition-opacity hover:opacity-80"
-              style={{ color: "var(--vault-accent)" }}
-            >
-              see practitioner pack →
-            </Link>
-          </div>
-        </div>
+      {/* practitioner is coming soon — videos still in production. show
+          the path forward without a dead CTA. */}
+      <section className="mb-8">
+        <ComingSoonBlock
+          emoji="🎓"
+          title="practitioner pack"
+          description="play catalyst coaching prompts and video walkthroughs are in production. when ready, the practitioner pack will add expert-level facilitation guidance on top of everything in the explorer pack."
+        />
       </section>
 
       {/* footer */}
