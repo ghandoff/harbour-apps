@@ -110,11 +110,15 @@ export function VaultActivityCard({ activity, isEntitled }: VaultActivityCardPro
             </span>
           )}
           {activity.tier === "practitioner" && !isEntitled && (
+            // Practitioner videos are still in production. Keep the visual
+            // signal that this content exists, but set expectations honestly
+            // — "coming soon" rather than implying availability.
             <span
               className="rounded-full px-2 py-0.5 text-[10px] uppercase tracking-wider font-medium"
               style={{ backgroundColor: "rgba(155,67,67,0.15)", color: "#c47373" }}
+              title="practitioner content includes video walkthroughs (coming soon)"
             >
-              practitioner
+              practitioner · soon
             </span>
           )}
 

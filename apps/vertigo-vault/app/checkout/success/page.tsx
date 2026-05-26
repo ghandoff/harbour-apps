@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import EntitlementConfirmer from "@/components/ui/entitlement-confirmer";
 
 export const metadata: Metadata = {
   title: "purchase confirmed — vertigo.vault",
@@ -33,38 +33,14 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
           <span className="text-2xl">✓</span>
         </div>
 
-        <h1
-          className="text-2xl font-bold mb-2"
-          style={{ color: "var(--vault-text)" }}
-        >
-          welcome to {packName}!
-        </h1>
-
-        <p
-          className="text-sm mb-8 leading-relaxed"
-          style={{ color: "var(--vault-text-muted)" }}
-        >
-          your purchase is confirmed. you now have full access to all activities
-          included in this pack.
-        </p>
-
-        <Link
-          href="/"
-          className="inline-block w-full rounded-lg px-5 py-3 text-sm font-medium text-white transition-opacity hover:opacity-90"
-          style={{ backgroundColor: "var(--vault-accent)" }}
-        >
-          browse activities
-        </Link>
-
-        <div className="mt-6">
-          <Link
-            href={packDetailHref}
-            className="text-xs underline transition-opacity hover:opacity-80"
-            style={{ color: "var(--vault-text-muted)" }}
-          >
-            view your pack details
-          </Link>
-        </div>
+        {/* Confirmer polls /api/vault/tier with exponential backoff and
+            swaps copy + CTA once the Stripe webhook has propagated the
+            entitlement to Postgres. Hides the "browse activities" CTA
+            during the race window so users can't race themselves. */}
+        <EntitlementConfirmer
+          packName={packName}
+          packDetailHref={packDetailHref}
+        />
       </div>
     </main>
   );

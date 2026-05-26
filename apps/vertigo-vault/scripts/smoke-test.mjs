@@ -46,6 +46,50 @@ const apiRoutes = [
   { path: "/api/cron/sync", method: "POST", expectStatus: [401] },
   // Stripe webhook is POST-only → GET should 405
   { path: "/api/stripe/webhook", method: "GET", expectStatus: [405] },
+  // /api/checkout requires sign-in → 401 unauthenticated. Proves the
+  // auth gate is wired before any pack-slug logic runs.
+  {
+    path: "/api/checkout",
+    method: "POST",
+    expectStatus: [401],
+    body: { packSlug: "vault-explorer" },
+    label: "explorer checkout (unauth → 401)",
+  },
+  // Defense-in-depth: even with a forged/valid session, the practitioner
+  // slug must be refused at the API layer (videos not ready). The 401
+  // happens first for unauthenticated traffic — both prove the slug
+  // never reaches the price lookup.
+  {
+    path: "/api/checkout",
+    method: "POST",
+    expectStatus: [400, 401],
+    body: { packSlug: "vault-practitioner" },
+    label: "practitioner checkout (refused)",
+  },
+  // /api/vault/tier requires sign-in → 401 unauthenticated. Proves the
+  // success-page poller's gate exists.
+  { path: "/api/vault/tier", method: "GET", expectStatus: [401] },
+];
+
+/**
+ * Pack-page body assertions — checks the rendered HTML contains the
+ * expected sell vs. coming-soon affordance. Catches accidental regressions
+ * (someone re-enables the practitioner buy button before videos ship).
+ */
+const packPageChecks = [
+  {
+    path: "/explorer",
+    mustContain: ["$9.99"],
+    mustNotContain: [],
+    label: "explorer page sells $9.99",
+  },
+  {
+    path: "/practitioner",
+    mustContain: ["coming soon"],
+    // No practitioner PurchaseButton should ship from the server-rendered HTML.
+    mustNotContain: ['packSlug="vault-practitioner"', "packSlug=\\\"vault-practitioner\\\""],
+    label: "practitioner page is coming-soon",
+  },
 ];
 
 /* ── Test runner ──────────────────────────────────────────── */
@@ -63,27 +107,44 @@ async function testRoute(path, expectedStatuses, label, opts = {}) {
   const start = Date.now();
 
   try {
-    const res = await fetch(url, {
+    const init = {
       method: opts.method || "GET",
       redirect: "manual",
       headers: { "User-Agent": "vault-smoke-test/1.0" },
       signal: AbortSignal.timeout(15000),
-    });
+    };
+    if (opts.body !== undefined) {
+      init.headers["Content-Type"] = "application/json";
+      init.body = JSON.stringify(opts.body);
+    }
+
+    const res = await fetch(url, init);
     const ms = Date.now() - start;
     const status = res.status;
     const ok = expectedStatuses.includes(status);
 
     let hasTitle = "—";
     let prmeFree = "—";
+    let bodyOk = true;
     if (status === 200 && res.headers.get("content-type")?.includes("text/html")) {
       const body = await res.text();
       hasTitle = /<title[^>]*>.+<\/title>/i.test(body) ? "✓" : "✗";
       if (opts.checkPrmeFree) {
         prmeFree = /"isAccessibleForFree":true/.test(body) ? "✓" : "✗";
       }
+      if (opts.mustContain) {
+        for (const needle of opts.mustContain) {
+          if (!body.includes(needle)) bodyOk = false;
+        }
+      }
+      if (opts.mustNotContain) {
+        for (const needle of opts.mustNotContain) {
+          if (body.includes(needle)) bodyOk = false;
+        }
+      }
     }
 
-    if (ok && (!opts.checkPrmeFree || prmeFree !== "✗")) {
+    if (ok && bodyOk && (!opts.checkPrmeFree || prmeFree !== "✗")) {
       passed++;
       results.push({ tag: label, status, ms, hasTitle, prmeFree, ok: true, icon: "✅" });
     } else {
@@ -116,8 +177,18 @@ for (const slug of prmeFreeSlugs) {
   await testRoute(slug, [200], `[prme] ${slug}`, { checkPrmeFree: true });
 }
 
-for (const { path, method, expectStatus } of apiRoutes) {
-  await testRoute(path, expectStatus, `[api]  ${method} ${path}`, { method });
+for (const { path, mustContain, mustNotContain, label } of packPageChecks) {
+  await testRoute(path, [200], `[pack] ${label}`, { mustContain, mustNotContain });
+}
+
+for (const route of apiRoutes) {
+  const label = route.label
+    ? `[api]  ${route.label}`
+    : `[api]  ${route.method} ${route.path}`;
+  await testRoute(route.path, route.expectStatus, label, {
+    method: route.method,
+    body: route.body,
+  });
 }
 
 /* ── Report ──────────────────────────────────────────────── */

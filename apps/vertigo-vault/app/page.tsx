@@ -4,6 +4,7 @@ import { getSession } from "@/lib/auth-helpers";
 import { resolveVaultTier, getVaultActivities, type VaultAccessTier } from "@/lib/queries/vault";
 import VaultActivityGrid from "@/components/vault-activity-grid";
 import UserMenu from "@/components/ui/user-menu";
+import { ComingSoonChip } from "@/components/ui/coming-soon";
 
 export const dynamic = "force-dynamic";
 
@@ -76,8 +77,8 @@ export default async function VaultCatalogPage() {
                 {isEntitled
                   ? "a curated collection of group activities, energizers, and reflective exercises. filter by type or duration, then click any card to see the full instructions."
                   : session
-                    ? `browse ${activities.length} free activities from our PRME collection. unlock 50+ more with an explorer or practitioner pack.`
-                    : `browse ${activities.length} free activities — no account needed. sign in to unlock 50+ more with an explorer or practitioner pack.`}
+                    ? `browse ${activities.length} free activities from our PRME collection. unlock 50+ more with the explorer pack.`
+                    : `browse ${activities.length} free activities — no account needed. sign in to unlock 50+ more with the explorer pack.`}
               </p>
             </div>
 
@@ -134,7 +135,8 @@ function TierBanner({
   tier: VaultAccessTier;
   activityCount: number;
 }) {
-  // teaser → upsell to explore packs
+  // teaser → upsell to explorer pack (practitioner is coming-soon, so
+  // don't promise video walkthroughs or catalyst prompts here)
   if (tier === "teaser") {
     return (
       <div
@@ -148,8 +150,8 @@ function TierBanner({
           <span className="font-medium" style={{ color: "var(--vault-text)" }}>
             unlock the full vault.
           </span>{" "}
-          get access to step-by-step guides, play catalyst prompts, video
-          walkthroughs, and more activities.
+          get step-by-step guides, materials checklists, and the full activity
+          library.
         </p>
         <div className="flex items-center gap-3 shrink-0">
           <Link
@@ -160,7 +162,7 @@ function TierBanner({
               color: "rgba(255,255,255,0.85)",
             }}
           >
-            explore packs &rarr;
+            explorer pack &rarr;
           </Link>
           <Link
             href="/teams"
@@ -174,7 +176,9 @@ function TierBanner({
     );
   }
 
-  // entitled → show current pack + upsell to practitioner
+  // entitled → confirm current pack; practitioner upgrade is coming-soon
+  // (videos in production). Show a non-clickable chip so the user knows
+  // more is coming without a dead CTA.
   if (tier === "entitled") {
     return (
       <div
@@ -196,16 +200,7 @@ function TierBanner({
             </p>
           </div>
         </div>
-        <Link
-          href="/practitioner"
-          className="shrink-0 rounded-full px-4 py-1.5 text-xs font-medium uppercase tracking-wider transition-colors"
-          style={{
-            backgroundColor: "rgba(175,79,65,0.2)",
-            color: "rgba(255,255,255,0.85)",
-          }}
-        >
-          upgrade to practitioner &rarr;
-        </Link>
+        <ComingSoonChip label="🎬 practitioner pack" />
       </div>
     );
   }

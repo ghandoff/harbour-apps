@@ -14,6 +14,7 @@ import { typeColor } from "@/lib/ui-constants";
 import SafeHtml from "@/components/ui/safe-html";
 import { VaultActivityCard } from "@/components/ui/vault-activity-card";
 import type { VaultActivity as VaultCardActivity } from "@/components/ui/vault-activity-card";
+import { ComingSoonBlock, ComingSoonInline } from "@/components/ui/coming-soon";
 
 export const dynamic = "force-dynamic";
 
@@ -73,10 +74,13 @@ export default async function VaultActivityPage({ params }: Props) {
   const activity = await getVaultActivityBySlug(slug, accessTier);
 
   if (!activity) {
-    // Activity exists but user's tier doesn't include it → redirect to pack page
+    // Activity exists but user's tier doesn't include it → redirect to a
+    // pack page they can actually purchase. Practitioner videos aren't
+    // ready yet, so for practitioner-tier activities we redirect to the
+    // explorer pack with a from=practitioner banner explaining why.
     const contentTier = await getActivityContentTier(slug);
     if (contentTier === "explorer") redirect("/explorer");
-    if (contentTier === "practitioner") redirect("/practitioner");
+    if (contentTier === "practitioner") redirect("/explorer?from=practitioner");
     return notFound();
   }
 
@@ -380,7 +384,9 @@ export default async function VaultActivityPage({ params }: Props) {
         <PrmeVideoUpsell />
       )}
 
-      {/* sign-in prompt for unauthenticated users on free content */}
+      {/* sign-in prompt for unauthenticated users on free content.
+          Practitioner videos are coming soon — this CTA stays focused on
+          the explorer pack (the thing they can actually buy today). */}
       {!session && isPrme && (
         <section
           className="rounded-xl border p-6 mb-8"
@@ -399,20 +405,20 @@ export default async function VaultActivityPage({ params }: Props) {
                 there&apos;s more in the vault
               </h2>
               <p className="text-sm" style={{ color: "var(--vault-text-muted)" }}>
-                sign in to save favourites and unlock 50+ more activities.
-                upgrade to practitioner for the full toolkit:
+                sign in to save favourites and unlock 50+ more activities with
+                the explorer pack:
               </p>
             </div>
           </div>
 
           <div className="ml-8 space-y-2 text-sm mb-5" style={{ color: "var(--vault-text-muted)" }}>
             <div className="flex items-center gap-2">
-              <span className="text-base leading-none">🔥</span>
-              <span>play catalyst coaching prompts for every activity</span>
+              <span className="text-base leading-none">📝</span>
+              <span>step-by-step facilitation guides for every activity</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-base leading-none">🎬</span>
-              <span>video walkthroughs from experienced facilitators</span>
+              <span className="text-base leading-none">🧰</span>
+              <span>materials checklists before every session</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-base leading-none">📋</span>
@@ -429,53 +435,30 @@ export default async function VaultActivityPage({ params }: Props) {
               sign in &rarr;
             </Link>
             <Link
-              href="/practitioner"
+              href="/explorer"
               className="text-xs transition-opacity hover:opacity-80"
               style={{ color: "var(--vault-text-muted)" }}
             >
-              learn about the <span className="underline">practitioner pack</span>
+              see the <span className="underline">explorer pack</span>
             </Link>
           </div>
         </section>
       )}
 
-      {/* entitled but not practitioner — upsell to practitioner */}
+      {/* entitled but not practitioner — practitioner videos are still
+          in production, so no purchase CTA. Coming-soon block keeps the
+          surface honest. */}
       {accessTier === "entitled" && (
-        <section
-          className="rounded-xl border p-6 mb-8"
-          style={{
-            borderColor: "rgba(175,79,65,0.2)",
-            background: "linear-gradient(to bottom, rgba(175,79,65,0.06), rgba(175,79,65,0.02))",
-          }}
-        >
-          <div className="flex items-start gap-3">
-            <span className="text-lg leading-none mt-0.5">🎓</span>
-            <div>
-              <h2
-                className="text-sm font-semibold mb-1"
-                style={{ color: "rgba(232,237,243,0.8)" }}
-              >
-                practitioner upgrade
-              </h2>
-              <p
-                className="text-sm mb-3"
-                style={{ color: "var(--vault-text-muted)" }}
-              >
-                upgrade to the practitioner pack for play catalyst coaching
-                prompts, video walkthroughs, and expert-level guidance on
-                every activity.
-              </p>
-              <Link
-                href="/practitioner"
-                className="inline-block rounded-lg px-5 py-2.5 text-sm text-white font-medium transition-colors"
-                style={{ backgroundColor: "var(--vault-accent)" }}
-              >
-                see practitioner pack
-              </Link>
-            </div>
-          </div>
+        <section className="mb-8">
+          <ComingSoonBlock
+            emoji="🎓"
+            title="practitioner pack"
+            description="play catalyst coaching prompts and video walkthroughs are in production. when ready, they'll layer expert-level guidance on top of every activity you already have access to."
+          />
         </section>
       )}
+
+
 
       {/* related activities */}
       {related.length > 0 && (
@@ -605,6 +588,19 @@ function LockedContentTeaser({
   slug: string;
   isSignedIn: boolean;
 }) {
+  // Practitioner-tier locks point at the explorer pack instead — the
+  // practitioner pack itself isn't sellable yet (videos still in
+  // production). The user gets the activity guide + materials from
+  // explorer, with the practitioner-specific catalyst/video bullets
+  // marked as "coming soon" so expectations stay honest.
+  const isPractitionerLock = activityTier === "practitioner";
+  const pitchHeading = isPractitionerLock
+    ? "join the explorer pack while practitioner content is in production"
+    : "unlock this activity";
+  const pitchBody = isPractitionerLock
+    ? `this is a practitioner-tier activity. the explorer pack ($9.99) gives you the full guide and materials today; play catalyst prompts and video walkthroughs are coming soon.`
+    : `this is an ${activityTier}-tier activity. get the ${activityTier} pack to unlock the full guide, materials, and more.`;
+
   return (
     <section
       className="rounded-xl border p-6 mb-8"
@@ -620,11 +616,10 @@ function LockedContentTeaser({
             className="text-sm font-semibold mb-1"
             style={{ color: "rgba(232,237,243,0.8)" }}
           >
-            unlock this activity
+            {pitchHeading}
           </h2>
           <p className="text-sm" style={{ color: "var(--vault-text-muted)" }}>
-            this is an {activityTier}-tier activity. get the {activityTier} pack
-            to unlock the full guide, materials, and more.
+            {pitchBody}
           </p>
         </div>
       </div>
@@ -644,21 +639,21 @@ function LockedContentTeaser({
           />
           <span>materials needed checklist</span>
         </div>
-        {activityTier === "practitioner" && (
+        {isPractitionerLock && (
           <>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 opacity-60">
               <span
                 className="w-1.5 h-1.5 rounded-full"
                 style={{ backgroundColor: "rgba(155,67,67,0.4)" }}
               />
-              <span>play catalyst coaching prompts</span>
+              <span>play catalyst coaching prompts (coming soon)</span>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 opacity-60">
               <span
                 className="w-1.5 h-1.5 rounded-full"
                 style={{ backgroundColor: "rgba(155,67,67,0.6)" }}
               />
-              <span>video walkthrough</span>
+              <span>video walkthrough (coming soon)</span>
             </div>
           </>
         )}
@@ -666,15 +661,11 @@ function LockedContentTeaser({
 
       <div className="flex items-center gap-3 flex-wrap">
         <Link
-          href={
-            activityTier === "practitioner"
-              ? "/practitioner"
-              : "/explorer"
-          }
+          href="/explorer"
           className="inline-block rounded-lg px-5 py-2.5 text-sm text-white font-medium transition-colors"
           style={{ backgroundColor: "var(--vault-accent)" }}
         >
-          get the {activityTier} pack
+          get the explorer pack
         </Link>
         {!isSignedIn && (
           <Link
@@ -729,33 +720,24 @@ function CatalystTile({
   );
 }
 
-/** Subtle upsell for PRME activities — content is free, video is the add-on. */
+/** Subtle note for PRME activities — content is free, video is coming soon
+ *  (videos still in production; the practitioner pack isn't sellable yet). */
 function PrmeVideoUpsell() {
   return (
     <section
-      className="rounded-xl border p-5 mb-8 flex items-center justify-between gap-4 flex-wrap"
+      className="rounded-xl border p-5 mb-8 flex items-center gap-3 flex-wrap"
       style={{
         borderColor: "rgba(155,67,67,0.15)",
         backgroundColor: "rgba(155,67,67,0.04)",
       }}
     >
-      <div className="flex items-center gap-3">
-        <span className="text-base leading-none">🎬</span>
-        <p className="text-sm" style={{ color: "var(--vault-text-muted)" }}>
-          want a <span style={{ color: "var(--vault-text)" }}>video walkthrough</span> for
-          this activity? upgrade to the practitioner pack.
-        </p>
-      </div>
-      <Link
-        href="/practitioner"
-        className="shrink-0 rounded-full px-4 py-1.5 text-xs font-medium uppercase tracking-wider transition-colors"
-        style={{
-          backgroundColor: "rgba(155,67,67,0.2)",
-          color: "rgba(255,255,255,0.85)",
-        }}
-      >
-        practitioner pack &rarr;
-      </Link>
+      <span className="text-base leading-none">🎬</span>
+      <p className="text-sm" style={{ color: "var(--vault-text-muted)" }}>
+        <span style={{ color: "var(--vault-text)" }}>video walkthroughs</span>{" "}
+        are coming soon — currently in production by the winded.vertigo
+        collective.
+      </p>
     </section>
   );
 }
+
