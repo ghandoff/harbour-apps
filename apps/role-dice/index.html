@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#273248" />
+  <title>five perspectives — winded.vertigo</title>
+  <meta name="description" content="a small tool for pressure-testing ideas. one idea, five angles. roll once before you move forward." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --wv-cadet: #273248;
+      --wv-cadet-deep: #1e2738;
+      --wv-redwood: #b15043;
+      --wv-sienna: #cb7858;
+      --wv-champagne: #ffebd2;
+      --wv-white: #ffffff;
+      --wv-line: rgba(255, 235, 210, 0.18);
+      --wv-muted: rgba(255, 235, 210, 0.7);
+      --wv-soft: rgba(255, 235, 210, 0.5);
+      --focus: #3b82f6;
+      --p-builder: #cb7858;
+      --p-ghost: #6f7a92;
+      --p-ripple: #5fa8a3;
+      --p-explorer: #b15043;
+      --p-time: #d1a05a;
+      --p-imagine: #8b6ea8;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0;
+      background: var(--wv-cadet);
+      color: var(--wv-champagne);
+      font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+      font-size: 16px; line-height: 1.6; letter-spacing: 0.02em;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh; min-height: 100dvh;
+    }
+    body {
+      background-image:
+        radial-gradient(circle at 18% 12%, rgba(203, 120, 88, 0.08), transparent 45%),
+        radial-gradient(circle at 82% 88%, rgba(177, 80, 67, 0.10), transparent 50%);
+    }
+    button, input, textarea { font-family: inherit; font-size: inherit; letter-spacing: inherit; }
+    button {
+      cursor: pointer; border: none; border-radius: 999px;
+      padding: 14px 26px; font-weight: 500;
+      transition: transform 180ms ease, background 180ms ease, color 180ms ease, box-shadow 180ms ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    button:active:not(:disabled) { transform: scale(0.97); }
+    button:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+    .btn-primary {
+      background: var(--wv-champagne); color: var(--wv-cadet);
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25); font-size: 15px;
+    }
+    .btn-primary:hover:not(:disabled) { background: var(--wv-white); }
+    .btn-primary:disabled {
+      background: rgba(255, 235, 210, 0.18);
+      color: rgba(255, 235, 210, 0.4);
+      cursor: not-allowed; box-shadow: none;
+    }
+    .btn-ghost {
+      background: transparent; color: var(--wv-muted);
+      padding: 10px 18px; font-size: 14px;
+    }
+    .btn-ghost:hover { color: var(--wv-champagne); }
+    h1, h2, h3 { margin: 0; font-weight: 700; letter-spacing: -0.015em; }
+    h1 { font-size: 44px; line-height: 1.05; }
+    h2 { font-size: 28px; line-height: 1.15; }
+    h3 { font-size: 18px; line-height: 1.3; }
+    .screen {
+      min-height: 100vh; min-height: 100dvh;
+      display: flex; flex-direction: column;
+      padding: 28px 22px calc(28px + env(safe-area-inset-bottom));
+      max-width: 640px; margin: 0 auto; width: 100%;
+    }
+    .spacer { flex: 1; }
+    .eyebrow {
+      font-size: 12px; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--wv-soft); font-weight: 500;
+    }
+    .muted { color: var(--wv-muted); }
+    .tiny { font-size: 13px; color: var(--wv-muted); }
+    .skip {
+      position: absolute; left: -9999px; top: 8px;
+      background: var(--wv-champagne); color: var(--wv-cadet);
+      padding: 8px 14px; border-radius: 6px; font-size: 14px; z-index: 100;
+    }
+    .skip:focus { left: 8px; }
+    .cube-stage { perspective: 900px; width: 220px; height: 220px; margin: 20px auto; }
+    .cube {
+      position: relative; width: 100%; height: 100%;
+      transform-style: preserve-3d;
+      transform: rotateX(-22deg) rotateY(-30deg);
+      transition: transform 1.6s cubic-bezier(0.34, 1.2, 0.64, 1);
+    }
+    .cube.rolling { animation: tumble 1.2s cubic-bezier(0.34, 1.2, 0.64, 1) forwards; }
+    .face {
+      position: absolute; inset: 0;
+      background: var(--wv-white);
+      border: 2px solid rgba(39, 50, 72, 0.08);
+      border-radius: 14px;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 18px; text-align: center;
+      box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05) inset;
+    }
+    .face .name {
+      font-size: 22px; font-weight: 700;
+      color: var(--wv-cadet); letter-spacing: -0.01em; line-height: 1.1;
+    }
+    .face .keeps {
+      font-size: 12px; color: var(--wv-redwood);
+      letter-spacing: 0.08em; text-transform: uppercase;
+      margin-top: 6px; font-weight: 500;
+    }
+    .face-builder { transform: translateZ(110px); }
+    .face-ghost   { transform: rotateY(180deg) translateZ(110px); }
+    .face-ripple  { transform: rotateY(90deg)  translateZ(110px); }
+    .face-explorer{ transform: rotateY(-90deg) translateZ(110px); }
+    .face-time    { transform: rotateX(90deg)  translateZ(110px); }
+    .face-imagine    { transform: rotateX(-90deg) translateZ(110px); }
+    .face-imagine .name { color: var(--p-imagine); }
+    .face-imagine .keeps { color: var(--p-imagine); opacity: 0.7; }
+    .cube[data-show="builder"]   { transform: rotateX(-15deg) rotateY(0deg); }
+    .cube[data-show="ghost"]     { transform: rotateX(-15deg) rotateY(180deg); }
+    .cube[data-show="ripple"]    { transform: rotateX(-15deg) rotateY(-90deg); }
+    .cube[data-show="explorer"]  { transform: rotateX(-15deg) rotateY(90deg); }
+    .cube[data-show="time"]      { transform: rotateX(-105deg) rotateY(0deg); }
+    .cube[data-show="imagine"]      { transform: rotateX(75deg) rotateY(0deg); }
+    @keyframes tumble {
+      0%   { transform: rotateX(-22deg) rotateY(-30deg); }
+      20%  { transform: rotateX(120deg) rotateY(220deg); }
+      45%  { transform: rotateX(280deg) rotateY(420deg); }
+      70%  { transform: rotateX(440deg) rotateY(640deg); }
+      100% { transform: rotateX(540deg) rotateY(750deg); }
+    }
+    .field { display: flex; flex-direction: column; gap: 8px; margin-top: 22px; }
+    .field label { font-size: 13px; color: var(--wv-muted); letter-spacing: 0.04em; }
+    .input {
+      width: 100%; padding: 14px 16px; border-radius: 14px;
+      background: rgba(255, 235, 210, 0.06);
+      border: 1.5px solid var(--wv-line);
+      color: var(--wv-champagne);
+      font-size: 16px; line-height: 1.4;
+      transition: border-color 180ms ease, background 180ms ease;
+      -webkit-appearance: none;
+    }
+    .input::placeholder { color: rgba(255, 235, 210, 0.35); }
+    .input:focus {
+      outline: none; border-color: var(--wv-champagne);
+      background: rgba(255, 235, 210, 0.10);
+    }
+    textarea.input { resize: none; font-family: inherit; min-height: 96px; }
+    .people-list { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+    .person-row { display: flex; gap: 10px; align-items: center; }
+    .person-row .input { flex: 1; }
+    .icon-btn {
+      width: 44px; height: 44px; flex-shrink: 0; padding: 0;
+      background: rgba(255, 235, 210, 0.10);
+      color: var(--wv-champagne);
+      font-size: 22px; line-height: 1;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .icon-btn:hover { background: rgba(255, 235, 210, 0.18); }
+    .icon-btn:disabled {
+      background: rgba(255, 235, 210, 0.04);
+      color: rgba(255, 235, 210, 0.2);
+      cursor: not-allowed;
+    }
+    .mode-picker { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
+    .mode-btn {
+      padding: 16px 14px;
+      background: rgba(255, 235, 210, 0.06);
+      border: 1.5px solid var(--wv-line);
+      color: var(--wv-champagne);
+      border-radius: 16px; text-align: left;
+      transition: all 180ms ease;
+    }
+    .mode-btn .m-label { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
+    .mode-btn .m-blurb { font-size: 13px; color: var(--wv-muted); margin-top: 4px; line-height: 1.4; }
+    .mode-btn.active {
+      background: var(--wv-champagne);
+      border-color: var(--wv-champagne);
+      color: var(--wv-cadet);
+    }
+    .mode-btn.active .m-blurb { color: rgba(39, 50, 72, 0.7); }
+    .results { display: flex; flex-direction: column; gap: 14px; margin-top: 22px; }
+    .result-card {
+      background: var(--wv-white); color: var(--wv-cadet);
+      border-radius: 18px; padding: 20px 22px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.20);
+      border-left: 6px solid var(--accent, var(--wv-redwood));
+      animation: slideIn 500ms cubic-bezier(0.34, 1.2, 0.64, 1) both;
+    }
+    .result-card[data-perspective="builder"]   { --accent: var(--p-builder); }
+    .result-card[data-perspective="ghost"]     { --accent: var(--p-ghost); }
+    .result-card[data-perspective="ripple"]    { --accent: var(--p-ripple); }
+    .result-card[data-perspective="explorer"]  { --accent: var(--p-explorer); }
+    .result-card[data-perspective="time"]      { --accent: var(--p-time); }
+    .result-card[data-perspective="imagine"]      { --accent: var(--p-imagine); }
+    .result-card .who {
+      font-size: 14px; color: rgba(39, 50, 72, 0.6);
+      letter-spacing: 0.04em; margin-bottom: 4px;
+    }
+    .result-card .perspective {
+      font-size: 24px; font-weight: 700; color: var(--accent);
+      letter-spacing: -0.01em; line-height: 1.1;
+    }
+    .result-card .keeps {
+      font-size: 12px; letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(39, 50, 72, 0.55);
+      margin-top: 8px; font-weight: 500;
+    }
+    .result-card .question {
+      font-size: 17px; line-height: 1.4;
+      color: var(--wv-cadet); margin-top: 12px; font-weight: 500;
+    }
+    .result-card .sub {
+      font-size: 14px; line-height: 1.5;
+      color: rgba(39, 50, 72, 0.7); margin-top: 6px;
+    }
+    .result-card.imagine .question { font-style: italic; }
+    .idea-banner {
+      margin-top: 18px; padding: 16px 18px;
+      background: rgba(255, 235, 210, 0.08);
+      border-radius: 14px;
+      border-left: 3px solid var(--wv-sienna);
+    }
+    .idea-banner .eyebrow { display: block; margin-bottom: 4px; }
+    .idea-banner .text {
+      font-size: 16px; line-height: 1.45; color: var(--wv-champagne);
+    }
+    .footer-row {
+      display: flex; gap: 10px; align-items: center;
+      justify-content: space-between;
+      margin-top: 24px; padding-top: 18px;
+      border-top: 1px solid var(--wv-line);
+    }
+    .footer-row .wordmark {
+      font-size: 12px; letter-spacing: 0.06em; color: var(--wv-soft);
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(-12px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+    .fade-in { animation: fadeIn 420ms ease both; }
+    .stagger > * { opacity: 0; animation: slideIn 500ms ease forwards; }
+    .stagger > *:nth-child(1) { animation-delay: 80ms; }
+    .stagger > *:nth-child(2) { animation-delay: 180ms; }
+    .stagger > *:nth-child(3) { animation-delay: 280ms; }
+    .stagger > *:nth-child(4) { animation-delay: 380ms; }
+    .stagger > *:nth-child(5) { animation-delay: 480ms; }
+    .stagger > *:nth-child(6) { animation-delay: 580ms; }
+    .help-link {
+      background: none; border: none; color: var(--wv-muted);
+      font-size: 13px; padding: 0;
+      text-decoration: underline; text-underline-offset: 3px; cursor: pointer;
+    }
+    .help-link:hover { color: var(--wv-champagne); }
+    .help-panel {
+      margin-top: 14px; padding: 16px 18px;
+      background: rgba(255, 235, 210, 0.06);
+      border-radius: 14px;
+      font-size: 14px; line-height: 1.5;
+      color: var(--wv-muted);
+    }
+    .help-panel strong { color: var(--wv-champagne); font-weight: 600; }
+    .help-panel ul { margin: 8px 0 0; padding-left: 18px; }
+    .help-panel li { margin-bottom: 4px; }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+      .cube { transition: none !important; }
+      .cube.rolling { animation: none !important; }
+    }
+    @media (prefers-contrast: more) {
+      :root { --wv-muted: #ffebd2; --wv-soft: #ffebd2; }
+      .face { border-color: var(--wv-cadet); }
+    }
+    @media (min-width: 500px) {
+      h1 { font-size: 56px; }
+      h2 { font-size: 32px; }
+      .cube-stage { width: 260px; height: 260px; }
+      .face-builder { transform: translateZ(130px); }
+      .face-ghost   { transform: rotateY(180deg) translateZ(130px); }
+      .face-ripple  { transform: rotateY(90deg)  translateZ(130px); }
+      .face-explorer{ transform: rotateY(-90deg) translateZ(130px); }
+      .face-time    { transform: rotateX(90deg)  translateZ(130px); }
+      .face-imagine    { transform: rotateX(-90deg) translateZ(130px); }
+    }
+    @media (max-width: 340px) {
+      h1 { font-size: 36px; }
+      .cube-stage { width: 180px; height: 180px; }
+      .face-builder { transform: translateZ(90px); }
+      .face-ghost   { transform: rotateY(180deg) translateZ(90px); }
+      .face-ripple  { transform: rotateY(90deg)  translateZ(90px); }
+      .face-explorer{ transform: rotateY(-90deg) translateZ(90px); }
+      .face-time    { transform: rotateX(90deg)  translateZ(90px); }
+      .face-imagine    { transform: rotateX(-90deg) translateZ(90px); }
+    }
+  </style>
+</head>
+<body>
+  <a href="#main" class="skip">skip to content</a>
+  <main id="main" aria-label="five perspectives" role="main">
+    <div id="app" aria-live="polite"></div>
+  </main>
+  <script>
+    // five perspectives — a small tool for pressure-testing ideas
+    // built for winded.vertigo · harbour, may 2026
+    // source: bd_assets/five_perspectives.pdf
+
+    const PERSPECTIVES = {
+      builder: {
+        name: 'builder',
+        keeps: 'keeps us concrete',
+        question: 'what needs to work, practically?',
+        sub: 'consider timelines, resources, responsibilities, and constraints.',
+      },
+      ghost: {
+        name: 'ghost',
+        keeps: 'keeps us honest',
+        question: 'what assumption might we be carrying?',
+        sub: 'what feels obvious that might not be universal?',
+      },
+      ripple: {
+        name: 'ripple',
+        keeps: 'keeps us accountable',
+        question: 'what would change if this goes well?',
+        sub: 'who else is affected, and how?',
+      },
+      explorer: {
+        name: 'explorer',
+        keeps: 'keeps us open',
+        question: 'what possibility are we not seeing yet?',
+        sub: 'where could this lead beyond its immediate purpose?',
+      },
+      time: {
+        name: 'time traveller',
+        keeps: 'keeps us durable',
+        question: 'what will still matter in six months?',
+        sub: 'what remains once urgency fades?',
+      },
+      imagine: {
+        name: 'imagine',
+        keeps: 'keeps us inventive',
+        question: 'what angle haven\u2019t we named yet?',
+        sub: 'invent a new perspective for this idea \u2014 the lens the other five can\u2019t offer.',
+      },
+    };
+
+    const FACE_ORDER = ['builder', 'ghost', 'ripple', 'explorer', 'time', 'imagine'];
+
+    const state = {
+      screen: 'welcome',
+      mode: null,
+      idea: '',
+      people: [''],
+      currentSolo: null,
+      assignments: [],
+      rolling: false,
+      helpOpen: false,
+    };
+
+    function shuffle(arr) {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function pickOne() {
+      return FACE_ORDER[Math.floor(Math.random() * FACE_ORDER.length)];
+    }
+
+    function dealAssignments(names) {
+      const namedPeople = names.filter(n => n.trim());
+      const out = [];
+      let deck = shuffle(FACE_ORDER);
+      namedPeople.forEach((n, i) => {
+        if (i > 0 && i % FACE_ORDER.length === 0) deck = shuffle(FACE_ORDER);
+        out.push({ name: n.trim(), perspective: deck[i % FACE_ORDER.length] });
+      });
+      return out;
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[c]));
+    }
+
+    function cubeHtml(showKey) {
+      const face = key => {
+        const p = PERSPECTIVES[key];
+        return '<div class="face face-' + key + '"><div class="name">' + p.name + '</div><div class="keeps">' + p.keeps + '</div></div>';
+      };
+      const showAttr = showKey ? ' data-show="' + showKey + '"' : '';
+      return '<div class="cube-stage" aria-hidden="true"><div class="cube" id="cube"' + showAttr + '>' + FACE_ORDER.map(face).join('') + '</div></div>';
+    }
+
+    const screens = {
+      welcome: () => `
+        <section class="screen fade-in" aria-labelledby="welcome-title">
+          <div style="padding-top: 30px;">
+            <div class="eyebrow">winded.vertigo · harbour</div>
+            <h1 id="welcome-title" style="margin-top: 14px;">five<br/>perspectives.</h1>
+            <p class="muted" style="margin-top: 22px; font-size: 17px; max-width: 460px;">
+              a small tool for pressure-testing ideas. drafting a lesson, shaping an agreement, preparing a proposal, or making a decision that affects others — roll once before you move forward.
+            </p>
+          </div>
+          ${cubeHtml('builder')}
+          <div class="spacer"></div>
+          <div style="margin-top: 24px;">
+            <button class="btn-primary" data-go="setup" style="width: 100%;">begin</button>
+            <div class="tiny" style="text-align: center; margin-top: 14px;">one idea. five angles. ~5 minutes.</div>
+          </div>
+        </section>`,
+
+      setup: () => {
+        const peopleRows = state.people.map((n, i) => `
+          <div class="person-row">
+            <input class="input" type="text" data-person-idx="${i}" value="${escapeHtml(n)}" placeholder="${i === 0 ? 'first name' : 'another name'}" aria-label="participant ${i + 1} name" autocomplete="off" maxlength="40" />
+            ${state.people.length > 1 ? `<button class="icon-btn" data-remove-idx="${i}" aria-label="remove participant ${i + 1}">×</button>` : ''}
+          </div>
+        `).join('');
+
+        const canAdd = state.people.length < 8;
+        const validPeople = state.people.filter(n => n.trim()).length;
+        const canRoll = (state.mode === 'solo') || (state.mode === 'group' && validPeople >= 2);
+
+        return `
+          <section class="screen fade-in" aria-labelledby="setup-title">
+            <div class="eyebrow">set the table</div>
+            <h2 id="setup-title" style="margin-top: 10px;">what are you testing?</h2>
+            <div class="mode-picker" role="radiogroup" aria-label="how you'll roll">
+              <button class="mode-btn ${state.mode === 'solo' ? 'active' : ''}" data-mode="solo" role="radio" aria-checked="${state.mode === 'solo'}">
+                <div class="m-label">solo</div>
+                <div class="m-blurb">one angle for personal pressure-testing.</div>
+              </button>
+              <button class="mode-btn ${state.mode === 'group' ? 'active' : ''}" data-mode="group" role="radio" aria-checked="${state.mode === 'group'}">
+                <div class="m-label">group</div>
+                <div class="m-blurb">deal an angle to each person at the table.</div>
+              </button>
+            </div>
+            <div class="field">
+              <label for="idea-input">the idea (optional)</label>
+              <textarea id="idea-input" class="input" placeholder="a sentence or two — what's on the table?" maxlength="500" rows="3">${escapeHtml(state.idea)}</textarea>
+            </div>
+            ${state.mode === 'group' ? `
+              <div class="field">
+                <label>who's at the table?</label>
+                <div class="people-list">${peopleRows}</div>
+                <button class="btn-ghost" data-add-person ${canAdd ? '' : 'disabled'} style="margin-top: 8px; padding-left: 0;">
+                  + add another
+                </button>
+              </div>
+            ` : ''}
+            <div class="spacer"></div>
+            <button class="help-link" data-toggle-help aria-expanded="${state.helpOpen}">
+              ${state.helpOpen ? 'hide' : 'what are the five perspectives?'}
+            </button>
+            ${state.helpOpen ? `
+              <div class="help-panel">
+                <ul>
+                  <li><strong>builder</strong> — keeps us concrete. what needs to work, practically?</li>
+                  <li><strong>ghost</strong> — keeps us honest. what assumption might we be carrying?</li>
+                  <li><strong>ripple</strong> — keeps us accountable. what would change if this goes well?</li>
+                  <li><strong>explorer</strong> — keeps us open. what possibility are we not seeing yet?</li>
+                  <li><strong>time traveller</strong> — keeps us durable. what will still matter in six months?</li>
+                </ul>
+                <p style="margin-top: 12px; margin-bottom: 0;">the sixth face is <strong>imagine</strong> — an open invitation to name a new perspective the other five can’t offer.</p>
+              </div>
+            ` : ''}
+            <button class="btn-primary" data-go="roll" ${canRoll ? '' : 'disabled'} style="width: 100%; margin-top: 20px;">
+              ${state.mode === null ? 'pick a mode to continue' : (canRoll ? 'roll the cube' : 'add at least two names')}
+            </button>
+          </section>`;
+      },
+
+      roll: () => {
+        const showKey = state.mode === 'solo'
+          ? state.currentSolo
+          : (state.assignments[0] && state.assignments[0].perspective);
+
+        return `
+          <section class="screen fade-in" aria-labelledby="roll-title">
+            <div class="eyebrow" style="text-align: center;">${state.rolling ? 'rolling…' : 'roll'}</div>
+            <h2 id="roll-title" style="text-align: center; margin-top: 10px;">
+              ${state.rolling ? 'when ideas turn,' : 'tap the cube'}
+            </h2>
+            <p class="muted" style="text-align: center; margin-top: 8px;">
+              ${state.rolling ? 'we test what holds.' : (state.mode === 'solo' ? 'pick your angle.' : 'deal one to each person.')}
+            </p>
+            <div role="button" tabindex="0" data-roll style="cursor: ${state.rolling ? 'wait' : 'pointer'};" aria-label="roll the cube">
+              ${cubeHtml(showKey)}
+            </div>
+            <div class="spacer"></div>
+            ${(state.currentSolo || state.assignments.length) && !state.rolling ? `
+              <button class="btn-primary" data-go="results" style="width: 100%;">
+                ${state.mode === 'solo' ? 'see your angle' : 'see the deal'}
+              </button>
+              <button class="btn-ghost" data-roll style="width: 100%; margin-top: 4px;">roll again</button>
+            ` : `
+              <button class="btn-primary" data-roll ${state.rolling ? 'disabled' : ''} style="width: 100%;">
+                ${state.rolling ? 'rolling…' : 'roll'}
+              </button>
+              <button class="btn-ghost" data-go="setup" style="width: 100%; margin-top: 4px;">back</button>
+            `}
+          </section>`;
+      },
+
+      results: () => {
+        const cards = state.mode === 'solo'
+          ? [{ name: '', perspective: state.currentSolo }]
+          : state.assignments;
+
+        const cardHtml = cards.map(({ name, perspective }) => {
+          const p = PERSPECTIVES[perspective];
+          return `
+            <article class="result-card ${perspective === 'imagine' ? 'imagine' : ''}" data-perspective="${perspective}">
+              ${name ? `<div class="who">${escapeHtml(name)}</div>` : ''}
+              <div class="perspective">${p.name}</div>
+              <div class="keeps">${p.keeps}</div>
+              <div class="question">${p.question}</div>
+              <div class="sub">${p.sub}</div>
+            </article>`;
+        }).join('');
+
+        return `
+          <section class="screen fade-in" aria-labelledby="results-title">
+            <div class="eyebrow">${state.mode === 'solo' ? 'your angle' : 'the deal'}</div>
+            <h2 id="results-title" style="margin-top: 10px;">
+              ${state.mode === 'solo' ? 'one idea, one angle.' : 'one idea, five angles.'}
+            </h2>
+            ${state.idea.trim() ? `
+              <div class="idea-banner">
+                <span class="eyebrow">on the table</span>
+                <div class="text">${escapeHtml(state.idea)}</div>
+              </div>
+            ` : ''}
+            <div class="results stagger">${cardHtml}</div>
+            <div class="footer-row">
+              <div class="wordmark">winded.vertigo · five perspectives</div>
+              <button class="btn-ghost" data-go="setup">roll again</button>
+            </div>
+          </section>`;
+      },
+    };
+
+    const app = document.getElementById('app');
+
+    function render() {
+      // every dynamic value is run through escapeHtml() before interpolation;
+      // remaining template content is static markup we control.
+      app.innerHTML = screens[state.screen]();
+      wire();
+    }
+
+    function go(screen) {
+      state.screen = screen;
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      render();
+    }
+
+    function doRoll() {
+      if (state.rolling) return;
+      const cube = document.getElementById('cube');
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      if (state.mode === 'solo') {
+        state.currentSolo = pickOne();
+      } else {
+        state.assignments = dealAssignments(state.people);
+      }
+
+      if (reduced || !cube) {
+        render();
+        return;
+      }
+
+      state.rolling = true;
+      render();
+      const c = document.getElementById('cube');
+      if (!c) { state.rolling = false; render(); return; }
+      c.removeAttribute('data-show');
+      c.classList.add('rolling');
+      setTimeout(() => {
+        state.rolling = false;
+        c.classList.remove('rolling');
+        render();
+      }, 1200);
+    }
+
+    function wire() {
+      document.querySelectorAll('[data-go]').forEach(el => {
+        el.addEventListener('click', () => {
+          if (el.hasAttribute('disabled')) return;
+          const target = el.getAttribute('data-go');
+          if (target === 'roll') {
+            state.currentSolo = null;
+            state.assignments = [];
+            state.rolling = false;
+            go('roll');
+          } else {
+            go(target);
+          }
+        });
+      });
+
+      document.querySelectorAll('[data-roll]').forEach(el => {
+        const handler = () => doRoll();
+        el.addEventListener('click', handler);
+        if (el.tagName !== 'BUTTON') {
+          el.addEventListener('keydown', e => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handler();
+            }
+          });
+        }
+      });
+
+      document.querySelectorAll('[data-mode]').forEach(el => {
+        el.addEventListener('click', () => {
+          state.mode = el.getAttribute('data-mode');
+          if (state.mode === 'group' && state.people.length < 2) {
+            state.people = ['', ''];
+          }
+          render();
+        });
+      });
+
+      const ideaInput = document.getElementById('idea-input');
+      if (ideaInput) {
+        ideaInput.addEventListener('input', () => { state.idea = ideaInput.value; });
+      }
+
+      document.querySelectorAll('[data-person-idx]').forEach(input => {
+        input.addEventListener('input', () => {
+          const i = parseInt(input.getAttribute('data-person-idx'), 10);
+          state.people[i] = input.value;
+          const validCount = state.people.filter(n => n.trim()).length;
+          const continueBtn = document.querySelector('[data-go="roll"]');
+          if (continueBtn) {
+            const canRoll = state.mode === 'solo' || validCount >= 2;
+            if (canRoll) {
+              continueBtn.removeAttribute('disabled');
+              continueBtn.textContent = 'roll the cube';
+            } else {
+              continueBtn.setAttribute('disabled', '');
+              continueBtn.textContent = 'add at least two names';
+            }
+          }
+        });
+      });
+
+      document.querySelectorAll('[data-remove-idx]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const i = parseInt(btn.getAttribute('data-remove-idx'), 10);
+          state.people.splice(i, 1);
+          if (state.people.length === 0) state.people = [''];
+          render();
+        });
+      });
+
+      const addBtn = document.querySelector('[data-add-person]');
+      if (addBtn) {
+        addBtn.addEventListener('click', () => {
+          if (state.people.length < 8) {
+            state.people.push('');
+            render();
+          }
+        });
+      }
+
+      const helpToggle = document.querySelector('[data-toggle-help]');
+      if (helpToggle) {
+        helpToggle.addEventListener('click', () => {
+          state.helpOpen = !state.helpOpen;
+          render();
+        });
+      }
+    }
+
+    render();
+  </script>
+</body>
+</html>

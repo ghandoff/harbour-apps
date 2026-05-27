@@ -1,0 +1,11 @@
+{
+  "name": "@windedvertigo/role-dice",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "role-dice — a small tool for pressure-testing ideas. one idea, five angles, one open invitation.",
+  "scripts": {
+    "build": "echo 'Static site — no build needed'",
+    "deploy:spa": "npx wrangler pages deploy . --project-name role-dice --commit-dirty=true"
+  }
+}

@@ -25,7 +25,7 @@ import {
   type ReactNode,
 } from "react";
 
-type Pier = "launch" | "repairs";
+type Pier = "launch" | "repairs" | "hidden";
 
 interface HarbourAppEntry {
   key: string;
@@ -34,6 +34,9 @@ interface HarbourAppEntry {
   tagline: string;
   accent: string;
   pier: Pier;
+  /** When true the item is shown in the drawer but rendered as a non-link
+   *  (dimmed, no href, not focusable). Use for coming-soon repairs entries. */
+  comingSoon?: boolean;
 }
 
 /**
@@ -43,33 +46,46 @@ interface HarbourAppEntry {
  * for non-text UI (WCAG 1.4.11).
  */
 const HARBOUR_APPS = [
-  // ── launch pier — hands-on tools ───────────────────────────────
-  { key: "creaseworks",   label: "creaseworks",   href: "/harbour/creaseworks",   tagline: "creative playdates",        accent: "#cb7858", pier: "launch"  },
-  { key: "paper-trail",   label: "paper.trail",   href: "/harbour/paper-trail",   tagline: "physical-digital bridge",   accent: "#ffebd2", pier: "launch"  },
-  { key: "depth-chart",   label: "depth.chart",   href: "/harbour/depth-chart",   tagline: "assessment generator",      accent: "#7dd3fc", pier: "launch"  },
-  { key: "vertigo-vault", label: "vertigo.vault", href: "/harbour/vertigo-vault", tagline: "learning activities",       accent: "#43b187", pier: "launch"  },
-  { key: "deep-deck",     label: "deep.deck",     href: "/harbour/deep-deck",     tagline: "conversation cards",        accent: "#fcd34d", pier: "launch"  },
-  { key: "raft-house",    label: "raft.house",    href: "/harbour/raft-house",    tagline: "group learning",            accent: "#58cbb2", pier: "launch"  },
-  { key: "tidal-pool",    label: "tidal.pool",    href: "/harbour/tidal-pool",    tagline: "systems thinking sandbox",  accent: "#d2fdff", pier: "launch"  },
-  { key: "mirror-log",    label: "mirror.log",    href: "/harbour/mirror-log",    tagline: "reflection journal",        accent: "#d5d2ff", pier: "launch"  },
-  // ── repairs pier — concept apps ────────────────────────────────
-  { key: "orbit-lab",     label: "orbit.lab",     href: "/harbour/orbit-lab",     tagline: "orbital mechanics",         accent: "#93c5fd", pier: "repairs" },
-  { key: "proof-garden",  label: "proof.garden",  href: "/harbour/proof-garden",  tagline: "mathematical proof",        accent: "#22c55e", pier: "repairs" },
-  { key: "bias-lens",     label: "bias.lens",     href: "/harbour/bias-lens",     tagline: "cognitive bias",            accent: "#f59e0b", pier: "repairs" },
-  { key: "scale-shift",   label: "scale.shift",   href: "/harbour/scale-shift",   tagline: "powers of ten",             accent: "#c4b5fd", pier: "repairs" },
-  { key: "pattern-weave", label: "pattern.weave", href: "/harbour/pattern-weave", tagline: "gestalt perception",        accent: "#fda4af", pier: "repairs" },
-  { key: "market-mind",   label: "market.mind",   href: "/harbour/market-mind",   tagline: "opportunity cost",          accent: "#e09878", pier: "repairs" },
-  { key: "rhythm-lab",    label: "rhythm.lab",    href: "/harbour/rhythm-lab",    tagline: "subdivision & groove",      accent: "#ddd6fe", pier: "repairs" },
-  { key: "code-weave",    label: "code.weave",    href: "/harbour/code-weave",    tagline: "recursion & abstraction",   accent: "#a5f3fc", pier: "repairs" },
-  { key: "time-prism",    label: "time.prism",    href: "/harbour/time-prism",    tagline: "historical empathy",        accent: "#fde68a", pier: "repairs" },
-  { key: "liminal-pass",  label: "liminal.pass",  href: "/harbour/liminal-pass",  tagline: "threshold concepts",        accent: "#fca5a5", pier: "repairs" },
-  { key: "emerge-box",    label: "emerge.box",    href: "/harbour/emerge-box",    tagline: "cellular automata",         accent: "#86efac", pier: "repairs" },
+  // ── launch pier — apps currently live on the harbour map ───────
+  { key: "vertigo-vault",      label: "vertigo.vault",      href: "/harbour/vertigo-vault",      tagline: "learning activities",            accent: "#43b187", pier: "launch"  },
+  { key: "lines-become-loops", label: "lines become loops", href: "/harbour/lines-become-loops", tagline: "systems thinking simulator",     accent: "#6ee7b7", pier: "launch"  },
+  { key: "read-the-room",      label: "read the room",      href: "/harbour/read-the-room",      tagline: "a quiet game of interpretation", accent: "#c084fc", pier: "launch"  },
+  { key: "values-companion",   label: "values.companion",   href: "/harbour/values-companion",   tagline: "live values game",               accent: "#fbbf24", pier: "launch"  },
+  { key: "cuts-catalogue",     label: "cuts.catalogue",     href: "/harbour/cuts-catalogue",     tagline: "editorial pacing tool",          accent: "#fb923c", pier: "launch"  },
+  { key: "co-rubric-companion",label: "co.rubric",          href: "/harbour/co-rubric-companion",tagline: "rubric co-design",               accent: "#93c5fd", pier: "launch"  },
+  { key: "regenerative-practices-catalogue", label: "regenerative.practices", href: "/harbour/regenerative-practices-catalogue", tagline: "open practice library", accent: "#a8c97c", pier: "launch"  },
+  // ── repairs pier — on the harbour map, coming soon ─────────────
+  { key: "depth-chart",        label: "depth.chart",        href: "/harbour/depth-chart",        tagline: "assessment generator",           accent: "#7dd3fc", pier: "repairs", comingSoon: true },
+  { key: "creaseworks",        label: "creaseworks",        href: "/harbour/creaseworks",        tagline: "creative playdates",             accent: "#cb7858", pier: "repairs", comingSoon: true },
+  // ── hidden — live workers, not yet on the harbour map ──────────
+  { key: "paper-trail",        label: "paper.trail",        href: "/harbour/paper-trail",        tagline: "physical-digital bridge",        accent: "#ffebd2", pier: "hidden"  },
+  { key: "deep-deck",          label: "deep.deck",          href: "/harbour/deep-deck",          tagline: "conversation cards",             accent: "#fcd34d", pier: "hidden"  },
+  { key: "raft-house",         label: "raft.house",         href: "/harbour/raft-house",         tagline: "group learning",                 accent: "#58cbb2", pier: "hidden"  },
+  { key: "tidal-pool",         label: "tidal.pool",         href: "/harbour/tidal-pool",         tagline: "systems thinking sandbox",       accent: "#d2fdff", pier: "hidden"  },
+  { key: "mirror-log",         label: "mirror.log",         href: "/harbour/mirror-log",         tagline: "reflection journal",             accent: "#d5d2ff", pier: "hidden"  },
+  { key: "orbit-lab",          label: "orbit.lab",          href: "/harbour/orbit-lab",          tagline: "orbital mechanics",              accent: "#93c5fd", pier: "hidden"  },
+  { key: "proof-garden",       label: "proof.garden",       href: "/harbour/proof-garden",       tagline: "mathematical proof",             accent: "#22c55e", pier: "hidden"  },
+  { key: "bias-lens",          label: "bias.lens",          href: "/harbour/bias-lens",          tagline: "cognitive bias",                 accent: "#f59e0b", pier: "hidden"  },
+  { key: "scale-shift",        label: "scale.shift",        href: "/harbour/scale-shift",        tagline: "powers of ten",                  accent: "#c4b5fd", pier: "hidden"  },
+  { key: "pattern-weave",      label: "pattern.weave",      href: "/harbour/pattern-weave",      tagline: "gestalt perception",             accent: "#fda4af", pier: "hidden"  },
+  { key: "market-mind",        label: "market.mind",        href: "/harbour/market-mind",        tagline: "opportunity cost",               accent: "#e09878", pier: "hidden"  },
+  { key: "rhythm-lab",         label: "rhythm.lab",         href: "/harbour/rhythm-lab",         tagline: "subdivision & groove",           accent: "#ddd6fe", pier: "hidden"  },
+  { key: "code-weave",         label: "code.weave",         href: "/harbour/code-weave",         tagline: "recursion & abstraction",        accent: "#a5f3fc", pier: "hidden"  },
+  { key: "time-prism",         label: "time.prism",         href: "/harbour/time-prism",         tagline: "historical empathy",             accent: "#fde68a", pier: "hidden"  },
+  { key: "liminal-pass",       label: "liminal.pass",       href: "/harbour/liminal-pass",       tagline: "threshold concepts",             accent: "#fca5a5", pier: "hidden"  },
+  { key: "emerge-box",         label: "emerge.box",         href: "/harbour/emerge-box",         tagline: "cellular automata",              accent: "#86efac", pier: "hidden"  },
 ] as const satisfies readonly HarbourAppEntry[];
 
 export type HarbourAppKey =
   | "creaseworks"
   | "vertigo-vault"
   | "depth-chart"
+  | "lines-become-loops"
+  | "read-the-room"
+  | "values-companion"
+  | "cuts-catalogue"
+  | "co-rubric-companion"
+  | "regenerative-practices-catalogue"
   | "deep-deck"
   | "raft-house"
   | "tidal-pool"
@@ -309,24 +325,26 @@ export function HarbourNav({
             </ul>
           </section>
 
-          <section
-            className="harbour-pier"
-            aria-labelledby="harbour-pier-repairs"
-          >
-            <h3 id="harbour-pier-repairs" className="harbour-pier-label">
-              repairs pier
-            </h3>
-            <ul className="harbour-pier-list">
-              {repairs.map((app) => (
-                <DockItem
-                  key={app.key}
-                  app={app}
-                  isDocked={app.key === currentApp}
-                  onNavigate={() => setOpen(false)}
-                />
-              ))}
-            </ul>
-          </section>
+          {repairs.length > 0 && (
+            <section
+              className="harbour-pier"
+              aria-labelledby="harbour-pier-repairs"
+            >
+              <h3 id="harbour-pier-repairs" className="harbour-pier-label">
+                repairs pier
+              </h3>
+              <ul className="harbour-pier-list">
+                {repairs.map((app) => (
+                  <DockItem
+                    key={app.key}
+                    app={app}
+                    isDocked={app.key === currentApp}
+                    onNavigate={() => setOpen(false)}
+                  />
+                ))}
+              </ul>
+            </section>
+          )}
 
           <footer className="harbour-drawer-foot">
             {user ? (
@@ -389,6 +407,34 @@ function DockItem({
   isDocked: boolean;
   onNavigate: () => void;
 }) {
+  const inner = (
+    <>
+      <span className="harbour-dock-chip" aria-hidden="true" />
+      <span className="harbour-dock-body">
+        <span className="harbour-dock-label">{app.label}</span>
+        <span className="harbour-dock-tagline">{app.tagline}</span>
+      </span>
+      <span className="harbour-dock-trail" aria-hidden="true">
+        {isDocked ? "docked here" : app.comingSoon ? "soon" : "→"}
+      </span>
+    </>
+  );
+
+  if (app.comingSoon) {
+    // Render as a non-interactive span — no href, no tab stop, dimmed.
+    return (
+      <li>
+        <span
+          className="harbour-dock harbour-dock--coming-soon"
+          style={{ ["--dock-accent" as string]: app.accent }}
+          aria-label={`${app.label} — coming soon`}
+        >
+          {inner}
+        </span>
+      </li>
+    );
+  }
+
   return (
     <li>
       <a
@@ -398,14 +444,7 @@ function DockItem({
         aria-current={isDocked ? "page" : undefined}
         style={{ ["--dock-accent" as string]: app.accent }}
       >
-        <span className="harbour-dock-chip" aria-hidden="true" />
-        <span className="harbour-dock-body">
-          <span className="harbour-dock-label">{app.label}</span>
-          <span className="harbour-dock-tagline">{app.tagline}</span>
-        </span>
-        <span className="harbour-dock-trail" aria-hidden="true">
-          {isDocked ? "docked here" : "→"}
-        </span>
+        {inner}
       </a>
     </li>
   );
