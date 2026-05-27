@@ -2387,8 +2387,12 @@ function makeBaselineDataset(opacity = 1.0) {
     const value = node.displayValue !== undefined ? node.displayValue : node.baseValue;
     const valuePct = node.valuePct !== undefined ? node.valuePct : value / 100;
 
-    const pulseAmp = prefersReducedMotion ? 0 : (1 + valuePct * 1.5);
-    const pulse = Math.sin(tick * 0.1 + value * 0.05) * pulseAmp;
+    // pulse — speed scales with node pressure, baseline ~3.5s period
+    const targetMult = prefersReducedMotion ? 0 : (0.030 + valuePct * 0.119);
+    if (node._pulseMult === undefined) node._pulseMult = targetMult;
+    node._pulseMult += (targetMult - node._pulseMult) * 0.035; // ~400ms lerp
+    const pulseAmp = prefersReducedMotion ? 0 : (0.3 + valuePct * 1.2);
+    const pulse = Math.sin(tick * node._pulseMult + value * 0.05) * pulseAmp;
     const radius = NODE_RADIUS + pulse;
 
     if (isHighlighted) {
