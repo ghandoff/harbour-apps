@@ -106,6 +106,36 @@ document answers in `docs/infrastructure-and-costs.md` before committing to a ne
 - **database migrations sequence**: feature branch → code changes → deploy to Vercel preview → test → merge to main → THEN run migration. never migrate production before code is deployed.
 - **notion sync bot pushes daily** (6 AM UTC) — can cause rejected pushes mid-session. run `git pull --rebase origin main` before retrying.
 
+### session protocol (cross-conversation hygiene)
+
+Garrett runs multiple Claude Code conversations against this repo and its
+sibling `windedvertigo`. Without discipline, sessions step on each other:
+session A modifies file X, session B doesn't know, session B's deploy ships
+the pre-A version of X. We hit this hard with the harbour-nav widget bundle
+(see "harbour-nav widget cross-repo flow" below).
+
+Three habits, low effort, high payoff:
+
+1. **Start every session with `git pull --rebase origin main`** before touching
+   anything in either repo. Stops you from working on a stale base. If you
+   notice a long-lived `feat/*` branch belongs to active work elsewhere, ask
+   before continuing on `main`.
+
+2. **End every session by committing + pushing** — even if the work is
+   incremental. Open a PR (or admin-merge for solo work) before closing the
+   conversation. Never leave changes uncommitted in a working directory that
+   another conversation can't see. The `/end-of-day-sync` skill covers this.
+
+3. **Avoid long-lived branches.** `feat/*` branches older than ~3 days are
+   debt. If a branch is unfinished, get it to a mergeable shippable state
+   and merge — even partially — then continue on a fresh short-lived branch.
+   The `/branch-cleanup` skill audits the remote for stale branches.
+
+For parallel work on the same repo from different conversations, use
+`git worktree add ../<repo>-<task> <branch>` so each conversation gets its
+own physical working directory. The Claude Code harness's `EnterWorktree`
+tool can do this for you on request.
+
 ---
 
 ## deployment & architecture
@@ -122,6 +152,7 @@ document answers in `docs/infrastructure-and-costs.md` before committing to a ne
 - **OpenNext static-asset rewrite gotcha**: a Next.js rewrite whose destination is a directory (`/path/`) doesn't resolve via OpenNext-on-CF — the static handler 307s to the trailing-slash form, which the rewriter treats as the rewrite's final response (surfaces as 404). For static-HTML tools served from `public/`, use a `permanent: false` redirect pointing at `/path/index.html` instead of a rewrite. See `windedvertigo/site/next.config.ts` `redirects()` block (the-mashup, writers-room, three-intelligence-workbook all use this pattern).
 - **port hosts `/api/extract-text`** (Vercel, bearer-auth via PORT_EXTRACT_TOKEN). depth-chart's `/api/parse` calls it via fetch for PDF/DOCX extraction because pdf-parse + mammoth use Node Buffer/DOM APIs that don't run on CF Workers.
 - **static site proxies to other apps** via Next.js rewrites in the sibling `ghandoff/windedvertigo` repo's `site/next.config.ts`. if a proxied app's URL changes, update the rewrites there.
+- **harbour-nav widget cross-repo flow**: the `harbour-nav-widget.js` vanilla bundle has source in `packages/auth/harbour-nav-vanilla.tsx` (this repo) and is served in production by `wv-site` from `windedvertigo/site/public/harbour-nav-widget.js` (sibling repo). To rebuild after editing the source, run `npm run rebuild-nav` from this repo's root — that script writes the bundle to BOTH locations in one shot (`apps/harbour-nav-cdn/public/` here + the sibling's `site/public/` if checked out as a sibling directory). **Always commit the file in both repos** — committing only one leaves the other stale, and the next wv-site deploy from a fresh checkout will ship the stale copy. There's a `wv-harbour-nav-cdn` Worker deployed (apps/harbour-nav-cdn/) that was meant to be the single source of truth via specific-route precedence, but CF in this account didn't honour it — kept as future work + diagnostic backup at `wv-harbour-nav-cdn.windedvertigo.workers.dev`.
 - **shared auth cookies**: creaseworks and vertigo-vault share session cookies on `.windedvertigo.com`. changes to `AUTH_SECRET` in one break sessions in the other. always change both together.
 - **next-auth pinned at 5.0.0-beta.30** — waiting for v5 stable. do NOT downgrade to v4. do NOT blindly bump beta.
 - **vertigo-vault local builds fail** — pre-rendering requires `NOTION_TOKEN`, which is set as a CF Worker secret on `wv-vault` (not in local `.env.local` by default — keeps token blast radius small). compilation succeeds; failure is at static generation. this is expected.
