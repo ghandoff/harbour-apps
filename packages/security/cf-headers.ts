@@ -127,11 +127,14 @@ const ALWAYS_ON_HEADERS: ReadonlyArray<readonly [string, string]> = [
  */
 export const HARBOUR_DEFAULT_CSP: string = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com",
+  // Allow harbour-nav-widget.js and feedback-widget.js from both www and bare
+  // windedvertigo.com (the script assets live on the wv-site Worker, reached
+  // via either www. or bare domain depending on which origin loads the page).
+  "script-src 'self' 'unsafe-inline' https://windedvertigo.com https://www.windedvertigo.com",
   "style-src 'self' 'unsafe-inline'",
   "font-src 'self'",
   "img-src 'self' data: https:",
-  "connect-src 'self' https://vitals.vercel-insights.com https://api.notion.com",
+  "connect-src 'self' https://api.notion.com https://windedvertigo.com https://www.windedvertigo.com",
   "frame-src 'self' https://www.youtube.com",
   "frame-ancestors 'none'",
   "worker-src 'self'",
