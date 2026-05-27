@@ -26,7 +26,7 @@
       --p-ripple: #5fa8a3;
       --p-explorer: #b15043;
       --p-time: #d1a05a;
-      --p-wild: #8b6ea8;
+      --p-imagine: #8b6ea8;
     }
     * { box-sizing: border-box; }
     html, body {
@@ -122,15 +122,15 @@
     .face-ripple  { transform: rotateY(90deg)  translateZ(110px); }
     .face-explorer{ transform: rotateY(-90deg) translateZ(110px); }
     .face-time    { transform: rotateX(90deg)  translateZ(110px); }
-    .face-wild    { transform: rotateX(-90deg) translateZ(110px); }
-    .face-wild .name { color: var(--p-wild); }
-    .face-wild .keeps { color: var(--p-wild); opacity: 0.7; }
+    .face-imagine    { transform: rotateX(-90deg) translateZ(110px); }
+    .face-imagine .name { color: var(--p-imagine); }
+    .face-imagine .keeps { color: var(--p-imagine); opacity: 0.7; }
     .cube[data-show="builder"]   { transform: rotateX(-15deg) rotateY(0deg); }
     .cube[data-show="ghost"]     { transform: rotateX(-15deg) rotateY(180deg); }
     .cube[data-show="ripple"]    { transform: rotateX(-15deg) rotateY(-90deg); }
     .cube[data-show="explorer"]  { transform: rotateX(-15deg) rotateY(90deg); }
     .cube[data-show="time"]      { transform: rotateX(-105deg) rotateY(0deg); }
-    .cube[data-show="wild"]      { transform: rotateX(75deg) rotateY(0deg); }
+    .cube[data-show="imagine"]      { transform: rotateX(75deg) rotateY(0deg); }
     @keyframes tumble {
       0%   { transform: rotateX(-22deg) rotateY(-30deg); }
       20%  { transform: rotateX(120deg) rotateY(220deg); }
@@ -202,7 +202,7 @@
     .result-card[data-perspective="ripple"]    { --accent: var(--p-ripple); }
     .result-card[data-perspective="explorer"]  { --accent: var(--p-explorer); }
     .result-card[data-perspective="time"]      { --accent: var(--p-time); }
-    .result-card[data-perspective="wild"]      { --accent: var(--p-wild); }
+    .result-card[data-perspective="imagine"]      { --accent: var(--p-imagine); }
     .result-card .who {
       font-size: 14px; color: rgba(39, 50, 72, 0.6);
       letter-spacing: 0.04em; margin-bottom: 4px;
@@ -225,7 +225,7 @@
       font-size: 14px; line-height: 1.5;
       color: rgba(39, 50, 72, 0.7); margin-top: 6px;
     }
-    .result-card.wild .question { font-style: italic; }
+    .result-card.imagine .question { font-style: italic; }
     .idea-banner {
       margin-top: 18px; padding: 16px 18px;
       background: rgba(255, 235, 210, 0.08);
@@ -299,7 +299,7 @@
       .face-ripple  { transform: rotateY(90deg)  translateZ(130px); }
       .face-explorer{ transform: rotateY(-90deg) translateZ(130px); }
       .face-time    { transform: rotateX(90deg)  translateZ(130px); }
-      .face-wild    { transform: rotateX(-90deg) translateZ(130px); }
+      .face-imagine    { transform: rotateX(-90deg) translateZ(130px); }
     }
     @media (max-width: 340px) {
       h1 { font-size: 36px; }
@@ -309,7 +309,7 @@
       .face-ripple  { transform: rotateY(90deg)  translateZ(90px); }
       .face-explorer{ transform: rotateY(-90deg) translateZ(90px); }
       .face-time    { transform: rotateX(90deg)  translateZ(90px); }
-      .face-wild    { transform: rotateX(-90deg) translateZ(90px); }
+      .face-imagine    { transform: rotateX(-90deg) translateZ(90px); }
     }
   </style>
 </head>
@@ -354,15 +354,15 @@
         question: 'what will still matter in six months?',
         sub: 'what remains once urgency fades?',
       },
-      wild: {
-        name: 'wild card',
-        keeps: 'keeps us together',
-        question: 'the group chooses an angle.',
-        sub: 'pick the perspective the moment is asking for — or roll again.',
+      imagine: {
+        name: 'imagine',
+        keeps: 'keeps us inventive',
+        question: 'what angle haven\u2019t we named yet?',
+        sub: 'invent a new perspective for this idea \u2014 the lens the other five can\u2019t offer.',
       },
     };
 
-    const FACE_ORDER = ['builder', 'ghost', 'ripple', 'explorer', 'time', 'wild'];
+    const FACE_ORDER = ['builder', 'ghost', 'ripple', 'explorer', 'time', 'imagine'];
 
     const state = {
       screen: 'welcome',
@@ -484,7 +484,7 @@
                   <li><strong>explorer</strong> — keeps us open. what possibility are we not seeing yet?</li>
                   <li><strong>time traveller</strong> — keeps us durable. what will still matter in six months?</li>
                 </ul>
-                <p style="margin-top: 12px; margin-bottom: 0;">the sixth face is a <strong>wild card</strong> — the group picks an angle together, or rolls again.</p>
+                <p style="margin-top: 12px; margin-bottom: 0;">the sixth face is <strong>imagine</strong> — an open invitation to name a new perspective the other five can’t offer.</p>
               </div>
             ` : ''}
             <button class="btn-primary" data-go="roll" ${canRoll ? '' : 'disabled'} style="width: 100%; margin-top: 20px;">
@@ -533,7 +533,7 @@
         const cardHtml = cards.map(({ name, perspective }) => {
           const p = PERSPECTIVES[perspective];
           return `
-            <article class="result-card ${perspective === 'wild' ? 'wild' : ''}" data-perspective="${perspective}">
+            <article class="result-card ${perspective === 'imagine' ? 'imagine' : ''}" data-perspective="${perspective}">
               ${name ? `<div class="who">${escapeHtml(name)}</div>` : ''}
               <div class="perspective">${p.name}</div>
               <div class="keeps">${p.keeps}</div>
