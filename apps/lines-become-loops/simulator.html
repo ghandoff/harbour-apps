@@ -3374,7 +3374,10 @@ function buildCards() {
   }
 
   // tour step 1: pulse '+ more detail' on first card (pre-commit, first session)
+  // tourDetailHint() sets the expiry window; applyDetailPulse() re-attaches to
+  // the freshly-rebuilt DOM node on every buildCards() call within that window.
   if (!state.committed && !tourSeen.detail) tourDetailHint();
+  applyDetailPulse();
 
   // bind trade-off follow-up chips
   stack.querySelectorAll('[data-tradeoff-id]').forEach(chip => {
@@ -3700,11 +3703,21 @@ function dismissCallout(id) {
   el.addEventListener('transitionend', () => { el.hidden = true; }, { once: true });
 }
 // step 1: pulse first card's '+ more detail' toggle (pre-commit)
+// _tourDetailUntil stores the expiry timestamp so buildCards() can re-apply
+// the pulse class to freshly-rebuilt DOM nodes within the active window.
+let _tourDetailUntil = 0;
 function tourDetailHint() {
   if (tourSeen.detail || state.committed) return;
-  const toggle = document.querySelector('.card-detail-toggle');
-  if (toggle) addTourPulse(toggle, 6000);
+  _tourDetailUntil = Date.now() + 6000;
   tourMark('detail');
+}
+function applyDetailPulse() {
+  const remaining = _tourDetailUntil - Date.now();
+  if (remaining <= 0) return;
+  const toggle = document.querySelector('.card-detail-toggle');
+  if (!toggle) return;
+  toggle.classList.add('tour-pulse');
+  setTimeout(() => toggle.classList.remove('tour-pulse'), remaining);
 }
 // step 2: pulse systems map tab after first run
 function tourMapHint() {
