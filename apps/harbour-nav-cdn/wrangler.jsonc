@@ -1,0 +1,38 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "wv-harbour-nav-cdn",
+  "main": "worker.ts",
+  "account_id": "097c92553b268f8360b74f625f6d980a",
+  "compatibility_date": "2025-04-01",
+  "workers_dev": true,
+
+  // Static asset = the rebuilt harbour-nav-widget.js bundle.
+  // The bundle is produced by `packages/auth/build-vanilla.mjs`
+  // which now writes directly to this directory (single source
+  // of truth, no manual copy step). See README.md.
+  "assets": {
+    "directory": "public",
+    "binding": "ASSETS",
+    // Run the Worker before serving the static asset so worker.ts can
+    // layer its own Cache-Control + CORS headers on top of what CF's
+    // static-assets binding returns. Default behaviour is the opposite:
+    // when a file matches, the asset is served directly and the Worker
+    // is bypassed, which strips our header overrides.
+    "run_worker_first": true
+  },
+
+  // Take the specific /harbour-nav-widget.js path on both apex and
+  // www. CF routes are matched by specificity — these beat wv-site's
+  // windedvertigo.com/* catchall, so every existing consumer keeps
+  // working without changing its <script src=...> URL.
+  "routes": [
+    {
+      "pattern": "windedvertigo.com/harbour-nav-widget.js",
+      "zone_id": "3b70c2ddcf9976faccb01d37ccf2e1ee"
+    },
+    {
+      "pattern": "www.windedvertigo.com/harbour-nav-widget.js",
+      "zone_id": "3b70c2ddcf9976faccb01d37ccf2e1ee"
+    }
+  ]
+}

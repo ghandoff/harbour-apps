@@ -1,0 +1,16 @@
+{
+  "name": "@windedvertigo/harbour-nav-cdn",
+  "version": "1.0.0",
+  "private": true,
+  "description": "One-asset CF Worker that serves harbour-nav-widget.js at windedvertigo.com/harbour-nav-widget.js. Single source of truth for the harbour-nav vanilla bundle.",
+  "scripts": {
+    "build": "cd ../../packages/auth && node build-vanilla.mjs",
+    "deploy": "npm run build && wrangler deploy",
+    "deploy:no-build": "wrangler deploy",
+    "tail": "wrangler tail wv-harbour-nav-cdn"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260426.1",
+    "wrangler": "^4.0.0"
+  }
+}

@@ -1,0 +1,7 @@
+# Source map — debugging-only, kept out of the repo because it's
+# ~1MB and the .js is the canonical deploy artifact.
+public/*.map
+
+# Wrangler runtime state
+.wrangler/
+node_modules/
