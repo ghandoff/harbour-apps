@@ -130,8 +130,7 @@ body {
 .landing-title {
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--on-dark-muted);
   margin-bottom: 24px;
 }
@@ -168,8 +167,7 @@ body {
 .skill-chip {
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   padding: 6px 14px;
   border: 1px solid var(--rule-dark);
   color: var(--cadet);
@@ -183,8 +181,7 @@ body {
 .landing-how-title {
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--on-dark-muted);
   margin-bottom: 16px;
   text-align: center;
@@ -240,8 +237,7 @@ body {
 .landing-footer {
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--on-dark-muted);
   margin-top: 48px;
 }
@@ -255,8 +251,7 @@ body {
 .scenarios-title {
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--on-dark-muted);
   text-align: center;
   margin-bottom: 8px;
@@ -273,6 +268,10 @@ body {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 16px;
+}
+@media (min-width: 1024px) {
+  .scenarios { max-width: 1200px; }
+  .scenario-grid { grid-template-columns: repeat(4, 1fr); }
 }
 .scenario-card {
   background: #fff;
@@ -292,8 +291,7 @@ body {
 .scenario-number {
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--muted);
   margin-bottom: 8px;
 }
@@ -326,8 +324,7 @@ body {
 .scenario-chip {
   font-size: 9px;
   font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   padding: 2px 6px;
   background: rgba(203, 120, 88, 0.12);
   color: var(--sienna);
@@ -354,8 +351,7 @@ body {
 .scenario-badge {
   font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--muted);
   font-style: italic;
 }
@@ -432,8 +428,7 @@ body {
 .session-join-label {
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--on-dark-muted);
   display: block;
   margin-bottom: 6px;
@@ -491,9 +486,32 @@ body {
 }
 .facilitator-link:hover { color: var(--sienna); text-decoration: underline; }
 .facilitator-link:focus-visible { outline: 3px solid #3B82F6; outline-offset: 2px; }
+
+/* ── theme v2: mint + icy aqua palette (activate with ?v=2) ── */
+body.theme-v2 {
+  --soft-card:  #FFFFFF;
+  --champagne:  #FFFFFF;
+  --sienna:     #58CBB2;
+  --redwood:    #D2FDFF;
+  --rule:       rgba(255,255,255,0.22);
+  --rule-dark:  rgba(255,255,255,0.08);
+  --on-dark:    #FFFFFF;
+  --on-dark-muted: rgba(255,255,255,0.7);
+  --muted:      rgba(255,255,255,0.5);
+  --lbl-lead:   #58CBB2;
+  --lbl-soft:   #D2FDFF;
+}
+body.theme-v2 .btn { background: var(--lbl-lead); color: #273248; border-radius: 8px; }
+body.theme-v2 .btn:hover { background: var(--lbl-soft); opacity: 1; }
+body.theme-v2 .skill-chip { background: rgba(210,253,255,0.15); color: var(--lbl-soft); border-radius: 6px; }
+body.theme-v2 .scenario-chip { background: rgba(88,203,178,0.12); color: var(--lbl-lead); border-radius: 4px; }
+body.theme-v2 .scenario-card { border-radius: 8px; }
+body.theme-v2 .scenario-link { background: var(--lbl-lead); color: #273248; border-radius: 6px; }
+body.theme-v2 .scenario-link:hover { background: var(--lbl-soft); opacity: 1; }
 </style>
 </head>
 <body>
+<script>(function(){if(new URLSearchParams(location.search).get('v')==='2')document.body.classList.add('theme-v2');})()</script>
 
 <!-- wordmark -->
 <header class="page-header" role="banner">
@@ -515,7 +533,7 @@ body {
     <div class="landing-body">
       four scenarios. four stocks. three leverage tiers.<br><br>
       each scenario gives you a system with a mandate and three decisions. some change parameters. some change rules. some change the goal itself.<br><br>
-      your job is not to find the right answer. it is to notice which kind of decision bends the system — and why.
+      your job is not to find the right answer. it is to notice which kind of decision bends the system, and why.
     </div>
     <div class="landing-skills">
       <span class="skill-chip">systems dynamics</span>
@@ -531,7 +549,7 @@ body {
         <li>read the mandate. understand what the system is doing.</li>
         <li>read each intervention. expand the detail. discuss.</li>
         <li>run an intervention. watch the trajectory.</li>
-        <li>after each run, read the "why" — it names the leverage tier.</li>
+        <li>after each run, read the "why": it names the leverage tier.</li>
         <li>after all three, look for the pattern across interventions.</li>
       </ol>
     </div>
