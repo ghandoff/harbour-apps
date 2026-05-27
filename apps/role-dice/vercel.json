@@ -1,6 +1,6 @@
 {
   "outputDirectory": ".",
-  "ignoreCommand": "npx turbo-ignore @windedvertigo/five-perspectives",
+  "ignoreCommand": "npx turbo-ignore @windedvertigo/role-dice",
   "headers": [
     {
       "source": "/(.*)",
