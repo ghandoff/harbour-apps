@@ -1600,9 +1600,38 @@ body { min-height: 100vh; padding-top: 146px; }
   }
   .insight-blocks { grid-template-columns: 1fr; }
 }
+
+/* ── theme v2: mint + icy aqua palette (activate with ?v=2) ── */
+body.theme-v2 {
+  --champagne:  #FFFFFF;
+  --sienna:     #58CBB2;
+  --redwood:    #D2FDFF;
+  --rule:       rgba(255,255,255,0.22);
+  --rule-dark:  rgba(255,255,255,0.08);
+  --on-dark:    #FFFFFF;
+  --on-dark-muted: rgba(255,255,255,0.7);
+  --muted:      rgba(255,255,255,0.5);
+  --lbl-lead:   #58CBB2;
+  --lbl-soft:   #D2FDFF;
+  --lbl-lead-glow: rgba(210,253,255,0.35);
+}
+body.theme-v2 .btn { background: var(--lbl-lead); color: #273248; border-radius: 8px; }
+body.theme-v2 .btn:hover { background: var(--lbl-soft); opacity: 1; }
+body.theme-v2 .btn-ghost { color: var(--lbl-lead); border-color: var(--lbl-lead); border-radius: 8px; }
+body.theme-v2 .leverage-chip { background: rgba(210,253,255,0.15); color: var(--lbl-soft); border-radius: 6px; }
+body.theme-v2 .chip-parameter { background: rgba(210,253,255,0.15); color: var(--lbl-soft); border-radius: 6px; }
+body.theme-v2 .chip-rules { background: rgba(88,203,178,0.15); color: var(--lbl-lead); border-radius: 6px; }
+body.theme-v2 .chip-goals { background: rgba(255,255,255,0.1); color: #fff; border-radius: 6px; }
+body.theme-v2 .intervention-card,
+body.theme-v2 .insight-block { border-radius: 8px; }
+body.theme-v2 .scenario-tab.active,
+body.theme-v2 .right-tab.active { color: var(--lbl-lead); border-bottom-color: var(--lbl-lead); }
+body.theme-v2 input[type=range]::-webkit-slider-runnable-track { background: var(--lbl-soft); }
+body.theme-v2 input[type=range]::-webkit-slider-thumb { background: var(--lbl-lead); border-color: #fff; }
 </style>
 </head>
 <body>
+<script>(function(){if(new URLSearchParams(location.search).get('v')==='2')document.body.classList.add('theme-v2');})()</script>
 
 <!-- wordmark -->
 <header class="page-header" role="banner">
@@ -2010,16 +2039,18 @@ const FLOOR_GROWTH = 0.02;
 // total rises from 18,600 to ~19,497 — "emits more in 2050 than today"
 const NET_ZERO_LINE = TOTAL_0 * 0.10; // 1,860
 
+const _v2 = document.body.classList.contains('theme-v2');
 const COLORS = {
-  cadet: '#273248',
-  redwood: '#B15043',
-  sienna: '#CB7858',
-  champagne: '#FFEBD2',
-  muted: '#6B7589',
-  rule: '#EAD9BD',
-  softCard: '#ffffff',
-  chartTick: '#B5BBC9',
-  chartGrid: 'rgba(255,235,210,0.08)',
+  cadet:     '#273248',
+  sienna:    _v2 ? '#58CBB2' : '#CB7858',
+  redwood:   _v2 ? '#D2FDFF' : '#B15043',
+  champagne: _v2 ? '#FFFFFF' : '#FFEBD2',
+  softCard:  '#ffffff',
+  muted:     _v2 ? 'rgba(255,255,255,0.5)' : '#6B7589',
+  rule:      _v2 ? 'rgba(255,255,255,0.22)' : '#EAD9BD',
+  chartTick: _v2 ? 'rgba(255,255,255,0.5)' : '#B5BBC9',
+  chartGrid: _v2 ? 'rgba(255,255,255,0.06)' : 'rgba(255,235,210,0.08)',
+  glow:      _v2 ? 'rgba(210,253,255,0.4)' : 'rgba(255,235,210,0.4)',
 };
 
 // ────────────────────────────────────────────
@@ -2442,20 +2473,20 @@ function makeBaselineDataset(opacity = 1.0) {
 
     if (isHighlighted) {
       ctx.save();
-      ctx.shadowColor = 'rgba(255, 235, 210, 0.4)';
+      ctx.shadowColor = COLORS.glow;
       ctx.shadowBlur = 16;
       ctx.beginPath();
       ctx.arc(x, y, radius + 4, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(255, 235, 210, 0.15)';
+      ctx.fillStyle = _v2 ? 'rgba(210,253,255,0.15)' : 'rgba(255,235,210,0.15)';
       ctx.fill();
       ctx.restore();
     } else if (isIndirect) {
       ctx.save();
-      ctx.shadowColor = 'rgba(255, 235, 210, 0.2)';
+      ctx.shadowColor = _v2 ? 'rgba(210,253,255,0.2)' : 'rgba(255,235,210,0.2)';
       ctx.shadowBlur = 8;
       ctx.beginPath();
       ctx.arc(x, y, radius + 2, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(255, 235, 210, 0.06)';
+      ctx.fillStyle = _v2 ? 'rgba(210,253,255,0.06)' : 'rgba(255,235,210,0.06)';
       ctx.fill();
       ctx.restore();
     }
@@ -2495,7 +2526,7 @@ function makeBaselineDataset(opacity = 1.0) {
 
     ctx.save();
     ctx.font = LABEL_FONT;
-    ctx.fillStyle = 'rgba(255, 235, 210, 0.7)';
+    ctx.fillStyle = _v2 ? 'rgba(210,253,255,0.7)' : 'rgba(255,235,210,0.7)';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
     const lines = (node.label || '').split('\n');
@@ -2521,7 +2552,7 @@ function makeBaselineDataset(opacity = 1.0) {
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, w, h);
 
-    ctx.fillStyle = 'rgba(255, 235, 210, 0.04)';
+    ctx.fillStyle = _v2 ? 'rgba(210,253,255,0.04)' : 'rgba(255,235,210,0.04)';
     for (let gx = 40; gx < w; gx += 40) {
       for (let gy = 40; gy < h; gy += 40) {
         ctx.beginPath();
