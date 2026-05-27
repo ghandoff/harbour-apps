@@ -53,6 +53,7 @@ const HARBOUR_APPS = [
   { key: "values-companion",   label: "values.companion",   href: "/harbour/values-companion",   tagline: "live values game",               accent: "#fbbf24", pier: "launch"  },
   { key: "cuts-catalogue",     label: "cuts.catalogue",     href: "/harbour/cuts-catalogue",     tagline: "editorial pacing tool",          accent: "#fb923c", pier: "launch"  },
   { key: "co-rubric-companion",label: "co.rubric",          href: "/harbour/co-rubric-companion",tagline: "rubric co-design",               accent: "#93c5fd", pier: "launch"  },
+  { key: "regenerative-practices-catalogue", label: "regenerative.practices", href: "/harbour/regenerative-practices-catalogue", tagline: "open practice library", accent: "#a8c97c", pier: "launch"  },
   // ── repairs pier — on the harbour map, coming soon ─────────────
   { key: "depth-chart",        label: "depth.chart",        href: "/harbour/depth-chart",        tagline: "assessment generator",           accent: "#7dd3fc", pier: "repairs", comingSoon: true },
   { key: "creaseworks",        label: "creaseworks",        href: "/harbour/creaseworks",        tagline: "creative playdates",             accent: "#cb7858", pier: "repairs", comingSoon: true },
@@ -84,6 +85,7 @@ export type HarbourAppKey =
   | "values-companion"
   | "cuts-catalogue"
   | "co-rubric-companion"
+  | "regenerative-practices-catalogue"
   | "deep-deck"
   | "raft-house"
   | "tidal-pool"
