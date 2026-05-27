@@ -21,10 +21,13 @@
     "run_worker_first": true
   },
 
-  // Take the specific /harbour-nav-widget.js path on both apex and
-  // www. CF routes are matched by specificity — these beat wv-site's
-  // windedvertigo.com/* catchall, so every existing consumer keeps
-  // working without changing its <script src=...> URL.
+  // Claim the specific paths we own on both apex and www. CF routes
+  // are matched by specificity, so these beat wv-site's
+  // windedvertigo.com/* catchall. Two paths:
+  //   /harbour-nav-widget.js  — vanilla IIFE bundle for static consumers
+  //   /harbour-apps.json      — data file fetched at runtime by the
+  //                             React HarbourNav so HARBOUR_APPS changes
+  //                             propagate without a consumer-side rebuild
   "routes": [
     {
       "pattern": "windedvertigo.com/harbour-nav-widget.js",
@@ -32,6 +35,14 @@
     },
     {
       "pattern": "www.windedvertigo.com/harbour-nav-widget.js",
+      "zone_id": "3b70c2ddcf9976faccb01d37ccf2e1ee"
+    },
+    {
+      "pattern": "windedvertigo.com/harbour-apps.json",
+      "zone_id": "3b70c2ddcf9976faccb01d37ccf2e1ee"
+    },
+    {
+      "pattern": "www.windedvertigo.com/harbour-apps.json",
       "zone_id": "3b70c2ddcf9976faccb01d37ccf2e1ee"
     }
   ]

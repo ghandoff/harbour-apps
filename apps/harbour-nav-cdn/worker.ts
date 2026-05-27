@@ -21,30 +21,30 @@ interface Env {
   ASSETS: Fetcher;
 }
 
-const CACHE_HEADERS: Record<string, string> = {
-  // Short edge TTL so deploys propagate quickly (5 min). Browsers
-  // get the same TTL but can serve stale for a day while revalidating
-  // in the background.
-  "Cache-Control":
-    "public, max-age=300, s-maxage=300, stale-while-revalidate=86400",
-  // The asset is plain JS — set the type explicitly because CF's
-  // assets binding sometimes guesses application/octet-stream.
-  "Content-Type": "application/javascript; charset=utf-8",
-  // Permissive CORS — the widget is intended to be embeddable from
-  // any origin that's part of the harbour. Tightening to a specific
-  // allowlist is possible later if needed.
-  "Access-Control-Allow-Origin": "*",
-  "X-Content-Type-Options": "nosniff",
+// Shared cache + CORS headers. Short edge TTL (5 min) so a deploy
+// propagates quickly; browsers can serve stale for a day while
+// revalidating in the background. CF's assets binding sometimes
+// guesses application/octet-stream — we set Content-Type explicitly
+// per path. Permissive CORS so the widget + data are embeddable from
+// any harbour origin.
+const COMMON_CACHE = "public, max-age=300, s-maxage=300, stale-while-revalidate=86400";
+
+const SERVED_PATHS: Record<string, string> = {
+  "/harbour-nav-widget.js": "application/javascript; charset=utf-8",
+  // Data file consumed by the React HarbourNav at runtime so changes
+  // to HARBOUR_APPS reach every consumer without a sweep redeploy.
+  "/harbour-apps.json": "application/json; charset=utf-8",
 };
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
+    const contentType = SERVED_PATHS[url.pathname];
 
-    // We only serve one path. Anything else returns 404 — this stops
-    // the worker accidentally claiming traffic the route hasn't
-    // explicitly given us.
-    if (url.pathname !== "/harbour-nav-widget.js") {
+    // Only serve the paths we explicitly own. Anything else 404s so
+    // this worker can't accidentally claim traffic the CF route hasn't
+    // explicitly given it.
+    if (!contentType) {
       return new Response("not found", { status: 404 });
     }
 
@@ -55,9 +55,10 @@ export default {
     // Layer our cache + content-type headers on top of whatever
     // ASSETS returns. Preserves status code (200/304/etc) and body.
     const headers = new Headers(response.headers);
-    for (const [k, v] of Object.entries(CACHE_HEADERS)) {
-      headers.set(k, v);
-    }
+    headers.set("Cache-Control", COMMON_CACHE);
+    headers.set("Content-Type", contentType);
+    headers.set("Access-Control-Allow-Origin", "*");
+    headers.set("X-Content-Type-Options", "nosniff");
 
     return new Response(response.body, {
       status: response.status,

@@ -25,91 +25,35 @@ import {
   type ReactNode,
 } from "react";
 
-type Pier = "launch" | "repairs" | "hidden";
+import {
+  HARBOUR_APPS as BUNDLED_HARBOUR_APPS,
+  type HarbourAppEntry,
+  type HarbourAppKey,
+} from "./harbour-apps-data";
 
-interface HarbourAppEntry {
-  key: string;
-  label: string;
-  href: string;
-  tagline: string;
-  accent: string;
-  pier: Pier;
-  /** When true the item is shown in the drawer but rendered as a non-link
-   *  (dimmed, no href, not focusable). Use for coming-soon repairs entries. */
-  comingSoon?: boolean;
-}
+export type { HarbourAppKey } from "./harbour-apps-data";
 
 /**
- * All harbour apps. Order within each pier is the visible order in the drawer.
- * Accents are chosen once per app from the brand cool/warm palettes + tint
- * extensions. Every accent passes ≥3:1 contrast against --wv-cadet (#273248)
- * for non-text UI (WCAG 1.4.11).
+ * Runtime URL the React HarbourNav fetches on mount to refresh the app
+ * list. Served by the wv-harbour-nav-cdn Worker with permissive CORS,
+ * so consumers on any origin can reach it. A `HARBOUR_APPS` data change
+ * + cdn-worker deploy is enough to propagate everywhere — no rebuild
+ * of the React consumers required.
+ *
+ * The bundled BUNDLED_HARBOUR_APPS array is the SSR / initial-paint
+ * fallback. If the fetch fails (offline, CDN outage), the nav still
+ * renders against whatever was current when this app was built.
  */
-const HARBOUR_APPS = [
-  // ── launch pier — apps currently live on the harbour map ───────
-  { key: "vertigo-vault",      label: "vertigo.vault",      href: "/harbour/vertigo-vault",      tagline: "learning activities",            accent: "#43b187", pier: "launch"  },
-  { key: "lines-become-loops", label: "lines become loops", href: "/harbour/lines-become-loops", tagline: "systems thinking simulator",     accent: "#6ee7b7", pier: "launch"  },
-  { key: "read-the-room",      label: "read the room",      href: "/harbour/read-the-room",      tagline: "a quiet game of interpretation", accent: "#c084fc", pier: "launch"  },
-  { key: "values-companion",   label: "values.companion",   href: "/harbour/values-companion",   tagline: "live values game",               accent: "#fbbf24", pier: "launch"  },
-  { key: "cuts-catalogue",     label: "cuts.catalogue",     href: "/harbour/cuts-catalogue",     tagline: "editorial pacing tool",          accent: "#fb923c", pier: "launch"  },
-  { key: "co-rubric-companion",label: "co.rubric",          href: "/harbour/co-rubric-companion",tagline: "rubric co-design",               accent: "#93c5fd", pier: "launch"  },
-  { key: "regenerative-practices-catalogue", label: "regenerative.practices", href: "/harbour/regenerative-practices-catalogue", tagline: "open practice library", accent: "#a8c97c", pier: "launch"  },
-  // ── repairs pier — on the harbour map, coming soon ─────────────
-  { key: "depth-chart",        label: "depth.chart",        href: "/harbour/depth-chart",        tagline: "assessment generator",           accent: "#7dd3fc", pier: "repairs", comingSoon: true },
-  { key: "creaseworks",        label: "creaseworks",        href: "/harbour/creaseworks",        tagline: "creative playdates",             accent: "#cb7858", pier: "repairs", comingSoon: true },
-  // ── hidden — live workers, not yet on the harbour map ──────────
-  { key: "paper-trail",        label: "paper.trail",        href: "/harbour/paper-trail",        tagline: "physical-digital bridge",        accent: "#ffebd2", pier: "hidden"  },
-  { key: "deep-deck",          label: "deep.deck",          href: "/harbour/deep-deck",          tagline: "conversation cards",             accent: "#fcd34d", pier: "hidden"  },
-  { key: "raft-house",         label: "raft.house",         href: "/harbour/raft-house",         tagline: "group learning",                 accent: "#58cbb2", pier: "hidden"  },
-  { key: "tidal-pool",         label: "tidal.pool",         href: "/harbour/tidal-pool",         tagline: "systems thinking sandbox",       accent: "#d2fdff", pier: "hidden"  },
-  { key: "mirror-log",         label: "mirror.log",         href: "/harbour/mirror-log",         tagline: "reflection journal",             accent: "#d5d2ff", pier: "hidden"  },
-  { key: "orbit-lab",          label: "orbit.lab",          href: "/harbour/orbit-lab",          tagline: "orbital mechanics",              accent: "#93c5fd", pier: "hidden"  },
-  { key: "proof-garden",       label: "proof.garden",       href: "/harbour/proof-garden",       tagline: "mathematical proof",             accent: "#22c55e", pier: "hidden"  },
-  { key: "bias-lens",          label: "bias.lens",          href: "/harbour/bias-lens",          tagline: "cognitive bias",                 accent: "#f59e0b", pier: "hidden"  },
-  { key: "scale-shift",        label: "scale.shift",        href: "/harbour/scale-shift",        tagline: "powers of ten",                  accent: "#c4b5fd", pier: "hidden"  },
-  { key: "pattern-weave",      label: "pattern.weave",      href: "/harbour/pattern-weave",      tagline: "gestalt perception",             accent: "#fda4af", pier: "hidden"  },
-  { key: "market-mind",        label: "market.mind",        href: "/harbour/market-mind",        tagline: "opportunity cost",               accent: "#e09878", pier: "hidden"  },
-  { key: "rhythm-lab",         label: "rhythm.lab",         href: "/harbour/rhythm-lab",         tagline: "subdivision & groove",           accent: "#ddd6fe", pier: "hidden"  },
-  { key: "code-weave",         label: "code.weave",         href: "/harbour/code-weave",         tagline: "recursion & abstraction",        accent: "#a5f3fc", pier: "hidden"  },
-  { key: "time-prism",         label: "time.prism",         href: "/harbour/time-prism",         tagline: "historical empathy",             accent: "#fde68a", pier: "hidden"  },
-  { key: "liminal-pass",       label: "liminal.pass",       href: "/harbour/liminal-pass",       tagline: "threshold concepts",             accent: "#fca5a5", pier: "hidden"  },
-  { key: "emerge-box",         label: "emerge.box",         href: "/harbour/emerge-box",         tagline: "cellular automata",              accent: "#86efac", pier: "hidden"  },
-] as const satisfies readonly HarbourAppEntry[];
+const HARBOUR_APPS_URL = "https://windedvertigo.com/harbour-apps.json";
 
-export type HarbourAppKey =
-  | "creaseworks"
-  | "vertigo-vault"
-  | "depth-chart"
-  | "lines-become-loops"
-  | "read-the-room"
-  | "values-companion"
-  | "cuts-catalogue"
-  | "co-rubric-companion"
-  | "regenerative-practices-catalogue"
-  | "deep-deck"
-  | "raft-house"
-  | "tidal-pool"
-  | "paper-trail"
-  | "mirror-log"
-  | "orbit-lab"
-  | "proof-garden"
-  | "bias-lens"
-  | "scale-shift"
-  | "pattern-weave"
-  | "market-mind"
-  | "rhythm-lab"
-  | "code-weave"
-  | "time-prism"
-  | "liminal-pass"
-  | "emerge-box";
-
-export const APP_ACCENTS: Record<HarbourAppKey, string> = HARBOUR_APPS.reduce(
-  (acc, a) => {
-    acc[a.key as HarbourAppKey] = a.accent;
-    return acc;
-  },
-  {} as Record<HarbourAppKey, string>,
-);
+export const APP_ACCENTS: Record<HarbourAppKey, string> =
+  BUNDLED_HARBOUR_APPS.reduce(
+    (acc, a) => {
+      acc[a.key as HarbourAppKey] = a.accent;
+      return acc;
+    },
+    {} as Record<HarbourAppKey, string>,
+  );
 
 export interface HarbourNavProps {
   currentApp: HarbourAppKey;
@@ -143,12 +87,35 @@ export function HarbourNav({
 }: HarbourNavProps) {
   const [open, setOpen] = useState(false);
   const [tide, setTide] = useState<string>("");
+  const [apps, setApps] =
+    useState<readonly HarbourAppEntry[]>(BUNDLED_HARBOUR_APPS);
   const dialogRef = useRef<HTMLDialogElement | null>(null);
   const anchorRef = useRef<HTMLButtonElement | null>(null);
 
-  const current = HARBOUR_APPS.find((a) => a.key === currentApp);
-  const launch = HARBOUR_APPS.filter((a) => a.pier === "launch");
-  const repairs = HARBOUR_APPS.filter((a) => a.pier === "repairs");
+  // Refresh the app list from the cdn worker on mount. Bundled data
+  // already drove the initial paint, so a successful fetch silently
+  // upgrades the drawer to current data without any visible flash.
+  // A failed fetch (offline / CDN outage) leaves the bundled fallback
+  // in place — the nav remains functional, just possibly stale.
+  useEffect(() => {
+    let cancelled = false;
+    fetch(HARBOUR_APPS_URL, { cache: "default" })
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`${r.status}`))))
+      .then((data: unknown) => {
+        if (cancelled || !Array.isArray(data) || data.length === 0) return;
+        setApps(data as readonly HarbourAppEntry[]);
+      })
+      .catch(() => {
+        /* keep bundled fallback */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const current = apps.find((a) => a.key === currentApp);
+  const launch = apps.filter((a) => a.pier === "launch");
+  const repairs = apps.filter((a) => a.pier === "repairs");
 
   const basePath = `/harbour/${currentApp}`;
   const resolvedSignIn = signInPath ?? `${basePath}/login`;

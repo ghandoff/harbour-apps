@@ -21,9 +21,10 @@
  */
 
 import { build } from "esbuild";
-import { mkdir } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import { tmpdir } from "node:os";
 
 const here = dirname(fileURLToPath(import.meta.url));
 
@@ -31,6 +32,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const primaryOutDir = resolve(here, "../../apps/harbour-nav-cdn/public");
 await mkdir(primaryOutDir, { recursive: true });
 const primaryOutFile = resolve(primaryOutDir, "harbour-nav-widget.js");
+const jsonOutFile = resolve(primaryOutDir, "harbour-apps.json");
 
 const result = await build({
   entryPoints: [resolve(here, "harbour-nav-vanilla.tsx")],
@@ -59,6 +61,29 @@ const kb = (bytes / 1024).toFixed(1);
 console.log(
   `\n✓ built ${primaryOutFile} (${kb} KiB minified)`,
 );
+
+// Also emit harbour-apps.json so the cdn worker can serve the same
+// HARBOUR_APPS array at runtime — that's what lets every React
+// HarbourNav consumer refresh its app list without a redeploy. We
+// compile harbour-apps-data.ts to a temp .mjs (esbuild strips the
+// `as const satisfies` type-only annotations) and dynamic-import it
+// to grab the live array — single source of truth, no drift risk.
+const tmpDataFile = resolve(tmpdir(), `harbour-apps-data-${Date.now()}.mjs`);
+await build({
+  entryPoints: [resolve(here, "harbour-apps-data.ts")],
+  bundle: false,
+  format: "esm",
+  outfile: tmpDataFile,
+  target: ["es2020"],
+  loader: { ".ts": "ts" },
+  logLevel: "warning",
+});
+const { HARBOUR_APPS } = await import(pathToFileURL(tmpDataFile).href);
+await writeFile(jsonOutFile, JSON.stringify(HARBOUR_APPS, null, 2) + "\n");
+console.log(
+  `✓ wrote ${jsonOutFile} (${HARBOUR_APPS.length} apps)`,
+);
+
 console.log(
   `\n  next: cd apps/harbour-nav-cdn && npx wrangler deploy`,
 );
