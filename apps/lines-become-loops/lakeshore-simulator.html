@@ -1129,6 +1129,43 @@ body { min-height: 100vh; padding-top: 146px; }
   min-height: 0;
 }
 
+/* slider hint — fades on first interaction */
+.slider-hint {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--on-dark-muted);
+  margin-bottom: 6px;
+  transition: opacity 0.2s;
+}
+.slider-hint.dismissed { opacity: 0; pointer-events: none; }
+
+/* first-run overlay */
+.first-run-overlay {
+  position: fixed; inset: 0; z-index: 90;
+  background: rgba(39, 50, 72, 0.6);
+  opacity: 0; transition: opacity 0.3s;
+  pointer-events: none;
+}
+.first-run-overlay.visible { opacity: 1; pointer-events: all; }
+.first-run-close {
+  position: absolute; top: 16px; right: 16px;
+  width: 32px; height: 32px; font-size: 18px;
+  background: none; border: 1px solid var(--on-dark-muted);
+  color: var(--on-dark-muted); cursor: pointer; border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+}
+.first-run-label {
+  position: absolute; font-size: 12px; font-weight: 500;
+  color: var(--on-dark); background: rgba(39,50,72,0.85);
+  padding: 6px 10px; border-radius: 4px; max-width: 22ch; line-height: 1.4;
+}
+.first-run-label-left  { left: 24px;  top: 50%; transform: translateY(-50%); }
+.first-run-label-mid   { left: 50%;   top: 24px; transform: translateX(-50%); }
+.first-run-label-right { right: 24px; top: 50%; transform: translateY(-50%); }
+@media (prefers-reduced-motion: reduce) {
+  .first-run-overlay { transition: none; }
+}
+
 /* -- trade-off follow-up within surprise check -- */
 .tradeoff-wrap {
   margin-top: 10px;
@@ -1824,6 +1861,14 @@ body { min-height: 100vh; padding-top: 146px; }
       <button class="btn btn-small" id="btn-commit-confirm" disabled>lock it in</button>
     </div>
   </div>
+</div>
+
+<!-- first-run overlay: shown once after first commit, dismissed via × -->
+<div id="first-run-overlay" class="first-run-overlay" role="dialog" aria-modal="true" aria-label="how to use this view" hidden>
+  <button class="first-run-close" id="first-run-close" aria-label="dismiss">&times;</button>
+  <div class="first-run-label first-run-label-left">interventions: pick one, then watch what the system does</div>
+  <div class="first-run-label first-run-label-mid">trajectory: what the stock does over 25 years</div>
+  <div class="first-run-label first-run-label-right">system map: pressure on each node, 0 to 100</div>
 </div>
 
 <script>
@@ -2781,11 +2826,15 @@ function buildCards() {
           const votingRow = d.id <= 3 && state.interventionsRun.includes(4) && !state.rechartered
             ? '<label class="voting-bloc-label visible" aria-label="run with new voting bloc"><input type="checkbox" ' + (state.withVotingBloc[d.id] ? 'checked' : '') + ' data-voting-id="' + d.id + '"><span>with new voting bloc</span></label>'
             : '';
+          const sliderHint = (!state.sliderTouched || !state.sliderTouched[d.id])
+            ? '<div class="slider-hint">drag to see how this intervention bends the trajectory</div>'
+            : '';
           return '<div class="dosage-slider-wrap">' +
             '<div class="dosage-header">' +
               '<span class="dosage-label">' + label + '</span>' +
               '<span class="dosage-dosage">' + currentVal + unit + '</span>' +
             '</div>' +
+            sliderHint +
             '<input type="range" class="dosage-slider" data-slider-id="' + d.id + '" min="0" max="100" value="' + Math.round(currentDosage * 100) + '" aria-label="' + label + '" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + Math.round(currentDosage * 100) + '">' +
             '<span class="card-meta">25-year reduction: ' + (reductionPct !== null ? '<span class="result-value">~' + reductionPct + '%</span>' : '\u2014') + '</span>' +
             votingRow +
@@ -2824,6 +2873,13 @@ function buildCards() {
     slider.addEventListener('input', () => {
       state.sliderActive = true;
       const id = parseInt(slider.dataset.sliderId);
+      // dismiss per-slider hint on first touch
+      if (!state.sliderTouched) state.sliderTouched = {};
+      if (!state.sliderTouched[id]) {
+        state.sliderTouched[id] = true;
+        const hint = slider.closest('.dosage-slider-wrap').querySelector('.slider-hint');
+        if (hint) { hint.classList.add('dismissed'); setTimeout(() => hint.remove(), 220); }
+      }
       const dosageEl = slider.closest('.dosage-slider-wrap').querySelector('.dosage-dosage');
       const metaEl = slider.closest('.dosage-slider-wrap').querySelector('.card-meta');
       const intv = interventionData.find(x => x.id === id);
@@ -3273,6 +3329,22 @@ function render() {
 }
 
 // ────────────────────────────────────────────
+// first-run overlay (shown once after first commit)
+// ────────────────────────────────────────────
+function maybeShowFirstRunOverlay() {
+  try { if (localStorage.getItem('lbl_simulator_overlay_seen')) return; } catch(e) { return; }
+  const overlay = document.getElementById('first-run-overlay');
+  if (!overlay) return;
+  overlay.hidden = false;
+  requestAnimationFrame(() => overlay.classList.add('visible'));
+  document.getElementById('first-run-close').addEventListener('click', () => {
+    overlay.classList.remove('visible');
+    overlay.addEventListener('transitionend', () => { overlay.hidden = true; }, { once: true });
+    try { localStorage.setItem('lbl_simulator_overlay_seen', '1'); } catch(e) {}
+  }, { once: true });
+}
+
+// ────────────────────────────────────────────
 // commitment flow
 // ────────────────────────────────────────────
 let pendingCommitId = null;
@@ -3423,6 +3495,10 @@ document.addEventListener('DOMContentLoaded', () => {
     pendingCommitId = null;
     setState({ committed: true, committedId: id, dosages: { ...state.dosages, [id]: 1 } });
     logger.log('committed', { interventionId: id, hypothesis: state.hypothesis });
+
+    // show first-run guidance overlay (once per browser, persisted in localStorage)
+    maybeShowFirstRunOverlay();
+
     setTimeout(() => handleRunIntervention(id, 1), 400);
   });
 
