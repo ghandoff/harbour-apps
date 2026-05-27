@@ -34,6 +34,9 @@ interface HarbourAppEntry {
   tagline: string;
   accent: string;
   pier: Pier;
+  /** When true the item is shown in the drawer but rendered as a non-link
+   *  (dimmed, no href, not focusable). Use for coming-soon repairs entries. */
+  comingSoon?: boolean;
 }
 
 /**
@@ -51,8 +54,8 @@ const HARBOUR_APPS = [
   { key: "cuts-catalogue",     label: "cuts.catalogue",     href: "/harbour/cuts-catalogue",     tagline: "editorial pacing tool",          accent: "#fb923c", pier: "launch"  },
   { key: "co-rubric-companion",label: "co.rubric",          href: "/harbour/co-rubric-companion",tagline: "rubric co-design",               accent: "#93c5fd", pier: "launch"  },
   // ── repairs pier — on the harbour map, coming soon ─────────────
-  { key: "depth-chart",        label: "depth.chart",        href: "/harbour/depth-chart",        tagline: "assessment generator",           accent: "#7dd3fc", pier: "repairs" },
-  { key: "creaseworks",        label: "creaseworks",        href: "/harbour/creaseworks",        tagline: "creative playdates",             accent: "#cb7858", pier: "repairs" },
+  { key: "depth-chart",        label: "depth.chart",        href: "/harbour/depth-chart",        tagline: "assessment generator",           accent: "#7dd3fc", pier: "repairs", comingSoon: true },
+  { key: "creaseworks",        label: "creaseworks",        href: "/harbour/creaseworks",        tagline: "creative playdates",             accent: "#cb7858", pier: "repairs", comingSoon: true },
   // ── hidden — live workers, not yet on the harbour map ──────────
   { key: "paper-trail",        label: "paper.trail",        href: "/harbour/paper-trail",        tagline: "physical-digital bridge",        accent: "#ffebd2", pier: "hidden"  },
   { key: "deep-deck",          label: "deep.deck",          href: "/harbour/deep-deck",          tagline: "conversation cards",             accent: "#fcd34d", pier: "hidden"  },
@@ -402,6 +405,34 @@ function DockItem({
   isDocked: boolean;
   onNavigate: () => void;
 }) {
+  const inner = (
+    <>
+      <span className="harbour-dock-chip" aria-hidden="true" />
+      <span className="harbour-dock-body">
+        <span className="harbour-dock-label">{app.label}</span>
+        <span className="harbour-dock-tagline">{app.tagline}</span>
+      </span>
+      <span className="harbour-dock-trail" aria-hidden="true">
+        {isDocked ? "docked here" : app.comingSoon ? "soon" : "→"}
+      </span>
+    </>
+  );
+
+  if (app.comingSoon) {
+    // Render as a non-interactive span — no href, no tab stop, dimmed.
+    return (
+      <li>
+        <span
+          className="harbour-dock harbour-dock--coming-soon"
+          style={{ ["--dock-accent" as string]: app.accent }}
+          aria-label={`${app.label} — coming soon`}
+        >
+          {inner}
+        </span>
+      </li>
+    );
+  }
+
   return (
     <li>
       <a
@@ -411,14 +442,7 @@ function DockItem({
         aria-current={isDocked ? "page" : undefined}
         style={{ ["--dock-accent" as string]: app.accent }}
       >
-        <span className="harbour-dock-chip" aria-hidden="true" />
-        <span className="harbour-dock-body">
-          <span className="harbour-dock-label">{app.label}</span>
-          <span className="harbour-dock-tagline">{app.tagline}</span>
-        </span>
-        <span className="harbour-dock-trail" aria-hidden="true">
-          {isDocked ? "docked here" : "→"}
-        </span>
+        {inner}
       </a>
     </li>
   );

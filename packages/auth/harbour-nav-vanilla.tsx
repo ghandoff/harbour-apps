@@ -292,6 +292,9 @@ const HARBOUR_NAV_CSS = `
 .harbour-dock.is-docked .harbour-dock-chip { width: 6px; }
 .harbour-dock.is-docked .harbour-dock-label { color: var(--wv-champagne); }
 .harbour-dock.is-docked .harbour-dock-trail { color: var(--color-accent-on-dark); opacity: 1; font-style: italic; }
+.harbour-dock--coming-soon { opacity: 0.38; cursor: default; }
+.harbour-dock--coming-soon:hover { background: none; transform: none; }
+.harbour-dock--coming-soon .harbour-dock-trail { opacity: 1; }
 .harbour-drawer-foot {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
   margin-top: auto; padding-top: 16px;
