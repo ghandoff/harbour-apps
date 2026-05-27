@@ -213,7 +213,7 @@ npm run lint --workspace=@windedvertigo/deep-deck     # lint a single app
 - windedvertigo-site: `prj_k02f1LutCsQLZEDIyM2xYJ1PGPCx`
 - nordic-sqr-rct: `prj_laAl3qm5w20CrtIjO2klc9dj180z`
 - pocket.prompts: deployed at `pocket-prompts-five.vercel.app`
-- deep-deck, harbour, vertigo-vault (project IDs in Vercel dashboard)
+- deep-deck, harbour (project IDs in Vercel dashboard for historical reference; both have since migrated to CF Workers — see deployment-topology.md; vertigo-vault is now `wv-vault` on CF Workers)
 - Team: `team_wrpRda7ZzXdu7nKcEVVXY3th`
 
 **Deployment optimization (Turborepo + turbo-ignore)**:
@@ -317,4 +317,4 @@ Applies SQL migration files 028–033 using `@neondatabase/serverless`. Strips `
 - **ESLint 9 flat config required**: `.eslintrc.json` is deprecated. All apps use `eslint.config.mjs` with `defineConfig()` + `globalIgnores()`. TypeScript apps also spread `eslint-config-next/typescript`. The `createRequire` pattern is needed to load CommonJS configs from ESM.
 - **Next.js 15+ async params**: `params` and `searchParams` are now Promises. Server components use `await params`, client components (`'use client'`) use React 19's `use(params)`.
 - **Security headers (HSTS + CSP)**: All apps have identical headers in both `next.config.ts` (runtime) and `vercel.json` (edge CDN). CSP exception: nordic-sqr-rct allows Google Fonts domains (`fonts.googleapis.com`, `fonts.gstatic.com`).
-- **vertigo-vault local builds fail**: Pre-rendering requires `NOTION_TOKEN` (only in Vercel). Compilation succeeds; the failure is at the static generation step. This is expected.
+- **vertigo-vault local builds fail**: Pre-rendering requires `NOTION_TOKEN`, which is set as a CF Worker secret on `wv-vault` (not in local `.env.local` by default). Compilation succeeds; the failure is at the static generation step. This is expected.

@@ -2,7 +2,9 @@
 
 > last updated: 2026-04-25. the **live production routing** for every `/harbour/*` path is defined in the sibling repo `ghandoff/windedvertigo` at `site/next.config.ts` (the `rewrites()` function, now `beforeFiles`). edits there are what determine whether an app is served from Vercel or Cloudflare Workers. this doc explains the split, why it exists, and how to deploy each kind.
 
-> **2026-04-25 update**: the windedvertigo.com **site router itself** moved from Vercel → CF Workers (the wv-site Worker now serves all windedvertigo.com traffic via worker routes; the Vercel site project was deleted). The **harbour hub** also moved Vercel → CF Workers (`wv-harbour-harbour`). Only **creaseworks**, **vertigo.vault**, **port** (port.windedvertigo.com), and **nordic-sqr-rct** (nordic.windedvertigo.com — uses Workflow DevKit + Vercel Blob, can't move without rewrite) remain on Vercel.
+> **2026-04-25 update**: the windedvertigo.com **site router itself** moved from Vercel → CF Workers (the wv-site Worker now serves all windedvertigo.com traffic via worker routes; the Vercel site project was deleted). The **harbour hub** also moved Vercel → CF Workers (`wv-harbour-harbour`).
+>
+> **2026-05-26 update**: **vertigo.vault** has since migrated to CF Workers (`wv-vault`). Only **creaseworks**, **port** (port.windedvertigo.com), and **nordic-sqr-rct** (nordic.windedvertigo.com — uses Workflow DevKit + Vercel Blob, can't move without rewrite) are claimed by other sections to remain on Vercel; those claims may also be stale — verify before relying on them.
 
 ## tl;dr
 
@@ -10,7 +12,7 @@ the 19 harbour apps are served from **two different runtimes** depending on matu
 
 | runtime | who lives there | why |
 |---|---|---|
-| **Vercel** (full Next.js function runtime) | **creaseworks**, **vertigo.vault**, **port** (port.windedvertigo.com), **nordic-sqr-rct** (nordic.windedvertigo.com) | real traffic, production tables, active paying users — or (nordic) deps incompatible with CF Workers (Workflow DevKit + Vercel Blob) |
+| **Vercel** (full Next.js function runtime) | **creaseworks**, **port** (port.windedvertigo.com), **nordic-sqr-rct** (nordic.windedvertigo.com) | nordic: deps incompatible with CF Workers (Workflow DevKit + Vercel Blob). creaseworks + port may also have migrated — verify before relying. (vertigo.vault was here but moved to CF Workers `wv-vault` by 2026-05-26.) |
 | **Cloudflare Workers** (via OpenNext) | **windedvertigo.com site router** (wv-site), **harbour hub** (wv-harbour-harbour), and **every other harbour app** — paper.trail, deep.deck, depth.chart, raft.house, tidal.pool, mirror.log, and all 11 threshold-concept apps | underdeveloped, low traffic, cost-sensitive. cloudflare's per-request pricing + free tier keeps the long tail cheap. |
 
 `pushing to main → Vercel auto-deploys only` the Vercel-routed apps. **cloudflare deploys do not happen from git push.** they must be triggered manually per app (or via the batch script below).
@@ -19,14 +21,14 @@ the 19 harbour apps are served from **two different runtimes** depending on matu
 
 we got a $223/month overage on Vercel in early 2026 from the harbour-apps monorepo creating too many build × project combinations. every push rebuilt every connected project. the spending cap in CLAUDE.md ($10 on-demand, $30 max) exists because of that incident.
 
-to keep costs under the cap as we add more harbour apps, we migrated the long tail (everything except creaseworks + vault) off Vercel. those apps are either:
+to keep costs under the cap as we add more harbour apps, we migrated the long tail (initially everything except creaseworks + vault, though vault has since followed) off Vercel. those apps are either:
 
 - **underdeveloped** (the 11 threshold-concept apps are still prototypes), or
 - **low traffic** (paper.trail, deep.deck, depth.chart, etc. see occasional use)
 
 cloudflare workers are free up to 100k requests/day and bill per request — roughly two orders of magnitude cheaper than paying for always-warm Vercel functions for apps that get a few hundred daily hits.
 
-**what stayed on Vercel and why**: creaseworks has real customers, neon postgres, cron jobs, stripe; vertigo.vault is its sister app with shared auth cookies on `.windedvertigo.com`. the ops cost of porting these to workers + maintaining the auth contract isn't worth it. they will stay on Vercel.
+**what stayed on Vercel and why**: creaseworks has real customers, neon postgres, cron jobs, stripe. **vertigo.vault** was originally pinned to Vercel for the same reason (sister-app shared-auth-cookie contract on `.windedvertigo.com`), but it eventually migrated to CF Workers (`wv-vault`) — the auth-cookie contract held because AUTH_SECRET propagates across the pool either way. creaseworks may or may not still be on Vercel; verify before relying on this section.
 
 ## how the live routing works
 
@@ -60,9 +62,9 @@ when you add a new harbour app you must add (or update) the matching rewrite in 
 
 ## where each app is routed today
 
-### Vercel-routed (push = auto-deploy)
-- creaseworks → `creaseworks-ghandoffs-projects.vercel.app`
-- vertigo-vault → `vertigo-vault-ghandoffs-projects.vercel.app`
+### Vercel-routed (push = auto-deploy) — may have other stale entries; verify before relying
+- creaseworks → `creaseworks-ghandoffs-projects.vercel.app` (verify; may have migrated to CF)
+- ~~vertigo-vault → `vertigo-vault-ghandoffs-projects.vercel.app`~~ — moved to CF Workers as `wv-vault` (see CF list below)
 
 ### Cloudflare-Worker-routed (manual deploy required)
 launch pier:
@@ -76,9 +78,10 @@ launch pier:
 repairs pier (threshold concepts):
 - orbit-lab, proof-garden, bias-lens, scale-shift, pattern-weave, market-mind, rhythm-lab, code-weave, time-prism, liminal-pass, emerge-box → `wv-harbour-<app>.windedvertigo.workers.dev`
 
-### CF-Worker-routed (added 2026-04-25)
+### CF-Worker-routed (added 2026-04-25 onwards)
 - harbour hub → `wv-harbour-harbour.windedvertigo.workers.dev` (was on Vercel `reservoir-tau.vercel.app`; migrated 2026-04-25). has R2 binding `TILE_IMAGES` → `creaseworks-evidence` bucket. admin endpoint `/harbour/api/admin/sync-tiles` (bearer `CRON_SECRET`) syncs Notion tiles → R2.
 - depth-chart → also has a direct CF Workers Route on `windedvertigo.com/harbour/depth-chart/*` (see "CF Workers Routes" above)
+- vertigo-vault → `wv-vault` (migrated by 2026-05-26; `apps/vertigo-vault/wrangler.jsonc` + `worker.ts` + `open-next.config.ts` are committed; shares the `.windedvertigo.com` AUTH_SECRET cookie scope as before — the platform changed, the SSO contract didn't)
 
 ### Vercel-but-not-routed-through-windedvertigo.com
 - port → `port.windedvertigo.com` (its own Vercel project with custom domain — operational hub / CRM)
@@ -87,7 +90,7 @@ repairs pier (threshold concepts):
 
 ## how to deploy
 
-### Vercel apps (creaseworks, vertigo-vault, port, nordic-sqr-rct)
+### Vercel apps (creaseworks, port, nordic-sqr-rct — verify creaseworks + port; vertigo-vault no longer here, see CF section)
 
 auto-deploys on push to `main`. for manual deploys (disconnected projects or quick prod fixes), use the monorepo-root scripts:
 
