@@ -1,0 +1,7 @@
+{
+  "channel_id": "C0AQZ6KNHSA",
+  "channel_name": "harbour-feedback",
+  "last_processed_ts": "1779951599.000000",
+  "last_processed_human": "2026-05-27 23:59:59 PDT",
+  "note": "Slack ts of the newest message already triaged. The routine reads the channel with oldest=this value, processes anything newer, then advances this cursor to the newest message it handled. Seeded to end-of-2026-05-27 because that day's feedback was integrated manually in the first run (PRs #126/#164/#165/#166/#168, issue #167)."
+}
