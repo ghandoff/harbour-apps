@@ -164,13 +164,6 @@ function TierBanner({
           >
             explorer pack &rarr;
           </Link>
-          <Link
-            href="/teams"
-            className="text-xs transition-opacity hover:opacity-80"
-            style={{ color: "var(--vault-text-muted)" }}
-          >
-            team access
-          </Link>
         </div>
       </div>
     );
