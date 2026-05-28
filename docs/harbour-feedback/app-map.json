@@ -1,0 +1,80 @@
+{
+  "_comment": "Maps a #harbour-feedback app slug (from the widget's *[slug]* tag or a human post's heading/path) to where its LIVE code lives and how it deploys. The routine branches in `repo`, edits `live_source`, and quotes `deploy` in the PR. Slugs not listed are resolved with `resolution_rules` below — and should be appended here once confirmed.",
+  "apps": {
+    "vertigo-vault": {
+      "repo": "harbour-apps",
+      "live_source": "apps/vertigo-vault",
+      "runtime": "cf-worker",
+      "deploy": "cd apps/vertigo-vault && npx opennextjs-cloudflare build && node ../../packages/security/scripts/write-assets-headers.mjs /harbour/vertigo-vault && npx opennextjs-cloudflare deploy"
+    },
+    "cuts-catalogue": {
+      "repo": "windedvertigo",
+      "live_source": "site/public/harbour/cuts-catalogue/index.html",
+      "runtime": "static-site",
+      "deploy": "site project build (static public/ asset)"
+    },
+    "values-companion": {
+      "repo": "windedvertigo",
+      "live_source": "site/public/harbour/values-companion/index.html",
+      "runtime": "static-site",
+      "deploy": "site project build (static public/ asset)"
+    },
+    "lines-become-loops": {
+      "repo": "windedvertigo",
+      "live_source": "site/public/harbour/lines-become-loops/",
+      "runtime": "static-site",
+      "deploy": "site project build (static public/ asset)",
+      "note": "index.html, simulator.html, lakeshore-simulator.html, facilitator.html. A stale duplicate exists at harbour-apps/apps/lines-become-loops (do not edit; pending deletion)."
+    },
+    "read-the-room": {
+      "repo": "windedvertigo",
+      "live_source": "apps/harbour/read-the-room/public/index.html",
+      "runtime": "cf-worker",
+      "deploy": "cd apps/harbour/read-the-room && npx wrangler deploy",
+      "note": "worker wv-harbour-read-the-room; static HTML + Room Durable Object (src/room.ts)."
+    },
+    "co-rubric-companion": {
+      "repo": "windedvertigo",
+      "live_source": "apps/harbour/rubric-co-builder-companion",
+      "runtime": "cf-worker",
+      "deploy": "cd apps/harbour/rubric-co-builder-companion && npx opennextjs-cloudflare build && npx opennextjs-cloudflare deploy",
+      "note": "worker wv-harbour-rcb-companion. The route /harbour/co-rubric maps to a separate worker wv-harbour-rubric-co-builder at apps/harbour/rubric-co-builder."
+    },
+    "co-rubric": {
+      "repo": "windedvertigo",
+      "live_source": "apps/harbour/rubric-co-builder",
+      "runtime": "cf-worker",
+      "deploy": "cd apps/harbour/rubric-co-builder && npx opennextjs-cloudflare build && npx opennextjs-cloudflare deploy",
+      "note": "worker wv-harbour-rubric-co-builder. maria's 2026-05-27 feedback was for the *companion* (co-rubric-companion)."
+    },
+    "harbour-preview": {
+      "repo": "windedvertigo",
+      "live_source": "site/app/harbour-preview",
+      "runtime": "site-route",
+      "deploy": "site project build (Next route + public/harbour-preview assets)"
+    },
+    "depth-chart": {
+      "repo": "harbour-apps",
+      "live_source": "apps/depth-chart",
+      "runtime": "cf-worker",
+      "deploy": "cd apps/depth-chart && npx opennextjs-cloudflare build && node ../../packages/security/scripts/write-assets-headers.mjs /harbour/depth-chart && npx opennextjs-cloudflare deploy"
+    },
+    "harbour": {
+      "repo": "harbour-apps",
+      "live_source": "apps/harbour",
+      "runtime": "cf-worker",
+      "deploy": "cd apps/harbour && npx opennextjs-cloudflare build && node ../../packages/security/scripts/write-assets-headers.mjs /harbour && npx opennextjs-cloudflare deploy"
+    }
+  },
+  "unresolved": {
+    "regenerative-practices-catalogue": "Live source not yet confirmed — resolve from windedvertigo/site/next.config.ts rewrites before editing, then add here."
+  },
+  "resolution_rules": [
+    "1. Open windedvertigo/site/next.config.ts. Find the rewrite/redirect for /harbour/<slug>.",
+    "2. If it points at a local public/ path (e.g. /harbour/<slug>/index.html) → static-site, edit windedvertigo/site/public/harbour/<slug>/, deploy = site project build.",
+    "3. If it points at a *.workers.dev worker → find the worker dir (grep the worker name in windedvertigo/apps/harbour/*/wrangler.jsonc, then harbour-apps/apps/*/wrangler.jsonc). Edit there; deploy = opennextjs-cloudflare build+deploy (or wrangler deploy for plain workers).",
+    "4. If it's an app/ route in the site repo (e.g. app/harbour-preview) → site-route, deploy = site project build.",
+    "5. The 11 threshold-concept apps + paper-trail/raft-house/tidal-pool/mirror-log/orbit-lab/etc. live at harbour-apps/apps/<slug> as CF workers (wv-harbour-<slug>).",
+    "6. Always confirm the file exists before editing; append the confirmed mapping to `apps` so the next run is faster."
+  ]
+}
