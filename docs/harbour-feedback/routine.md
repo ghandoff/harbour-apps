@@ -90,8 +90,26 @@ not_in_scope: [<deferred → issue #>]
 ```
 
 ## Scheduling
-Registered as a daily Claude Code routine (see `schedule`/CronCreate). The
-fallback is a `.github/workflows/harbour-feedback.yml` on a `schedule:` trigger
-invoking the Agent SDK headless with Slack + ANTHROPIC + gh secrets. Real-time
-(Slack Events API → endpoint → run) was considered and deferred — it adds a
-hosted endpoint + signing-secret verification for little gain over daily.
+
+**Status: held (2026-05-27).** Not yet registered. A remote Claude Code routine
+runs in Anthropic's cloud, and the Slack steps need a **Slack connector connected
+at https://claude.ai/customize/connectors** — the Slack MCP used during the manual
+first run is a *local* connector, not available to a remote session. The remote
+session also only checks out one repo, so the routine must `gh repo clone
+ghandoff/windedvertigo` (or `git clone`) the sibling repo at the start.
+
+**To enable once Slack is connected:** register a daily routine via the `schedule`
+skill — name `harbour-feedback-triage`, cron `0 1 * * *` (18:00
+America/Los_Angeles = 01:00 UTC), repo `https://github.com/ghandoff/harbour-apps`,
+Slack connector attached, prompt = "follow docs/harbour-feedback/routine.md
+exactly" + channel id `C0AQZ6KNHSA` + Garrett's Slack id `U06Q4UN4PKR`.
+
+**Fallbacks:**
+- `.github/workflows/harbour-feedback.yml` on a `schedule:` trigger invoking the
+  Agent SDK headless with Slack + ANTHROPIC + gh secrets (both repos via
+  actions/checkout). No claude.ai connector needed.
+- **Local** scheduler (launchd/cron → headless `claude -p`, or the `/loop` skill)
+  in Garrett's environment, where the Slack MCP already works — no connector
+  setup, but only runs while his machine is on.
+- Real-time (Slack Events API → endpoint → run) considered and deferred — adds a
+  hosted endpoint + signing-secret verification for little gain over daily.
