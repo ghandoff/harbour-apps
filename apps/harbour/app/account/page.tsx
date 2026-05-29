@@ -27,6 +27,7 @@ import {
   type Pack,
   type CreditEntry,
 } from "@/lib/queries/membership";
+import { getKnotsBalance, getKnotsEarned, rankFor } from "@/lib/knots";
 
 // Session-dependent — never statically cache.
 export const dynamic = "force-dynamic";
@@ -87,14 +88,20 @@ export default async function AccountPage() {
   let onboardingCompleted = true;
   let profileRole: string | null = null;
   let profileInterests: string[] = [];
+  let knotsBalance = 0;
+  let rank = rankFor(0);
   if (!staff && userId) {
-    const [bal, own, avail, profile, led] = await Promise.all([
+    const [bal, own, avail, profile, led, kBal, kEarned] = await Promise.all([
       getCreditBalance(userId),
       getOwnedPacks(userId),
       getAvailablePacks(userId),
       getProfile(userId),
       getCreditLedger(userId),
+      getKnotsBalance(userId),
+      getKnotsEarned(userId),
     ]);
+    knotsBalance = kBal;
+    rank = rankFor(kEarned);
     creditBalance = bal;
     owned = own;
     available = avail;
@@ -189,7 +196,82 @@ export default async function AccountPage() {
               </section>
             )}
 
-            {/* credits */}
+            {/* knots — the engagement currency */}
+            <section className="rounded-lg border border-white/10 bg-white/5 p-5">
+              <div className="flex items-baseline justify-between gap-4">
+                <span className="text-sm text-[var(--color-text-on-dark-muted)]">
+                  your knots
+                </span>
+                <span className="text-2xl font-bold text-[var(--color-text-on-dark)]">
+                  {knotsBalance}
+                </span>
+              </div>
+              <p className="mt-1 text-sm text-[var(--color-text-on-dark-muted)]">
+                rank:{" "}
+                <span className="text-[var(--wv-champagne)] font-semibold">
+                  {rank.current.title}
+                </span>
+              </p>
+              {rank.next && (
+                <p className="mt-2 text-xs text-[var(--color-text-on-dark-muted)]">
+                  {rank.toNext} knots to {rank.next.title}
+                  {rank.next.knot ? ` — unlocks the ${rank.next.knot.name}` : ""}.
+                </p>
+              )}
+              <p className="mt-2 text-xs text-[var(--color-text-on-dark-muted)]">
+                earn knots by completing your profile, referring others, and
+                sharing what you make — not by playing. each rank teaches you a
+                new knot.
+              </p>
+            </section>
+
+            {/* knot locker — recognition as a learnable reward */}
+            {rank.unlocked.length > 0 && (
+              <section className="space-y-3">
+                <h2 className="text-sm font-semibold text-[var(--color-text-on-dark)]">
+                  your knot locker
+                </h2>
+                {rank.unlocked.map(
+                  (r) =>
+                    r.knot && (
+                      <div
+                        key={r.knot.name}
+                        className="rounded-lg border border-white/10 bg-white/5 p-5 space-y-2"
+                      >
+                        <div className="flex items-baseline justify-between gap-4">
+                          <p className="text-base font-semibold text-[var(--color-text-on-dark)]">
+                            {r.knot.name}
+                          </p>
+                          <a
+                            href={r.knot.watch}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-[var(--wv-champagne)] hover:opacity-80 shrink-0"
+                          >
+                            watch it tied →
+                          </a>
+                        </div>
+                        <p className="text-sm text-[var(--color-text-on-dark-muted)]">
+                          {r.knot.goodFor}
+                        </p>
+                        <ol className="list-decimal pl-5 space-y-1 text-sm text-[var(--color-text-on-dark)]">
+                          {r.knot.steps.map((s, i) => (
+                            <li key={i}>{s}</li>
+                          ))}
+                        </ol>
+                      </div>
+                    ),
+                )}
+                {rank.next?.knot && (
+                  <div className="rounded-lg border border-dashed border-white/15 p-5 text-sm text-[var(--color-text-on-dark-muted)]">
+                    next knot — <span className="text-[var(--color-text-on-dark)]">{rank.next.knot.name}</span>: {rank.toNext} knots to go.
+                  </div>
+                )}
+              </section>
+            )}
+
+            {/* credits (creaseworks reflection credits — distinct from knots) */}
+            {(creditBalance > 0 || ledger.length > 0) && (
             <section className="rounded-lg border border-white/10 bg-white/5 p-5">
               <div className="flex items-baseline justify-between gap-4">
                 <span className="text-sm text-[var(--color-text-on-dark-muted)]">
@@ -227,6 +309,7 @@ export default async function AccountPage() {
                 </ul>
               )}
             </section>
+            )}
 
             {/* owned */}
             <section className="space-y-3">
