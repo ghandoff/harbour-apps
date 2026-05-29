@@ -23,10 +23,21 @@ import { NextRequest } from "next/server";
  * const { GET, POST } = createAuthRouteHandler("creaseworks", authConfig);
  * export { GET, POST };
  * ```
+ *
+ * `options.authUrl` lets an app pin the canonical auth origin explicitly,
+ * overriding the `AUTH_URL` env var for host normalisation. Every Pool A
+ * app's auth subtree is reached at BOTH the apex (`windedvertigo.com`) and
+ * `www.windedvertigo.com` via direct CF Workers Routes; the handler rewrites
+ * the request origin to a single canonical host so magic-link emails, OAuth
+ * `redirect_uri`s, and post-signin redirects are all emitted on the same
+ * host. The canonical host MUST be the apex, because the shared Google OAuth
+ * client's redirect URIs are registered on the apex. Pass this when the
+ * worker's `AUTH_URL` secret can't be relied on to carry the apex host.
  */
 export function createAuthRouteHandler(
   appName: string,
   authConfig: NextAuthConfig,
+  options: { authUrl?: string } = {},
 ) {
   // Empty appName = harbour hub itself, mounted at /harbour (no sub-path).
   // Each non-empty appName produces /harbour/<sub>. Matches the basePath
@@ -41,9 +52,13 @@ export function createAuthRouteHandler(
       url.pathname = `${basePath}${url.pathname}`;
     }
 
-    // Replace origin with AUTH_URL if set (replicating what reqWithEnvURL does).
-    // Falls back through AUTH_URL → NEXTAUTH_URL → NEXT_PUBLIC_APP_URL.
+    // Replace origin with the canonical auth URL (replicating what
+    // reqWithEnvURL does). An explicit `options.authUrl` wins so an app can
+    // pin its canonical apex host even when the worker's AUTH_URL secret
+    // carries a different host (e.g. a stale `www.` value). Falls back
+    // through AUTH_URL → NEXTAUTH_URL → NEXT_PUBLIC_APP_URL.
     const authUrl =
+      options.authUrl ??
       process.env.AUTH_URL ??
       process.env.NEXTAUTH_URL ??
       process.env.NEXT_PUBLIC_APP_URL;
