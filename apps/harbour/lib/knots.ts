@@ -118,8 +118,10 @@ export const RANKS: Rank[] = [
     },
   },
   {
+    // top rank — distinct from the "harbourmaster" *access* tier (wv staff),
+    // so the achievement ladder doesn't collide with the identity tier.
     threshold: 600,
-    title: "harbourmaster",
+    title: "master mariner",
     knot: {
       name: "anchor bend",
       goodFor: "attaching a line to an anchor or a ring that takes a load.",
