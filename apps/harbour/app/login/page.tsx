@@ -85,7 +85,9 @@ function LoginInner() {
           <div className="bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-3 text-sm text-red-400 text-center">
             {error === "OAuthAccountNotLinked"
               ? "this email is already linked to another sign-in method."
-              : "something went wrong. please try again."}
+              : error === "Verification"
+                ? "that magic link has expired or was already used. request a new one below."
+                : "something went wrong. please try again."}
           </div>
         )}
 

@@ -8,11 +8,16 @@
  *
  * We pin ALL auth-flow cookies (including PKCE, state, nonce) to
  * `.windedvertigo.com`. Without this, Auth.js defaults leave them
- * host-scoped. Because the harbour hub's AUTH_URL uses www.windedvertigo.com
- * but the sign-in form is often reached via windedvertigo.com (no www),
- * PKCE/state cookies set for windedvertigo.com are not sent to
- * www.windedvertigo.com on the OAuth callback → CallbackRouteError →
- * ?error=Configuration.
+ * host-scoped — and because every Pool A app's auth subtree is reachable at
+ * both the apex `windedvertigo.com` and `www.windedvertigo.com`, a cookie
+ * set for one host would not be sent to the other on the callback →
+ * CallbackRouteError → ?error=Configuration. Domain-scoping makes the
+ * auth-flow cookies host-agnostic across the apex/www pair.
+ *
+ * Note: the route handler also normalises every auth request onto a single
+ * canonical apex origin (see `route-handler.ts`), so in practice the flow no
+ * longer hops hosts mid-handshake — but the domain scope is still required
+ * for cross-app SSO on `.windedvertigo.com`.
  */
 
 const isProduction = () => process.env.NODE_ENV === "production";
