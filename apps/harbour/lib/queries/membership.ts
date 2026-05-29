@@ -155,3 +155,38 @@ export async function saveProfile(
     [userId, JSON.stringify(prefs)],
   );
 }
+
+/** A single line in the credit ledger — earned or spent. */
+export interface CreditEntry {
+  createdAt: string;
+  delta: number; // +earned, -spent
+  label: string;
+  kind: "earn" | "spend";
+}
+
+/**
+ * Recent credit ledger for a user — earns (reflection_credits) and spends
+ * (credit_redemptions) interleaved, newest first. Read-only surface for the
+ * dashboard; the harbour earn/spend mechanics arrive with the economy phase.
+ */
+export async function getCreditLedger(
+  userId: string,
+  limit = 8,
+): Promise<CreditEntry[]> {
+  const r = await sql.query(
+    `SELECT created_at, amount AS delta, reason AS label, 'earn' AS kind
+       FROM reflection_credits WHERE user_id = $1
+     UNION ALL
+     SELECT created_at, -credits_spent AS delta, reward_type AS label, 'spend' AS kind
+       FROM credit_redemptions WHERE user_id = $1
+     ORDER BY created_at DESC
+     LIMIT $2`,
+    [userId, limit],
+  );
+  return r.rows.map((row) => ({
+    createdAt: row.created_at,
+    delta: Number(row.delta),
+    label: String(row.label ?? ""),
+    kind: row.kind as "earn" | "spend",
+  }));
+}
