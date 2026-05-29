@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { getProfile, saveProfile, isStaffEmail } from "@/lib/queries/membership";
 import { addToAudience, HARBOUR_MEMBERS_AUDIENCE } from "@/lib/resend-audience";
+import { awardKnots } from "@/lib/knots";
 
 /**
  * /harbour/api/profile
@@ -64,6 +65,10 @@ export async function POST(req: NextRequest) {
   if (!isStaffEmail(email)) {
     await addToAudience(HARBOUR_MEMBERS_AUDIENCE, email.toLowerCase().trim());
   }
+
+  // Welcome knots for joining the crew — once per member (idempotent), lands
+  // them at their first unlocked knot (the bowline). Best-effort; never blocks.
+  await awardKnots(session.userId, "profile_completed", 20, { once: true });
 
   return NextResponse.json(
     { ok: true },
