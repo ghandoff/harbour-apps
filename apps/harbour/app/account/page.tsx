@@ -22,6 +22,7 @@ import {
   getCreditBalance,
   getOwnedPacks,
   getAvailablePacks,
+  getProfile,
   type Pack,
 } from "@/lib/queries/membership";
 
@@ -73,12 +74,18 @@ export default async function AccountPage() {
   let creditBalance = 0;
   let owned: Pack[] = [];
   let available: Pack[] = [];
+  let onboardingCompleted = true;
   if (!staff && userId) {
-    [creditBalance, owned, available] = await Promise.all([
+    const [bal, own, avail, profile] = await Promise.all([
       getCreditBalance(userId),
       getOwnedPacks(userId),
       getAvailablePacks(userId),
+      getProfile(userId),
     ]);
+    creditBalance = bal;
+    owned = own;
+    available = avail;
+    onboardingCompleted = profile.onboardingCompleted;
   }
 
   return (
@@ -105,6 +112,27 @@ export default async function AccountPage() {
           </section>
         ) : (
           <>
+            {/* profile nudge — aboard → crew */}
+            {!onboardingCompleted && (
+              <section className="rounded-lg border border-[var(--wv-champagne)]/30 bg-[var(--wv-champagne)]/10 p-5 space-y-3">
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold text-[var(--wv-champagne)]">
+                    make the harbour yours
+                  </p>
+                  <p className="text-sm text-[var(--color-text-on-dark-muted)]">
+                    tell us a little about you and we&apos;ll point you at the
+                    right boats.
+                  </p>
+                </div>
+                <Link
+                  href="/harbour/profile"
+                  className="inline-block bg-[var(--wv-champagne)] text-[var(--wv-cadet)] font-semibold py-2 px-5 rounded-lg hover:opacity-90 transition-opacity text-sm"
+                >
+                  complete your profile →
+                </Link>
+              </section>
+            )}
+
             {/* credits */}
             <section className="rounded-lg border border-white/10 bg-white/5 p-5">
               <div className="flex items-baseline justify-between gap-4">

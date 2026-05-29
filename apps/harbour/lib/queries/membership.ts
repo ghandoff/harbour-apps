@@ -116,3 +116,42 @@ function toPack(row: any): Pack {
     currency: row.currency ?? "USD",
   };
 }
+
+/** A harbour member's profile state (shared `users` columns, no migration). */
+export interface HarbourProfile {
+  onboardingCompleted: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  playPreferences: Record<string, any> | null;
+}
+
+export async function getProfile(userId: string): Promise<HarbourProfile> {
+  const r = await sql.query(
+    "SELECT onboarding_completed, play_preferences FROM users WHERE id = $1",
+    [userId],
+  );
+  const row = r.rows[0];
+  return {
+    onboardingCompleted: !!row?.onboarding_completed,
+    playPreferences: row?.play_preferences ?? null,
+  };
+}
+
+/**
+ * Mark the profile complete and store preferences. This is the aboard→crew
+ * gateway: completing a profile flips `onboarding_completed` and records the
+ * role/interests in `play_preferences` (JSONB).
+ */
+export async function saveProfile(
+  userId: string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  prefs: Record<string, any>,
+): Promise<void> {
+  await sql.query(
+    `UPDATE users
+        SET onboarding_completed = TRUE,
+            play_preferences = $2::jsonb,
+            updated_at = NOW()
+      WHERE id = $1`,
+    [userId, JSON.stringify(prefs)],
+  );
+}
