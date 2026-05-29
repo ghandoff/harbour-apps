@@ -129,11 +129,11 @@ export default async function AccountPage() {
         {staff ? (
           <section className="rounded-lg border border-[var(--wv-champagne)]/30 bg-[var(--wv-champagne)]/10 p-5 space-y-2">
             <p className="text-sm font-semibold text-[var(--wv-champagne)]">
-              winded.vertigo staff — full access
+              harbourmaster — full access
             </p>
             <p className="text-sm text-[var(--color-text-on-dark-muted)]">
-              every app and package across the harbour is unlocked for your
-              account. nothing to buy here.
+              winded.vertigo crew. every app and package across the harbour is
+              unlocked for your account. nothing to buy here.
             </p>
           </section>
         ) : (
