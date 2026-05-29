@@ -83,6 +83,7 @@ export function PierSection({
               {games.map((game) => (
                 <li
                   key={game.slug}
+                  data-harbour-slug={game.slug}
                   className="
                     snap-start shrink-0
                     w-[18rem] sm:w-[20rem]

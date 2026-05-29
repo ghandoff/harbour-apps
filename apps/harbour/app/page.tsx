@@ -7,6 +7,7 @@ import { PierSection } from "@/components/pier-section";
 import { PierCTeaser } from "@/components/pier-c-teaser";
 import { DrydockWall } from "@/components/drydock-wall";
 import { FogOfWarSection } from "@/components/fog-of-war-section";
+import { HarbourGreeting } from "@/components/harbour-greeting";
 import {
   fetchGames,
   fetchCredibility,
@@ -75,6 +76,10 @@ export default async function HarbourPage() {
               {credibilityData.hero?.subtitle ??
                 "three piers, one harbour: tools for facilitators, classrooms, and families."}
             </p>
+
+            {/* Personalized greeting for signed-in users; hydrates client-side
+             * (the public hero above is unchanged for SEO/anon visitors). */}
+            <HarbourGreeting />
 
             <p className="text-sm text-[var(--color-text-on-dark-muted)] mb-10">
               <a href="/harbour/start" className="underline-offset-4 hover:underline">
