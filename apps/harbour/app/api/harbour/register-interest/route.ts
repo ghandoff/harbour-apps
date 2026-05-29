@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { addToAudience } from "@/lib/resend-audience";
 
 /**
  * POST /harbour/api/harbour/register-interest
@@ -52,9 +53,6 @@ function getResend(): Resend {
 
 const FROM = process.env.EMAIL_FROM ?? "noreply@windedvertigo.com";
 
-// audience_id cache (per worker instance) — avoids a list+find on every submit
-const audienceIdCache = new Map<string, string>();
-
 function isValidEmail(input: unknown): input is string {
   return (
     typeof input === "string" &&
@@ -68,26 +66,6 @@ function isValidContext(input: unknown): input is Context {
     typeof input === "string" &&
     Object.prototype.hasOwnProperty.call(AUDIENCE_BY_CONTEXT, input)
   );
-}
-
-async function resolveAudienceId(name: string): Promise<string> {
-  const cached = audienceIdCache.get(name);
-  if (cached) return cached;
-
-  const resend = getResend();
-  const list = await resend.audiences.list();
-  const existing = list.data?.data?.find((a) => a.name === name);
-  if (existing) {
-    audienceIdCache.set(name, existing.id);
-    return existing.id;
-  }
-
-  const created = await resend.audiences.create({ name });
-  if (!created.data?.id) {
-    throw new Error(`failed to create audience ${name}`);
-  }
-  audienceIdCache.set(name, created.data.id);
-  return created.data.id;
 }
 
 // ── rate limit ────────────────────────────────────────────
@@ -175,24 +153,14 @@ export async function POST(request: Request) {
   const audienceName = AUDIENCE_BY_CONTEXT[context];
 
   try {
-    const audienceId = await resolveAudienceId(audienceName);
-    const resend = getResend();
-
-    const contactResult = await resend.contacts.create({
-      audienceId,
-      email,
-      unsubscribed: false,
-    });
-    // "already exists" surfaces as a 4xx with name "validation_error" —
-    // we treat it as success since the contact is already in the audience.
-    if (contactResult.error && contactResult.error.name !== "validation_error") {
-      console.warn("[register-interest] contact create returned error:", contactResult.error);
+    const enrolled = await addToAudience(audienceName, email);
+    if (!enrolled) {
       notifySlack(
-        `contact create failed: ${contactResult.error.name} — ${contactResult.error.message}` +
-          ` (audience=${audienceName}, context=${context})`,
+        `contact enroll failed (audience=${audienceName}, context=${context})`,
       );
     }
 
+    const resend = getResend();
     const copy = CONFIRMATION_COPY[context];
     const subject = copy.subject;
     const text = appSlug
