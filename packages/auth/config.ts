@@ -7,6 +7,33 @@ import { harbourCookies } from "./cookies";
 import type { HarbourAuthOptions } from "./types";
 
 /**
+ * Build the Google provider with account-linking that actually works.
+ *
+ * `allowDangerousEmailAccountLinking` lets a Google sign-in link onto an
+ * existing user who first signed in via magic link (same email). next-auth
+ * nests provider options under `.options`, but `@auth/core`'s linking gate
+ * (handle-login) reads `provider.allowDangerousEmailAccountLinking` at the TOP
+ * level — and because our route handler calls `@auth/core`'s `Auth()` directly,
+ * the flag wasn't surfacing there, so Google sign-in for a magic-link email
+ * failed with `OAuthAccountNotLinked`. We set it explicitly at the top level so
+ * the gate honours it on the signed-out path too.
+ */
+function googleProvider(allowedEmailDomains?: string[]) {
+  const p = Google({
+    clientId: process.env.GOOGLE_CLIENT_ID!,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    allowDangerousEmailAccountLinking: true,
+    // Narrow the Google account-picker UI to the first allowed domain (hd hint).
+    // UX-only — actual enforcement is in the signIn callback.
+    ...(allowedEmailDomains?.length === 1
+      ? { authorization: { params: { hd: allowedEmailDomains[0] } } }
+      : {}),
+  });
+  (p as unknown as { allowDangerousEmailAccountLinking?: boolean }).allowDangerousEmailAccountLinking = true;
+  return p;
+}
+
+/**
  * Create a harbour auth config for a specific app.
  *
  * Each call returns a fresh NextAuthConfig with the shared adapter, cookies,
@@ -44,14 +71,7 @@ export function createHarbourAuth(options: HarbourAuthOptions) {
         apiKey: process.env.RESEND_API_KEY,
         from: process.env.EMAIL_FROM ?? "noreply@windedvertigo.com",
       }),
-      Google({
-        clientId: process.env.GOOGLE_CLIENT_ID!,
-        clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-        allowDangerousEmailAccountLinking: true,
-        // Narrow the Google account-picker UI to the first allowed domain (hd hint).
-        // This is UX-only — the actual enforcement is in the signIn callback below.
-        ...(allowedEmailDomains?.length === 1 ? { authorization: { params: { hd: allowedEmailDomains[0] } } } : {}),
-      }),
+      googleProvider(allowedEmailDomains),
     ],
 
     // Auth.js page paths.
