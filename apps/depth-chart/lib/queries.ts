@@ -185,3 +185,20 @@ export async function track_event(
     [user_id, event_type, JSON.stringify(metadata)]
   );
 }
+
+/**
+ * Count a user's task generations so far today — drives the per-user daily
+ * quota on /api/generate. Reads the existing `dc_usage_events` telemetry
+ * (event_type 'task_generated'), so no extra table is needed. Mirrors the
+ * `count_plans_this_month` pattern.
+ */
+export async function count_generations_today(user_id: string): Promise<number> {
+  const r = await sql.query(
+    `SELECT count(*) as cnt FROM dc_usage_events
+     WHERE user_id = $1
+       AND event_type = 'task_generated'
+       AND created_at >= date_trunc('day', now())`,
+    [user_id]
+  );
+  return parseInt(r.rows[0].cnt, 10);
+}
