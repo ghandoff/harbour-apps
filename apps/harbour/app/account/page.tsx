@@ -98,35 +98,26 @@ export default async function AccountPage() {
   let profileIntent: string[] = [];
   let knotsBalance = 0;
   let rank = rankFor(0);
-  if (!staff && userId) {
-    // Resilient: one failing read degrades its section instead of 500ing the
-    // whole dashboard, and logs which query failed (visible in `wrangler tail`).
-    const safe = async <T,>(label: string, p: Promise<T>, fallback: T): Promise<T> => {
-      try {
-        return await p;
-      } catch (err) {
-        console.error(`[account] ${label} failed:`, err);
-        return fallback;
-      }
-    };
-    const [bal, own, avail, profile, led, kBal, kEarned] = await Promise.all([
-      safe("getCreditBalance", getCreditBalance(userId), 0),
-      safe("getOwnedPacks", getOwnedPacks(userId), [] as Pack[]),
-      safe("getAvailablePacks", getAvailablePacks(userId), [] as Pack[]),
-      safe("getProfile", getProfile(userId), {
-        onboardingCompleted: false,
-        playPreferences: null,
-      }),
-      safe("getCreditLedger", getCreditLedger(userId), [] as CreditEntry[]),
-      safe("getKnotsBalance", getKnotsBalance(userId), 0),
-      safe("getKnotsEarned", getKnotsEarned(userId), 0),
-    ]);
-    knotsBalance = kBal;
-    rank = rankFor(kEarned);
-    creditBalance = bal;
-    owned = own;
-    available = avail;
-    ledger = led;
+  // Resilient: one failing read degrades its section instead of 500ing the
+  // whole dashboard, and logs which query failed (visible in `wrangler tail`).
+  const safe = async <T,>(label: string, p: Promise<T>, fallback: T): Promise<T> => {
+    try {
+      return await p;
+    } catch (err) {
+      console.error(`[account] ${label} failed:`, err);
+      return fallback;
+    }
+  };
+
+  // The profile (roles/intent) is personalization, not commerce — fetch it for
+  // EVERYONE signed in, including staff, so completing it isn't a dead-end for
+  // the harbourmaster. Without this, staff complete a profile and /account
+  // shows nothing back.
+  if (userId) {
+    const profile = await safe("getProfile", getProfile(userId), {
+      onboardingCompleted: false,
+      playPreferences: null,
+    });
     onboardingCompleted = profile.onboardingCompleted;
     const prefs = profile.playPreferences ?? {};
     // New shape { roles[], intent[] }; tolerate old { role, interests }.
@@ -142,6 +133,25 @@ export default async function AccountPage() {
         : [];
   }
 
+  // Commerce + engagement (credits, packs, knots) is customer-only — staff hold
+  // everything, so there's nothing to buy and no knots ladder to climb.
+  if (!staff && userId) {
+    const [bal, own, avail, led, kBal, kEarned] = await Promise.all([
+      safe("getCreditBalance", getCreditBalance(userId), 0),
+      safe("getOwnedPacks", getOwnedPacks(userId), [] as Pack[]),
+      safe("getAvailablePacks", getAvailablePacks(userId), [] as Pack[]),
+      safe("getCreditLedger", getCreditLedger(userId), [] as CreditEntry[]),
+      safe("getKnotsBalance", getKnotsBalance(userId), 0),
+      safe("getKnotsEarned", getKnotsEarned(userId), 0),
+    ]);
+    knotsBalance = kBal;
+    rank = rankFor(kEarned);
+    creditBalance = bal;
+    owned = own;
+    available = avail;
+    ledger = led;
+  }
+
   return (
     <main id="main" className="min-h-screen px-6 py-12">
       <div className="max-w-2xl mx-auto space-y-8">
@@ -154,7 +164,7 @@ export default async function AccountPage() {
           </p>
         </header>
 
-        {staff ? (
+        {staff && (
           <section className="rounded-lg border border-[var(--wv-champagne)]/30 bg-[var(--wv-champagne)]/10 p-5 space-y-2">
             <p className="text-sm font-semibold text-[var(--wv-champagne)]">
               harbourmaster — full access
@@ -164,10 +174,12 @@ export default async function AccountPage() {
               unlocked for your account. nothing to buy here.
             </p>
           </section>
-        ) : (
-          <>
-            {/* profile nudge — aboard → crew */}
-            {!onboardingCompleted && (
+        )}
+
+        {/* profile — personalization shown to EVERYONE signed in (staff + crew).
+            Completing it should never be a dead-end, even for the harbourmaster. */}
+        {/* profile nudge — aboard → crew */}
+        {!onboardingCompleted && (
               <section className="rounded-lg border border-[var(--wv-champagne)]/30 bg-[var(--wv-champagne)]/10 p-5 space-y-3">
                 <div className="space-y-1">
                   <p className="text-sm font-semibold text-[var(--wv-champagne)]">
@@ -224,6 +236,9 @@ export default async function AccountPage() {
               </section>
             )}
 
+        {/* commerce + engagement — customer-only (staff hold everything) */}
+        {!staff && (
+          <>
             {/* knots — the engagement currency */}
             <section className="rounded-lg border border-white/10 bg-white/5 p-5">
               <div className="flex items-baseline justify-between gap-4">
