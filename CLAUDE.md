@@ -158,7 +158,7 @@ tool can do this for you on request.
 - **next-auth pinned at 5.0.0-beta.30** — waiting for v5 stable. do NOT downgrade to v4. do NOT blindly bump beta.
 - **vertigo-vault local builds fail** — pre-rendering requires `NOTION_TOKEN`, which is set as a CF Worker secret on `wv-vault` (not in local `.env.local` by default — keeps token blast radius small). compilation succeeds; failure is at static generation. this is expected.
 - **smoke test**: `cd apps/creaseworks && node scripts/smoke-test.mjs https://windedvertigo.com/harbour/creaseworks` validates 29 routes.
-- **Next.js basePath gotcha**: `redirect()` auto-prepends basePath. never hardcode basePath in redirect targets or it doubles. use `redirect("/")` not `redirect("/harbour/creaseworks")`.
+- **Next.js basePath gotcha**: basePath is auto-prepended by `redirect()`, `<Link href>`, AND `router.push()` — never hardcode basePath in any of them or it doubles. use `redirect("/")` / `<Link href="/profile">` / `router.push("/")`, never `redirect("/harbour/creaseworks")` or `<Link href="/harbour/profile">` (the latter resolves to `/harbour/harbour/profile`, a silent 404). pass only the literal app-relative path; the framework adds the `/harbour/<app>` prefix. (bit the harbour `/account` profile links — fixed in #143.)
 - **security headers (HSTS + CSP)** defined in both `next.config.ts` (runtime) and `vercel.json` (edge CDN). keep them in sync.
 - **scaling interactive demos**: currently inline in site repo. at 5+ demos, migrate to Vercel rewrite proxy pattern (each demo as its own project).
 
