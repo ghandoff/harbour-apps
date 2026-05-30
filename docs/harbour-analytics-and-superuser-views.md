@@ -114,52 +114,99 @@ new dashboard UI). it deserves its own context budget. the superuser toggle
 ### ready-to-paste Opus handoff prompt
 
 ```
-You're working in windedvertigo/port — the winded.vertigo internal team
-ops hub (Next.js 16, Neon Postgres, next-auth v5, OpenNext on Cloudflare
-Workers; deploy via `npm run deploy:cf`). Read the repo's CLAUDE.md first,
-plus ../../harbour-apps/docs/harbour-analytics-and-superuser-views.md
-(the recommendation that scoped this) and
-../../harbour-apps/docs/deployment-topology.md.
+You are building a "harbour analytics" dashboard inside windedvertigo/port —
+the winded.vertigo internal team ops hub. GOAL: a harbour-wide overview AND
+per-app / per-pack drill-down (visitors, time-on-page, purchases, revenue,
+conversion, traffic per app, engagement) from ONE data model. Internal/team-only.
 
-GOAL: add a "harbour analytics" section to port's (dashboard) route group —
-a harbour-wide overview AND per-app drill-down, from one data model.
+FIRST, read: port's CLAUDE.md; ../../harbour-apps/CLAUDE.md (cost discipline +
+deployment topology); ../../harbour-apps/docs/harbour-analytics-and-superuser-views.md
+(the recommendation that scoped this); ../../harbour-apps/docs/deployment-topology.md.
 
-REUSE (don't reinvent): creaseworks already proves the pattern —
-harbour-apps/apps/creaseworks/src/app/analytics/analytics-dashboard.tsx
-(StatCards + hand-rolled FunnelChart) and lib/queries/analytics.ts
-(getAdminAnalytics: user growth, pack adoption, credit economy, conversion
-funnel). Generalise those aggregates from one app to all by adding an `app`
-dimension. Port has no charting lib beyond @base-ui/react — match creaseworks
-and hand-roll, or justify adding one.
+PORT STACK FACTS: Next.js 16, Neon (@neondatabase/serverless, pooled POSTGRES_URL),
+next-auth v5, OpenNext on Cloudflare Workers (deploy: `npm run deploy:cf`). UI lives
+in the app/(dashboard) route group, already auth-gated by (dashboard)/layout.tsx and
+navigated by app/components/sidebar.tsx (NavSection/NavItem). Charting: only
+@base-ui/react is present — creaseworks hand-rolls StatCard + FunnelChart; match that
+or justify adding Recharts. There's already an app/api/analytics/campaigns route
+(reads Notion) — your new harbour analytics reads Cloudflare + Neon, not Notion.
 
-BUILD, in three layers (see the doc):
-1. WEB ANALYTICS (L1) — visitors, time-on-page, traffic per app. Wire
-   Cloudflare Workers Analytics Engine: in each harbour app's worker.ts
-   (they already wrap responses with @windedvertigo/security), write one data
-   point per request — blob1=app slug, blob2=path, blob3=referrer,
-   double1=duration_ms. Add the analytics_engine binding to each wrangler.jsonc.
-   In port, query via the Analytics Engine SQL API
-   (/accounts/<id>/analytics_engine/sql) with GROUP BY blob1 for per-app and
-   rollups. Cookieless/privacy-first — that's the brand requirement.
-2. BUSINESS ANALYTICS (L2) — signups, purchases/revenue, conversion funnel,
-   knots engagement. Pure SQL over the shared Neon (system-of-record:
-   users, entitlements, packs, Stripe webhook events in
-   harbour-apps/apps/creaseworks/migrations/, harbour_knots in 056). Use the
-   pooled POSTGRES_URL. Every aggregate must accept an optional app filter.
-3. UI (L3) — a new (dashboard)/harbour page: harbour-wide overview (totals +
-   trend) plus an app-filter control that re-scopes every panel to one app.
-   Team-gated by the existing (dashboard)/layout.tsx auth (session required).
+ARCHITECTURE — one event stream tagged with an `app` dimension, so the SAME data
+yields both the harbour-wide rollup and per-app views (a WHERE/GROUP BY app). Do NOT
+build per-app silos. Three layers:
 
-CONSTRAINTS: respect harbour-apps/CLAUDE.md cost discipline — no new Vercel
-project, no third-party analytics SaaS; Analytics Engine + Neon only. Neon
-serverless = one statement per HTTP call. CF deploy is manual per app — adding
-the Analytics Engine binding means redeploying each harbour worker; list which
-apps you touched. Don't deploy production without the user's go-ahead.
+== L1 · WEB ANALYTICS (visitors, time, traffic per app) — Cloudflare Workers Analytics Engine ==
+Each harbour app is an OpenNext CF Worker whose worker.ts wraps OpenNext's handler with
+wrapWithSecurityHeaders() from @windedvertigo/security. Emit ONE data point per request
+from that shared wrapper (single code touchpoint for all ~30 apps), passing the app slug in.
+  - writeDataPoint shape:
+      env.HARBOUR_ANALYTICS.writeDataPoint({
+        blobs:   [appSlug, path, referrer, country],   // dimensions; consistent order; NO PII
+        doubles: [durationMs],                          // numeric (or [1] as a hit counter)
+        indexes: [appSlug],                             // EXACTLY ONE index (multiple = data dropped)
+      });
+    Do NOT await it. Keep blobs free of user ids/emails (cookieless, privacy-first — brand requirement).
+  - Binding per app wrangler.jsonc:
+      "analytics_engine_datasets": [{ "binding": "HARBOUR_ANALYTICS", "dataset": "harbour_web" }]
+  - Access binding via getCloudflareContext() — PRECEDENT in this repo:
+    harbour-apps/apps/harbour/app/api/admin/sync-tiles/route.ts (ctx.env.TILE_IMAGES).
+    In route handlers use `await getCloudflareContext({ async: true })`. The AE binding is
+    NOT available in local dev — the write MUST no-op gracefully when the binding is absent.
+  - COST OF L1: editing the shared @windedvertigo/security wrapper + adding the binding to each
+    wrangler.jsonc means REDEPLOYING ALL CF-routed harbour apps (~30 — see deployment-topology.md).
+    List exactly which apps you touched. This is the expensive part — sequence it last (see PHASING).
+  - Query from port via the AE SQL API:
+      POST https://api.cloudflare.com/client/v4/accounts/097c92553b268f8360b74f625f6d980a/analytics_engine/sql
+      Header: Authorization: Bearer <token with "Account Analytics: Read"> (store as a port secret, e.g. CF_ANALYTICS_TOKEN)
+      Columns: blob1..blob20, double1..double20, index1, _sample_interval, timestamp.
+      Counts MUST account for sampling: SELECT SUM(_sample_interval) ... (not COUNT()).
+      Averages: SUM(_sample_interval * double1) / SUM(_sample_interval).
+      Per-app: GROUP BY blob1. Time: WHERE timestamp > NOW() - INTERVAL '30' DAY.
 
-DELIVERABLES: migration(s) if any; the worker.ts + wrangler.jsonc edits (or a
-shared helper in @windedvertigo/security); port API routes under
-app/api/analytics/harbour/*; the (dashboard)/harbour UI; a short note on which
-app workers need redeploying to start emitting events.
+== L2 · BUSINESS ANALYTICS (signups, purchases, revenue, conversion, engagement) — SQL over the shared Neon ==
+System-of-record tables (in harbour-apps/apps/creaseworks/migrations/):
+  - users                      → signups / growth
+  - entitlements (038)         → active grants (who can access what), by pack_cache_id
+  - packs_catalogue, packs_cache + 050_harbour_commerce → packs_catalogue.app + product_type
+                                  ('pack'|'bundle'|'subscription'); purchases.app → CROSS-APP
+                                  purchase + revenue reporting by app (052 seeds the packs)
+  - reflection_credits, credit_redemptions (028) → credit economy
+  - harbour_knots (056)        → engagement ledger (earns by reason/app)
+  - stripe_webhook_events (054)→ payment events
+  - dc_usage_events (051)      → depth-chart product usage incl. 'task_generated' (also the cost-gate counter)
+Every aggregate takes an OPTIONAL app filter. Generalise creaseworks' getAdminAnalytics()
+(harbour-apps/apps/creaseworks/src/app/analytics/analytics-dashboard.tsx +
+lib/queries/analytics.ts) from one app to all, adding the `app` dimension. Neon serverless =
+one SQL statement per HTTP call.
+
+== L3 · UI — app/(dashboard)/harbour + a sidebar entry ==
+Harbour-wide overview (totals + 30-day trend) PLUS an app-filter control that re-scopes every
+panel to one app. Iterate the canonical catalogue:
+harbour-apps/packages/auth/harbour-apps-data.ts (HARBOUR_APPS — ~30 apps across piers
+'launch'/'repairs', many comingSoon). Reuse the StatCard + FunnelChart components from creaseworks.
+
+METRICS → SOURCE: visitors/uniques/sessions (L1) · time-on-page (L1 duration) ·
+purchases/revenue/conversion funnel (L2 purchases+entitlements+stripe) · traffic per app
+(L1 GROUP BY blob1 + the app filter) · engagement (L2 knots + dc_usage_events).
+
+CONSTRAINTS: CLAUDE.md cost discipline — NO new Vercel project, NO third-party analytics SaaS;
+Analytics Engine + Neon only. Team-gated by the existing (dashboard) auth. Do NOT deploy
+production without Garrett's explicit go-ahead.
+
+PHASING (each shippable): (1) L2 first — pure Neon reads, NO app redeploys, immediate value:
+the (dashboard)/harbour page with signups/purchases/revenue/knots + app filter. (2) Then L1 —
+the shared-wrapper writeDataPoint + per-app binding + the all-apps redeploy sweep + the port AE
+SQL client, adding visitors/time/traffic panels.
+
+DELIVERABLES: Neon aggregate queries (app-filterable) + port api/analytics/harbour/* routes;
+the (dashboard)/harbour UI + sidebar entry; the @windedvertigo/security wrapper AE write + each
+app's wrangler.jsonc binding + the list of workers to redeploy; a port AE SQL client (lib) +
+the CF_ANALYTICS_TOKEN secret/scope note; a short README documenting the dataset schema (what
+each blob/double means).
+
+CONFIRM WITH GARRETT BEFORE BUILDING: dataset name(s) (one 'harbour_web' vs per-pier);
+whether to emit per-app PRODUCT events (e.g. 'ran a session') beyond pageviews; charting lib
+(hand-roll vs add Recharts); retention/sampling expectations.
 ```
 
 ---
@@ -170,5 +217,3 @@ app workers need redeploying to start emitting events.
 - Cloudflare privacy-first web analytics (cookieless): https://blog.cloudflare.com/privacy-first-web-analytics/ · https://www.cloudflare.com/web-analytics/
 - Counterscale (self-hosted analytics on CF Workers, reference design): https://counterscale.dev/ · https://github.com/benvinegar/counterscale
 - user impersonation best practices (httpOnly actor token, banner, no escalation, read-only, audit): https://clerk.com/docs/guides/users/impersonation · https://github.com/nextauthjs/next-auth/discussions/2947
-</content>
-</invoke>
