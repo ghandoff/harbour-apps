@@ -91,14 +91,27 @@ export default async function AccountPage() {
   let knotsBalance = 0;
   let rank = rankFor(0);
   if (!staff && userId) {
+    // Resilient: one failing read degrades its section instead of 500ing the
+    // whole dashboard, and logs which query failed (visible in `wrangler tail`).
+    const safe = async <T,>(label: string, p: Promise<T>, fallback: T): Promise<T> => {
+      try {
+        return await p;
+      } catch (err) {
+        console.error(`[account] ${label} failed:`, err);
+        return fallback;
+      }
+    };
     const [bal, own, avail, profile, led, kBal, kEarned] = await Promise.all([
-      getCreditBalance(userId),
-      getOwnedPacks(userId),
-      getAvailablePacks(userId),
-      getProfile(userId),
-      getCreditLedger(userId),
-      getKnotsBalance(userId),
-      getKnotsEarned(userId),
+      safe("getCreditBalance", getCreditBalance(userId), 0),
+      safe("getOwnedPacks", getOwnedPacks(userId), [] as Pack[]),
+      safe("getAvailablePacks", getAvailablePacks(userId), [] as Pack[]),
+      safe("getProfile", getProfile(userId), {
+        onboardingCompleted: false,
+        playPreferences: null,
+      }),
+      safe("getCreditLedger", getCreditLedger(userId), [] as CreditEntry[]),
+      safe("getKnotsBalance", getKnotsBalance(userId), 0),
+      safe("getKnotsEarned", getKnotsEarned(userId), 0),
     ]);
     knotsBalance = kBal;
     rank = rankFor(kEarned);
