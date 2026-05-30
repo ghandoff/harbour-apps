@@ -8,17 +8,16 @@ import { awardKnots } from "@/lib/knots";
  * /harbour/api/profile
  *
  * GET  — current profile state for the signed-in user.
- * POST — save the profile (the aboard→crew gateway): records role + interests
- *        in play_preferences, flips onboarding_completed, and enrols non-staff
- *        members into the harbour-members Resend audience.
+ * POST — save the profile (the aboard→crew gateway): records roles + intent
+ *        (both multi-select) in play_preferences, flips onboarding_completed,
+ *        and enrols non-staff members into the harbour-members Resend audience.
  *
  * Session-dependent → never cache.
  */
 export const dynamic = "force-dynamic";
 
-const ROLES = ["facilitator", "educator", "parent-caregiver"] as const;
-const INTERESTS = ["leadership", "classroom", "family"] as const;
-type Role = (typeof ROLES)[number];
+const ROLES = ["facilitator", "educator", "parent-caregiver", "explorer"] as const;
+const INTENT = ["run-session", "rethink-assessment", "play-family", "get-inspired"] as const;
 
 export async function GET() {
   const session = await auth();
@@ -39,24 +38,27 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
-  let body: { role?: unknown; interests?: unknown };
+  let body: { roles?: unknown; intent?: unknown };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "invalid json" }, { status: 400 });
   }
 
-  // Validate against the known taxonomy (mirrors the /start persona picker).
-  if (!ROLES.includes(body.role as Role)) {
-    return NextResponse.json({ error: "invalid role" }, { status: 400 });
+  // Validate against the known taxonomy; both are multi-select.
+  const roles = Array.isArray(body.roles)
+    ? body.roles.filter((r): r is string => ROLES.includes(r as never))
+    : [];
+  if (roles.length === 0) {
+    return NextResponse.json({ error: "pick at least one role" }, { status: 400 });
   }
-  const interests = Array.isArray(body.interests)
-    ? body.interests.filter((i): i is string => INTERESTS.includes(i as never))
+  const intent = Array.isArray(body.intent)
+    ? body.intent.filter((i): i is string => INTENT.includes(i as never))
     : [];
 
   await saveProfile(session.userId, {
-    role: body.role,
-    interests,
+    roles,
+    intent,
     completedAt: new Date().toISOString(),
   });
 
