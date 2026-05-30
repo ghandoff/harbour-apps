@@ -23,9 +23,14 @@ export default async function ProfilePage() {
 
   const profile = await getProfile(session.userId);
   const prefs = profile.playPreferences ?? {};
-  const initialRole = typeof prefs.role === "string" ? prefs.role : null;
-  const initialInterests = Array.isArray(prefs.interests)
-    ? (prefs.interests as string[])
+  // New shape is { roles[], intent[] }; tolerate the old { role, interests }.
+  const initialRoles = Array.isArray(prefs.roles)
+    ? (prefs.roles as string[])
+    : typeof prefs.role === "string"
+      ? [prefs.role]
+      : [];
+  const initialIntent = Array.isArray(prefs.intent)
+    ? (prefs.intent as string[])
     : [];
 
   return (
@@ -47,8 +52,8 @@ export default async function ProfilePage() {
         </header>
 
         <ProfileForm
-          initialRole={initialRole}
-          initialInterests={initialInterests}
+          initialRoles={initialRoles}
+          initialIntent={initialIntent}
         />
 
         <div className="text-center">

@@ -34,9 +34,17 @@ export const dynamic = "force-dynamic";
 
 // Display labels for the profile role values (mirrors the /start taxonomy).
 const ROLE_LABELS: Record<string, string> = {
-  facilitator: "a workshop facilitator",
-  educator: "a higher-ed educator",
-  "parent-caregiver": "a parent or play-based educator",
+  facilitator: "facilitator",
+  educator: "higher-ed educator",
+  "parent-caregiver": "parent / play-based educator",
+  explorer: "explorer",
+};
+
+const INTENT_LABELS: Record<string, string> = {
+  "run-session": "run a session",
+  "rethink-assessment": "rethink assessment",
+  "play-family": "play with my kid",
+  "get-inspired": "get inspired",
 };
 
 function formatPrice(cents: number | null, currency: string): string | null {
@@ -86,8 +94,8 @@ export default async function AccountPage() {
   let available: Pack[] = [];
   let ledger: CreditEntry[] = [];
   let onboardingCompleted = true;
-  let profileRole: string | null = null;
-  let profileInterests: string[] = [];
+  let profileRoles: string[] = [];
+  let profileIntent: string[] = [];
   let knotsBalance = 0;
   let rank = rankFor(0);
   if (!staff && userId) {
@@ -121,10 +129,17 @@ export default async function AccountPage() {
     ledger = led;
     onboardingCompleted = profile.onboardingCompleted;
     const prefs = profile.playPreferences ?? {};
-    profileRole = typeof prefs.role === "string" ? prefs.role : null;
-    profileInterests = Array.isArray(prefs.interests)
-      ? (prefs.interests as string[])
-      : [];
+    // New shape { roles[], intent[] }; tolerate old { role, interests }.
+    profileRoles = Array.isArray(prefs.roles)
+      ? (prefs.roles as string[])
+      : typeof prefs.role === "string"
+        ? [prefs.role]
+        : [];
+    profileIntent = Array.isArray(prefs.intent)
+      ? (prefs.intent as string[])
+      : Array.isArray(prefs.interests)
+        ? (prefs.interests as string[])
+        : [];
   }
 
   return (
@@ -173,7 +188,7 @@ export default async function AccountPage() {
             )}
 
             {/* profile summary — for completed crew */}
-            {onboardingCompleted && (profileRole || profileInterests.length > 0) && (
+            {onboardingCompleted && (profileRoles.length > 0 || profileIntent.length > 0) && (
               <section className="rounded-lg border border-white/10 bg-white/5 p-5 space-y-3">
                 <div className="flex items-baseline justify-between gap-4">
                   <h2 className="text-sm font-semibold text-[var(--color-text-on-dark)]">
@@ -186,22 +201,22 @@ export default async function AccountPage() {
                     edit →
                   </Link>
                 </div>
-                {profileRole && (
+                {profileRoles.length > 0 && (
                   <p className="text-sm text-[var(--color-text-on-dark-muted)]">
                     sailing as{" "}
                     <span className="text-[var(--color-text-on-dark)]">
-                      {ROLE_LABELS[profileRole] ?? profileRole}
+                      {profileRoles.map((r) => ROLE_LABELS[r] ?? r).join(", ")}
                     </span>
                   </p>
                 )}
-                {profileInterests.length > 0 && (
+                {profileIntent.length > 0 && (
                   <div className="flex flex-wrap gap-2">
-                    {profileInterests.map((i) => (
+                    {profileIntent.map((i) => (
                       <span
                         key={i}
                         className="rounded-full border border-white/15 px-3 py-1 text-xs text-[var(--color-text-on-dark)]"
                       >
-                        {i}
+                        {INTENT_LABELS[i] ?? i}
                       </span>
                     ))}
                   </div>
