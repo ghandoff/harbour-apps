@@ -1,6 +1,5 @@
 import { Inter } from "next/font/google";
 import type { Metadata } from "next";
-import { Analytics } from "@vercel/analytics/next";
 import { auth } from "@/lib/auth";
 import AuthSessionProvider from "@/components/session-provider";
 import { HarbourNav } from "@windedvertigo/auth/harbour-nav";
@@ -47,7 +46,6 @@ export default async function PaperTrailLayout({
           {children}
           <FeedbackWidget appSlug="paper-trail" />
         </AuthSessionProvider>
-        <Analytics />
       </body>
     </html>
   );

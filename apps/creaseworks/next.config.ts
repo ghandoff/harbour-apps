@@ -40,7 +40,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline'",
               "font-src 'self'",
               "img-src 'self' data: https:",
-              "connect-src 'self' https://api.stripe.com https://vitals.vercel-insights.com",
+              "connect-src 'self' https://api.stripe.com",
               "frame-src https://js.stripe.com",
               "worker-src 'self'",
               "base-uri 'self'",
