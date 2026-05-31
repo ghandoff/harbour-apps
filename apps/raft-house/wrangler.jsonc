@@ -5,6 +5,7 @@
   "account_id": "097c92553b268f8360b74f625f6d980a",
   "compatibility_date": "2025-04-01",
   "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
 
   "assets": {
     "directory": ".open-next/assets",
@@ -15,6 +16,43 @@
     {
       "binding": "WORKER_SELF_REFERENCE",
       "service": "wv-harbour-raft-house"
+    }
+  ],
+
+  // PartyServer Durable Object for live rooms. `class_name` must match the
+  // exported class in worker.ts. PartyServer's routePartykitRequest derives the
+  // URL namespace from the binding name by camelCase→kebab-case, so binding
+  // "RaftRoom" → URL segment "raft-room" in /harbour/raft-house/parties/raft-room/<code>.
+  "durable_objects": {
+    "bindings": [
+      { "name": "RaftRoom", "class_name": "RaftRoom" }
+    ]
+  },
+
+  // SQLite-backed DOs (PartyServer's expected storage mode). Tag is permanent —
+  // never rename. Adding new DO classes later means appending a new migration
+  // entry with a new tag, not editing v1.
+  "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["RaftRoom"] }
+  ],
+
+  // Direct CF Workers Routes for the /parties/* WebSocket subtree only.
+  // Same pattern as apps/harbour/wrangler.jsonc carving out /api/auth: Next.js
+  // rewrites in wv-site (the site router Worker) cannot reliably forward
+  // WebSocket upgrades, so we send /harbour/raft-house/parties/* directly to
+  // this Worker. CF picks the most-specific matching route per request, so
+  // these win over wv-site's broader `windedvertigo.com/*` route. All other
+  // /harbour/raft-house/* traffic still flows through wv-site's rewrite.
+  // workers_dev:true above keeps wv-harbour-raft-house.windedvertigo.workers.dev
+  // reachable so the wv-site proxy can still target non-parties paths.
+  "routes": [
+    {
+      "pattern": "windedvertigo.com/harbour/raft-house/parties/*",
+      "zone_id": "3b70c2ddcf9976faccb01d37ccf2e1ee"
+    },
+    {
+      "pattern": "www.windedvertigo.com/harbour/raft-house/parties/*",
+      "zone_id": "3b70c2ddcf9976faccb01d37ccf2e1ee"
     }
   ]
 
