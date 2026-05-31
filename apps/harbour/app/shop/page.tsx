@@ -2,24 +2,25 @@
  * /harbour/shop — the central harbour storefront, as boats moored at piers.
  *
  * Each sellable pack is rendered as a "boat" card wearing its app's own accent
- * colour, moored at its content pier (leadership / classroom / family) — the
- * same three-pier taxonomy the hub landing page uses (PIER_MAP in pier-data.ts).
- * This echoes the hub's bobbing-boats scene instead of the old generic dark
- * list. Non-extractive by design: honest prices, no fake urgency, a quiet
- * "a fit for you" pennant for boats that match your role, and a "take a look"
- * link so you can visit a boat before bringing it aboard.
+ * colour, moored at its harbour pier (launch = live on the harbour today,
+ * repairs = in the yard / coming soon) — the same pier field the canonical
+ * HARBOUR_APPS registry carries. This echoes the hub's bobbing-boats scene
+ * instead of the old generic dark list. Non-extractive by design: honest
+ * prices, no fake urgency, a quiet "a fit for you" pennant for boats that match
+ * your role, and a "take a look" link so you can visit a boat before bringing
+ * it aboard.
  *
- * Boat identity (accent / tagline / display label / href) comes from the
- * canonical HARBOUR_APPS registry; pier grouping from PIER_MAP. Sellable packs
- * + ownership come from the shared catalogue (getAvailablePacks already excludes
- * what the signed-in user owns; owned boats show separately as "docked").
+ * Boat identity (accent / tagline / display label / href / pier) all comes from
+ * the canonical HARBOUR_APPS registry. Sellable packs + ownership come from the
+ * shared catalogue (getAvailablePacks already excludes what the signed-in user
+ * owns; owned boats show separately as "docked").
  *
  * Deep-link: /harbour/shop?app=<slug> narrows to one app.
  */
 
 import type { CSSProperties } from "react";
 import Link from "next/link";
-import { HARBOUR_APPS } from "@windedvertigo/auth/harbour-apps-data";
+import { HARBOUR_APPS, type Pier } from "@windedvertigo/auth/harbour-apps-data";
 import { auth } from "@/lib/auth";
 import {
   getAvailablePacks,
@@ -28,7 +29,7 @@ import {
   isStaffEmail,
   type Pack,
 } from "@/lib/queries/membership";
-import { PIER_MAP, recommendFromRoles, type Pier } from "@/lib/pier-data";
+import { recommendFromRoles } from "@/lib/pier-data";
 import { BuyButton } from "./buy-button";
 
 export const dynamic = "force-dynamic";
@@ -39,39 +40,34 @@ interface BoatMeta {
   tagline: string;
   label: string;
   href: string;
+  pier: Pier;
 }
 const BOATS = new Map<string, BoatMeta>(
   HARBOUR_APPS.map((a) => [
     a.key,
-    { accent: a.accent, tagline: a.tagline, label: a.label, href: a.href },
+    {
+      accent: a.accent,
+      tagline: a.tagline,
+      label: a.label,
+      href: a.href,
+      pier: a.pier,
+    },
   ]),
 );
 
 /** The piers a shopper browses, in order, with their sign + audience copy. */
 const PIERS: { id: Pier; sign: string; sub: string; audience: string }[] = [
   {
-    id: "leadership",
-    sign: "leadership",
-    sub: "for facilitators & leaders",
-    audience: "tools for workshops, teams, and grown-up rooms.",
+    id: "launch",
+    sign: "launch pier",
+    sub: "live on the harbour",
+    audience: "boats sailing today — bring one aboard and go.",
   },
   {
-    id: "classroom",
-    sign: "classroom",
-    sub: "for the classroom",
-    audience: "the same tools, sized for students and courses.",
-  },
-  {
-    id: "family",
-    sign: "family",
-    sub: "for families & play",
-    audience: "cards, decks, and games for playing together.",
-  },
-  {
-    id: "drydock",
-    sign: "dry dock",
-    sub: "newly fitted out",
-    audience: "boats not yet assigned a pier — take a look.",
+    id: "repairs",
+    sign: "repairs pier",
+    sub: "in the yard",
+    audience: "boats being fitted out — available now, more polish on the way.",
   },
 ];
 
@@ -88,9 +84,9 @@ function formatPrice(cents: number | null, currency: string): string | null {
   }
 }
 
-/** The pier a pack moors at: its app's first PIER_MAP entry, else dry dock. */
+/** The pier a pack moors at: its app's pier in the registry, else repairs. */
 function pierFor(app: string): Pier {
-  return PIER_MAP[app]?.[0] ?? "drydock";
+  return BOATS.get(app)?.pier ?? "repairs";
 }
 
 export default async function ShopPage({
