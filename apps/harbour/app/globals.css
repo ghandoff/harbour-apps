@@ -272,3 +272,66 @@ html {
 /* Defensive: if JS never runs (no-JS browsers, screen readers), the
  * default state has no data-fog-state attribute and renders fully lit.
  * The transition is also a no-op without state changes. */
+
+/* ── shop: boats moored at their piers ─────────────────────────── */
+/* The storefront renders each sellable pack as a "boat" card moored at
+ * its content pier (leadership / classroom / family), echoing the hub's
+ * bobbing-boats scene. Each boat wears its app's own accent colour
+ * (passed inline via --boat-accent) instead of the old monochrome.
+ *
+ * Brand constraints honoured: cadet stays the page water; the accent is
+ * a low-opacity hull tint + a solid mooring bar, never a full fill that
+ * would fight text contrast; all copy lowercase. */
+
+.boat-card {
+  /* Faint hull tint from the boat's accent over the cadet water, plus a
+   * solid accent "mooring line" down the left edge. The accent is a hex
+   * passed inline as --boat-accent; color-mix keeps the tint subtle so
+   * white text stays AAA on the near-cadet surface. */
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--boat-accent, #ffffff) 14%, transparent),
+      color-mix(in srgb, var(--boat-accent, #ffffff) 4%, transparent)
+    ),
+    var(--color-surface-raised);
+  border: 1px solid color-mix(in srgb, var(--boat-accent, #ffffff) 28%, transparent);
+  border-left: 3px solid var(--boat-accent, rgba(255, 255, 255, 0.4));
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.boat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* Gentle bob — a slow vertical drift so the moored boats feel afloat.
+ * Desync per card via inline animation-delay so the pier isn't a chorus
+ * line. Opt-in only: gated behind prefers-reduced-motion: no-preference. */
+@keyframes boat-bob {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-5px); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .boat-bob {
+    animation: boat-bob 7s ease-in-out infinite;
+  }
+  /* On hover the lift takes over from the bob (no fighting transforms). */
+  .boat-bob:hover {
+    animation-play-state: paused;
+  }
+}
+
+/* A small brass price tag — warm metal against the cadet water. */
+.price-tag {
+  color: var(--color-accent-on-dark);
+  font-variant-numeric: tabular-nums;
+}
+
+/* "a fit for you" pennant — a quiet recommendation flag, never pushy. */
+.fit-pennant {
+  background: color-mix(in srgb, var(--wv-champagne) 16%, transparent);
+  color: var(--wv-champagne);
+  border: 1px solid color-mix(in srgb, var(--wv-champagne) 32%, transparent);
+}

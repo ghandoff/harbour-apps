@@ -1,23 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { getOwnedPacks, getProfile, isStaffEmail } from "@/lib/queries/membership";
-import { PIER_MAP, type Pier } from "@/lib/pier-data";
-
-/** Profile role → the pier(s) that role steers toward. "explorer" is broad. */
-const ROLE_PIERS: Record<string, Pier[]> = {
-  facilitator: ["leadership"],
-  educator: ["classroom"],
-  "parent-caregiver": ["family"],
-};
-
-/** App slugs whose pier matches any of the user's role-piers. */
-function recommendFromRoles(roles: string[]): string[] {
-  const target = new Set<Pier>(roles.flatMap((r) => ROLE_PIERS[r] ?? []));
-  if (target.size === 0) return [];
-  return Object.entries(PIER_MAP)
-    .filter(([, piers]) => piers.some((p) => target.has(p)))
-    .map(([slug]) => slug);
-}
+import { recommendFromRoles } from "@/lib/pier-data";
 
 /**
  * GET /harbour/api/me

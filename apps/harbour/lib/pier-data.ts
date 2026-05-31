@@ -35,6 +35,31 @@ export const PIER_MAP: Record<string, Pier[]> = {
   "deep-deck": ["family"],
 };
 
+/**
+ * Profile role → the content pier(s) that role steers toward. Used to gently
+ * recommend boats that fit a member's stated role (recognition, not upsell):
+ *   facilitator → leadership, educator → classroom, parent → family.
+ * "explorer" / unset stays broad (no targeting).
+ */
+export const ROLE_PIERS: Record<string, Pier[]> = {
+  facilitator: ["leadership"],
+  educator: ["classroom"],
+  "parent-caregiver": ["family"],
+};
+
+/**
+ * App slugs whose content pier matches any of the user's role-piers. Shared by
+ * the signed-in hub (`/api/me`) and the shop's "a fit for you" highlighting so
+ * both surfaces recommend the same boats from one source of truth.
+ */
+export function recommendFromRoles(roles: string[]): string[] {
+  const target = new Set<Pier>(roles.flatMap((r) => ROLE_PIERS[r] ?? []));
+  if (target.size === 0) return [];
+  return Object.entries(PIER_MAP)
+    .filter(([, piers]) => piers.some((p) => target.has(p)))
+    .map(([slug]) => slug);
+}
+
 export const WAVE_MAP: Record<string, Wave> = {
   "vertigo-vault": "wave-1",
   "lines-become-loops": "wave-1",

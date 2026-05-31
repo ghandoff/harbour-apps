@@ -11,7 +11,8 @@
     ".": "./index.ts",
     "./route-handler": "./route-handler.ts",
     "./types": "./types.ts",
-    "./harbour-nav": "./harbour-nav.tsx"
+    "./harbour-nav": "./harbour-nav.tsx",
+    "./harbour-apps-data": "./harbour-apps-data.ts"
   },
   "files": [
     "index.ts",
@@ -20,7 +21,8 @@
     "cookies.ts",
     "route-handler.ts",
     "types.ts",
-    "harbour-nav.tsx"
+    "harbour-nav.tsx",
+    "harbour-apps-data.ts"
   ],
   "peerDependencies": {
     "@auth/core": "^0.41.0",

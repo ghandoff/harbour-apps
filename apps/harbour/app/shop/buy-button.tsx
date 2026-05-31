@@ -44,15 +44,16 @@ export function BuyButton({
   }
 
   return (
-    <div className="flex flex-col items-end gap-1">
+    <div className="flex flex-col items-start gap-1">
       <button
         onClick={buy}
         disabled={loading}
-        className="shrink-0 rounded-lg bg-[var(--wv-champagne)] text-[var(--wv-cadet)] font-semibold text-sm py-2 px-4 hover:opacity-90 transition-opacity disabled:opacity-50"
+        className="inline-flex items-center gap-2 shrink-0 rounded-full bg-[var(--wv-sienna)] text-[var(--color-text-on-dark)] font-semibold text-sm py-1.5 px-3.5 border border-white/10 hover:brightness-110 transition-all disabled:opacity-50"
       >
-        {loading ? "…" : label}
+        {loading ? "casting off…" : label}
+        {!loading && <span aria-hidden="true">&rarr;</span>}
       </button>
-      {error && <p className="text-xs text-red-400 max-w-[12rem] text-right">{error}</p>}
+      {error && <p className="text-xs text-red-400 max-w-[12rem]">{error}</p>}
     </div>
   );
 }
