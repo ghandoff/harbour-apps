@@ -11,8 +11,13 @@ export interface Notification {
   timestamp: number;
 }
 
-const PARTYKIT_HOST =
-  process.env.NEXT_PUBLIC_PARTYKIT_HOST || "localhost:1999";
+// PartyServer connection path. The server runs on the same Worker as the Next
+// app behind a direct CF Workers Route at /harbour/raft-house/parties/*, so we
+// connect same-origin. The path segments after "parties" are:
+//   raft-room  →  the DO binding name (camelCase→kebab-case of "RaftRoom"),
+//                 picked up by partyserver's routePartykitRequest
+//   <roomCode> →  passed to idFromName(name), so one DO instance per room code
+const PARTY_PATH_PREFIX = "/harbour/raft-house/parties/raft-room";
 
 interface UsePartyOptions {
   roomCode: string;
@@ -45,12 +50,12 @@ export function useParty({ roomCode, role, name, participantRole }: UsePartyOpti
     if (!roomCode) return;
     if (failed) return;
 
-    const protocol = PARTYKIT_HOST.startsWith("localhost") ? "ws" : "wss";
+    const protocol = window.location.protocol === "https:" ? "wss" : "ws";
     const params = new URLSearchParams({ role });
     if (name) params.set("name", name);
     if (participantRole) params.set("participantRole", participantRole);
 
-    const url = `${protocol}://${PARTYKIT_HOST}/party/${roomCode}?${params}`;
+    const url = `${protocol}://${window.location.host}${PARTY_PATH_PREFIX}/${roomCode}?${params}`;
     const ws = new WebSocket(url);
     wsRef.current = ws;
 
