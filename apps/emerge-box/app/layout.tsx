@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { Analytics } from "@vercel/analytics/next";
 import { auth } from "@/lib/auth";
 import AuthSessionProvider from "@/components/session-provider";
 import { FeedbackWidget } from "@windedvertigo/feedback";
@@ -43,7 +42,6 @@ export default async function EmergeBoxLayout({
           {children}
         </AuthSessionProvider>
         <FeedbackWidget appSlug="emerge-box" />
-        <Analytics />
       </body>
     </html>
   );

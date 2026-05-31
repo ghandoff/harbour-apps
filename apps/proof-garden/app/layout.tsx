@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { Analytics } from "@vercel/analytics/next";
 import { auth } from "@/lib/auth";
 import AuthSessionProvider from "@/components/session-provider";
 import { FeedbackWidget } from "@windedvertigo/feedback";
@@ -45,7 +44,6 @@ export default async function ProofGardenLayout({
           {children}
         </AuthSessionProvider>
         <FeedbackWidget appSlug="proof-garden" />
-        <Analytics />
       </body>
     </html>
   );

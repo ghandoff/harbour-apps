@@ -1,6 +1,5 @@
 import { Inter } from "next/font/google";
 import type { Metadata } from "next";
-import { Analytics } from "@vercel/analytics/next";
 import { FeedbackWidget } from "@windedvertigo/feedback";
 import AuthSessionProvider from "@/components/session-provider";
 import "./globals.css";
@@ -86,7 +85,6 @@ export default function RootLayout({
           </a>
           {children}
           <FeedbackWidget appSlug="harbour" />
-          <Analytics />
         </AuthSessionProvider>
       </body>
     </html>

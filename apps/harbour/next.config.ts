@@ -27,7 +27,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline'",
               "font-src 'self'",
               "img-src 'self' data: https:",
-              "connect-src 'self' https://vitals.vercel-insights.com https://api.notion.com",
+              "connect-src 'self' https://api.notion.com",
               "frame-src 'self' https://www.youtube.com",
               "worker-src 'self'",
               "base-uri 'self'",
