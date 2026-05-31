@@ -15,7 +15,15 @@ export function getStripe(): Stripe {
     if (!key) {
       throw new Error("STRIPE_SECRET_KEY is not set");
     }
-    _stripe = new Stripe(key);
+    // CRITICAL on Cloudflare Workers: the Stripe SDK defaults to Node's `http`
+    // module, which doesn't exist on Workers — every API call then fails with
+    // "An error occurred with our connection to Stripe." Use the fetch-based
+    // HTTP client (global fetch is available on Workers). Webhook signature
+    // verification already uses constructEventAsync (Workers-safe), so this is
+    // the remaining piece for outbound calls (checkout sessions, customers).
+    _stripe = new Stripe(key, {
+      httpClient: Stripe.createFetchHttpClient(),
+    });
   }
   return _stripe;
 }
