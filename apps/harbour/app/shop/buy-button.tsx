@@ -21,7 +21,10 @@ export function BuyButton({
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/checkout", {
+      // NB: fetch() does NOT get Next's basePath auto-prepend (only Link/
+      // router/redirect do) — so the /harbour prefix is explicit here, matching
+      // the convention in profile-form.tsx etc.
+      const res = await fetch("/harbour/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
