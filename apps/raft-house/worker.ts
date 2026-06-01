@@ -33,17 +33,53 @@ import openNextHandler, {
   BucketCachePurge,
 } from "./.open-next/worker.js";
 
-import {
-  wrapWithSecurityHeaders,
-  HARBOUR_DEFAULT_CSP,
-} from "@windedvertigo/security";
+import { wrapWithSecurityHeaders } from "@windedvertigo/security";
 
 import { RaftRoom } from "./party/room";
 
 export { DOQueueHandler, DOShardedTagCache, BucketCachePurge, RaftRoom };
 
+/**
+ * raft-house-specific Content-Security-Policy.
+ *
+ * Mirrors what apps/raft-house/next.config.ts declares in `async headers()`,
+ * because OpenNext-on-Cloudflare-Workers does NOT honour Next.js
+ * `next.config.ts headers()` — those rules are translated by Vercel's edge
+ * at build time, not by the CF Worker. The @windedvertigo/security wrapper
+ * is the runtime path for headers on CF; we pass this CSP to it instead of
+ * HARBOUR_DEFAULT_CSP because raft-house has app-specific allowances that
+ * other CF-routed harbour apps don't:
+ *
+ *   - https://js.stripe.com           — Stripe.js loader (checkout flow)
+ *   - https://api.stripe.com          — Stripe API calls from the client
+ *   - https://accounts.google.com     — Google OAuth (sign-in popup + form)
+ *   - wss://windedvertigo.com         — PartyServer real-time on apex
+ *   - wss://www.windedvertigo.com     — PartyServer real-time on www
+ *
+ * `'self'` covers same-origin wss:// in modern browsers, but listing the
+ * explicit wss: origins is defence-in-depth against older user agents that
+ * don't apply 'self' to the ws/wss scheme.
+ *
+ * The base allowances (windedvertigo.com origins for harbour-nav-widget +
+ * feedback-widget; api.notion.com for the CMS-content fetch) match
+ * HARBOUR_DEFAULT_CSP from @windedvertigo/security.
+ */
+const RAFT_HOUSE_CSP: string = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline' https://windedvertigo.com https://www.windedvertigo.com https://js.stripe.com",
+  "style-src 'self' 'unsafe-inline'",
+  "font-src 'self'",
+  "img-src 'self' data: https:",
+  "connect-src 'self' https://api.notion.com https://windedvertigo.com https://www.windedvertigo.com https://api.stripe.com https://accounts.google.com wss://windedvertigo.com wss://www.windedvertigo.com",
+  "frame-src 'self' https://www.youtube.com https://js.stripe.com https://accounts.google.com",
+  "frame-ancestors 'none'",
+  "worker-src 'self'",
+  "base-uri 'self'",
+  "form-action 'self' https://accounts.google.com",
+].join("; ");
+
 const nextHandler = wrapWithSecurityHeaders(openNextHandler, {
-  csp: HARBOUR_DEFAULT_CSP,
+  csp: RAFT_HOUSE_CSP,
   skipPaths: [/^\/cdn-cgi\//],
 });
 
