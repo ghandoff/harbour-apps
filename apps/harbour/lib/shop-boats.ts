@@ -24,6 +24,22 @@ const BOAT_SVG: Record<string, string> = {
   creaseworks: `${BP}/harbour-preview/crease-works.svg`,
 };
 
+/**
+ * Apps with a bespoke maritime-flag icon in public/icons/ (rasterised from
+ * Payton's SVGs — see scripts/gen-app-icons.mjs). These fly on the boat's flag
+ * and big on the "at the dock" pennant. Apps without one fall back to the tile
+ * thumbnail.
+ */
+const APP_ICON = new Set<string>([
+  "vertigo-vault",
+  "co-rubric-companion",
+  "cuts-catalogue",
+  "lines-become-loops",
+  "read-the-room",
+  "regenerative-practices-catalogue",
+  "values-companion",
+]);
+
 export interface ShopBoat {
   slug: string;
   label: string;
@@ -31,7 +47,7 @@ export interface ShopBoat {
   tagline: string;
   /** bespoke boat SVG url, or null → procedural fallback */
   boatSvg: string | null;
-  /** app tile png, flown on the boat's flag */
+  /** the app's maritime-flag icon (bespoke icon if it has one, else tile thumb) */
   icon: string;
 }
 
@@ -48,9 +64,10 @@ export function boatFor(slug: string): ShopBoat {
     accent: a?.accent ?? "#e0a878",
     tagline: a?.tagline ?? "",
     boatSvg: BOAT_SVG[slug] ?? null,
-    // 96×96 webp thumbnail (≈2–3 KB) for the boat flag — see
-    // scripts/gen-icon-thumbs.mjs. The full-res tile (1–3.5 MB) is far too
-    // heavy for a ~34px flag.
-    icon: `${BP}/images/thumbs/${slug}.webp`,
+    // Prefer the bespoke icon (public/icons/); else the 96px tile thumbnail
+    // (public/images/thumbs/). Both are small webp — never the multi-MB tile.
+    icon: APP_ICON.has(slug)
+      ? `${BP}/icons/${slug}.webp`
+      : `${BP}/images/thumbs/${slug}.webp`,
   };
 }

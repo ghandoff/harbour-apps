@@ -389,6 +389,27 @@ html {
 @media (max-width: 720px){ .dock-grid { grid-template-columns: 1fr; } }
 .berth { position: relative; min-height: 220px; display: flex; align-items: center; justify-content: center; }
 
+/* the docked boat's "maritime flag": its icon on a triangular pennant flying
+   from a halyard. Replaces re-drawing the boat at the dock. */
+.dock-flag { display: flex; align-items: flex-start; }
+.dock-flag-pole { flex: 0 0 auto; width: 4px; height: 200px; border-radius: 2px;
+  background: linear-gradient(180deg, #6e4d38, #46301f); }
+.dock-flag-pennant {
+  position: relative; margin-top: 6px; width: 210px; height: 170px;
+  /* light sailcloth so every icon (incl. dark ones) reads */
+  background: linear-gradient(135deg, #fbf3e0, #efe2c5);
+  clip-path: polygon(0 0, 100% 50%, 0 100%);
+  filter: drop-shadow(0 12px 18px rgba(0,0,0,.4));
+  display: flex; align-items: center;
+  transform-origin: left center;
+}
+/* a thin accent stripe down the hoist edge (against the pole) */
+.dock-flag-pennant::before {
+  content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 8px;
+  background: var(--accent, var(--wv-sienna));
+}
+.dock-flag-icon { width: 84px; height: 84px; object-fit: contain; margin-left: 20px; }
+
 .panel { background: linear-gradient(180deg, #f6ecd6, #ecdfc2); color: #3a3024; border-radius: 14px; padding: 22px 24px; border: 1px solid rgba(70,48,31,.35); box-shadow: 0 18px 40px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.6); }
 .panel-kick { margin: 0; font-size: 13px; letter-spacing: .18em; color: #7c5a3a; }
 .panel-boat { margin: 2px 0; font-size: 24px; font-weight: 800; letter-spacing: -.01em; }
@@ -406,8 +427,10 @@ html {
 /* ── motion (opt-in; the global reduced-motion reset already disables it) ── */
 @keyframes boat-bob { 0%,100% { transform: translateY(0) rotate(-1.5deg); } 50% { transform: translateY(-9px) rotate(1.5deg); } }
 @keyframes dock-slide { 0% { transform: translateX(-40px); opacity: 0; } 100% { transform: translateX(0); opacity: 1; } }
+@keyframes flag-flutter { 0%,100% { transform: perspective(340px) rotateY(0deg); } 50% { transform: perspective(340px) rotateY(-7deg); } }
 @media (prefers-reduced-motion: no-preference) {
   .bay-boat { animation: boat-bob 5.4s ease-in-out infinite; }
   .bay-boat:hover { animation-play-state: paused; }
-  .docked { animation: dock-slide .45s ease-out both; }
+  .dock-flag { animation: dock-slide .45s ease-out both; }
+  .dock-flag-pennant { animation: flag-flutter 4.5s ease-in-out infinite; }
 }

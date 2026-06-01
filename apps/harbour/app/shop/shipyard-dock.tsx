@@ -78,8 +78,23 @@ export function ShipyardDock({
       <div className="dock">
         <div className="dock-grid">
           <div className="berth">
-            <div className="docked" key={active.slug}>
-              <BoatArt boat={active} h={210} />
+            {/* the docked boat's maritime flag: its app icon on a triangular
+                pennant, rather than re-drawing the boat. */}
+            <div
+              className="dock-flag"
+              key={active.slug}
+              style={{ ["--accent" as string]: active.accent } as CSSProperties}
+            >
+              <span className="dock-flag-pole" aria-hidden="true" />
+              <span className="dock-flag-pennant">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  className="dock-flag-icon"
+                  src={active.icon}
+                  alt={`${active.label} flag`}
+                  draggable={false}
+                />
+              </span>
             </div>
           </div>
 
