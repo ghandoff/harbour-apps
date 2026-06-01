@@ -26,6 +26,8 @@ export interface PackVM {
 export interface BoatVM extends ShopBoat {
   packs: PackVM[];
   recommended: boolean;
+  /** collective-only boat, still being built (only staff ever see these) */
+  inDevelopment: boolean;
 }
 
 export function ShipyardDock({
@@ -62,7 +64,11 @@ export function ShipyardDock({
               >
                 <BoatArt boat={b} h={118} />
                 <span className="bay-name">{b.label}</span>
-                {b.recommended && <span className="fit-ribbon">a fit for you</span>}
+                {b.inDevelopment ? (
+                  <span className="dev-badge">crew preview</span>
+                ) : (
+                  b.recommended && <span className="fit-ribbon">a fit for you</span>
+                )}
               </button>
             </li>
           ))}
@@ -81,6 +87,11 @@ export function ShipyardDock({
             <h2 className="panel-kick">at the dock</h2>
             <div className="panel-boat" style={{ color: active.accent }}>{active.label}</div>
             <p className="panel-tag">{active.tagline} — fit an upgrade to your boat</p>
+            {active.inDevelopment && (
+              <p className="dev-note">
+                ⚓ crew preview — in development, not yet visible to the public.
+              </p>
+            )}
 
             {active.packs.length === 0 ? (
               <p className="panel-none">no upgrades for this boat yet — check back soon.</p>

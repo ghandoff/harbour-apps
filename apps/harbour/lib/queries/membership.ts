@@ -20,6 +20,24 @@ export function isStaffEmail(email: string | null | undefined): boolean {
   return email.toLowerCase().trim().split("@")[1] === STAFF_EMAIL_DOMAIN;
 }
 
+/**
+ * Apps whose shop boats + upgrades are still in development — visible to the
+ * w.v collective (staff) so they can build out the apps and their shop UI, but
+ * hidden from the public and PRME members until they're ready to go live. Move
+ * a slug out of this set to launch its boat publicly. (Distinct from the DB
+ * `visible` flag, which controls whether a pack is sellable at all.)
+ */
+export const IN_DEVELOPMENT_APPS = new Set<string>([
+  "creaseworks",
+  "deep-deck",
+  "raft-house",
+]);
+
+/** True when an app's shop boat is collective-only (not yet public). */
+export function isInDevelopment(app: string): boolean {
+  return IN_DEVELOPMENT_APPS.has(app);
+}
+
 export interface Pack {
   packCatalogueId: string | null;
   packCacheId: string;
@@ -75,7 +93,10 @@ export async function getOwnedPacks(userId: string): Promise<Pack[]> {
  * Visible packs across the harbour, optionally excluding ones the user
  * already owns. This is the "what's available" discovery surface.
  */
-export async function getAvailablePacks(userId?: string): Promise<Pack[]> {
+export async function getAvailablePacks(
+  userId?: string,
+  opts: { includePreview?: boolean } = {},
+): Promise<Pack[]> {
   const exclusion = userId
     ? `AND NOT EXISTS (
          SELECT 1 FROM entitlements e
@@ -100,7 +121,12 @@ export async function getAvailablePacks(userId?: string): Promise<Pack[]> {
       ORDER BY app, title`,
     userId ? [userId] : [],
   );
-  return r.rows.map(toPack);
+  const packs = r.rows.map(toPack);
+  // In-development apps are collective-only: hide them unless the caller (the
+  // staff shop preview) opts in. Public + PRME surfaces pass the default.
+  return opts.includePreview
+    ? packs
+    : packs.filter((p) => !IN_DEVELOPMENT_APPS.has(p.app));
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

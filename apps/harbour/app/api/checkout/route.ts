@@ -13,6 +13,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { sql } from "@/lib/db";
+import { isInDevelopment, isStaffEmail } from "@/lib/queries/membership";
 import { createHarbourCheckout, checkEntitlement } from "@windedvertigo/stripe";
 
 export const dynamic = "force-dynamic";
@@ -57,6 +58,10 @@ export async function POST(req: Request) {
   );
   const pack = packResult.rows[0];
   if (!pack) {
+    return NextResponse.json({ error: "pack not found" }, { status: 404 });
+  }
+  // In-development apps are collective-only: only staff can transact on them.
+  if (isInDevelopment(pack.app) && !isStaffEmail(session.user.email)) {
     return NextResponse.json({ error: "pack not found" }, { status: 404 });
   }
   if (!pack.price_cents || pack.price_cents <= 0) {

@@ -22,6 +22,7 @@ import {
   getOwnedPacks,
   getProfile,
   isStaffEmail,
+  isInDevelopment,
   type Pack,
 } from "@/lib/queries/membership";
 import { recommendFromRoles } from "@/lib/pier-data";
@@ -55,7 +56,9 @@ export default async function ShopPage({
   const staff = isStaffEmail(email);
 
   const [available, owned] = await Promise.all([
-    getAvailablePacks(session?.userId),
+    // Collective (staff) members see in-development boats so they can build them
+    // out; the public + PRME members only see launched apps.
+    getAvailablePacks(session?.userId, { includePreview: staff }),
     signedIn ? getOwnedPacks(session!.userId) : Promise.resolve([] as Pack[]),
   ]);
 
@@ -97,7 +100,12 @@ export default async function ShopPage({
         ...g.owned.map((p) => ({ packCacheId: p.packCacheId, title: p.title, price: null, owned: true })),
         ...g.avail.map((p) => ({ packCacheId: p.packCacheId, title: p.title, price: formatPrice(p.priceCents, p.currency), owned: false })),
       ];
-      return { ...boatFor(app), packs, recommended: recommendedApps.includes(app) };
+      return {
+        ...boatFor(app),
+        packs,
+        recommended: recommendedApps.includes(app),
+        inDevelopment: isInDevelopment(app),
+      };
     })
     .sort((a, b) => Number(b.recommended) - Number(a.recommended) || a.label.localeCompare(b.label));
 
@@ -111,7 +119,7 @@ export default async function ShopPage({
     >
       <div className="mx-auto max-w-[1120px]">
         <header className="px-6 sm:px-10 pt-9">
-          <p className="text-xs font-semibold tracking-[0.3em] uppercase text-[var(--color-accent-on-dark)]">
+          <p className="text-xs font-semibold tracking-[0.3em] text-[var(--color-accent-on-dark)]">
             the harbour shop
           </p>
           <h1 className="mt-1.5 text-4xl font-extrabold tracking-tight text-[var(--color-text-on-dark)]">
