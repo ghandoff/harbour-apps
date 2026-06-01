@@ -273,65 +273,104 @@ html {
  * default state has no data-fog-state attribute and renders fully lit.
  * The transition is also a no-op without state changes. */
 
-/* ── shop: boats moored at their piers ─────────────────────────── */
-/* The storefront renders each sellable pack as a "boat" card moored at
- * its content pier (leadership / classroom / family), echoing the hub's
- * bobbing-boats scene. Each boat wears its app's own accent colour
- * (passed inline via --boat-accent) instead of the old monochrome.
- *
- * Brand constraints honoured: cadet stays the page water; the accent is
- * a low-opacity hull tint + a solid mooring bar, never a full fill that
- * would fight text contrast; all copy lowercase. */
+/* ── shop: the shipwright's dock ───────────────────────────────── */
+/* Boats (the apps) float in a harbour bay over the cadet water; clicking
+ * one docks it at a wooden jetty where its packs appear as upgrades.
+ * Real boat SVGs are used where they exist; others fall back to a
+ * procedural sailboat. Each boat flies a flag carrying the app icon.
+ * Wood/water tones are illustrative scene colour (not brand tokens),
+ * mirroring the existing .boardwalk-plank approach. */
 
-.boat-card {
-  /* Faint hull tint from the boat's accent over the cadet water, plus a
-   * solid accent "mooring line" down the left edge. The accent is a hex
-   * passed inline as --boat-accent; color-mix keeps the tint subtle so
-   * white text stays AAA on the near-cadet surface. */
-  background:
-    linear-gradient(
-      135deg,
-      color-mix(in srgb, var(--boat-accent, #ffffff) 14%, transparent),
-      color-mix(in srgb, var(--boat-accent, #ffffff) 4%, transparent)
-    ),
-    var(--color-surface-raised);
-  border: 1px solid color-mix(in srgb, var(--boat-accent, #ffffff) 28%, transparent);
-  border-left: 3px solid var(--boat-accent, rgba(255, 255, 255, 0.4));
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+.shipyard { position: relative; }
+
+/* ── the bay ── */
+.bay {
+  position: relative;
+  padding: 8px 24px 0;
+  min-height: 250px;
 }
-
-.boat-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.3);
+.bay-shore {
+  position: absolute; left: 0; right: 0; bottom: 44px; height: 78px; opacity: .42;
+  background: linear-gradient(180deg, rgba(88,203,178,.20), rgba(67,109,177,0));
+  -webkit-mask:
+    radial-gradient(60% 100% at 14% 100%, #000 60%, transparent 61%) left bottom/240px 64px no-repeat,
+    radial-gradient(60% 100% at 82% 100%, #000 60%, transparent 61%) right bottom/320px 50px no-repeat,
+    linear-gradient(#000,#000) bottom/100% 14px no-repeat;
+  mask:
+    radial-gradient(60% 100% at 14% 100%, #000 60%, transparent 61%) left bottom/240px 64px no-repeat,
+    radial-gradient(60% 100% at 82% 100%, #000 60%, transparent 61%) right bottom/320px 50px no-repeat,
+    linear-gradient(#000,#000) bottom/100% 14px no-repeat;
 }
+.bay-wave { position: absolute; left: 2%; right: 2%; height: 3px; background: rgba(255,255,255,.06); border-radius: 3px; }
+.bay-wave.bw1 { bottom: 22px; }
+.bay-wave.bw2 { bottom: 44px; opacity: .5; }
+.bay-wave.bw3 { bottom: 70px; opacity: .3; }
 
-/* Gentle bob — a slow vertical drift so the moored boats feel afloat.
- * Desync per card via inline animation-delay so the pier isn't a chorus
- * line. Opt-in only: gated behind prefers-reduced-motion: no-preference. */
-@keyframes boat-bob {
-  0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(-5px); }
+.bay-boats {
+  position: relative; z-index: 1; margin: 0; padding: 0; list-style: none;
+  display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-around;
+  gap: 8px 20px;
 }
-
-@media (prefers-reduced-motion: no-preference) {
-  .boat-bob {
-    animation: boat-bob 7s ease-in-out infinite;
-  }
-  /* On hover the lift takes over from the bob (no fighting transforms). */
-  .boat-bob:hover {
-    animation-play-state: paused;
-  }
+.bay-boat {
+  appearance: none; border: 0; background: none; padding: 6px 6px 0; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center;
+  transform-origin: center bottom; transition: filter .2s, transform .2s;
 }
-
-/* A small brass price tag — warm metal against the cadet water. */
-.price-tag {
-  color: var(--color-accent-on-dark);
-  font-variant-numeric: tabular-nums;
-}
-
-/* "a fit for you" pennant — a quiet recommendation flag, never pushy. */
-.fit-pennant {
-  background: color-mix(in srgb, var(--wv-champagne) 16%, transparent);
-  color: var(--wv-champagne);
+.bay-boat:hover { transform: translateY(-4px); filter: drop-shadow(0 12px 18px rgba(0,0,0,.35)); }
+.bay-boat:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 4px; border-radius: 8px; }
+.bay-boat .bay-name { margin-top: 4px; font-size: 12px; font-weight: 600; color: var(--color-text-on-dark); text-shadow: 0 1px 3px rgba(0,0,0,.55); }
+.bay-boat.is-docked .bay-name { color: var(--accent, var(--wv-champagne)); }
+.bay-boat.is-docked .boat-art { filter: drop-shadow(0 0 10px color-mix(in srgb, var(--accent, #fff) 55%, transparent)); }
+.fit-ribbon {
+  margin-top: 4px; font-size: 10px; font-weight: 700; letter-spacing: .02em;
+  color: var(--wv-champagne); background: color-mix(in srgb, var(--wv-champagne) 16%, transparent);
   border: 1px solid color-mix(in srgb, var(--wv-champagne) 32%, transparent);
+  padding: 1px 8px; border-radius: 999px;
+}
+
+/* ── boat art + flag ── */
+.boat-art { position: relative; display: inline-flex; align-items: flex-end; justify-content: center; }
+.boat-hull { display: block; width: auto; }
+.boat-flag { position: absolute; top: 0; left: 50%; transform: translateX(-2px); z-index: 3; pointer-events: none; }
+.boat-flag::before { content: ""; position: absolute; left: 0; top: 0; width: 2px; height: 48px; background: #4a3325; border-radius: 2px; }
+.boat-flag-icon {
+  position: absolute; left: 2px; top: 1px; width: 34px; height: 28px; object-fit: cover;
+  background: #fff; border: 2px solid var(--flag-accent, #fff); border-bottom: 0;
+  box-shadow: 0 2px 5px rgba(0,0,0,.35);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%);
+}
+
+/* ── the dock ── */
+.dock {
+  position: relative; z-index: 2; margin-top: -4px; padding: 26px 24px 0;
+  background: repeating-linear-gradient(90deg, #6e4d38 0 78px, #8a6446 78px 80px, #6e4d38 80px 158px, #46301f 158px 160px);
+  border-top: 3px solid #46301f;
+  box-shadow: inset 0 2px 0 rgba(255,255,255,.08), inset 0 -50px 70px -30px rgba(0,0,0,.55), 0 -14px 30px rgba(0,0,0,.3);
+}
+.dock-grid { display: grid; grid-template-columns: 280px 1fr; gap: 30px; align-items: center; padding-bottom: 38px; }
+@media (max-width: 720px){ .dock-grid { grid-template-columns: 1fr; } }
+.berth { position: relative; min-height: 220px; display: flex; align-items: center; justify-content: center; }
+.berth::after { content: ""; position: absolute; left: -12px; right: -12px; bottom: 6px; height: 18px; background: radial-gradient(60% 100% at 50% 0, rgba(0,0,0,.45), transparent); }
+
+.panel { background: linear-gradient(180deg, #f6ecd6, #ecdfc2); color: #3a3024; border-radius: 14px; padding: 22px 24px; border: 1px solid rgba(70,48,31,.35); box-shadow: 0 18px 40px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.6); }
+.panel-kick { margin: 0; font-size: 13px; letter-spacing: .18em; text-transform: uppercase; color: #7c5a3a; }
+.panel-boat { margin: 2px 0; font-size: 24px; font-weight: 800; letter-spacing: -.01em; }
+.panel-tag { margin: 0 0 14px; font-size: 13px; color: #7a6a52; }
+.panel-none { font-size: 13px; color: #7a6a52; font-style: italic; }
+.upg { display: flex; align-items: center; gap: 14px; padding: 12px 0; border-top: 1px dashed rgba(70,48,31,.3); }
+.upg:last-child { border-bottom: 1px dashed rgba(70,48,31,.3); }
+.upg .upg-meta { flex: 1 1 auto; min-width: 0; }
+.upg .upg-meta b { font-size: 15px; }
+.upg .price { font-weight: 800; font-size: 16px; color: #9a4f31; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.upg .fitted { font-size: 12px; font-weight: 700; color: #3f7a52; white-space: nowrap; }
+.upg .signin-buy { font-size: 12px; font-weight: 700; color: #9a4f31; white-space: nowrap; text-decoration: none; }
+.upg .signin-buy:hover { text-decoration: underline; }
+
+/* ── motion (opt-in; the global reduced-motion reset already disables it) ── */
+@keyframes boat-bob { 0%,100% { transform: translateY(0) rotate(-1.5deg); } 50% { transform: translateY(-9px) rotate(1.5deg); } }
+@keyframes dock-slide { 0% { transform: translateX(-40px); opacity: 0; } 100% { transform: translateX(0); opacity: 1; } }
+@media (prefers-reduced-motion: no-preference) {
+  .bay-boat { animation: boat-bob 5.4s ease-in-out infinite; }
+  .bay-boat:hover { animation-play-state: paused; }
+  .docked { animation: dock-slide .45s ease-out both; }
 }
