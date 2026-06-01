@@ -133,6 +133,19 @@ function defaultConfig(type: ActivityType): ActivityConfig {
           discussionPrompt: "",
         },
       };
+    case "card-deal":
+      return {
+        type: "card-deal",
+        cardDeal: {
+          prompt: "",
+          cards: [
+            { id: "c1", content: "" },
+            { id: "c2", content: "" },
+            { id: "c3", content: "" },
+          ],
+          sequenceLabel: "your sequence",
+        },
+      };
   }
 }
 

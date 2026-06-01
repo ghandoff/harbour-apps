@@ -484,14 +484,19 @@ export function storySelf(): Activity[] {
       },
     },
     {
+      // Migrated from the `puzzle` type (which has a single canonical solution)
+      // to the new `card-deal` ActivityType — narrative identity is precisely
+      // the case where there IS NO correct order; the arrangement is the
+      // response. The prior `puzzle.solution: [...]` was fabricated to satisfy
+      // the puzzle config's required field and contradicted the prompt.
       id: uid(),
-      type: "puzzle",
+      type: "card-deal",
       config: {
-        type: "puzzle",
-        puzzle: {
+        type: "card-deal",
+        cardDeal: {
           prompt:
             "these are moments from a single (fictional) person's life, presented out of order. arrange them into a coherent life narrative. but here's the catch — there is no single correct order. the sequence you choose reveals your own narrative schema: do you arrange by chronology? by emotional arc? by cause and effect? habermas & bluck (2000) showed that the ability to construct a coherent life narrative doesn't emerge until adolescence, and the way we sequence events changes throughout our lives.",
-          pieces: [
+          cards: [
             {
               id: "move",
               content: "moved to a new city where they knew no one",
@@ -523,8 +528,9 @@ export function storySelf(): Activity[] {
               hint: "irreversibility is what makes a choice meaningful",
             },
           ],
-          solution: ["loss", "move", "failure", "connection", "discovery", "choice"],
-          revealOrder: false,
+          sequenceLabel: "a life in six moments",
+          reflectionPrompt:
+            "what schema did your order follow — chronology, emotional arc, cause and effect, or something else?",
         },
       },
       phase: "struggle",

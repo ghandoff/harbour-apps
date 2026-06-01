@@ -315,6 +315,29 @@ function normalizeConfig(
         },
       };
     }
+
+    case "card-deal": {
+      // Notion authors may use cards: string[] for terseness; normalise to
+      // the full CardDealCard shape. No solution field — card-deal is
+      // explicitly the no-correct-order ActivityType.
+      const cards = Array.isArray(raw.cards)
+        ? raw.cards.map((c: unknown, i: number) =>
+            typeof c === "string"
+              ? { id: toId(c, i), content: c }
+              : (c as { id: string; content: string; hint?: string; suit?: string }),
+          )
+        : [];
+      return {
+        type: "card-deal",
+        cardDeal: {
+          prompt: (raw.prompt ?? "") as string,
+          cards,
+          selectCount: raw.selectCount as number | undefined,
+          sequenceLabel: raw.sequenceLabel as string | undefined,
+          reflectionPrompt: raw.reflectionPrompt as string | undefined,
+        },
+      };
+    }
   }
 }
 

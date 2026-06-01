@@ -163,6 +163,26 @@ function summarizeActivity(
     case "rule-sandbox": {
       return { ...base, insight: `${count} experiments submitted` };
     }
+    case "card-deal": {
+      // Card-deal has no canonical "correct" arrangement, so the meaningful
+      // insight is divergence: how many distinct orderings did the group
+      // produce? If everyone landed on the same sequence, that's actually
+      // notable — usually card-deal produces a wide spread, which is the
+      // point. The arrangement IS the answer.
+      const orderings = new Set<string>();
+      for (const r of Object.values(responses)) {
+        const order = (r as { order?: string[] })?.order;
+        if (Array.isArray(order)) orderings.add(order.join("|"));
+      }
+      const distinct = orderings.size;
+      const insight =
+        distinct === count
+          ? `${count} arrangements — all distinct`
+          : distinct === 1
+            ? `${count} arrangements — all chose the same order`
+            : `${count} arrangements across ${distinct} distinct orderings`;
+      return { ...base, insight };
+    }
     default:
       return { ...base, insight: `${count} responses` };
   }

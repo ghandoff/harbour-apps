@@ -20,7 +20,9 @@ export type ActivityType =
   // wave 3
   | "canvas"
   | "sorting"
-  | "rule-sandbox";
+  | "rule-sandbox"
+  // wave 4 — promoted from prototypes/card-deal
+  | "card-deal";
 
 // ── mechanic metadata ───────────────────────────────────────────
 
@@ -223,6 +225,40 @@ export interface SandboxParameter {
   unit?: string;
 }
 
+// ── card-deal (wave 4) ───────────────────────────────────────────
+// Distinct from `puzzle` in that there is NO single correct sequence.
+// Card-deal is interpretive: the participant picks N cards from a deck
+// and arranges them into THEIR order. The arrangement itself IS the
+// response — there's no scoring, only narrative reveal.
+
+export interface CardDealCard {
+  id: string;
+  content: string;
+  hint?: string;
+  /** optional grouping tag for visual variety in the deck */
+  suit?: string;
+}
+
+export interface CardDealConfig {
+  prompt: string;
+  /** the deck of cards available to draft from */
+  cards: CardDealCard[];
+  /**
+   * How many cards the participant must arrange. Default = all cards in the
+   * deck. If `selectCount < cards.length`, the participant picks a subset
+   * AND orders them (drafting + arranging). If equal, it's pure ordering.
+   */
+  selectCount?: number;
+  /** label for the arranged sequence (e.g. "your life story", "your stack") */
+  sequenceLabel?: string;
+  /**
+   * Optional written reflection prompt shown alongside the arrangement.
+   * Encourages the participant to articulate WHY their order is what it is —
+   * which is what distinguishes card-deal from puzzle.
+   */
+  reflectionPrompt?: string;
+}
+
 export type ActivityConfig =
   | { type: "poll"; poll: PollConfig }
   | { type: "prediction"; prediction: PredictionConfig }
@@ -232,7 +268,8 @@ export type ActivityConfig =
   | { type: "asymmetric"; asymmetric: AsymmetricConfig }
   | { type: "canvas"; canvas: CanvasConfig }
   | { type: "sorting"; sorting: SortingConfig }
-  | { type: "rule-sandbox"; ruleSandbox: RuleSandboxConfig };
+  | { type: "rule-sandbox"; ruleSandbox: RuleSandboxConfig }
+  | { type: "card-deal"; cardDeal: CardDealConfig };
 
 export interface Activity {
   id: string;

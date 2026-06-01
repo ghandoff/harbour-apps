@@ -10,6 +10,7 @@ import { AsymmetricActivity } from "./activities/asymmetric";
 import { CanvasActivity } from "./activities/canvas";
 import { SortingActivity } from "./activities/sorting";
 import { RuleSandboxActivity } from "./activities/rule-sandbox";
+import { CardDealActivity } from "./activities/card-deal";
 
 interface Props {
   activity: Activity;
@@ -134,6 +135,18 @@ export function ActivityRenderer({
       return (
         <RuleSandboxActivity
           config={config.ruleSandbox}
+          role={role}
+          onSubmit={onSubmit}
+          responses={responses}
+          participants={participants}
+          submitted={submitted}
+        />
+      );
+
+    case "card-deal":
+      return (
+        <CardDealActivity
+          config={config.cardDeal}
           role={role}
           onSubmit={onSubmit}
           responses={responses}
