@@ -6,7 +6,8 @@
     "dev": "next dev --port 3004",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "gen:thumbs": "node scripts/gen-icon-thumbs.mjs"
   },
   "dependencies": {
     "@auth/core": "^0.41.0",

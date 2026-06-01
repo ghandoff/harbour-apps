@@ -48,6 +48,9 @@ export function boatFor(slug: string): ShopBoat {
     accent: a?.accent ?? "#e0a878",
     tagline: a?.tagline ?? "",
     boatSvg: BOAT_SVG[slug] ?? null,
-    icon: `${BP}/images/${slug}.png`,
+    // 96×96 webp thumbnail (≈2–3 KB) for the boat flag — see
+    // scripts/gen-icon-thumbs.mjs. The full-res tile (1–3.5 MB) is far too
+    // heavy for a ~34px flag.
+    icon: `${BP}/images/thumbs/${slug}.webp`,
   };
 }
