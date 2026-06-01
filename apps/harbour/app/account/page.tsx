@@ -14,11 +14,9 @@
  *     links to the app that owns it.
  */
 
-import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import {
-  isStaffEmail,
   getCreditBalance,
   getOwnedPacks,
   getAvailablePacks,
@@ -28,11 +26,8 @@ import {
   type CreditEntry,
 } from "@/lib/queries/membership";
 import { getKnotsBalance, getKnotsEarned, rankFor } from "@/lib/knots";
-import {
-  parsePersona,
-  previewFixture,
-  type PreviewPersona,
-} from "@/lib/preview-fixtures";
+import { previewFixture } from "@/lib/preview-fixtures";
+import { getViewer } from "@/lib/viewer";
 
 // Session-dependent — never statically cache.
 export const dynamic = "force-dynamic";
@@ -81,91 +76,22 @@ async function signOutAction() {
   await signOut({ redirectTo: "/" });
 }
 
-const PREVIEW_PERSONAS: { value: PreviewPersona; label: string }[] = [
-  { value: "visitor", label: "visitor" },
-  { value: "profiled", label: "profiled member" },
-  { value: "crew", label: "crew" },
-  { value: "harbourmaster", label: "harbourmaster" },
-];
-
-/**
- * Staff-only "preview as" controls. With a persona `active`, renders a
- * prominent dashed banner (we're inside a preview) with an exit; otherwise a
- * compact switcher row. Plain `Link`s so it's keyboard-navigable. hrefs omit
- * the basePath — Next prepends `/harbour` automatically — so exiting drops the
- * `?preview` param back to the real account.
- */
-function PreviewControls({ active }: { active: PreviewPersona | null }) {
-  const links = PREVIEW_PERSONAS.map((p) => (
-    <Link
-      key={p.value}
-      href={`/account?preview=${p.value}`}
-      aria-current={active === p.value ? "true" : undefined}
-      className={`rounded-full border px-3 py-1 text-xs transition-colors ${
-        active === p.value
-          ? "border-[var(--wv-champagne)] bg-[var(--wv-champagne)] text-[var(--wv-cadet)] font-semibold"
-          : "border-white/20 text-[var(--color-text-on-dark)] hover:border-white/50"
-      }`}
-    >
-      {p.label}
-    </Link>
-  ));
-
-  if (active) {
-    return (
-      <section
-        aria-label="preview mode"
-        className="rounded-lg border-2 border-dashed border-[var(--wv-champagne)] bg-[var(--wv-champagne)]/10 p-4 space-y-3"
-      >
-        <p className="text-sm font-semibold text-[var(--wv-champagne)]">
-          previewing as {active} — sample data
-        </p>
-        <div className="flex flex-wrap items-center gap-2">
-          {links}
-          <Link
-            href="/account"
-            className="ml-auto text-xs font-semibold text-[var(--wv-champagne)] underline underline-offset-2 hover:opacity-80"
-          >
-            exit preview →
-          </Link>
-        </div>
-      </section>
-    );
-  }
-
-  return (
-    <section aria-label="preview member views" className="space-y-2">
-      <p className="text-xs uppercase tracking-wide text-[var(--color-text-on-dark-muted)]">
-        preview member views
-      </p>
-      <div className="flex flex-wrap gap-2">{links}</div>
-    </section>
-  );
-}
-
-export default async function AccountPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ preview?: string }>;
-}) {
-  const session = await auth();
+export default async function AccountPage() {
+  // The viewer (and any staff "view as <persona>" override from the global
+  // ViewAsBar). Persona previews render from SAMPLE fixtures — never another
+  // person's real data — and the cookie is honoured only for real staff.
+  const viewer = await getViewer();
 
   // Defensive — middleware should have caught this, but a direct nav
   // with a stale session can land here without one.
-  if (!session?.user?.email) {
+  if (!viewer.realSignedIn || !viewer.realEmail) {
     redirect("/login?callbackUrl=/account");
   }
 
-  const email = session.user.email;
-  const userId = session.userId;
-  const realStaff = isStaffEmail(email);
-
-  // Superuser "preview-as": staff can render this page as any member persona
-  // from SAMPLE fixtures (never another person's real data). The `?preview=`
-  // param is honoured only for staff; everyone else always sees their own real
-  // account, so the param can't be spoofed by a customer.
-  const { preview } = await searchParams;
-  const persona = realStaff ? parsePersona(preview) : null;
+  const email = viewer.realEmail;
+  const userId = viewer.realUserId;
+  const realStaff = viewer.realStaff;
+  const persona = viewer.persona;
 
   let staff = realStaff;
   let creditBalance = 0;
@@ -258,10 +184,24 @@ export default async function AccountPage({
           </p>
         </header>
 
-        {/* superuser preview-as — staff only. Banner while previewing; a
-            compact switcher otherwise. Lets the harbourmaster see each member
-            experience without leaving their own account. */}
-        {realStaff && <PreviewControls active={persona} />}
+        {/* view-as preview state. The persona switcher itself is the global
+            ViewAsBar (staff-only). Public = members-only stub; other personas
+            render sample data, flagged below. */}
+        {persona === "public" && (
+          <section
+            aria-label="preview mode"
+            className="rounded-lg border-2 border-dashed border-[var(--wv-champagne)] bg-[var(--wv-champagne)]/10 p-4"
+          >
+            <p className="text-sm font-semibold text-[var(--wv-champagne)]">
+              public view — the account is members-only; signed-out visitors are sent to sign in.
+            </p>
+          </section>
+        )}
+        {persona && persona !== "public" && (
+          <p className="text-xs text-[var(--color-text-on-dark-muted)]">
+            showing sample data for the {persona} view.
+          </p>
+        )}
 
         {staff && (
           <section className="rounded-lg border border-[var(--wv-champagne)]/30 bg-[var(--wv-champagne)]/10 p-5 space-y-2">

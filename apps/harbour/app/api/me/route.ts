@@ -1,67 +1,62 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { getOwnedPacks, getProfile, isStaffEmail } from "@/lib/queries/membership";
+import { getOwnedPacks } from "@/lib/queries/membership";
 import { recommendFromRoles } from "@/lib/pier-data";
+import { getViewer } from "@/lib/viewer";
 
 /**
  * GET /harbour/api/me
  *
- * Personalization payload for the signed-in-aware hub. Safe to expose to the
- * client: identity basics + which apps the user has access to (so the boat-map
- * can mark "in your harbour"). No secrets, no entitlement internals.
+ * Personalization payload for the signed-in-aware hub, reported for the
+ * EFFECTIVE viewer — so a staff member previewing "as public/visitor/crew"
+ * (via the wv_view_as cookie) gets that persona's hero + boat marks. Also
+ * returns `realStaff` + `activePersona` so the (staff-only) ViewAsBar knows to
+ * render and which chip is active.
  *
- *   { signedIn, name, isStaff, ownedApps }
- *
- * - `name`: first name only (friendly greeting), or null.
- * - `isStaff`: windedvertigo.com — full access, so every boat is "yours".
- * - `ownedApps`: distinct app slugs the user holds ≥1 entitlement in
- *   (empty for staff — the client treats isStaff as own-everything).
- *
- * Session-dependent → never cache.
+ * No secrets; session-dependent → never cached.
  */
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const session = await auth();
-  const email = session?.user?.email;
+  const viewer = await getViewer();
+  const { effective, realStaff, persona } = viewer;
 
-  if (!email) {
+  if (!effective.signedIn) {
     return NextResponse.json(
-      { signedIn: false },
+      { signedIn: false, isStaff: false, realStaff, activePersona: persona },
       { headers: { "cache-control": "no-store" } },
     );
   }
 
-  const staff = isStaffEmail(email);
-  const firstName = session.user?.name?.trim().split(/\s+/)[0] ?? null;
+  // Persona previews show no real name (except the harbourmaster = real staff).
+  const name = persona && persona !== "harbourmaster" ? null : viewer.realName;
 
   let ownedApps: string[] = [];
   let recommendedApps: string[] = [];
-  if (!staff && session.userId) {
-    try {
-      const owned = await getOwnedPacks(session.userId);
-      ownedApps = [...new Set(owned.map((p) => p.app))];
-    } catch (err) {
-      // Ownership is a nice-to-have for the map; never fail the whole payload.
-      console.warn("[api/me] getOwnedPacks failed:", err);
+  if (!effective.staff) {
+    // Ownership is only meaningful for the real signed-in member, not a persona.
+    if (!persona && viewer.realUserId) {
+      try {
+        const owned = await getOwnedPacks(viewer.realUserId);
+        ownedApps = [...new Set(owned.map((p) => p.app))];
+      } catch (err) {
+        console.warn("[api/me] getOwnedPacks failed:", err);
+      }
     }
-    try {
-      const profile = await getProfile(session.userId);
-      const prefs = profile.playPreferences ?? {};
-      const roles = Array.isArray(prefs.roles)
-        ? (prefs.roles as string[])
-        : typeof prefs.role === "string"
-          ? [prefs.role as string]
-          : [];
-      // Recommend boats for the member's roles, minus what they already own.
-      recommendedApps = recommendFromRoles(roles).filter((s) => !ownedApps.includes(s));
-    } catch (err) {
-      console.warn("[api/me] getProfile (recommendations) failed:", err);
-    }
+    recommendedApps = recommendFromRoles(effective.roles).filter(
+      (s) => !ownedApps.includes(s),
+    );
   }
 
   return NextResponse.json(
-    { signedIn: true, name: firstName, isStaff: staff, ownedApps, recommendedApps },
+    {
+      signedIn: true,
+      name,
+      isStaff: effective.staff,
+      ownedApps,
+      recommendedApps,
+      realStaff,
+      activePersona: persona,
+    },
     { headers: { "cache-control": "no-store" } },
   );
 }

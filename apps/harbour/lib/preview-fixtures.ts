@@ -7,7 +7,8 @@
  * database reads and NO writes. Gating to staff happens in the page (via
  * `isStaffEmail`); this module is pure data.
  *
- * Personas map to Garrett's four profiles:
+ * Personas map to Garrett's profiles:
+ *   public        — signed out (what an anonymous visitor / PRME member sees)
  *   visitor       — signed-in, no profile yet (the aboard→crew nudge state)
  *   profiled      — completed profile, just earned welcome knots
  *   crew          — engaged "purchaser": owns packs, climbing the rank ladder
@@ -20,9 +21,15 @@
 import { rankFor, type RankState } from "./knots";
 import type { Pack, CreditEntry } from "./queries/membership";
 
-export type PreviewPersona = "visitor" | "profiled" | "crew" | "harbourmaster";
+export type PreviewPersona =
+  | "public"
+  | "visitor"
+  | "profiled"
+  | "crew"
+  | "harbourmaster";
 
 const PERSONAS: readonly PreviewPersona[] = [
+  "public",
   "visitor",
   "profiled",
   "crew",
@@ -87,6 +94,21 @@ const SAMPLE_LEDGER: CreditEntry[] = [
 /** Build the sample account view for a persona. Pure — no IO. */
 export function previewFixture(persona: PreviewPersona): AccountView {
   switch (persona) {
+    case "public":
+      // Signed out — the public never reaches /account, but the fixture keeps
+      // the shape valid; the page shows a "members-only" stub for this persona.
+      return {
+        staff: false,
+        onboardingCompleted: false,
+        profileRoles: [],
+        profileIntent: [],
+        knotsBalance: 0,
+        rank: rankFor(0),
+        creditBalance: 0,
+        owned: [],
+        available: [],
+        ledger: [],
+      };
     case "harbourmaster":
       return {
         staff: true,

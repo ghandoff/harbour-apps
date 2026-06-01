@@ -273,6 +273,33 @@ html {
  * default state has no data-fog-state attribute and renders fully lit.
  * The transition is also a no-op without state changes. */
 
+/* ── collective view-as bar (staff only) ───────────────────────── */
+.view-as-bar {
+  position: fixed; left: 16px; bottom: 16px; z-index: 60;
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  max-width: calc(100vw - 32px);
+  padding: 8px 12px; border-radius: 999px;
+  background: color-mix(in srgb, var(--wv-cadet) 92%, black);
+  border: 1px solid color-mix(in srgb, var(--wv-champagne) 28%, transparent);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .45);
+  font-size: 12px; color: var(--color-text-on-dark);
+}
+.view-as-status { color: var(--color-text-on-dark-muted); white-space: nowrap; }
+.view-as-status b { color: var(--wv-champagne); font-weight: 700; }
+.view-as-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.view-as-chip {
+  appearance: none; cursor: pointer; font-size: 12px; line-height: 1;
+  padding: 5px 10px; border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--color-text-on-dark) 24%, transparent);
+  background: transparent; color: var(--color-text-on-dark); transition: border-color .15s, background .15s;
+}
+.view-as-chip:hover { border-color: color-mix(in srgb, var(--color-text-on-dark) 55%, transparent); }
+.view-as-chip.is-active {
+  background: var(--wv-champagne); color: var(--wv-cadet);
+  border-color: var(--wv-champagne); font-weight: 700; cursor: default;
+}
+.view-as-chip:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
+
 /* ── shop: the shipwright's dock ───────────────────────────────── */
 /* Boats (the apps) float in a harbour bay over the cadet water; clicking
  * one docks it at a wooden jetty where its packs appear as upgrades.

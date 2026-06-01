@@ -16,16 +16,14 @@
  */
 
 import Link from "next/link";
-import { auth } from "@/lib/auth";
 import {
   getAvailablePacks,
   getOwnedPacks,
-  getProfile,
-  isStaffEmail,
   isInDevelopment,
   type Pack,
 } from "@/lib/queries/membership";
 import { recommendFromRoles } from "@/lib/pier-data";
+import { getViewer } from "@/lib/viewer";
 import { boatFor } from "@/lib/shop-boats";
 import { ShipyardDock, type BoatVM, type PackVM } from "./shipyard-dock";
 
@@ -50,33 +48,27 @@ export default async function ShopPage({
   searchParams: Promise<{ app?: string }>;
 }) {
   const { app: appFilter } = await searchParams;
-  const session = await auth();
-  const email = session?.user?.email ?? null;
-  const signedIn = !!email && !!session?.userId;
-  const staff = isStaffEmail(email);
+
+  // The effective viewer — honours a staff member's "view as <persona>" cookie,
+  // so the shop renders from that perspective (gating + CTA). Real data reads
+  // use the real user only when NOT previewing a persona.
+  const viewer = await getViewer();
+  const { effective, persona } = viewer;
+  const signedIn = effective.signedIn;
+  const staff = effective.staff;
+  const dataUserId = persona ? undefined : viewer.realUserId;
 
   const [available, owned] = await Promise.all([
     // Collective (staff) members see in-development boats so they can build them
     // out; the public + PRME members only see launched apps.
-    getAvailablePacks(session?.userId, { includePreview: staff }),
-    signedIn ? getOwnedPacks(session!.userId) : Promise.resolve([] as Pack[]),
+    getAvailablePacks(dataUserId, { includePreview: staff }),
+    signedIn && !persona && viewer.realUserId
+      ? getOwnedPacks(viewer.realUserId)
+      : Promise.resolve([] as Pack[]),
   ]);
 
-  let recommendedApps: string[] = [];
-  if (signedIn && !staff) {
-    try {
-      const profile = await getProfile(session!.userId);
-      const prefs = profile.playPreferences ?? {};
-      const roles = Array.isArray(prefs.roles)
-        ? (prefs.roles as string[])
-        : typeof prefs.role === "string"
-          ? [prefs.role as string]
-          : [];
-      recommendedApps = recommendFromRoles(roles);
-    } catch {
-      // recommendations are a nice-to-have — never fail the shop over them.
-    }
-  }
+  const recommendedApps =
+    signedIn && !staff ? recommendFromRoles(effective.roles) : [];
 
   const sellable = available.filter((p) => p.priceCents && p.priceCents > 0);
 
