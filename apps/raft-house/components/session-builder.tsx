@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import type { Activity, ActivityType, ActivityConfig, Phase, PollOption, PuzzlePiece, SortingCard, SortingCategory, SandboxParameter } from "@/lib/types";
+import type { Activity, ActivityType, ActivityConfig, Phase, PollOption, PuzzlePiece, SortingCard, SortingCategory, SandboxParameter, CardDealCard } from "@/lib/types";
 import type { InteractionModel, SocialStructure, Tempo, MechanicMetadata } from "@/lib/types";
 
 interface Props {
@@ -19,6 +19,7 @@ const ACTIVITY_TYPES: { type: ActivityType; label: string; icon: string }[] = [
   { type: "rule-sandbox", label: "rule sandbox", icon: "🔬" },
   { type: "puzzle", label: "puzzle", icon: "🧩" },
   { type: "asymmetric", label: "asymmetric", icon: "🎭" },
+  { type: "card-deal", label: "card deal", icon: "🃏" },
 ];
 
 const PHASES: Phase[] = ["encounter", "struggle", "threshold", "integration", "application"];
@@ -492,6 +493,8 @@ function ConfigEditor({
       return <PuzzleConfigEditor config={config.puzzle} onChange={(puzzle) => onChange({ type: "puzzle", puzzle })} />;
     case "asymmetric":
       return <AsymmetricConfigEditor config={config.asymmetric} onChange={(asymmetric) => onChange({ type: "asymmetric", asymmetric })} />;
+    case "card-deal":
+      return <CardDealConfigEditor config={config.cardDeal} onChange={(cardDeal) => onChange({ type: "card-deal", cardDeal })} />;
   }
 }
 
@@ -983,6 +986,109 @@ function AsymmetricConfigEditor({
       <div>
         <Label>discussion prompt</Label>
         <TextInput value={config.discussionPrompt} onChange={(discussionPrompt) => onChange({ ...config, discussionPrompt })} placeholder="share what you learned..." multiline />
+      </div>
+    </div>
+  );
+}
+
+// ── card-deal ────────────────────────────────────────────────────
+//
+// Card-deal authoring is deliberately simpler than puzzle's: there's no
+// `solution` field to maintain, because card-deal's whole point is "no
+// correct order — the arrangement IS the response". This is the same
+// distinction that made `card-deal` a separate ActivityType from `puzzle`
+// (see PR #165). The editor surfaces the four card-deal levers:
+//   - prompt:           the question the participant is answering
+//   - cards:            the deck they draft from
+//   - sequenceLabel:    optional human label for the arranged stack
+//   - reflectionPrompt: optional "why this order?" written follow-up
+
+function CardDealConfigEditor({
+  config,
+  onChange,
+}: {
+  config: {
+    prompt: string;
+    cards: CardDealCard[];
+    selectCount?: number;
+    sequenceLabel?: string;
+    reflectionPrompt?: string;
+  };
+  onChange: (c: typeof config) => void;
+}) {
+  const addCard = () => {
+    const id = `c${config.cards.length + 1}`;
+    onChange({ ...config, cards: [...config.cards, { id, content: "" }] });
+  };
+
+  return (
+    <div className="space-y-2">
+      <div>
+        <Label>prompt</Label>
+        <TextInput
+          value={config.prompt}
+          onChange={(prompt) => onChange({ ...config, prompt })}
+          placeholder="arrange these into your sequence..."
+          multiline
+        />
+      </div>
+
+      <div>
+        <Label>cards (deck — no correct order)</Label>
+        <div className="space-y-1">
+          {config.cards.map((card, i) => (
+            <div key={card.id} className="flex gap-1">
+              <span className="text-xs text-[var(--rh-text-muted)] w-4 py-1.5 text-center">{i + 1}</span>
+              <TextInput
+                value={card.content}
+                onChange={(content) => {
+                  const cards = [...config.cards];
+                  cards[i] = { ...cards[i], content };
+                  onChange({ ...config, cards });
+                }}
+                placeholder={`card ${i + 1}`}
+              />
+              {config.cards.length > 2 && (
+                <button
+                  onClick={() => {
+                    const cards = config.cards.filter((_, idx) => idx !== i);
+                    onChange({ ...config, cards });
+                  }}
+                  className="text-xs text-red-500 px-1"
+                  aria-label={`remove card ${i + 1}`}
+                >
+                  ×
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+        <button onClick={addCard} className="text-xs text-[var(--rh-teal)] mt-1">
+          + add card
+        </button>
+      </div>
+
+      <div>
+        <Label>sequence label (optional)</Label>
+        <TextInput
+          value={config.sequenceLabel ?? ""}
+          onChange={(sequenceLabel) =>
+            onChange({ ...config, sequenceLabel: sequenceLabel || undefined })
+          }
+          placeholder="e.g. your stack, your life story"
+        />
+      </div>
+
+      <div>
+        <Label>reflection prompt (optional — encourages why-this-order writing)</Label>
+        <TextInput
+          value={config.reflectionPrompt ?? ""}
+          onChange={(reflectionPrompt) =>
+            onChange({ ...config, reflectionPrompt: reflectionPrompt || undefined })
+          }
+          placeholder="why this order?"
+          multiline
+        />
       </div>
     </div>
   );
