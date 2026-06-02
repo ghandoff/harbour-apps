@@ -6,6 +6,29 @@
 > brand guidelines: `docs/brand-guidelines.md`
 >
 > **companion file: `.claude/evergreen.md`** — team-wide facts (brand voice, IP, accessibility, external API limits) that don't drift with Claude updates. read that for writing/brand rules; this file for current-state technical operations.
+> **plain-language glossary: `docs/glossary.md`** — every technical term, explained for Garrett. see the communication rule below.
+
+## working with Garrett — how to explain things
+
+Garrett is growing into the technical side and is **not** a command-line-fluent
+developer. He has explicitly asked to learn the vocabulary *as we go*, without
+having to interrupt a task to ask what a word means. Honour this in every reply:
+
+- **dual-language, always.** say it plainly first, then name the jargon in
+  brackets so he picks it up — e.g. "the top folder of the project (the *repo
+  root*)", "upload your saved changes to GitHub (*push*)". never use a technical
+  term cold.
+- **never drop a bare command.** when something must be run in the terminal, say
+  *where* to run it (which folder, how to confirm he's in the right place) and
+  *how* (copy, click the terminal, cmd+v, return) — not just the command text.
+- **log new jargon to `docs/glossary.md`** when it first comes up, so he can read
+  it asynchronously instead of asking mid-task. if you use a term that isn't in
+  the glossary yet, add it.
+- **do the mechanical steps for him whenever you can.** only hand him a step when
+  it genuinely must run on his machine (e.g. blocked by the web sandbox's
+  firewall) — and when you do, say *why* it can't be done from your side.
+- keep operational replies focused; put the deeper teaching in the glossary, not
+  inline walls of explanation.
 
 ## monorepo structure
 
@@ -226,7 +249,7 @@ see `docs/version-management.md` for full update cadence.
 - **Renovate**: opens grouped PRs weekly (Monday), automerges patches after CI.
 - **npm `overrides` do NOT apply in this repo** (verified 2026-05-30): adding an `overrides` block to root `package.json` is silently ignored — even a from-scratch `npm install --package-lock-only` leaves the lockfile's `overrides` field empty and target versions unmoved (likely the nested non-workspace sub-projects — `apps/values-auction/relay`, `apps/values-auction/workers/hub` — which carry their own `package-lock.json`). **Don't reach for `overrides` to force a transitive security bump** — it won't work. Fix the *parent* dependency instead (bump the package that pulls the vulnerable transitive in).
 - **Dependabot triage — check installed-vs-affected-range, not just severity.** Most "high" alerts here are stale ghosts (manifests for removed apps like `apps/nordic-sqr-rct`) or false-positives (the installed version is already outside the advisory's affected range — e.g. `next@16.2.6` vs an advisory capped at `<15.5.16`). Dismiss ghosts as `not_used`, false-positives as `inaccurate`; only real, lockfile-present, production-reachable vulns warrant a code change. (Full triage: the 2026-05-30 pass took 25 open → 5.)
-- **open follow-up — `wrangler` 3→4**: the only genuinely-vulnerable deps left (Dependabot #5 undici, #79 ws) are pinned by `wrangler@3`/miniflare (CF *deploy tooling*, dev-scope, not in any production bundle) in `apps/launch-smoke` + `apps/lines-become-loops`. Real fix is a `wrangler@^4` major bump per app (wrangler 4 ships patched miniflare) — major bump, so verify each app's `wrangler.jsonc` + a deploy. `postcss` (#67) is bundled inside Next and resolves on a future Next release; `qs`/`tmp` are transitive with no parent fix yet.
+- **open follow-up — `wrangler` 3→4 (partly done)**: `apps/launch-smoke` + `apps/lines-become-loops` were bumped in #150 — the **root** lockfile now resolves `wrangler@4.95.0` / `miniflare@4` / `undici@7.24.8` / `ws@8.20.1` (all patched). **Still outstanding: the two nested non-workspace sub-projects** `apps/values-auction/relay` + `apps/values-auction/workers/hub`, which carry their own `package-lock.json` (not covered by #150 and the reason root `overrides` don't propagate) and still pin `wrangler@^3` → `miniflare@3` → `undici@5.29.0` + `ws@8.18.0`. `wrangler` is a **devDependency** in both (their `dependencies` are empty `{}`), so this is dev-scope CF deploy tooling — **not production-reachable**; the GitHub "critical/high" labels are intrinsic CVSS, not our exposure. Fix mirrors #150, per sub-project: `npm pkg set devDependencies.wrangler="^4" && npm install --package-lock-only`, then verify with `npx wrangler deploy --dry-run --x-autoconfig false` (wrangler 4's experimental autoconfig trips on the npm workspace otherwise). Commit both `package.json` + regenerated `package-lock.json` together. `postcss` (#67) is bundled inside Next and resolves on a future Next release; `qs`/`tmp` are transitive with no parent fix yet. NB: lockfile regen can't be done from the web sandbox (npm install is firewalled on `googlechromelabs.github.io`) — runs on a local machine.
 
 ---
 
