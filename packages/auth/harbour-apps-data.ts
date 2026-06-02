@@ -49,7 +49,7 @@ export const HARBOUR_APPS = [
   { key: "scale-shift",        label: "scale.shift",        href: "/harbour/scale-shift",        tagline: "powers of ten",                  accent: "#c4b5fd", pier: "repairs", comingSoon: true },
   { key: "pattern-weave",      label: "pattern.weave",      href: "/harbour/pattern-weave",      tagline: "gestalt perception",             accent: "#fda4af", pier: "repairs", comingSoon: true },
   { key: "market-mind",        label: "market.mind",        href: "/harbour/market-mind",        tagline: "opportunity cost",               accent: "#e09878", pier: "repairs", comingSoon: true },
-  { key: "rhythm-lab",         label: "rhythm.lab",         href: "/harbour/rhythm-lab",         tagline: "subdivision & groove",           accent: "#ddd6fe", pier: "repairs", comingSoon: true },
+  { key: "rhythm-lab",         label: "rhythm.lab",         href: "/harbour/rhythm-lab",         tagline: "subdivision & groove",           accent: "#ddd6fe", pier: "repairs" },
   { key: "code-weave",         label: "code.weave",         href: "/harbour/code-weave",         tagline: "recursion & abstraction",        accent: "#a5f3fc", pier: "repairs", comingSoon: true },
   { key: "time-prism",         label: "time.prism",         href: "/harbour/time-prism",         tagline: "historical empathy",             accent: "#fde68a", pier: "repairs", comingSoon: true },
   { key: "liminal-pass",       label: "liminal.pass",       href: "/harbour/liminal-pass",       tagline: "threshold concepts",             accent: "#fca5a5", pier: "repairs", comingSoon: true },
