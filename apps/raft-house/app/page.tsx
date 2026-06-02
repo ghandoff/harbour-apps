@@ -1306,21 +1306,20 @@ export default function DiscoverPage() {
               className="detail-play"
               onClick={() => {
                 const code = generateRoomCode();
-                const factory = GAME_REGISTRY[detailGame.name];
-                const activities = factory ? factory() : [];
-                sessionStorage.setItem(
-                  `raft:${code}`,
-                  JSON.stringify({
-                    code,
-                    activities,
-                    sessionName: detailGame.name,
-                    template: detailGame.name,
-                    ageLevel: sessionAgeLevel,
-                    displayMode: sessionDisplayMode,
-                    createdAt: Date.now(),
-                  }),
-                );
-                router.push(`/facilitate/live/${code}`);
+                // Session config travels in URL query params instead of
+                // sessionStorage. The Activity[] is a deterministic function
+                // of the game name (lib/games/index.ts → GAME_REGISTRY), so
+                // only the SEED needs to flow through the URL — the
+                // facilitator page rebuilds the activities client-side on
+                // first connect. This makes the facilitator URL fully
+                // shareable across devices, tabs, and incognito sessions,
+                // which sessionStorage made impossible.
+                const params = new URLSearchParams({
+                  game: detailGame.name,
+                  age: sessionAgeLevel,
+                  display: sessionDisplayMode,
+                });
+                router.push(`/facilitate/live/${code}?${params}`);
               }}
             >
               start session <ArrowIcon />
