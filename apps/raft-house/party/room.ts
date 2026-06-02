@@ -82,6 +82,14 @@ export class RaftRoom extends Server<Env> {
     connection.send(
       JSON.stringify({ type: "state-update", state: this.state, yourId: connection.id } satisfies ServerBroadcast),
     );
+    // Per-connection lifecycle log — paired with [raft-conn] event=close in onClose.
+    // Lets `wrangler tail` reconstruct the connection set at any moment by replaying
+    // open/close events. Used to validate broadcast-fanout assertions: if a smoke
+    // test reports "0/20 received" we can check whether the DO actually had 20 open
+    // connections at the broadcast time, or whether some had silently closed.
+    console.log(
+      `[raft-conn] room=${this.name} event=open id=${connection.id} role=${role ?? "?"} conns=${this.connectionCount()}`,
+    );
     await this.persist();
   }
 
@@ -105,6 +113,14 @@ export class RaftRoom extends Server<Env> {
   }
 
   onClose(connection: Connection) {
+    // Pair to the [raft-conn] event=open in onConnect. Fires whether the close
+    // is clean (browser tab closed), forced (kick), or stale (DO eviction
+    // followed by reconnect attempts elsewhere). connectionCount() is sampled
+    // BEFORE the participant-left broadcast so the count reflects what
+    // broadcast would target.
+    console.log(
+      `[raft-conn] room=${this.name} event=close id=${connection.id} conns=${this.connectionCount()}`,
+    );
     if (connection.id === this.state.facilitatorId) {
       // don't end session — facilitator may reconnect
       return;
@@ -323,8 +339,43 @@ export class RaftRoom extends Server<Env> {
 
   // ── helpers ──────────────────────────────────────────────────
 
+  /**
+   * Cached count of active connections. PartyServer's getConnections()
+   * returns an iterable; calling Array.from() on a hot path adds GC pressure
+   * at scale. We expose it as a method so the connection lifecycle logs
+   * can include it without forcing a materialisation everywhere.
+   */
+  private connectionCount(): number {
+    let n = 0;
+    for (const _ of this.getConnections()) n++;
+    return n;
+  }
+
+  /**
+   * Central broadcast helper — every server broadcast goes through here.
+   * Instrumentation: log type + recipient count + dispatch latency on every
+   * call so `wrangler tail` can reconstruct fanout behaviour.
+   *
+   * Root-cause path for the moderate-tier load finding (PR #162: p99 fanout
+   * 607ms, 6.7% partial-broadcast rate):
+   *   - Filter `wrangler tail` to [raft-bcast] lines
+   *   - Group by room — for each broadcast, check `conns` count vs the
+   *     known participant count at that moment (paired with [raft-conn])
+   *   - If conns is right but ms is high → serial-send is the bottleneck
+   *     (PartyServer iterates and ws.send()s sequentially)
+   *   - If conns drops to zero between broadcasts → DO was evicted
+   *     mid-test; the in-memory connection set is gone for one moment
+   *
+   * console.log is cheap relative to a WS send (~µs per call). For 100
+   * broadcasts/sec the log overhead is negligible. If this ever becomes a
+   * hot-path concern, gate behind an env var (`if (env.RAFT_INSTRUMENT)`).
+   */
   private broadcastMessage(msg: ServerBroadcast) {
+    const conns = this.connectionCount();
+    const t0 = Date.now();
     this.broadcast(JSON.stringify(msg));
+    const dt = Date.now() - t0;
+    console.log(`[raft-bcast] room=${this.name} type=${msg.type} conns=${conns} ms=${dt}`);
   }
 
   private broadcastState() {
