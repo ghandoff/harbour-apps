@@ -1,9 +1,12 @@
-# glossary — plain-language reference for garrett
+# glossary — plain-language reference for the Collective
 
-> this file exists so you can learn the technical vocabulary at your own pace,
-> without having to stop a task and ask "what does that word mean?". when claude
-> (or anyone) uses a term you don't know, it should be in here. if it isn't,
-> ask — and we'll add it.
+> this file is for anyone on the Collective still picking up the technical
+> vocabulary — Garrett, Maria, Payton, Lamyse, Jamie, and whoever joins next.
+> it exists so you can learn the words at your own pace, without stopping a task
+> to ask "what does that mean?". when claude (or anyone) uses a term you don't
+> know, it should be in here. if it isn't, ask — and we'll add it. it lives in
+> the shared repo, so everyone reads the same copy and any improvement helps the
+> whole team.
 >
 > **how to read an entry:** the **bold word** is the proper term to learn. the
 > sentence after it is the plain-english meaning. *(you'll also hear: …)* lists

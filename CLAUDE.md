@@ -6,13 +6,14 @@
 > brand guidelines: `docs/brand-guidelines.md`
 >
 > **companion file: `.claude/evergreen.md`** — team-wide facts (brand voice, IP, accessibility, external API limits) that don't drift with Claude updates. read that for writing/brand rules; this file for current-state technical operations.
-> **plain-language glossary: `docs/glossary.md`** — every technical term, explained for Garrett. see the communication rule below.
+> **plain-language glossary: `docs/glossary.md`** — every technical term, explained for the Collective. see the communication rule below.
 
-## working with Garrett — how to explain things
+## working with the Collective — how to explain things
 
-Garrett is growing into the technical side and is **not** a command-line-fluent
-developer. He has explicitly asked to learn the vocabulary *as we go*, without
-having to interrupt a task to ask what a word means. Honour this in every reply:
+Several Collective members (Garrett, Maria, Payton, Lamyse, Jamie) are growing
+into the technical side and are **not** command-line-fluent developers. They have
+asked to learn the vocabulary *as we go*, without having to interrupt a task to
+ask what a word means. Honour this in every reply, for any of them:
 
 - **dual-language, always.** say it plainly first, then name the jargon in
   brackets so he picks it up — e.g. "the top folder of the project (the *repo
