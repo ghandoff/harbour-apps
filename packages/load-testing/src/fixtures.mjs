@@ -177,6 +177,26 @@ export function fixtureActivity(type, i = 0) {
         },
       };
 
+    case "card-deal":
+      return {
+        ...base,
+        id: `carddeal${idSuffix}`,
+        type: "card-deal",
+        config: {
+          type: "card-deal",
+          cardDeal: {
+            prompt: "arrange these into your sequence — there is no wrong order",
+            cards: [
+              { id: "a", content: "moment a — the catalyst" },
+              { id: "b", content: "moment b — the turning point" },
+              { id: "c", content: "moment c — the integration" },
+            ],
+            sequenceLabel: "your arrangement",
+            reflectionPrompt: "why this order?",
+          },
+        },
+      };
+
     default:
       throw new Error(`unknown activity type: ${type}`);
   }
@@ -203,6 +223,8 @@ export function fixtureResponse(type) {
       return { mapping: { c1: "cat-a", c2: "cat-b" } };
     case "rule-sandbox":
       return { parameters: { p: 70, q: 3 }, reflection: "diminishing returns above 70" };
+    case "card-deal":
+      return { order: ["c", "a", "b"], reflection: "the integration came first because it reframed the rest" };
     default:
       throw new Error(`no response fixture for type: ${type}`);
   }
@@ -219,4 +241,5 @@ export const ACTIVITY_TYPES = [
   "canvas",
   "sorting",
   "rule-sandbox",
+  "card-deal",
 ];

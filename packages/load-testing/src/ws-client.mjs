@@ -51,9 +51,28 @@ export function buildPartyUrl({ baseUrl, roomCode, role, name, participantRole }
 }
 
 /**
+ * Cap on how many frames any single driver keeps buffered. Above this, the
+ * oldest frame is evicted FIFO on every new arrival. The 5,000-client heavy
+ * tier from PR #162's first run OOMed because each driver was buffering
+ * every state-update across a 5-minute test — unbounded growth at scale.
+ *
+ * 256 is enough for any single smoke-tier assertion sequence (the
+ * session-lifecycle scenario tops out at ~20 frames in its critical
+ * window) and bounds memory at ~256 × (avg frame size 2KB) × N drivers.
+ * For N = 5,000 that's ~2.5GB — still a lot, but no longer unbounded
+ * and well within a laptop's RSS budget.
+ *
+ * To raise: bump the constant and re-run. To bypass for a specific scenario
+ * that needs unbounded history, fork the driver.
+ */
+const MAX_FRAMES_PER_DRIVER = 256;
+
+/**
  * Open a connection, return a tiny driver. The driver buffers every message it
- * receives in `frames` (FIFO) so scenarios can assert post-hoc, AND exposes
- * `waitFor(predicate, ms)` for ordered assertions.
+ * receives in `frames` (FIFO, capped — see MAX_FRAMES_PER_DRIVER) so scenarios
+ * can assert post-hoc, AND exposes `waitFor(predicate, ms)` for ordered
+ * assertions. `mark()` returns a monotonic watermark that survives buffer
+ * eviction (frames are evicted but `receivedCount` only ever grows).
  *
  * @param {ConnectOptions} opts
  */
@@ -63,6 +82,14 @@ export async function connect(opts) {
 
   /** @type {ServerFrame[]} */
   const frames = [];
+  /**
+   * Monotonic count of frames received over the connection's lifetime.
+   * Decoupled from `frames.length` because the ring-buffer can evict old
+   * frames. `mark()` returns this value, `waitFor({afterIndex})` interprets
+   * it. Together they let scenarios assert "wait for the next state-update
+   * AFTER my send" without being confused by stale buffer entries.
+   */
+  let receivedCount = 0;
   /** @type {Array<(f: ServerFrame) => void>} */
   const waiters = [];
   let openResolved = false;
@@ -74,6 +101,8 @@ export async function connect(opts) {
     try {
       const msg = JSON.parse(data.toString());
       frames.push(msg);
+      receivedCount++;
+      if (frames.length > MAX_FRAMES_PER_DRIVER) frames.shift();
       // Drain pending waiters in arrival order — first match wins.
       for (let i = 0; i < waiters.length; i++) {
         try {
@@ -133,22 +162,35 @@ export async function connect(opts) {
   /**
    * Resolve with the first received frame matching `predicate`. If `ms` elapses
    * with no match, reject. Frames already in the buffer are checked first
-   * UNLESS `opts.afterIndex` is set — in which case only frames at index
-   * ≥ afterIndex are considered (use `mark()` to capture the watermark).
+   * UNLESS `opts.afterIndex` is set — in which case only frames received
+   * AFTER the watermark are considered (use `mark()` to capture it).
    *
    * The watermark is critical for "did the server emit a *new* frame after
    * my command?" assertions — without it a stale state-update from setup
    * can match a post-command predicate and the test passes incorrectly.
+   *
+   * Watermark semantics survive ring-buffer eviction: `receivedCount` is
+   * monotonic; we translate it to an array index at scan time. If the
+   * watermark predates the oldest frame in the buffer (rare in practice —
+   * would require >256 frames between mark and waitFor), the scan starts
+   * at index 0 and the predicate may match an evicted-survivor frame.
+   * Scenarios that need stronger guarantees should keep mark→waitFor
+   * windows tight (well under MAX_FRAMES_PER_DRIVER).
    *
    * @param {(f: ServerFrame) => boolean} predicate
    * @param {number} ms
    * @param {{ afterIndex?: number }} [opts]
    */
   function waitFor(predicate, ms = 4000, opts = {}) {
-    const startIdx = opts.afterIndex ?? 0;
+    const startCount = opts.afterIndex ?? 0;
+    // Translate the monotonic watermark into a current array index.
+    // `receivedCount - frames.length` is the index of the oldest live
+    // frame; anything earlier has been evicted.
+    const oldestLiveCount = receivedCount - frames.length;
+    const startArrayIdx = Math.max(0, startCount - oldestLiveCount);
     return new Promise((resolve, reject) => {
       // First scan existing buffer from the watermark forward.
-      for (let i = startIdx; i < frames.length; i++) {
+      for (let i = startArrayIdx; i < frames.length; i++) {
         if (predicate(frames[i])) return resolve(frames[i]);
       }
       const timer = setTimeout(() => {
@@ -171,9 +213,19 @@ export async function connect(opts) {
     if (!closed) ws.close();
   }
 
-  /** Capture a watermark — frames already received don't satisfy later waitFors. */
+  /**
+   * Capture a watermark — frames already received don't satisfy later waitFors
+   * whose `opts.afterIndex` is set to this value.
+   *
+   * Returns `receivedCount` (monotonic across the connection's lifetime),
+   * NOT `frames.length` (which can shrink via ring-buffer eviction). This
+   * makes the watermark robust against eviction: a `mark()` at receivedCount
+   * = 1000 followed by 500 more frames produces a watermark that still
+   * correctly excludes the first 1000, even though the buffer has only the
+   * most recent 256 frames in memory.
+   */
   function mark() {
-    return frames.length;
+    return receivedCount;
   }
 
   return {
