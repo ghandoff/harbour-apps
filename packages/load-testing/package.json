@@ -1,0 +1,30 @@
+{
+  "name": "@windedvertigo/load-testing",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Smoke + load test harness for harbour apps. Reusable WebSocket client (PartyServer-aware), HTTP route prober, activity fixtures, and a configurable load runner. raft-house is the first consumer; vault / harbour-hub / depth-chart can plug in next.",
+  "type": "module",
+  "main": "src/index.mjs",
+  "exports": {
+    ".": "./src/index.mjs",
+    "./ws-client": "./src/ws-client.mjs",
+    "./fixtures": "./src/fixtures.mjs",
+    "./load": "./src/load.mjs"
+  },
+  "files": [
+    "src/",
+    "bin/",
+    "README.md"
+  ],
+  "bin": {
+    "raft-smoke": "./bin/raft-smoke.mjs",
+    "raft-load": "./bin/raft-load.mjs"
+  },
+  "scripts": {
+    "smoke": "node bin/raft-smoke.mjs",
+    "load": "node bin/raft-load.mjs"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}
