@@ -338,6 +338,36 @@ function normalizeConfig(
         },
       };
     }
+
+    case "beat-sequencer": {
+      // beat-sequencer is code-authored (see lib/games/music.ts) — it is not
+      // in normalizeActivity's validTypes allowlist, so Notion never reaches
+      // here in practice. This branch exists for type-completeness and passes
+      // the raw config through with safe fallbacks.
+      const rows = Array.isArray(raw.rows)
+        ? (raw.rows as Array<Record<string, unknown>>).map((r) => ({
+            instrument: (r.instrument as "kick" | "snare" | "hihat" | "clap") ?? "kick",
+            label: (r.label as string) ?? "",
+          }))
+        : [{ instrument: "kick" as const, label: "the pulse" }];
+      return {
+        type: "beat-sequencer",
+        beatSequencer: {
+          prompt: (raw.prompt ?? "") as string,
+          rows,
+          steps: (raw.steps as number) ?? 8,
+          tempo: (raw.tempo as number) ?? 100,
+          tempoRange: raw.tempoRange as [number, number] | undefined,
+          presets: raw.presets as
+            | { id: string; label: string; grid: boolean[][] }[]
+            | undefined,
+          feel: raw.feel as { label: string; lowLabel: string; highLabel: string } | undefined,
+          toyLink: raw.toyLink as { label: string; href: string } | undefined,
+          reflectionPrompt: raw.reflectionPrompt as string | undefined,
+          autoplay: raw.autoplay as boolean | undefined,
+        },
+      };
+    }
   }
 }
 

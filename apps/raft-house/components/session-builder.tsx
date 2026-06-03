@@ -19,6 +19,7 @@ const ACTIVITY_TYPES: { type: ActivityType; label: string; icon: string }[] = [
   { type: "rule-sandbox", label: "rule sandbox", icon: "🔬" },
   { type: "puzzle", label: "puzzle", icon: "🧩" },
   { type: "asymmetric", label: "asymmetric", icon: "🎭" },
+  { type: "beat-sequencer", label: "beat sequencer", icon: "🥁" },
   { type: "card-deal", label: "card deal", icon: "🃏" },
 ];
 
@@ -145,6 +146,19 @@ function defaultConfig(type: ActivityType): ActivityConfig {
             { id: "c3", content: "" },
           ],
           sequenceLabel: "your sequence",
+        },
+      };
+    case "beat-sequencer":
+      return {
+        type: "beat-sequencer",
+        beatSequencer: {
+          prompt: "",
+          rows: [
+            { instrument: "kick", label: "the pulse" },
+            { instrument: "hihat", label: "the shimmer" },
+          ],
+          steps: 8,
+          tempo: 100,
         },
       };
   }
@@ -495,6 +509,13 @@ function ConfigEditor({
       return <AsymmetricConfigEditor config={config.asymmetric} onChange={(asymmetric) => onChange({ type: "asymmetric", asymmetric })} />;
     case "card-deal":
       return <CardDealConfigEditor config={config.cardDeal} onChange={(cardDeal) => onChange({ type: "card-deal", cardDeal })} />;
+    case "beat-sequencer":
+      return (
+        <p className="text-sm text-[var(--rh-text-muted)]">
+          beat-sequencer activities (grids, presets, swing) are authored in code —
+          see <code>lib/games/music.ts</code> (rhythm.lab).
+        </p>
+      );
   }
 }
 

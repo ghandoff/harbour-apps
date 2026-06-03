@@ -11,6 +11,7 @@ import { CanvasActivity } from "./activities/canvas";
 import { SortingActivity } from "./activities/sorting";
 import { RuleSandboxActivity } from "./activities/rule-sandbox";
 import { CardDealActivity } from "./activities/card-deal";
+import { BeatSequencerActivity } from "./activities/beat-sequencer";
 
 interface Props {
   activity: Activity;
@@ -147,6 +148,23 @@ export function ActivityRenderer({
       return (
         <CardDealActivity
           config={config.cardDeal}
+          role={role}
+          onSubmit={onSubmit}
+          responses={responses}
+          participants={participants}
+          submitted={submitted}
+        />
+      );
+
+    case "beat-sequencer":
+      // key by activity.id so consecutive beat-sequencer phases each get a
+      // fresh instance — otherwise React reuses the component and its grid/
+      // tempo/playing state leaks from the previous phase (rhythm.lab runs
+      // four beat-sequencers back to back).
+      return (
+        <BeatSequencerActivity
+          key={activity.id}
+          config={config.beatSequencer}
           role={role}
           onSubmit={onSubmit}
           responses={responses}

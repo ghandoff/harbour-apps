@@ -22,7 +22,9 @@ export type ActivityType =
   | "sorting"
   | "rule-sandbox"
   // wave 4 — promoted from prototypes/card-deal
-  | "card-deal";
+  | "card-deal"
+  // wave 5 — interactive Web Audio sequencer (rhythm.lab threshold)
+  | "beat-sequencer";
 
 // ── mechanic metadata ───────────────────────────────────────────
 
@@ -259,6 +261,51 @@ export interface CardDealConfig {
   reflectionPrompt?: string;
 }
 
+// ── beat-sequencer (wave 5) ──────────────────────────────────────
+// Interactive Web Audio step sequencer — the embodied heart of the
+// rhythm.lab threshold experience. Unlike rule-sandbox (sliders → a
+// number) this PLAYS sound: the learner toggles cells in a grid and
+// hears the pattern loop. A "feel" slider applies swing to off-beats
+// so syncopation is felt, not described. Each row is one drum voice.
+
+export type BeatVoice = "kick" | "snare" | "hihat" | "clap";
+
+export interface BeatSequencerRow {
+  instrument: BeatVoice;
+  /** felt label shown beside the row, e.g. "the pulse", "the surprise" */
+  label: string;
+}
+
+export interface BeatSequencerPreset {
+  id: string;
+  /** felt label, e.g. "steady", "alive" — never music theory */
+  label: string;
+  /** [row][step] booleans; row order matches config.rows */
+  grid: boolean[][];
+}
+
+export interface BeatSequencerConfig {
+  prompt: string;
+  rows: BeatSequencerRow[];
+  /** number of steps (columns) in the loop — 4, 8, or 16 */
+  steps: number;
+  /** initial tempo in BPM */
+  tempo: number;
+  /** [min, max] for the tempo slider; defaults to [60, 160] */
+  tempoRange?: [number, number];
+  /** one-tap starting patterns the learner can load */
+  presets?: BeatSequencerPreset[];
+  /** optional swing/syncopation slider; absent = no feel control */
+  feel?: { label: string; lowLabel: string; highLabel: string };
+  /** explicit bridge to the standalone toy, e.g. "open rhythm.lab →" */
+  toyLink?: { label: string; href: string };
+  /** if present, a reflection textarea is shown and required to submit;
+   *  if absent, a simple "i'm ready" button submits the pattern alone */
+  reflectionPrompt?: string;
+  /** start the loop automatically on the first user gesture */
+  autoplay?: boolean;
+}
+
 export type ActivityConfig =
   | { type: "poll"; poll: PollConfig }
   | { type: "prediction"; prediction: PredictionConfig }
@@ -269,7 +316,8 @@ export type ActivityConfig =
   | { type: "canvas"; canvas: CanvasConfig }
   | { type: "sorting"; sorting: SortingConfig }
   | { type: "rule-sandbox"; ruleSandbox: RuleSandboxConfig }
-  | { type: "card-deal"; cardDeal: CardDealConfig };
+  | { type: "card-deal"; cardDeal: CardDealConfig }
+  | { type: "beat-sequencer"; beatSequencer: BeatSequencerConfig };
 
 export interface Activity {
   id: string;

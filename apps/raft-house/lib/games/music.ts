@@ -478,145 +478,193 @@ export function soundColor(): Activity[] {
 }
 
 // ── rhythm.lab ──────────────────────────────────────────────────
-// layer → subdivide → groove | real-time
-// tap rhythms, polyrhythmic emergence
+// tap → layer → swing → groove | real-time
+// the embodied threshold: you HEAR polyrhythm, you don't read about it.
+//
+// This experience is audio-first. Phases 1–4 use the `beat-sequencer`
+// activity — a Web Audio step grid the learner taps and hears loop —
+// and bridge explicitly to the standalone toy at /harbour/rhythm-lab so
+// the same concept can be met as play and as practice, in either order.
+
+const RHYTHM_LAB_TOY = { label: "open rhythm.lab →", href: "/harbour/rhythm-lab" };
 
 export function rhythmLab(): Activity[] {
   return [
+    // ── 1 · encounter — the hook (where does rhythm live?) ───────
     {
       id: uid(),
-      type: "prediction",
+      type: "beat-sequencer",
       phase: "encounter",
-      label: "predict: polyrhythm",
-      discussionPrompt: "12 beats — the LCM of 3 and 4. who used math versus who tried to count it out in their head? which approach felt more musical?",
-      timeLimit: 60,
+      label: "feel: the pulse",
       config: {
-        type: "prediction",
-        prediction: {
-          question:
-            "if you layer a pattern of 3 beats against a pattern of 4 beats (a 3:4 polyrhythm), how many beats pass before both patterns land on the same beat again?",
-          type: "number",
-          answer: 12,
-          unit: "beats",
+        type: "beat-sequencer",
+        beatSequencer: {
+          prompt:
+            "tap your desk. tap it again. now tap it faster. where does rhythm come from? press play, then drag the tempo. speed it up, slow it down — feel the pulse change in your body.",
+          rows: [
+            { instrument: "kick", label: "the pulse" },
+            { instrument: "hihat", label: "the shimmer" },
+          ],
+          steps: 8,
+          tempo: 96,
+          tempoRange: [60, 160],
+          autoplay: true,
+          presets: [
+            {
+              id: "heartbeat",
+              label: "a heartbeat",
+              grid: [
+                [true, false, false, false, true, false, false, false], // kick on 1 & 3
+                [true, false, true, false, true, false, true, false], // hihat steady
+              ],
+            },
+          ],
         },
       },
-      hints: [
-        "think about the lowest common multiple",
-        "west african drumming traditions have used this math for centuries",
-      ],
-      mechanic: {
-        interactionModel: "reveal",
-        socialStructure: "solo",
-        tempo: "real-time",
-      },
+      mechanic: { interactionModel: "sandbox", socialStructure: "solo", tempo: "real-time" },
     },
+
+    // ── 2 · struggle — the productive confusion (two patterns argue) ─
     {
       id: uid(),
-      type: "rule-sandbox",
+      type: "beat-sequencer",
       phase: "struggle",
-      label: "explore: beat parameters",
-      timeLimit: 180,
+      label: "struggle: when patterns argue",
+      discussionPrompt:
+        "who pushed the slider all the way to 'alive' and liked it? who wanted to pull it back to 'steady'? the discomfort is the threshold — sit with whoever felt it most.",
       config: {
-        type: "rule-sandbox",
-        ruleSandbox: {
+        type: "beat-sequencer",
+        beatSequencer: {
           prompt:
-            "adjust the beat parameters to discover how simple patterns create complexity. the output shows how many unique rhythmic events occur in one cycle. fela kuti's drummer tony allen built afrobeat from exactly this kind of layered simplicity.",
-          parameters: [
-            { id: "tempo", label: "tempo", min: 60, max: 200, step: 5, defaultValue: 120, unit: "bpm" },
-            { id: "layer1", label: "layer 1 subdivision", min: 2, max: 7, step: 1, defaultValue: 3 },
-            { id: "layer2", label: "layer 2 subdivision", min: 2, max: 7, step: 1, defaultValue: 4 },
-            { id: "accent", label: "accent every nth beat", min: 1, max: 8, step: 1, defaultValue: 2 },
+            "now a second voice joins — the snare. drag the slider from steady to alive and listen to how the snare starts to land in the cracks between the beats. does it feel wrong? good. that's the threshold. stay with it.",
+          rows: [
+            { instrument: "kick", label: "the pulse" },
+            { instrument: "snare", label: "the surprise" },
+            { instrument: "hihat", label: "the shimmer" },
           ],
-          formula: "(layer1 * layer2) - (layer1 * layer2 / (layer1 + layer2)) * accent / accent + tempo / tempo * (layer1 + layer2)",
-          outputLabel: "rhythmic density",
-          outputUnit: "events per cycle",
-          reflectionPrompt:
-            "what combination created the most interesting-feeling rhythm? was it the most complex one, or something simpler?",
+          steps: 8,
+          tempo: 100,
+          feel: { label: "how surprising does it feel?", lowLabel: "steady", highLabel: "alive" },
+          presets: [
+            {
+              id: "steady",
+              label: "steady",
+              grid: [
+                [true, false, false, false, true, false, false, false], // kick 1 & 3
+                [false, false, true, false, false, false, true, false], // snare backbeat 2 & 4
+                [true, false, true, false, true, false, true, false], // hihat steady
+              ],
+            },
+            {
+              id: "alive",
+              label: "alive",
+              grid: [
+                [true, false, false, true, false, false, true, false], // kick syncopated
+                [false, false, true, false, false, true, false, false], // snare off the grid
+                [false, true, false, true, false, true, false, true], // hihat on the off-beats
+              ],
+            },
+          ],
         },
       },
-      mechanic: {
-        interactionModel: "sandbox",
-        socialStructure: "solo",
-        tempo: "real-time",
-      },
+      mechanic: { interactionModel: "sandbox", socialStructure: "solo", tempo: "real-time" },
     },
+
+    // ── 3 · threshold — the crossing (3 against 4 becomes one) ───
     {
       id: uid(),
-      type: "puzzle",
+      type: "beat-sequencer",
       phase: "threshold",
-      label: "sequence: rhythm layers",
-      timeLimit: 150,
+      label: "cross: three against four",
+      discussionPrompt:
+        "this is a 3:4 polyrhythm — three hits against four, locking up only every twelve steps. nobody had to count. ask: when did it stop sounding like two things and start sounding like one?",
       config: {
-        type: "puzzle",
-        puzzle: {
+        type: "beat-sequencer",
+        beatSequencer: {
           prompt:
-            "arrange these rhythmic layers in the order you'd add them to build a groove from the ground up. think like a producer building a track — what's the foundation, and what comes last?",
-          pieces: [
-            { id: "kick", content: "kick drum — steady pulse on 1 and 3", hint: "the heartbeat" },
-            { id: "hihat", content: "hi-hat — steady eighth notes", hint: "the timekeeper, rides on top" },
-            { id: "snare", content: "snare — backbeat on 2 and 4", hint: "the anchor that defines the groove" },
-            { id: "shaker", content: "shaker — sixteenth note subdivisions", hint: "the finest grain of detail" },
-            { id: "bass", content: "bass line — syncopated pattern", hint: "locks in with the kick but adds melody" },
-            { id: "clave", content: "clave — 3-2 son clave pattern", hint: "the organizing principle in afro-cuban music" },
+            "two layers now: one hits three times, the other hits four — across the same loop. press play. at first you hear two patterns arguing. let it run. somewhere it clicks into a single groove. this is what the rhythm.lab grid was doing all along — each row was a layer, and when you toggled cells you were building exactly this.",
+          rows: [
+            { instrument: "kick", label: "the three" },
+            { instrument: "clap", label: "the four" },
           ],
-          solution: ["kick", "snare", "hihat", "bass", "clave", "shaker"],
-          revealOrder: true,
+          steps: 12,
+          tempo: 96,
+          feel: { label: "let them blend", lowLabel: "two patterns", highLabel: "one groove" },
+          presets: [
+            {
+              id: "three-vs-four",
+              label: "three against four",
+              grid: [
+                [true, false, false, false, true, false, false, false, true, false, false, false], // every 4 steps → 3 hits
+                [true, false, false, true, false, false, true, false, false, true, false, false], // every 3 steps → 4 hits
+              ],
+            },
+          ],
+          toyLink: RHYTHM_LAB_TOY,
         },
       },
-      mechanic: {
-        interactionModel: "construction",
-        socialStructure: "solo",
-        tempo: "real-time",
-      },
+      mechanic: { interactionModel: "reveal", socialStructure: "solo", tempo: "real-time" },
     },
+
+    // ── 4 · integration — the new ears (build a groove) ──────────
     {
       id: uid(),
-      type: "poll",
+      type: "beat-sequencer",
       phase: "integration",
-      label: "vote: groove feel",
-      discussionPrompt: "if 'human imperfection' and 'the pocket' both got votes — they're the same thing. quantized-perfect rhythms feel dead. what does that say about the role of error in art?",
-      timeLimit: 60,
+      label: "build: with new ears",
+      discussionPrompt:
+        "play a few people's grooves to the group. you can hear who crossed the threshold — their patterns breathe instead of marching. name what's different out loud.",
       config: {
-        type: "poll",
-        poll: {
-          question:
-            "when a rhythm really grooves, what do you think is the most important quality?",
-          options: [
-            { id: "pocket", label: "the 'pocket' — micro-timing that feels good" },
-            { id: "space", label: "space between the notes" },
-            { id: "layers", label: "how the layers interlock" },
-            { id: "imperfection", label: "human imperfection — slight drift and feel" },
-            { id: "body", label: "the way it moves your body" },
+        type: "beat-sequencer",
+        beatSequencer: {
+          prompt:
+            "the full kit now — four voices, sixteen steps, just like the toy. but this time you know what's hiding in the spaces. don't fill every box. build a pattern that makes you feel something. find the groove, not the grid.",
+          rows: [
+            { instrument: "kick", label: "kick" },
+            { instrument: "snare", label: "snare" },
+            { instrument: "hihat", label: "hi-hat" },
+            { instrument: "clap", label: "clap" },
           ],
-          allowMultiple: true,
+          steps: 16,
+          tempo: 100,
+          feel: { label: "how much swing?", lowLabel: "straight", highLabel: "swung" },
+          presets: [
+            {
+              id: "a-place-to-start",
+              label: "a place to start",
+              grid: [
+                [true, false, false, false, false, false, false, false, true, false, false, false, false, false, false, false], // kick 1 & 3
+                [false, false, false, false, true, false, false, false, false, false, false, false, true, false, false, false], // snare 2 & 4
+                [true, false, true, false, true, false, true, false, true, false, true, false, true, false, true, false], // hi-hat eighths
+                [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false], // clap — yours to place
+              ],
+            },
+          ],
+          toyLink: RHYTHM_LAB_TOY,
+          reflectionPrompt:
+            "go back and play the rhythm.lab grid one more time. what's different now? what do you hear that you didn't hear before?",
         },
       },
-      mechanic: {
-        interactionModel: "framing",
-        socialStructure: "cooperative",
-        tempo: "real-time",
-      },
+      mechanic: { interactionModel: "sandbox", socialStructure: "solo", tempo: "real-time" },
     },
+
+    // ── 5 · application — naming the threshold ───────────────────
     {
       id: uid(),
       type: "reflection",
       phase: "application",
-      label: "reflect: emergent complexity",
+      label: "reflect: you can't unhear it",
       timeLimit: 180,
       config: {
         type: "reflection",
         reflection: {
           prompt:
-            "steve reich discovered that two identical tape loops playing at slightly different speeds create endlessly evolving patterns ('it's gonna rain,' 1965). how do simple rules create complex rhythms? where else in life do you see this — simple patterns layered together producing something unpredictably rich?",
+            "what you just crossed is called a threshold concept. once you hear polyrhythm — once you feel two patterns become one groove — you can't unhear it. that's how all of raft.house works: every session hides a threshold inside it. where else in your life have simple things, layered together, become something you couldn't have predicted? and which threshold do you want to cross next — tone.field (how notes lean on each other) or sound.color (when a sound has a colour)?",
           minLength: 80,
           shareWithGroup: true,
         },
       },
-      mechanic: {
-        interactionModel: "framing",
-        socialStructure: "cooperative",
-        tempo: "real-time",
-      },
+      mechanic: { interactionModel: "framing", socialStructure: "cooperative", tempo: "real-time" },
     },
   ];
 }

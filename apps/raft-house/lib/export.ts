@@ -116,6 +116,8 @@ function getPrompt(config: ActivityConfig): string | null {
       return config.sorting.prompt;
     case "rule-sandbox":
       return config.ruleSandbox.prompt;
+    case "beat-sequencer":
+      return config.beatSequencer.prompt;
     default:
       return null;
   }
