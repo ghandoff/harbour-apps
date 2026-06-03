@@ -92,12 +92,34 @@ export default function BeatGrid() {
   const colRef = useRef(0);
 
   const getCtx = useCallback(() => {
-    if (!ctxRef.current) ctxRef.current = new AudioContext();
-    if (ctxRef.current.state === "suspended") ctxRef.current.resume();
+    if (!ctxRef.current) {
+      const Ctor =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext })
+          .webkitAudioContext;
+      ctxRef.current = new Ctor();
+    }
+    if (ctxRef.current.state === "suspended") void ctxRef.current.resume();
     return ctxRef.current;
   }, []);
 
+  // iOS keeps a freshly-created AudioContext muted until a sound is started
+  // inside a user gesture. Play a 1-frame silent buffer on first touch to
+  // unlock it — without this, mobile Safari stays silent even after resume().
+  const unlockedRef = useRef(false);
+  const unlockAudio = useCallback(() => {
+    const ctx = getCtx();
+    if (unlockedRef.current) return;
+    const buffer = ctx.createBuffer(1, 1, ctx.sampleRate);
+    const src = ctx.createBufferSource();
+    src.buffer = buffer;
+    src.connect(ctx.destination);
+    src.start(0);
+    unlockedRef.current = true;
+  }, [getCtx]);
+
   const toggle = (row: number, col: number) => {
+    unlockAudio(); // first cell tap is a gesture — unlock here too
     setGrid((prev) => {
       const next = prev.map((r) => [...r]);
       next[row][col] = !next[row][col];
@@ -128,6 +150,7 @@ export default function BeatGrid() {
   }, [getCtx]);
 
   const startPlayback = useCallback(() => {
+    unlockAudio(); // play button is a gesture — unlock iOS audio first
     colRef.current = 0;
     setPlaying(true);
     step();
@@ -143,7 +166,7 @@ export default function BeatGrid() {
     timerRef.current = window.setTimeout(() => {
       tick();
     }, ms);
-  }, [step]);
+  }, [step, unlockAudio]);
 
   const stopPlayback = useCallback(() => {
     setPlaying(false);

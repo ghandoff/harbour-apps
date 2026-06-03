@@ -180,8 +180,22 @@ export function BeatSequencerActivity({
     return ctxRef.current;
   }, []);
 
+  // iOS keeps a freshly-created AudioContext muted until a sound is started
+  // inside a user gesture. A 1-frame silent buffer on first touch unlocks it.
+  const unlockedRef = useRef(false);
+  const unlockAudio = useCallback(() => {
+    const ctx = getCtx();
+    if (unlockedRef.current) return;
+    const buffer = ctx.createBuffer(1, 1, ctx.sampleRate);
+    const src = ctx.createBufferSource();
+    src.buffer = buffer;
+    src.connect(ctx.destination);
+    src.start(0);
+    unlockedRef.current = true;
+  }, [getCtx]);
+
   const toggle = (row: number, col: number) => {
-    getCtx(); // first-gesture unlock for iOS/mobile
+    unlockAudio(); // first-gesture unlock for iOS/mobile
     setGrid((prev) => {
       const next = prev.map((r) => [...r]);
       next[row][col] = !next[row][col];
@@ -210,7 +224,7 @@ export function BeatSequencerActivity({
   }, []);
 
   const startPlayback = useCallback(() => {
-    getCtx();
+    unlockAudio();
     colRef.current = 0;
     setPlaying(true);
     step();
@@ -224,7 +238,7 @@ export function BeatSequencerActivity({
     };
     const ms = stepDurationMs(tempoRef.current, steps);
     timerRef.current = window.setTimeout(tick, ms);
-  }, [getCtx, step, steps]);
+  }, [unlockAudio, step, steps]);
 
   // autoplay: start on the first user gesture anywhere on the page (browsers
   // block audio before a gesture). One-shot listener; cleaned up after firing.
