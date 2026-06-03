@@ -70,6 +70,10 @@ const RAFT_HOUSE_CSP: string = [
   "style-src 'self' 'unsafe-inline'",
   "font-src 'self'",
   "img-src 'self' data: https:",
+  // media-src allows the silent WAV data: URI the beat-sequencer plays to
+  // promote the iOS audio session to "playback" (so the ring/silent switch
+  // doesn't mute Web Audio). Without this, default-src 'self' blocks data:.
+  "media-src 'self' data:",
   "connect-src 'self' https://api.notion.com https://windedvertigo.com https://www.windedvertigo.com https://api.stripe.com https://accounts.google.com wss://windedvertigo.com wss://www.windedvertigo.com",
   "frame-src 'self' https://www.youtube.com https://js.stripe.com https://accounts.google.com",
   "frame-ancestors 'none'",

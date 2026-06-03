@@ -80,6 +80,43 @@ function createClap(ctx: AudioContext, time: number) {
 
 const SOUND_FNS = { kick: createKick, snare: createSnare, "hi-hat": createHiHat, clap: createClap };
 
+// A short WAV of pure silence as a data URI, built once. Playing this through
+// an HTMLAudioElement promotes the page's iOS audio session to the "playback"
+// category (the same one YouTube and Duolingo use) — which the ring/silent
+// switch ignores. Without it, the raw Web Audio API below is muted by the
+// switch on iOS, even though media playback isn't.
+let _silentWav: string | null = null;
+function silentWav(): string {
+  if (_silentWav) return _silentWav;
+  const sampleRate = 8000;
+  const numSamples = sampleRate / 2; // 0.5s
+  const dataSize = numSamples; // 8-bit mono
+  const buf = new ArrayBuffer(44 + dataSize);
+  const view = new DataView(buf);
+  const writeStr = (off: number, s: string) => {
+    for (let i = 0; i < s.length; i++) view.setUint8(off + i, s.charCodeAt(i));
+  };
+  writeStr(0, "RIFF");
+  view.setUint32(4, 36 + dataSize, true);
+  writeStr(8, "WAVE");
+  writeStr(12, "fmt ");
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true); // PCM
+  view.setUint16(22, 1, true); // mono
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate, true);
+  view.setUint16(32, 1, true);
+  view.setUint16(34, 8, true); // 8-bit
+  writeStr(36, "data");
+  view.setUint32(40, dataSize, true);
+  for (let i = 0; i < numSamples; i++) view.setUint8(44 + i, 128); // 8-bit silence
+  let binary = "";
+  const bytes = new Uint8Array(buf);
+  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+  _silentWav = "data:audio/wav;base64," + btoa(binary);
+  return _silentWav;
+}
+
 export default function BeatGrid() {
   const [grid, setGrid] = useState<boolean[][]>(() =>
     ROWS.map(() => Array(COLS).fill(false))
@@ -104,9 +141,12 @@ export default function BeatGrid() {
   }, []);
 
   // iOS keeps a freshly-created AudioContext muted until a sound is started
-  // inside a user gesture. Play a 1-frame silent buffer on first touch to
-  // unlock it — without this, mobile Safari stays silent even after resume().
+  // inside a user gesture, AND mutes raw Web Audio under the ring/silent
+  // switch. Two-part unlock on first touch: (1) a 1-frame silent buffer to
+  // resume the context, (2) a silent looping media element to promote the
+  // page to the "playback" audio session so the switch no longer mutes us.
   const unlockedRef = useRef(false);
+  const silentElRef = useRef<HTMLAudioElement | null>(null);
   const unlockAudio = useCallback(() => {
     const ctx = getCtx();
     if (unlockedRef.current) return;
@@ -115,6 +155,12 @@ export default function BeatGrid() {
     src.buffer = buffer;
     src.connect(ctx.destination);
     src.start(0);
+    if (!silentElRef.current) {
+      const el = new Audio(silentWav());
+      el.loop = true;
+      silentElRef.current = el;
+    }
+    void silentElRef.current.play().catch(() => {});
     unlockedRef.current = true;
   }, [getCtx]);
 

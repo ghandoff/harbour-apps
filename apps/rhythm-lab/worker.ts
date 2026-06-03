@@ -23,7 +23,14 @@ import {
 
 export { DOQueueHandler, DOShardedTagCache, BucketCachePurge };
 
+// Append a media-src directive so the beat grid can play its silent WAV data:
+// URI through an HTMLAudioElement — that promotes the iOS audio session to
+// "playback" so the ring/silent switch no longer mutes Web Audio. The shared
+// HARBOUR_DEFAULT_CSP has no media-src, so it falls back to default-src 'self'
+// which blocks data:. Appended per-app to avoid touching every CF app.
+const RHYTHM_LAB_CSP = `${HARBOUR_DEFAULT_CSP}; media-src 'self' data:`;
+
 export default wrapWithSecurityHeaders(openNextHandler, {
-  csp: HARBOUR_DEFAULT_CSP,
+  csp: RHYTHM_LAB_CSP,
   skipPaths: [/^\/cdn-cgi\//],
 });

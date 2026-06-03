@@ -104,6 +104,42 @@ const VOICES: Record<BeatVoice, (ctx: AudioContext, time: number) => void> = {
   clap: createClap,
 };
 
+// A short WAV of pure silence, built once. Playing it through an
+// HTMLAudioElement promotes the page's iOS audio session to the "playback"
+// category (the one YouTube and media apps use), which the ring/silent switch
+// ignores — so the raw Web Audio above is audible even with the switch on.
+let _silentWav: string | null = null;
+function silentWav(): string {
+  if (_silentWav) return _silentWav;
+  const sampleRate = 8000;
+  const numSamples = sampleRate / 2; // 0.5s
+  const dataSize = numSamples; // 8-bit mono
+  const buf = new ArrayBuffer(44 + dataSize);
+  const view = new DataView(buf);
+  const writeStr = (off: number, s: string) => {
+    for (let i = 0; i < s.length; i++) view.setUint8(off + i, s.charCodeAt(i));
+  };
+  writeStr(0, "RIFF");
+  view.setUint32(4, 36 + dataSize, true);
+  writeStr(8, "WAVE");
+  writeStr(12, "fmt ");
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true); // PCM
+  view.setUint16(22, 1, true); // mono
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate, true);
+  view.setUint16(32, 1, true);
+  view.setUint16(34, 8, true); // 8-bit
+  writeStr(36, "data");
+  view.setUint32(40, dataSize, true);
+  for (let i = 0; i < numSamples; i++) view.setUint8(44 + i, 128); // 8-bit silence
+  let binary = "";
+  const bytes = new Uint8Array(buf);
+  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+  _silentWav = "data:audio/wav;base64," + btoa(binary);
+  return _silentWav;
+}
+
 // ── helpers ──────────────────────────────────────────────────────
 
 function emptyGrid(rows: number, steps: number): boolean[][] {
@@ -180,9 +216,12 @@ export function BeatSequencerActivity({
     return ctxRef.current;
   }, []);
 
-  // iOS keeps a freshly-created AudioContext muted until a sound is started
-  // inside a user gesture. A 1-frame silent buffer on first touch unlocks it.
+  // Two-part mobile unlock on first gesture: (1) a 1-frame silent buffer to
+  // resume the context, (2) a silent looping media element to promote the page
+  // to the iOS "playback" audio session, so the ring/silent switch no longer
+  // mutes the Web Audio (raw Web Audio is muted by the switch; media isn't).
   const unlockedRef = useRef(false);
+  const silentElRef = useRef<HTMLAudioElement | null>(null);
   const unlockAudio = useCallback(() => {
     const ctx = getCtx();
     if (unlockedRef.current) return;
@@ -191,6 +230,12 @@ export function BeatSequencerActivity({
     src.buffer = buffer;
     src.connect(ctx.destination);
     src.start(0);
+    if (!silentElRef.current) {
+      const el = new Audio(silentWav());
+      el.loop = true;
+      silentElRef.current = el;
+    }
+    void silentElRef.current.play().catch(() => {});
     unlockedRef.current = true;
   }, [getCtx]);
 
