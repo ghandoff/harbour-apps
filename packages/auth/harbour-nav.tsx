@@ -92,6 +92,18 @@ export function HarbourNav({
   const dialogRef = useRef<HTMLDialogElement | null>(null);
   const anchorRef = useRef<HTMLButtonElement | null>(null);
 
+  // Load the shared accessibility widget on every harbour app.
+  // The vanilla IIFE handles static HTML apps via harbour-nav-widget.js;
+  // this useEffect covers React (Next.js) harbour consumers that import
+  // HarbourNav directly and never touch the vanilla IIFE path.
+  useEffect(() => {
+    if (document.querySelector('script[src*="accessibility-widget"]')) return;
+    const script = document.createElement("script");
+    script.src = "https://windedvertigo.com/accessibility-widget.js";
+    script.async = true;
+    document.head.appendChild(script);
+  }, []);
+
   // Refresh the app list from the cdn worker on mount. Bundled data
   // already drove the initial paint, so a successful fetch silently
   // upgrades the drawer to current data without any visible flash.
