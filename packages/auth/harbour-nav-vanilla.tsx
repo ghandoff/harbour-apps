@@ -331,6 +331,12 @@ function mount(): void {
   style.textContent = HARBOUR_NAV_CSS;
   document.head.appendChild(style);
 
+  // load the shared accessibility widget on every harbour app
+  const a11yScript = document.createElement("script");
+  a11yScript.src = "https://windedvertigo.com/accessibility-widget.js";
+  a11yScript.defer = true;
+  document.head.appendChild(a11yScript);
+
   // push body content below the fixed nav
   const NAV_H = 52; // matches .harbour-topbar height
   document.body.style.paddingTop = `max(${NAV_H}px, calc(${NAV_H}px + env(safe-area-inset-top, 0px)))`;
