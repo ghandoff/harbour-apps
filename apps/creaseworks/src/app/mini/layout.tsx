@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { MiniFeedbackButton } from "./feedback-button";
 import { MiniStageNav } from "./stage-nav";
 
 /**
@@ -33,7 +34,11 @@ export default function MiniLayout({
            direct children of body other than the main-content wrapper
            and the skip link. */
         body:has([data-mini-root]) > *:not(:has([data-mini-root])):not(.skip-link):not(script) {
-          display: none;
+          /* !important: the FeedbackWidget 🐛 button portals into body
+             with inline styles — and it's a dead button on the pilot
+             worker anyway (posts to the main app's db, which this
+             worker can't reach). the mini's own "tell us" replaces it. */
+          display: none !important;
         }
         body:has([data-mini-root]) {
           padding-top: 0;
@@ -86,6 +91,7 @@ export default function MiniLayout({
       </header>
 
       <main className="mini-main">{children}</main>
+      <MiniFeedbackButton />
     </div>
   );
 }

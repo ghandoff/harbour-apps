@@ -15,6 +15,7 @@
  */
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import CharacterSlot from "@windedvertigo/characters";
 import { useCharacterVariant } from "@windedvertigo/characters/variant-context";
@@ -251,8 +252,13 @@ export default function MiniWelcomePage() {
             <p>
               we&rsquo;re testing this with friends and family. every time
               your child pauses, gets confused, or surprises you, that
-              moment is gold — tap the feedback prompts as you go and tell
-              us about it.
+              moment is gold — tap the &ldquo;💬 tell us&rdquo; button as
+              you go.
+            </p>
+            <p>
+              <Link href={miniHref("/guide")} style={{ textDecoration: "underline", fontWeight: 700 }}>
+                read the 2-minute session guide →
+              </Link>
             </p>
 
             {/* family code — needed to share photos + feedback */}
