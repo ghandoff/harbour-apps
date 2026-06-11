@@ -2,21 +2,44 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   // creaseworks mini — pilot canary. Deploys the feat/creaseworks-mini
   // branch to its own worker so friends & family preview /mini without
-  // prod ever seeing branch code. No custom-domain routes on purpose:
-  // workers.dev only until the pilot graduates.
+  // prod ever seeing branch code.
   //
-  // Deploy: npx opennextjs-cloudflare build
-  //         && node ../../packages/security/scripts/write-assets-headers.mjs /harbour/creaseworks
-  //         && npx wrangler deploy --config wrangler.mini.jsonc
+  // Served on the main domain at windedvertigo.com/harbour/creaseworks-mini
+  // via the direct zone routes below (most-specific-match beats the
+  // wv-site /* catchall — same precedence depth-chart relies on).
+  //
+  // Deploy (note CW_MINI=1 — switches basePath to /harbour/creaseworks-mini):
+  //   CW_MINI=1 npx opennextjs-cloudflare build
+  //   && node ../../packages/security/scripts/write-assets-headers.mjs /harbour/creaseworks-mini
+  //   && npx wrangler deploy --config wrangler.mini.jsonc
   //
   // NOTE: auth flows are knowingly broken on this canary (cookie domain
   // is .windedvertigo.com; AUTH_URL points at prod). /mini is
-  // unauthenticated by design, so the pilot doesn't care.
+  // unauthenticated by design, so the pilot doesn't care. The worker
+  // carries NO production credentials — AUTH_SECRET is canary-only random.
   "name": "wv-harbour-creaseworks-mini",
   // worker.mini.ts wraps the OpenNext handler to redirect "/" (and any
-  // path outside the basePath) to /harbour/creaseworks/mini — keeps the
-  // shareable pilot URL to just the hostname.
+  // path outside the basePath) to the mini welcome page.
   "main": "worker.mini.ts",
+
+  "routes": [
+    {
+      "pattern": "windedvertigo.com/harbour/creaseworks-mini",
+      "zone_id": "3b70c2ddcf9976faccb01d37ccf2e1ee"
+    },
+    {
+      "pattern": "windedvertigo.com/harbour/creaseworks-mini/*",
+      "zone_id": "3b70c2ddcf9976faccb01d37ccf2e1ee"
+    },
+    {
+      "pattern": "www.windedvertigo.com/harbour/creaseworks-mini",
+      "zone_id": "3b70c2ddcf9976faccb01d37ccf2e1ee"
+    },
+    {
+      "pattern": "www.windedvertigo.com/harbour/creaseworks-mini/*",
+      "zone_id": "3b70c2ddcf9976faccb01d37ccf2e1ee"
+    }
+  ],
   "account_id": "097c92553b268f8360b74f625f6d980a",
   "compatibility_date": "2025-04-01",
   "compatibility_flags": ["nodejs_compat"],

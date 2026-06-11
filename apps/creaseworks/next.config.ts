@@ -3,8 +3,13 @@ import type { NextConfig } from "next"; // trigger deploy
 const nextConfig: NextConfig = {
   /* creaseworks is served at windedvertigo.com/harbour/creaseworks via Vercel
      multi-zone rewrites (see apps/site/vercel.json). basePath ensures Next.js
-     generates correct asset URLs and internal links under that prefix. */
-  basePath: "/harbour/creaseworks",
+     generates correct asset URLs and internal links under that prefix.
+
+     CW_MINI=1 builds the pilot canary flavour instead: basePath
+     /harbour/creaseworks-mini, deployed to the wv-harbour-creaseworks-mini
+     worker with direct zone routes (see wrangler.mini.jsonc). Same app,
+     different mount point — keeps the pilot off prod's path entirely. */
+  basePath: process.env.CW_MINI ? "/harbour/creaseworks-mini" : "/harbour/creaseworks",
   poweredByHeader: false,
   transpilePackages: ["@windedvertigo/tokens", "@windedvertigo/auth", "@windedvertigo/stripe", "@windedvertigo/feedback"],
 
