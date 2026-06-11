@@ -58,6 +58,33 @@ const LOOK_MODES = [
     corners: "22px 28px 18px 26px",
     ready: true,
   },
+  {
+    key: "colour-catcher",
+    emoji: "📷",
+    label: "colour catcher",
+    description: "point at a colour!",
+    accent: "var(--wv-redwood)",
+    corners: "26px 20px 28px 22px",
+    ready: true,
+  },
+  {
+    key: "huff-puff",
+    emoji: "💨",
+    label: "huff & puff",
+    description: "find it, then blow!",
+    accent: "var(--wv-teal)",
+    corners: "20px 26px 24px 28px",
+    ready: true,
+  },
+  {
+    key: "echo-finder",
+    emoji: "🔊",
+    label: "echo finder",
+    description: "hear it, find it!",
+    accent: "var(--wv-seafoam)",
+    corners: "28px 22px 26px 20px",
+    ready: true,
+  },
 ] as const;
 
 import { miniHref } from "@/lib/mini-pilot";
