@@ -13,7 +13,10 @@
   // is .windedvertigo.com; AUTH_URL points at prod). /mini is
   // unauthenticated by design, so the pilot doesn't care.
   "name": "wv-harbour-creaseworks-mini",
-  "main": ".open-next/worker.js",
+  // worker.mini.ts wraps the OpenNext handler to redirect "/" (and any
+  // path outside the basePath) to /harbour/creaseworks/mini — keeps the
+  // shareable pilot URL to just the hostname.
+  "main": "worker.mini.ts",
   "account_id": "097c92553b268f8360b74f625f6d980a",
   "compatibility_date": "2025-04-01",
   "compatibility_flags": ["nodejs_compat"],
