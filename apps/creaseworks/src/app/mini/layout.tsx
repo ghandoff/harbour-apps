@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { FeedbackWidget } from "@windedvertigo/feedback";
 import { apiUrl } from "@/lib/api-url";
+import { miniHref } from "@/lib/mini-pilot";
 import { GrownUpCorner } from "./grown-up-corner";
 import { MiniStageNav } from "./stage-nav";
 
@@ -72,6 +74,13 @@ export default function MiniLayout({
           color: var(--wv-cadet);
           letter-spacing: 0.01em;
           white-space: nowrap;
+          text-decoration: none;
+          cursor: pointer;
+        }
+        .mini-wordmark:focus-visible {
+          outline: 3px solid var(--color-focus);
+          outline-offset: 3px;
+          border-radius: 8px;
         }
         .mini-wordmark .mini-tag {
           font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
@@ -97,9 +106,9 @@ export default function MiniLayout({
       `}</style>
 
       <header className="mini-header">
-        <span className="mini-wordmark">
+        <Link href={miniHref("/look")} className="mini-wordmark" aria-label="back to the look games">
           creaseworks<span className="mini-tag">mini</span>
-        </span>
+        </Link>
         <MiniStageNav />
       </header>
 

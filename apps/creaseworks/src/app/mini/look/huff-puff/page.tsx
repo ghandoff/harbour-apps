@@ -26,8 +26,8 @@ const PROMPTS = [
   { word: "teeny tiny", emoji: "🐜" },
 ] as const;
 
-const RMS_ON = 0.16;       // loudness that counts as a puff
-const SUSTAIN_FRAMES = 8;  // ~130ms of sustained loudness
+const RMS_ON = 0.12;       // loudness that counts as a puff
+const SUSTAIN_FRAMES = 5;  // ~80ms of sustained loudness
 
 export default function MiniHuffPuffPage() {
   const router = useRouter();
@@ -67,7 +67,12 @@ export default function MiniHuffPuffPage() {
 
   async function startMic() {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+      // disable the default audio processing — noiseSuppression/AGC actively
+      // filter out blowing and wind, which is exactly the signal we want.
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
+        video: false,
+      });
       streamRef.current = stream;
       const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       const ctx = new Ctx();

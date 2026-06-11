@@ -27,8 +27,8 @@ const SOUNDS: { key: SoundKey; emoji: string; hint: string }[] = [
   { key: "thump", emoji: "🥁", hint: "boxes, tubs, pillows" },
 ];
 
-const RMS_ON = 0.14;
-const SUSTAIN_FRAMES = 3; // a quick onset is enough (taps are short)
+const RMS_ON = 0.08;
+const SUSTAIN_FRAMES = 2; // a quick onset is enough (taps are short)
 
 function playSound(ctx: AudioContext, key: SoundKey) {
   const now = ctx.currentTime;
@@ -121,7 +121,11 @@ export default function MiniEchoFinderPage() {
 
   async function startMic() {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+      // processing off so quiet crinkles/taps aren't suppressed before we hear them
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
+        video: false,
+      });
       streamRef.current = stream;
       const ctx = ensureCtx();
       const analyser = ctx.createAnalyser();

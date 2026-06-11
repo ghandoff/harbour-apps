@@ -139,15 +139,23 @@ export default function MiniColourCatcherPage() {
         audio: false,
       });
       streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play().catch(() => {});
-      }
+      // mount the <video> first (it only renders when cam === "on"); the
+      // effect below attaches the stream once the element exists. attaching
+      // here would hit a null ref and leave a blank window.
       setCam("on");
     } catch {
       setCam("denied");
     }
   }
+
+  // attach the stream after the video element mounts
+  useEffect(() => {
+    if (cam !== "on") return;
+    const v = videoRef.current;
+    if (!v || !streamRef.current) return;
+    v.srcObject = streamRef.current;
+    v.play().catch(() => {});
+  }, [cam]);
 
   const finish = useCallback(() => {
     stop();

@@ -25,8 +25,15 @@ const ICON_BASE = MINI_AT_ROOT ? "/harbour/creaseworks-mini" : "/harbour/creasew
 export function FoundPicker({
   /** heading above the grid — modes set their own framing */
   prompt,
+  /** when given, called with the picked titles instead of the default
+   *  save-and-route-to-make (used by the things game's multi-round loop) */
+  onDone,
+  /** label for the finish button (default heads to make) */
+  doneLabel = "done looking! →",
 }: {
   prompt: string;
+  onDone?: (picked: string[]) => void;
+  doneLabel?: string;
 }) {
   const router = useRouter();
   const [picked, setPicked] = useState<Set<string>>(new Set());
@@ -41,9 +48,13 @@ export function FoundPicker({
   }, []);
 
   const done = useCallback(() => {
+    if (onDone) {
+      onDone(Array.from(picked));
+      return;
+    }
     saveFound(Array.from(picked));
     router.push(miniHref("/make"));
-  }, [picked, router]);
+  }, [picked, router, onDone]);
 
   const count = picked.size;
 
@@ -154,7 +165,7 @@ export function FoundPicker({
           disabled={count === 0}
           onClick={done}
         >
-          done looking! →
+          {doneLabel}
         </button>
       </div>
     </div>
