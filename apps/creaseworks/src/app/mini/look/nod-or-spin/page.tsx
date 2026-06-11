@@ -31,7 +31,7 @@ import { MiniStageHero } from "../../stage-hero";
 
 const ICON_BASE = MINI_AT_ROOT ? "/harbour/creaseworks-mini" : "/harbour/creaseworks";
 const ROUND = 10;
-const NOD_DEG = 28;        // beta change that counts as a nod
+const NOD_DEG = 90;        // beta change for a real, committed nod (phone on forehead) — not a twitch
 const SPIN_FULL = 330;     // accumulated yaw for a real full spin (~360°, slightly forgiving)
 const SPIN_DEADZONE = 1;   // per-event yaw jitter (deg) to ignore so standing still never drifts to a trigger
 const COOLDOWN_MS = 850;
