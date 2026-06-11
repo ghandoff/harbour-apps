@@ -62,8 +62,9 @@ export function FoundPicker({
         .mini-found-prompt {
           font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
           font-weight: 800;
-          font-size: 16px;
-          color: var(--wv-cadet);
+          /* ≥18.66px bold = WCAG "large text" → champagne clears AA on cornflower */
+          font-size: 20px;
+          color: var(--color-text-on-dark);
           margin-bottom: 14px;
         }
         .mini-found-grid {

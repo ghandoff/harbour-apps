@@ -50,14 +50,15 @@ export default function MiniWelcomePage() {
           font-family: var(--font-fraunces), serif;
           font-weight: 600;
           font-size: 36px;
-          color: var(--wv-cadet);
+          color: var(--color-text-on-dark);
           margin-bottom: 6px;
         }
         .mini-invite {
           font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
           font-weight: 800;
-          font-size: 18px;
-          color: var(--wv-cadet);
+          /* ≥18.66px bold = WCAG "large text" → champagne clears AA on cornflower */
+          font-size: 20px;
+          color: var(--color-text-on-dark);
           margin: 0 auto 30px;
         }
         button.mini-start:not([type="submit"]):not(.wv-header-signout) {

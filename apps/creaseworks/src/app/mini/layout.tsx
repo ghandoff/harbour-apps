@@ -42,20 +42,28 @@ export default function MiniLayout({
         }
         body:has([data-mini-root]) {
           padding-top: 0;
-          background: var(--wv-white);
+          background: var(--wv-cornflower);
         }
         .mini-shell {
           min-height: 100vh;
           display: flex;
           flex-direction: column;
-          background: var(--wv-white);
+          background: var(--wv-cornflower);
         }
+        /* white bar pinned at top — stays white per garrett; the rest of
+           the canvas is cornflower, so bare-on-canvas text uses champagne
+           (the font-on-dark colour). */
         .mini-header {
           display: flex;
           align-items: center;
           justify-content: space-between;
           gap: 10px;
-          padding: 14px 18px 10px;
+          padding: 14px 18px 12px;
+          background: var(--wv-white);
+          box-shadow: 0 2px 10px rgba(39, 50, 72, 0.18);
+          position: sticky;
+          top: 0;
+          z-index: 30;
         }
         .mini-wordmark {
           font-family: var(--font-fraunces), serif;

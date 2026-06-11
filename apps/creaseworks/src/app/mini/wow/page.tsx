@@ -76,9 +76,10 @@ export default function MiniWowPage() {
           text-align: center;
           padding: 36px 20px;
           font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
-          font-weight: 700;
-          font-size: 15px;
-          color: var(--wv-cadet);
+          font-weight: 800;
+          /* ≥18.66px bold = WCAG "large text" → champagne clears AA on cornflower */
+          font-size: 20px;
+          color: var(--color-text-on-dark);
           line-height: 1.6;
         }
       `}</style>
