@@ -42,17 +42,17 @@ export default function MiniLayout({
         }
         body:has([data-mini-root]) {
           padding-top: 0;
-          background: var(--wv-cornflower);
+          background: var(--wv-navy);
         }
         .mini-shell {
           min-height: 100vh;
           display: flex;
           flex-direction: column;
-          background: var(--wv-cornflower);
+          background: var(--wv-navy);
         }
         /* white bar pinned at top — stays white per garrett; the rest of
-           the canvas is cornflower, so bare-on-canvas text uses champagne
-           (the font-on-dark colour). */
+           the canvas is navy (#436db1), deep enough that white bare-on-
+           canvas text clears AA at all sizes (5.2:1). */
         .mini-header {
           display: flex;
           align-items: center;
