@@ -7,20 +7,22 @@
  * what the child says about it. Both go to the pilot store attached to
  * the family code; nothing appears publicly until reviewed.
  *
- * No family code yet → a gentle pointer back to the welcome page's
- * grown-up strip. The kid flow itself never requires reading.
+ * No family code yet → inline entry field so the grown-up doesn't have
+ * to navigate away. The kid flow itself never requires reading.
  */
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { apiUrl } from "@/lib/api-url";
-import { loadCode, loadFound, matchActivities, miniHref } from "@/lib/mini-pilot";
+import { loadCode, loadFound, matchActivities, miniHref, saveCode } from "@/lib/mini-pilot";
 import { MiniStageHero } from "../stage-hero";
 
 type SendState = "idle" | "sending" | "done" | "error";
 
 export default function MiniShowPage() {
   const [code, setCode] = useState<string | null>(null);
+  const [codeInput, setCodeInput] = useState("");
+  const [codeError, setCodeError] = useState(false);
   const [activitySlug, setActivitySlug] = useState<string | null>(null);
   const [photo, setPhoto] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -39,6 +41,16 @@ export default function MiniShowPage() {
     if (!file) return;
     setPhoto(file);
     setPreviewUrl(URL.createObjectURL(file));
+  }
+
+  function submitCode() {
+    const trimmed = codeInput.trim().toLowerCase();
+    if (!trimmed) return;
+    // client-side: just check format (two lowercase words joined by a dash)
+    if (!/^[a-z]+-[a-z]+$/.test(trimmed)) { setCodeError(true); return; }
+    saveCode(trimmed);
+    setCode(trimmed);
+    setCodeError(false);
   }
 
   async function share() {
@@ -149,6 +161,59 @@ export default function MiniShowPage() {
           text-decoration: underline;
           font-size: 14px;
         }
+        .mini-show-code-box {
+          background: color-mix(in srgb, var(--wv-mint) 35%, var(--wv-white));
+          border: 2px solid var(--wv-teal);
+          border-radius: 18px 22px 16px 20px;
+          padding: 14px 16px;
+          margin-bottom: 14px;
+        }
+        .mini-show-code-label {
+          font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+          font-weight: 800;
+          font-size: 13px;
+          color: var(--wv-cadet);
+          margin-bottom: 8px;
+        }
+        .mini-show-code-row {
+          display: flex;
+          gap: 8px;
+        }
+        .mini-show-code-input {
+          flex: 1;
+          font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+          font-size: 15px;
+          font-weight: 700;
+          color: var(--wv-cadet);
+          background: var(--wv-white);
+          border: 2px solid var(--wv-teal);
+          border-radius: 12px;
+          padding: 10px 12px;
+        }
+        .mini-show-code-input:focus-visible {
+          outline: 3px solid var(--color-focus);
+          outline-offset: 1px;
+        }
+        button.mini-show-code-btn:not([type="submit"]):not(.wv-header-signout) {
+          font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+          font-weight: 800;
+          font-size: 14px;
+          color: var(--wv-white);
+          background: var(--wv-teal);
+          border: none;
+          border-radius: 12px 16px 10px 14px;
+          padding: 10px 16px;
+          cursor: pointer;
+          white-space: nowrap;
+        }
+        button.mini-show-code-btn:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
+        .mini-show-code-err {
+          font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+          font-size: 12px;
+          font-weight: 700;
+          color: var(--wv-redwood);
+          margin-top: 6px;
+        }
       `}</style>
 
       {state === "done" ? (
@@ -158,6 +223,33 @@ export default function MiniShowPage() {
         </div>
       ) : (
         <div className="mini-show-card">
+
+          {!code && (
+            <div className="mini-show-code-box">
+              <p className="mini-show-code-label">grown-ups: enter your family code to unlock sharing</p>
+              <div className="mini-show-code-row">
+                <input
+                  className="mini-show-code-input"
+                  type="text"
+                  value={codeInput}
+                  onChange={(e) => { setCodeInput(e.target.value); setCodeError(false); }}
+                  onKeyDown={(e) => e.key === "Enter" && submitCode()}
+                  placeholder="e.g. sunny-fox"
+                  aria-label="family code"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck={false}
+                />
+                <button type="button" className="mini-show-code-btn" onClick={submitCode}>
+                  go →
+                </button>
+              </div>
+              {codeError && (
+                <p className="mini-show-code-err">that code isn&rsquo;t recognised — check the welcome page for your code</p>
+              )}
+            </div>
+          )}
+
           <div
             className="mini-show-photo-zone"
             onClick={() => inputRef.current?.click()}
@@ -170,16 +262,15 @@ export default function MiniShowPage() {
               <img src={previewUrl} alt="your creation" />
             ) : (
               <span className="mini-show-photo-hint">
-                📸 tap to snap a photo of what you made!
+                📸 tap to add a photo of what you made!
               </span>
             )}
           </div>
+          {/* no capture= attr so iOS offers camera OR library — camera-only blocked sharing if denied for colour catcher */}
           <input
             ref={inputRef}
             type="file"
             accept="image/jpeg,image/png,image/webp,image/heic"
-            capture="environment"
-            className="hidden"
             style={{ display: "none" }}
             onChange={(e) => pickPhoto(e.target.files?.[0])}
           />
@@ -204,12 +295,6 @@ export default function MiniShowPage() {
           {state === "error" && (
             <p className="mini-show-note" style={{ color: "var(--wv-redwood)", opacity: 1 }}>
               that didn&rsquo;t go through — try again in a moment?
-            </p>
-          )}
-          {!code && (
-            <p className="mini-show-note">
-              grown-ups: tap &ldquo;☝ for grown-ups&rdquo; on the left edge to enter your
-              family code — then sharing unlocks.
             </p>
           )}
         </div>
