@@ -221,3 +221,12 @@ if you only learn six terms first, learn these. almost every instruction uses th
 - **why "i can't do that from here" happens** — it's almost always the firewall
   above, not a limitation of the task. when you see it, the fix is to run that one
   step locally, and i'll give you the exact, plain steps.
+
+## CORS (cross-origin resource sharing)
+browsers block a webpage on one domain from sending data to a different domain unless the receiving side explicitly says "I accept requests from that site." that permission list is the CORS policy. our photo uploads go straight from the browser to cloudflare's storage domain — so the storage bucket needs a CORS rule naming windedvertigo.com as an allowed origin. CORS rules live on the bucket itself and do NOT move with it when a bucket is migrated between accounts.
+
+## presigned URL
+a temporary, self-authorising web address for a single file operation. our server creates it (signed with our storage credentials, valid ~10 minutes), hands it to the browser, and the browser uploads the photo directly to storage using that URL — the photo never passes through our server. faster, and keeps big files off the worker.
+
+## SigV4 (AWS signature version 4)
+the maths used to stamp a request with proof that it came from someone holding the secret key — it's how presigned URLs are made. the official AWS library (@aws-sdk) does this but expects a normal server with a filesystem; on cloudflare workers we use a tiny library called aws4fetch that does the same signing without touching disk.
