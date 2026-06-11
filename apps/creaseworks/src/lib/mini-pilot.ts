@@ -243,6 +243,28 @@ export function loadFound(): string[] {
   }
 }
 
+/* ── family code (pilot session) ────────────────────────────────────
+ * Entered once by the grown-up on the welcome page; everything the
+ * family shares attaches to it. localStorage so it survives the visit. */
+
+const CODE_KEY = "cw-mini-code";
+
+export function saveCode(code: string): void {
+  try {
+    localStorage.setItem(CODE_KEY, code);
+  } catch {
+    /* private mode — show falls back to asking again */
+  }
+}
+
+export function loadCode(): string | null {
+  try {
+    return localStorage.getItem(CODE_KEY);
+  } catch {
+    return null;
+  }
+}
+
 /* ── match-rate ─────────────────────────────────────────────────────
  * Score each activity by how much of its suggested-materials list the
  * child found ("82% match rate" concept from the whirlpool). */

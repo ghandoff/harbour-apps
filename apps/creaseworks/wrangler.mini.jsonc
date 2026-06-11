@@ -56,5 +56,21 @@
     }
   ],
 
+  // pilot persistence — dedicated, isolated resources bound natively.
+  // NO prod credentials: the worker can only touch these two stores.
+  "d1_databases": [
+    {
+      "binding": "MINI_DB",
+      "database_name": "wv-creaseworks-mini",
+      "database_id": "7e7b9ab6-36d0-4fc9-8345-daaa3ef5ddc8"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "MINI_EVIDENCE",
+      "bucket_name": "creaseworks-mini-evidence"
+    }
+  ],
+
   "workers_dev": true
 }

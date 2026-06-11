@@ -9,7 +9,11 @@
  * Usage:
  *   fetch(apiUrl("/api/matcher"), { method: "POST", ... })
  */
-const BASE_PATH = "/harbour/creaseworks";
+// flavour-aware: the CW_MINI build mounts at /harbour/creaseworks-mini
+const BASE_PATH =
+  process.env.NEXT_PUBLIC_CW_MINI === "1"
+    ? "/harbour/creaseworks-mini"
+    : "/harbour/creaseworks";
 
 export function apiUrl(path: string): string {
   // Avoid double-prefixing if the path already starts with basePath

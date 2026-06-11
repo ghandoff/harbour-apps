@@ -14,16 +14,44 @@
  * feedback" — garrett, whirlpool 2026-06-10.
  */
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import CharacterSlot from "@windedvertigo/characters";
 import { useCharacterVariant } from "@windedvertigo/characters/variant-context";
-import { MINI_STAGES, miniHref } from "@/lib/mini-pilot";
+import { apiUrl } from "@/lib/api-url";
+import { MINI_STAGES, loadCode, miniHref, saveCode } from "@/lib/mini-pilot";
 
 export default function MiniWelcomePage() {
   const router = useRouter();
   const variant = useCharacterVariant();
   const [adultOpen, setAdultOpen] = useState(false);
+  const [code, setCode] = useState("");
+  const [codeState, setCodeState] = useState<"none" | "checking" | "ok" | "bad">("none");
+
+  useEffect(() => {
+    if (loadCode()) setCodeState("ok");
+  }, []);
+
+  async function checkCode() {
+    const trimmed = code.trim().toLowerCase();
+    if (!trimmed) return;
+    setCodeState("checking");
+    try {
+      const res = await fetch(apiUrl("/api/mini/session"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: trimmed }),
+      });
+      if (res.ok) {
+        saveCode(trimmed);
+        setCodeState("ok");
+      } else {
+        setCodeState("bad");
+      }
+    } catch {
+      setCodeState("bad");
+    }
+  }
 
   return (
     <div className="mini-welcome">
@@ -119,6 +147,45 @@ export default function MiniWelcomePage() {
         }
         .mini-adult-body p { margin-bottom: 10px; }
         .mini-adult-body p:last-child { margin-bottom: 0; }
+        .mini-code-row {
+          margin-top: 14px;
+          padding-top: 12px;
+          border-top: 1px solid rgba(39, 50, 72, 0.08);
+        }
+        .mini-code-label {
+          display: block;
+          font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+          font-weight: 700;
+          font-size: 13px;
+          margin-bottom: 6px;
+        }
+        .mini-code-controls { display: flex; gap: 8px; }
+        .mini-code-input {
+          flex: 1;
+          font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+          font-size: 14px;
+          padding: 8px 12px;
+          border: 1.5px solid rgba(39, 50, 72, 0.15);
+          border-radius: 12px;
+          background: var(--wv-cream);
+        }
+        .mini-code-input:focus-visible {
+          outline: 3px solid var(--color-focus);
+          outline-offset: 1px;
+        }
+        button.mini-code-check:not([type="submit"]):not(.wv-header-signout) {
+          font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+          font-weight: 800;
+          font-size: 13px;
+          color: var(--wv-white);
+          background: var(--wv-cadet);
+          border: none;
+          border-radius: 12px;
+          padding: 8px 16px;
+          cursor: pointer;
+        }
+        .mini-code-ok { color: var(--wv-cadet); font-weight: 700; }
+        .mini-code-bad { font-size: 12px; color: var(--wv-redwood); margin-top: 6px; }
         @media (prefers-reduced-motion: reduce) {
           .mini-cast-slot { animation: none; }
         }
@@ -187,6 +254,47 @@ export default function MiniWelcomePage() {
               moment is gold — tap the feedback prompts as you go and tell
               us about it.
             </p>
+
+            {/* family code — needed to share photos + feedback */}
+            <div className="mini-code-row">
+              {codeState === "ok" ? (
+                <p className="mini-code-ok">
+                  ✓ your family code is saved — you&rsquo;re all set to share.
+                </p>
+              ) : (
+                <>
+                  <label htmlFor="mini-code" className="mini-code-label">
+                    got a family code from us? enter it to share photos:
+                  </label>
+                  <div className="mini-code-controls">
+                    <input
+                      id="mini-code"
+                      type="text"
+                      value={code}
+                      onChange={(e) => setCode(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && checkCode()}
+                      placeholder="sunny-fox"
+                      autoCapitalize="none"
+                      autoCorrect="off"
+                      className="mini-code-input"
+                    />
+                    <button
+                      type="button"
+                      onClick={checkCode}
+                      disabled={codeState === "checking"}
+                      className="mini-code-check"
+                    >
+                      {codeState === "checking" ? "checking…" : "save"}
+                    </button>
+                  </div>
+                  {codeState === "bad" && (
+                    <p className="mini-code-bad">
+                      hmm, we don&rsquo;t recognise that one — check the spelling?
+                    </p>
+                  )}
+                </>
+              )}
+            </div>
           </div>
         )}
       </div>
