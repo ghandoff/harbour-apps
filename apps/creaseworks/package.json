@@ -13,8 +13,6 @@
   },
   "dependencies": {
     "@auth/core": "^0.41.0",
-    "@aws-sdk/client-s3": "^3.1013.0",
-    "@aws-sdk/s3-request-presigner": "^3.1013.0",
     "@neondatabase/serverless": "^0.10.0",
     "@notionhq/client": "^2.3.0",
     "@windedvertigo/auth": "*",
@@ -24,6 +22,7 @@
     "@windedvertigo/stripe": "*",
     "@windedvertigo/sync-images": "*",
     "@windedvertigo/tokens": "*",
+    "aws4fetch": "^1.0.20",
     "next": "^16.2.3",
     "next-auth": "^5.0.0-beta.30",
     "pdf-lib": "^1.17.1",

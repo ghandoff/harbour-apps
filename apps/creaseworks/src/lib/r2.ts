@@ -4,6 +4,12 @@
  * Uses the S3-compatible API with presigned URLs so the browser
  * uploads directly to R2 without proxying through our server.
  *
+ * Built on aws4fetch (SigV4 over fetch) rather than @aws-sdk/client-s3:
+ * the AWS SDK's config-resolution chain reads ~/.aws/config from disk,
+ * which throws "[unenv] fs.readFile is not implemented" on CF Workers.
+ * aws4fetch signs with SubtleCrypto and never touches the filesystem,
+ * so the same code runs in workerd, node, and vitest.
+ *
  * Required env vars:
  *   R2_ACCOUNT_ID       — Cloudflare account ID
  *   R2_ACCESS_KEY_ID    — R2 API token access key
@@ -12,31 +18,37 @@
  *   R2_PUBLIC_URL       — public bucket URL for reading (optional)
  */
 
-import { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { AwsClient } from "aws4fetch";
 
 const BUCKET = process.env.R2_BUCKET_NAME ?? "creaseworks-evidence";
 
-let _client: S3Client | null = null;
+let _client: AwsClient | null = null;
 
-function getR2Client(): S3Client {
+function getR2Client(): AwsClient {
   if (_client) return _client;
 
-  const accountId = process.env.R2_ACCOUNT_ID;
   const accessKeyId = process.env.R2_ACCESS_KEY_ID;
   const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
 
-  if (!accountId || !accessKeyId || !secretAccessKey) {
+  if (!process.env.R2_ACCOUNT_ID || !accessKeyId || !secretAccessKey) {
+    // upload-url route matches on this message for its 503 fallback —
+    // keep it stable.
     throw new Error("R2 credentials not configured — set R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY");
   }
 
-  _client = new S3Client({
+  _client = new AwsClient({
+    accessKeyId,
+    secretAccessKey,
     region: "auto",
-    endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
-    credentials: { accessKeyId, secretAccessKey },
+    service: "s3",
   });
 
   return _client;
+}
+
+/** Bucket-scoped object URL on the R2 S3 endpoint. */
+function objectUrl(key: string): string {
+  return `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${BUCKET}/${key}`;
 }
 
 /** Accepted MIME types for evidence photos. */
@@ -72,6 +84,33 @@ export function buildThumbnailKey(storageKey: string): string {
 }
 
 /**
+ * Presign a request URL for the given method. `signQuery` puts the
+ * signature in query params so the URL is self-contained for the browser.
+ */
+async function presign(
+  key: string,
+  method: string,
+  expiresIn: number,
+  contentType?: string,
+): Promise<string> {
+  const client = getR2Client();
+  const url = new URL(objectUrl(key));
+  url.searchParams.set("X-Amz-Expires", String(expiresIn));
+
+  const signed = await client.sign(
+    new Request(url, {
+      method,
+      // content-type becomes a signed header — the uploader must send
+      // the same value, which evidence-photo-upload.tsx does.
+      headers: contentType ? { "Content-Type": contentType } : undefined,
+    }),
+    { aws: { signQuery: true } },
+  );
+
+  return signed.url;
+}
+
+/**
  * Generate a presigned PUT URL for direct browser upload.
  * Expires in 10 minutes.
  */
@@ -79,14 +118,7 @@ export async function generateUploadUrl(
   key: string,
   contentType: string,
 ): Promise<string> {
-  const client = getR2Client();
-  const command = new PutObjectCommand({
-    Bucket: BUCKET,
-    Key: key,
-    ContentType: contentType,
-  });
-
-  return getSignedUrl(client, command, { expiresIn: 600 });
+  return presign(key, "PUT", 600, contentType);
 }
 
 /**
@@ -97,12 +129,7 @@ export async function generateReadUrl(
   key: string,
   expiresIn = 3600,
 ): Promise<string> {
-  const client = getR2Client();
-  const command = new GetObjectCommand({
-    Bucket: BUCKET,
-    Key: key,
-  });
-  return getSignedUrl(client, command, { expiresIn });
+  return presign(key, "GET", expiresIn);
 }
 
 /**
@@ -113,13 +140,9 @@ export async function generateReadUrl(
 export async function getObjectBytes(key: string): Promise<Uint8Array | null> {
   try {
     const client = getR2Client();
-    const command = new GetObjectCommand({
-      Bucket: BUCKET,
-      Key: key,
-    });
-    const response = await client.send(command);
-    if (!response.Body) return null;
-    return response.Body.transformToByteArray();
+    const res = await client.fetch(objectUrl(key));
+    if (!res.ok) return null;
+    return new Uint8Array(await res.arrayBuffer());
   } catch {
     return null;
   }
@@ -130,11 +153,11 @@ export async function getObjectBytes(key: string): Promise<Uint8Array | null> {
  */
 export async function deleteObject(key: string): Promise<void> {
   const client = getR2Client();
-  const command = new DeleteObjectCommand({
-    Bucket: BUCKET,
-    Key: key,
-  });
-  await client.send(command);
+  const res = await client.fetch(objectUrl(key), { method: "DELETE" });
+  // S3 DELETE returns 204; treat any non-2xx as failure
+  if (!res.ok && res.status !== 404) {
+    throw new Error(`R2 delete failed for ${key}: ${res.status}`);
+  }
 }
 
 /**
@@ -147,13 +170,14 @@ export async function uploadBuffer(
   contentType: string,
 ): Promise<void> {
   const client = getR2Client();
-  const command = new PutObjectCommand({
-    Bucket: BUCKET,
-    Key: key,
-    Body: body,
-    ContentType: contentType,
+  const res = await client.fetch(objectUrl(key), {
+    method: "PUT",
+    headers: { "Content-Type": contentType },
+    body: body as BodyInit,
   });
-  await client.send(command);
+  if (!res.ok) {
+    throw new Error(`R2 upload failed for ${key}: ${res.status}`);
+  }
 }
 
 /**
