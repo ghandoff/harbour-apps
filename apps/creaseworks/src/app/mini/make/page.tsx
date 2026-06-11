@@ -10,6 +10,7 @@
  */
 
 import Link from "next/link";
+import { miniHref } from "@/lib/mini-pilot";
 import { MiniStageHero } from "../stage-hero";
 
 export default function MiniMakePage() {
@@ -28,7 +29,7 @@ export default function MiniMakePage() {
       >
         the make stage is being built — it will match what you found to
         one of five activities. for now, head back to{" "}
-        <Link href="/mini/look" style={{ textDecoration: "underline" }}>
+        <Link href={miniHref("/look")} style={{ textDecoration: "underline" }}>
           look
         </Link>{" "}
         and keep hunting!

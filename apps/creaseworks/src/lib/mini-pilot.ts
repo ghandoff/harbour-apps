@@ -128,3 +128,22 @@ export function getMiniStage(key: MiniStageKey): MiniStage {
   // keys are a closed union — find never misses
   return MINI_STAGES.find((s) => s.key === key)!;
 }
+
+/**
+ * The mini flavour (CW_MINI build) serves the pilot pages at the
+ * basePath root via rewrites — clean URLs like
+ * windedvertigo.com/harbour/creaseworks-mini/look. The prod flavour
+ * keeps them under /mini. All mini-internal links go through this
+ * helper so both flavours navigate correctly.
+ */
+export const MINI_AT_ROOT = process.env.NEXT_PUBLIC_CW_MINI === "1";
+
+export function miniHref(path: "" | `/${string}`): string {
+  return MINI_AT_ROOT ? path || "/" : `/mini${path}`;
+}
+
+/** Current stage segment from a usePathname() value, flavour-agnostic. */
+export function miniStageFromPathname(pathname: string): string | null {
+  const seg = pathname.replace(/^\/mini/, "").split("/")[1];
+  return seg || null;
+}

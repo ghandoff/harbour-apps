@@ -31,11 +31,12 @@ const BASE = "/harbour/creaseworks-mini";
 export default {
   fetch(request: Request, env: unknown, ctx: unknown): Promise<Response> | Response {
     const url = new URL(request.url);
-    // bare basePath (with or without trailing slash) or any path outside
-    // it (e.g. "/" on workers.dev) → the mini welcome page
-    const bare = url.pathname === BASE || url.pathname === `${BASE}/`;
-    if (bare || !url.pathname.startsWith(BASE)) {
-      return Response.redirect(`${url.origin}${BASE}/mini`, 302);
+    // paths outside the basePath (e.g. "/" on workers.dev) → the pilot
+    // entry. the bare basePath itself is served directly: the CW_MINI
+    // build rewrites "/" to the welcome page, so no redirect and no
+    // /mini tail in the URL bar.
+    if (!url.pathname.startsWith(BASE)) {
+      return Response.redirect(`${url.origin}${BASE}`, 302);
     }
     return (openNextHandler as { fetch: (r: Request, e: unknown, c: unknown) => Promise<Response> }).fetch(
       request,

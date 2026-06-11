@@ -11,6 +11,34 @@ const nextConfig: NextConfig = {
      different mount point — keeps the pilot off prod's path entirely. */
   basePath: process.env.CW_MINI ? "/harbour/creaseworks-mini" : "/harbour/creaseworks",
   poweredByHeader: false,
+
+  // expose the flavour to client components — miniHref() in
+  // src/lib/mini-pilot.ts uses it to emit clean pilot URLs
+  env: { NEXT_PUBLIC_CW_MINI: process.env.CW_MINI ? "1" : "" },
+
+  /* mini flavour only: serve the /mini pages at the basePath root so the
+     pilot URL is windedvertigo.com/harbour/creaseworks-mini with no
+     /mini tail. internal rewrites — the URL bar never changes.
+
+     the "/" rewrite must run beforeFiles: the app has a real root page
+     (the prod landing), and afterFiles rewrites only fire when no
+     filesystem route matches — so a default-phase "/" rewrite silently
+     loses to the landing page. the stage paths have no filesystem
+     routes, so afterFiles is fine for them. */
+  async rewrites() {
+    if (!process.env.CW_MINI) return [];
+    return {
+      beforeFiles: [{ source: "/", destination: "/mini" }],
+      afterFiles: [
+        { source: "/look", destination: "/mini/look" },
+        { source: "/look/:mode", destination: "/mini/look/:mode" },
+        { source: "/make", destination: "/mini/make" },
+        { source: "/show", destination: "/mini/show" },
+        { source: "/wow", destination: "/mini/wow" },
+      ],
+      fallback: [],
+    };
+  },
   transpilePackages: ["@windedvertigo/tokens", "@windedvertigo/auth", "@windedvertigo/stripe", "@windedvertigo/feedback"],
 
   /* Custom loader routes all next/image requests through Cloudflare CDN

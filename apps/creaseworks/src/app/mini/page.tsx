@@ -18,7 +18,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import CharacterSlot from "@windedvertigo/characters";
 import { useCharacterVariant } from "@windedvertigo/characters/variant-context";
-import { MINI_STAGES } from "@/lib/mini-pilot";
+import { MINI_STAGES, miniHref } from "@/lib/mini-pilot";
 
 export default function MiniWelcomePage() {
   const router = useRouter();
@@ -150,7 +150,7 @@ export default function MiniWelcomePage() {
       <button
         type="button"
         className="mini-start"
-        onClick={() => router.push("/mini/look")}
+        onClick={() => router.push(miniHref("/look"))}
       >
         let&rsquo;s look! →
       </button>

@@ -51,6 +51,7 @@ const LOOK_MODES = [
   },
 ] as const;
 
+import { miniHref } from "@/lib/mini-pilot";
 import { MiniStageHero } from "../stage-hero";
 
 export default function MiniLookPage() {
@@ -130,7 +131,7 @@ export default function MiniLookPage() {
           mode.ready ? (
             <Link
               key={mode.key}
-              href={`/mini/look/${mode.key}`}
+              href={miniHref(`/look/${mode.key}`)}
               className="mini-look-tile"
               style={{
                 ["--accent" as string]: mode.accent,

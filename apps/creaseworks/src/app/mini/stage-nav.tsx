@@ -12,7 +12,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import CharacterSlot from "@windedvertigo/characters";
 import { useCharacterVariant } from "@windedvertigo/characters/variant-context";
-import { MINI_STAGES } from "@/lib/mini-pilot";
+import { MINI_STAGES, miniHref, miniStageFromPathname } from "@/lib/mini-pilot";
 
 const STAGE_ACCENTS: Record<string, string> = {
   look: "var(--wv-cornflower)",
@@ -25,8 +25,9 @@ export function MiniStageNav() {
   const pathname = usePathname();
   const variant = useCharacterVariant();
 
-  // basePath is stripped from usePathname; mini pages are /mini/<stage>
-  const current = pathname.split("/")[2] ?? null;
+  // basePath is stripped from usePathname; stage segment works for both
+  // flavours (/look in the mini build, /mini/look in prod)
+  const current = miniStageFromPathname(pathname);
   if (!current) return null; // welcome page — keep the header quiet
 
   return (
@@ -64,7 +65,7 @@ export function MiniStageNav() {
       {MINI_STAGES.map((stage) => (
         <Link
           key={stage.key}
-          href={`/mini/${stage.key}`}
+          href={miniHref(`/${stage.key}`)}
           className="mini-stage-dot"
           data-active={current === stage.key}
           aria-current={current === stage.key ? "step" : undefined}
