@@ -20,6 +20,14 @@ export interface MiniActivity {
   corners: string;
   /** jamie's hardening note, kept for facilitator reference */
   hardeningNote: string;
+  /**
+   * suggested materials — titles matching materials_cache /
+   * MINI_MATERIALS exactly. the db's playdate_materials join table is
+   * empty (known gap, whirlpool 2026-06-10: "we can certainly fill that
+   * in"), so these lists are FIRST-PASS AUTHORED for the pilot and feed
+   * the match-rate. ⚠ review with jamie/garrett before family sessions.
+   */
+  materials: string[];
 }
 
 /**
@@ -33,24 +41,62 @@ export const MINI_ACTIVITIES: MiniActivity[] = [
     corners: "22px 28px 18px 26px",
     hardeningNote:
       "best in collection. directly enacts trace theory. add layer 3 provocation.",
+    materials: [
+      "construction paper",
+      "cardstock",
+      "big paper (flip chart / large sheets)",
+      "aluminum foil",
+      "washable markers",
+      "colored pencils",
+      "googly eyes",
+      "stickers / emoji stickers",
+    ],
   },
   {
     slug: "function-swap-same-form",
     accent: "var(--wv-teal)",
     corners: "26px 20px 28px 22px",
     hardeningNote: "model-shifting at its clearest. add facilitator pace.",
+    materials: [
+      "bottle caps",
+      "paper cups",
+      "clothespins",
+      "binder clips",
+      "cardboard tubes (wrapping paper / mailing tubes)",
+      "wine corks",
+      "muffin tin / ice cube tray",
+      "paper plates",
+    ],
   },
   {
     slug: "design-a-rule-not-an-object",
     accent: "var(--wv-seafoam)",
     corners: "20px 26px 24px 28px",
     hardeningNote: "rules make reality. most conceptually ambitious. add layer 3.",
+    materials: [
+      "buttons",
+      "dice",
+      "playing cards",
+      "popsicle sticks",
+      "plastic beads",
+      "alphabet letters (tiles/cards)",
+      "string / yarn",
+      "tape (clear/masking/duct)",
+    ],
   },
   {
     slug: "take-apart-archaeology",
     accent: "var(--wv-periwinkle)",
     corners: "28px 22px 26px 20px",
     hardeningNote: "closest to layer 3 already. deepen facilitator pace substantially.",
+    materials: [
+      "obsolete tech (broken calculator/mouse/circuit boards)",
+      "toy parts (broken toys, safe pieces)",
+      "egg cartons",
+      "plastic bottles",
+      "shoebox",
+      "rubber bands",
+    ],
   },
   {
     slug: "mend-a-stuffed-friend",
@@ -58,6 +104,17 @@ export const MINI_ACTIVITIES: MiniActivity[] = [
     corners: "24px 20px 28px 22px",
     hardeningNote:
       "kintsugi already gestures at layer 3. strengthen provocation. UDL: fine motor.",
+    materials: [
+      "cloth scraps / fabric swatches",
+      "felt sheets",
+      "string / yarn",
+      "buttons",
+      "ribbon",
+      "white sock",
+      "cotton balls",
+      "washi tape",
+      "googly eyes",
+    ],
   },
 ];
 
@@ -146,4 +203,29 @@ export function miniHref(path: "" | `/${string}`): string {
 export function miniStageFromPathname(pathname: string): string | null {
   const seg = pathname.replace(/^\/mini/, "").split("/")[1];
   return seg || null;
+}
+
+/* ── found-materials session state ─────────────────────────────────
+ * What the child collected during look, carried to make for matching.
+ * sessionStorage (not server state): the pilot has no accounts, and a
+ * hunt belongs to one sitting on one device. */
+
+const FOUND_KEY = "cw-mini-found";
+
+export function saveFound(titles: string[]): void {
+  try {
+    sessionStorage.setItem(FOUND_KEY, JSON.stringify(titles));
+  } catch {
+    /* private mode etc. — make falls back to the fallback activity */
+  }
+}
+
+export function loadFound(): string[] {
+  try {
+    const raw = sessionStorage.getItem(FOUND_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed.filter((t) => typeof t === "string") : [];
+  } catch {
+    return [];
+  }
 }
