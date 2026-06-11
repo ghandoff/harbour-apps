@@ -35,6 +35,11 @@ const NOD_DEG = 28;        // beta change that counts as a nod
 const SPIN_FULL = 330;     // accumulated yaw for a real full spin (~360°, slightly forgiving)
 const SPIN_DEADZONE = 1;   // per-event yaw jitter (deg) to ignore so standing still never drifts to a trigger
 const COOLDOWN_MS = 850;
+// which accumulated-yaw sign is a physical CLOCKWISE turn — varies by
+// device/browser (alpha isn't consistent across hardware). target
+// mapping: clockwise = skip, anticlockwise = back. if a spin does the
+// wrong thing on a real phone, flip this ONE line — labels don't change.
+const SPIN_CLOCKWISE_POSITIVE = true;
 
 type Decision = "got" | "skip" | null;
 type Kind = "got" | "skip" | "back";
@@ -125,10 +130,11 @@ export default function MiniNodOrSpinPage() {
       s.lastAlpha = alpha;
       if (Math.abs(da) < SPIN_DEADZONE) da = 0;
       s.spin += da;
-      // direction mapping (flipped per device test): clockwise = back,
-      // counter-clockwise = skip.
-      if (s.spin >= SPIN_FULL) kind = "back";
-      else if (s.spin <= -SPIN_FULL) kind = "skip";
+      // map a completed spin to an action via the single direction
+      // constant, so the rotation→action binding and the on-screen arrows
+      // can never disagree. target: clockwise = skip, anticlockwise = back.
+      if (s.spin >= SPIN_FULL) kind = SPIN_CLOCKWISE_POSITIVE ? "skip" : "back";
+      else if (s.spin <= -SPIN_FULL) kind = SPIN_CLOCKWISE_POSITIVE ? "back" : "skip";
     }
     if (!kind) return;
     s.cooling = true;
@@ -318,8 +324,8 @@ export default function MiniNodOrSpinPage() {
       {motion === "on" && (
         <div className="nos-howto" aria-hidden="true">
           <span>nod = got it ✓</span>
-          <span>full spin ↺ = skip</span>
-          <span>full spin ↻ = back</span>
+          <span>full spin ↺ = back</span>
+          <span>full spin ↻ = skip</span>
         </div>
       )}
 
