@@ -14,6 +14,9 @@ import type { CharacterName } from "@windedvertigo/characters";
 
 export interface MiniActivity {
   slug: string;
+  /** kid-facing title + headline, snapshotted from playdates_cache */
+  title: string;
+  headline: string;
   /** squircle accent for this activity's tile */
   accent: string;
   /** irregular corner radii — matches the kid tile vocabulary */
@@ -37,6 +40,8 @@ export interface MiniActivity {
 export const MINI_ACTIVITIES: MiniActivity[] = [
   {
     slug: "character-from-a-crease",
+    title: "character from a crease",
+    headline: "fold paper and let the creases tell you who lives inside",
     accent: "var(--wv-cornflower)",
     corners: "22px 28px 18px 26px",
     hardeningNote:
@@ -54,6 +59,8 @@ export const MINI_ACTIVITIES: MiniActivity[] = [
   },
   {
     slug: "function-swap-same-form",
+    title: "function swap, same form",
+    headline: "keep the same stuff — change what it's FOR",
     accent: "var(--wv-teal)",
     corners: "26px 20px 28px 22px",
     hardeningNote: "model-shifting at its clearest. add facilitator pace.",
@@ -70,6 +77,8 @@ export const MINI_ACTIVITIES: MiniActivity[] = [
   },
   {
     slug: "design-a-rule-not-an-object",
+    title: "design a rule, not an object",
+    headline: "instead of building a thing, invent a RULE that changes how things work",
     accent: "var(--wv-seafoam)",
     corners: "20px 26px 24px 28px",
     hardeningNote: "rules make reality. most conceptually ambitious. add layer 3.",
@@ -86,6 +95,8 @@ export const MINI_ACTIVITIES: MiniActivity[] = [
   },
   {
     slug: "take-apart-archaeology",
+    title: "take-apart archaeology",
+    headline: "open up a broken thing and discover what's hiding inside",
     accent: "var(--wv-periwinkle)",
     corners: "28px 22px 26px 20px",
     hardeningNote: "closest to layer 3 already. deepen facilitator pace substantially.",
@@ -100,6 +111,8 @@ export const MINI_ACTIVITIES: MiniActivity[] = [
   },
   {
     slug: "mend-a-stuffed-friend",
+    title: "mend a stuffed friend",
+    headline: "fix a torn stuffed animal and learn the superpower of repair",
     accent: "var(--wv-mint)",
     corners: "24px 20px 28px 22px",
     hardeningNote:
@@ -228,4 +241,47 @@ export function loadFound(): string[] {
   } catch {
     return [];
   }
+}
+
+/* ── match-rate ─────────────────────────────────────────────────────
+ * Score each activity by how much of its suggested-materials list the
+ * child found ("82% match rate" concept from the whirlpool). */
+
+export interface MiniMatch {
+  activity: MiniActivity;
+  /** found titles that appear in the activity's list */
+  matched: string[];
+  /** matched / suggested, 0..1 */
+  score: number;
+  /** true when nothing matched well and the fallback rule fired */
+  isFallback: boolean;
+}
+
+/** An activity needs at least this many matched materials to win outright. */
+const MIN_MATCHES = 2;
+
+/**
+ * Rank the five activities against what the child found. Always returns
+ * a winner: when no activity clears MIN_MATCHES, character-from-a-crease
+ * takes the top slot — "whatever you collect is right."
+ */
+export function matchActivities(found: string[]): MiniMatch[] {
+  const foundSet = new Set(found);
+
+  const ranked = MINI_ACTIVITIES.map((activity) => {
+    const matched = activity.materials.filter((m) => foundSet.has(m));
+    return {
+      activity,
+      matched,
+      score: matched.length / activity.materials.length,
+      isFallback: false,
+    };
+  }).sort((a, b) => b.score - a.score || b.matched.length - a.matched.length);
+
+  if (ranked[0].matched.length >= MIN_MATCHES) return ranked;
+
+  // nothing matched well — promote the fallback to the front
+  const fallback = ranked.find((r) => r.activity.slug === MINI_FALLBACK_SLUG)!;
+  fallback.isFallback = true;
+  return [fallback, ...ranked.filter((r) => r !== fallback)];
 }
