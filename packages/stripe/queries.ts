@@ -233,6 +233,31 @@ export async function grantEntitlement(
 /**
  * Grant an entitlement to an individual user for a pack.
  */
+export type AccessTier = "full" | "sampler";
+
+/**
+ * Binary freemium gate for harbour companion apps.
+ *
+ * Returns "full" when the global kill-switch is OFF
+ * (`HARBOUR_GATE_ENFORCED !== "true"`), the viewer is internal (collective), or
+ * they hold an active entitlement for `app` (user- or org-level); otherwise
+ * "sampler". The switch lets every app ship its gate dormant (full access for
+ * everyone) until launch, then flip `HARBOUR_GATE_ENFORCED="true"` per Worker.
+ * Signed-out viewers (no userId) get the sampler once enforcement is on.
+ */
+export async function resolveTier(opts: {
+  app: string;
+  userId: string | null;
+  orgId: string | null;
+  isInternal?: boolean;
+}): Promise<AccessTier> {
+  if (process.env.HARBOUR_GATE_ENFORCED !== "true") return "full";
+  if (opts.isInternal) return "full";
+  if (!opts.userId) return "sampler";
+  const access = await hasAppAccess(opts.userId, opts.orgId, opts.app);
+  return access ? "full" : "sampler";
+}
+
 export async function grantUserEntitlement(
   userId: string,
   packCacheId: string,

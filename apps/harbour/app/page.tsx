@@ -81,9 +81,14 @@ export default async function HarbourPage() {
              * (the public hero above is unchanged for SEO/anon visitors). */}
             <HarbourGreeting />
 
-            <p className="text-sm text-[var(--color-text-on-dark-muted)] mb-10">
+            <p className="text-sm text-[var(--color-text-on-dark-muted)] mb-2">
               <a href="/harbour/start" className="underline-offset-4 hover:underline">
                 not sure where to start?
+              </a>
+            </p>
+            <p className="text-sm text-[var(--color-text-on-dark-muted)] mb-10">
+              <a href="/harbour/redeem" className="underline-offset-4 hover:underline">
+                have an access code?
               </a>
             </p>
 
