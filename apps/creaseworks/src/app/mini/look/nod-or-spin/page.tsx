@@ -31,8 +31,9 @@ import { MiniStageHero } from "../../stage-hero";
 
 const ICON_BASE = MINI_AT_ROOT ? "/harbour/creaseworks-mini" : "/harbour/creaseworks";
 const ROUND = 10;
-const NOD_DEG = 28;   // beta change that counts as a nod
-const SPIN_DEG = 55;  // alpha (yaw) change that counts as a spin
+const NOD_DEG = 28;        // beta change that counts as a nod
+const SPIN_FULL = 330;     // accumulated yaw for a real full spin (~360°, slightly forgiving)
+const SPIN_DEADZONE = 1;   // per-event yaw jitter (deg) to ignore so standing still never drifts to a trigger
 const COOLDOWN_MS = 850;
 
 type Decision = "got" | "skip" | null;
@@ -96,7 +97,7 @@ export default function MiniNodOrSpinPage() {
   performRef.current = (k) => (k === "back" ? goBack() : decide(k));
 
   // motion detection state (refs — never trigger re-render)
-  const m = useRef({ baseBeta: 0, baseAlpha: 0, needBaseline: true, cooling: false });
+  const m = useRef({ baseBeta: 0, lastAlpha: 0, spin: 0, needBaseline: true, cooling: false });
 
   const onOrient = useCallback((e: DeviceOrientationEvent) => {
     const s = m.current;
@@ -105,17 +106,29 @@ export default function MiniNodOrSpinPage() {
     const alpha = e.alpha ?? 0;
     if (s.needBaseline) {
       s.baseBeta = beta;
-      s.baseAlpha = alpha;
+      s.lastAlpha = alpha;
+      s.spin = 0;
       s.needBaseline = false;
       return;
     }
     let kind: Kind | null = null;
     if (Math.abs(beta - s.baseBeta) > NOD_DEG) {
+      // a nod (up or down) = got it
       kind = "got";
     } else {
-      const d = ((alpha - s.baseAlpha + 540) % 360) - 180; // shortest signed arc
-      if (d > SPIN_DEG) kind = "skip";
-      else if (d < -SPIN_DEG) kind = "back";
+      // accumulate yaw across events so it takes a real full spin to fire —
+      // a quick shoulder flick (which only ever reaches ~90°) never hits
+      // ±SPIN_FULL. each step is normalised to the shortest arc to handle
+      // the 0/360 wrap; sub-deadzone jitter is dropped so standing still
+      // never creeps to a trigger.
+      let da = ((alpha - s.lastAlpha + 540) % 360) - 180;
+      s.lastAlpha = alpha;
+      if (Math.abs(da) < SPIN_DEADZONE) da = 0;
+      s.spin += da;
+      // direction mapping (flipped per device test): clockwise = back,
+      // counter-clockwise = skip.
+      if (s.spin >= SPIN_FULL) kind = "back";
+      else if (s.spin <= -SPIN_FULL) kind = "skip";
     }
     if (!kind) return;
     s.cooling = true;
@@ -305,8 +318,8 @@ export default function MiniNodOrSpinPage() {
       {motion === "on" && (
         <div className="nos-howto" aria-hidden="true">
           <span>nod = got it ✓</span>
-          <span>spin → skip</span>
-          <span>spin ← back</span>
+          <span>full spin ↺ = skip</span>
+          <span>full spin ↻ = back</span>
         </div>
       )}
 
