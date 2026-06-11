@@ -58,6 +58,14 @@ function hueGap(a: number, b: number) {
   return d > 180 ? 360 - d : d;
 }
 
+/** legible text colour for a coloured pill (white on dark, cadet on light) */
+function readableOn(hex: string): string {
+  const c = hex.replace("#", "").match(/../g)!.map((x) => parseInt(x, 16) / 255)
+    .map((v) => (v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4)));
+  const lum = 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+  return lum > 0.4 ? "#273248" : "#ffffff";
+}
+
 export default function MiniColourCatcherPage() {
   const router = useRouter();
   const [cam, setCam] = useState<CamState>("off");
@@ -251,7 +259,18 @@ export default function MiniColourCatcherPage() {
       )}
 
       <p className="cc-prompt">
-        find something <span className="cc-colourword" style={{ color: colour.swatch }}>{colour.key}</span>!
+        find something{" "}
+        <span
+          className="cc-colourword"
+          style={{
+            background: colour.swatch,
+            color: readableOn(colour.swatch),
+            borderRadius: "12px 16px 10px 14px",
+            padding: "3px 12px",
+          }}
+        >
+          {colour.key}
+        </span>!
       </p>
 
       <div className="cc-stage" style={{ ["--swatch" as string]: colour.swatch }}>

@@ -27,13 +27,14 @@ const SOUNDS: { key: SoundKey; emoji: string; hint: string }[] = [
   { key: "thump", emoji: "🥁", hint: "boxes, tubs, pillows" },
 ];
 
-const RMS_ON = 0.08;
+const RMS_ON = 0.06;
 const SUSTAIN_FRAMES = 2; // a quick onset is enough (taps are short)
 
 function playSound(ctx: AudioContext, key: SoundKey) {
   const now = ctx.currentTime;
+  // longer noise buffer so crinkle/tap have enough material
   const noiseBuf = (() => {
-    const b = ctx.createBuffer(1, ctx.sampleRate * 0.2, ctx.sampleRate);
+    const b = ctx.createBuffer(1, ctx.sampleRate * 0.6, ctx.sampleRate);
     const d = b.getChannelData(0);
     for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
     return b;
@@ -44,7 +45,7 @@ function playSound(ctx: AudioContext, key: SoundKey) {
     const g = ctx.createGain();
     osc.type = type; osc.frequency.value = freq;
     g.gain.setValueAtTime(0, t);
-    g.gain.linearRampToValueAtTime(gain, t + 0.01);
+    g.gain.linearRampToValueAtTime(gain, t + 0.015);
     g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
     osc.connect(g).connect(ctx.destination);
     osc.start(t); osc.stop(t + dur);
@@ -61,13 +62,21 @@ function playSound(ctx: AudioContext, key: SoundKey) {
   };
 
   if (key === "crinkle") {
-    for (let i = 0; i < 6; i++) noise(now + i * 0.09 + Math.random() * 0.03, 0.07, 3000, 0.5);
+    // 8 overlapping rustle bursts — louder, longer each
+    for (let i = 0; i < 8; i++) noise(now + i * 0.08, 0.14, 2500, 0.9);
   } else if (key === "jingle") {
-    [1200, 1700, 2100, 1500].forEach((f, i) => burst(now + i * 0.12, f, 0.25, "sine", 0.3));
+    // louder metallic tones with longer ring
+    [1200, 1700, 2100, 1500, 900].forEach((f, i) => burst(now + i * 0.1, f, 0.45, "sine", 0.85));
   } else if (key === "tap") {
-    [0, 0.18].forEach((t) => noise(now + t, 0.05, 800, 0.6));
+    // sharp crack + body resonance — more audible on phone speakers
+    [0, 0.22].forEach((t) => { noise(now + t, 0.14, 600, 0.95); burst(now + t, 400, 0.12, "triangle", 0.7); });
   } else {
-    [0, 0.22].forEach((t) => burst(now + t, 80, 0.2, "sine", 0.6));
+    // thump: add 160Hz + 320Hz overtones so phone speakers can reproduce it
+    [0, 0.28].forEach((t) => {
+      burst(now + t, 120, 0.35, "sine", 0.9);
+      burst(now + t, 240, 0.28, "sine", 0.6);
+      burst(now + t, 480, 0.18, "triangle", 0.4);
+    });
   }
 }
 
@@ -77,6 +86,7 @@ export default function MiniEchoFinderPage() {
   const [idx, setIdx] = useState(0);
   const [count, setCount] = useState(0);
   const [flash, setFlash] = useState(false);
+  const [level, setLevel] = useState(0);
 
   const ctxRef = useRef<AudioContext | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -115,6 +125,7 @@ export default function MiniEchoFinderPage() {
     cancelAnimationFrame(rafRef.current);
     streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
+    setLevel(0);
   }, []);
 
   useEffect(() => () => { stop(); ctxRef.current?.close().catch(() => {}); }, [stop]);
@@ -128,6 +139,8 @@ export default function MiniEchoFinderPage() {
       });
       streamRef.current = stream;
       const ctx = ensureCtx();
+      // must await resume — a suspended context returns flat silence from getByteTimeDomainData
+      await ctx.resume();
       const analyser = ctx.createAnalyser();
       analyser.fftSize = 1024;
       ctx.createMediaStreamSource(stream).connect(analyser);
@@ -138,6 +151,7 @@ export default function MiniEchoFinderPage() {
         let sum = 0;
         for (let i = 0; i < buf.length; i++) { const v = (buf[i] - 128) / 128; sum += v * v; }
         const rms = Math.sqrt(sum / buf.length);
+        setLevel(Math.min(1, rms / 0.25));
         if (!coolingRef.current) {
           sustainRef.current = rms > RMS_ON ? sustainRef.current + 1 : 0;
           if (sustainRef.current >= SUSTAIN_FRAMES) {
@@ -182,6 +196,10 @@ export default function MiniEchoFinderPage() {
         .ef-emoji { font-size: 96px; line-height: 1; }
         .ef-hint { font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif; font-weight: 700;
           font-size: 14px; color: #4b5563; }
+        .ef-meter-track { width: 100%; height: 14px; border-radius: 7px; background: rgba(39,50,72,0.1); overflow: hidden; }
+        .ef-meter-fill { height: 100%; background: var(--wv-teal); border-radius: 7px; transition: width 60ms linear; }
+        .ef-meter-label { font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif; font-weight: 700;
+          font-size: 12px; color: #4b5563; }
         button.ef-hear:not([type="submit"]):not(.wv-header-signout) {
           font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif; font-weight: 800; font-size: 19px;
           color: var(--wv-cadet); background: var(--wv-mint); border: 2.5px solid var(--wv-teal);
@@ -234,6 +252,14 @@ export default function MiniEchoFinderPage() {
         <span className="ef-emoji" aria-hidden="true">{sound.emoji}</span>
         <button type="button" className="ef-hear" onClick={hear}>🔊 hear the {sound.key}!</button>
         <span className="ef-hint">like: {sound.hint}</span>
+        {mic === "on" && (
+          <>
+            <span className="ef-meter-label">sound level</span>
+            <div className="ef-meter-track" aria-hidden="true">
+              <div className="ef-meter-fill" style={{ width: `${Math.round(level * 100)}%` }} />
+            </div>
+          </>
+        )}
         {flash && <div className="ef-flash">i hear it! 🎉</div>}
       </div>
 
