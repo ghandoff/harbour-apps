@@ -37,9 +37,11 @@ const SPIN_DEADZONE = 1;   // per-event yaw jitter (deg) to ignore so standing s
 const COOLDOWN_MS = 850;
 // which accumulated-yaw sign is a physical CLOCKWISE turn — varies by
 // device/browser (alpha isn't consistent across hardware). target
-// mapping: clockwise = skip, anticlockwise = back. if a spin does the
-// wrong thing on a real phone, flip this ONE line — labels don't change.
-const SPIN_CLOCKWISE_POSITIVE = true;
+// mapping: clockwise = skip, anticlockwise = back. set false after a
+// real-device test (2026-06-10): this hardware reports clockwise as
+// NEGATIVE yaw. flip this ONE line if a future device is reversed —
+// labels don't change.
+const SPIN_CLOCKWISE_POSITIVE = false;
 
 type Decision = "got" | "skip" | null;
 type Kind = "got" | "skip" | "back";
