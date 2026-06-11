@@ -9,7 +9,7 @@
  * The SW is scoped to /harbour/creaseworks/ via the manifest.
  */
 
-const CACHE_NAME = "cw-v1";
+const CACHE_NAME = "cw-v2";
 const BASE = "/harbour/creaseworks";
 
 // App shell assets to pre-cache on install
@@ -60,15 +60,26 @@ self.addEventListener("fetch", (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
+  // Cross-origin requests (Stripe, R2 presigned uploads, etc.)
+  if (url.origin !== self.location.origin) {
+    // Preflighted cross-origin requests (e.g. the presigned R2 photo
+    // PUT, which carries a Content-Type header) fail with "Failed to
+    // fetch" in Chromium when they fall through a fetch listener
+    // without respondWith — controlled pages only, which is why
+    // uploads worked on freshly-navigated pages but never from inside
+    // the app. Proxy them explicitly instead of falling back.
+    if (request.method !== "GET") {
+      event.respondWith(fetch(request));
+    }
+    return;
+  }
+
   // Skip non-GET requests
   if (request.method !== "GET") return;
 
   // Skip API routes and auth endpoints — always network
   if (url.pathname.startsWith(`${BASE}/api/`)) return;
   if (url.pathname.includes("/auth/")) return;
-
-  // Skip cross-origin requests (Stripe, Vercel, etc.)
-  if (url.origin !== self.location.origin) return;
 
   // Navigation requests — network-first with cache fallback
   if (request.mode === "navigate") {
