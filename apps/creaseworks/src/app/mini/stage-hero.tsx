@@ -1,9 +1,9 @@
 "use client";
 
 /**
- * MiniStageHero — shared header for the four stage pages: the stage's
- * character (large, animated), its kid-language blurb, and a quiet
- * adult framing line underneath.
+ * MiniStageHero — vibrant stage band: the stage's character (big,
+ * animated) on its tint, with the kid blurb. Nothing else — adult
+ * guidance lives in the grown-up corner, not on the kid surface.
  */
 
 import CharacterSlot from "@windedvertigo/characters";
@@ -15,47 +15,45 @@ export function MiniStageHero({ stage }: { stage: MiniStageKey }) {
   const s = getMiniStage(stage);
 
   return (
-    <header className="mini-stage-hero">
+    <header
+      className="mini-stage-hero"
+      style={{ ["--tint" as string]: s.tint, ["--accent" as string]: s.accent }}
+    >
       <style>{`
         .mini-stage-hero {
           display: flex;
           align-items: center;
-          gap: 16px;
-          margin: 10px 0 24px;
+          gap: 18px;
+          background: var(--tint);
+          border-radius: 24px 30px 22px 28px;
+          padding: 18px 20px;
+          margin: 6px 0 22px;
         }
         .mini-stage-hero h1 {
           font-family: var(--font-fraunces), serif;
           font-weight: 600;
-          font-size: 26px;
+          font-size: 32px;
           color: var(--wv-cadet);
-          margin-bottom: 2px;
+          line-height: 1.1;
+          margin-bottom: 4px;
         }
         .mini-stage-kid {
           font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
-          font-weight: 700;
-          font-size: 15px;
+          font-weight: 800;
+          font-size: 16px;
           color: var(--wv-cadet);
-          opacity: 0.8;
-          line-height: 1.4;
-        }
-        .mini-stage-adult {
-          font-size: 12px;
-          color: var(--wv-cadet);
-          opacity: 0.45;
-          margin-top: 4px;
-          line-height: 1.5;
+          line-height: 1.35;
         }
       `}</style>
       <CharacterSlot
         character={s.character}
-        size={64}
+        size={96}
         animate={true}
         variant={variant}
       />
       <div>
         <h1>{s.label}</h1>
         <p className="mini-stage-kid">{s.kidBlurb}</p>
-        <p className="mini-stage-adult">{s.adultBlurb}</p>
       </div>
     </header>
   );

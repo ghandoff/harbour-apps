@@ -1,19 +1,26 @@
 import type { Metadata } from "next";
-import { MiniFeedbackButton } from "./feedback-button";
+import { FeedbackWidget } from "@windedvertigo/feedback";
+import { apiUrl } from "@/lib/api-url";
+import { GrownUpCorner } from "./grown-up-corner";
 import { MiniStageNav } from "./stage-nav";
 
 /**
  * creaseworks mini — pilot shell.
  *
+ * White canvas (champagne/cream is never a background — standing rule),
+ * vibrancy from the secondary palette via per-stage tint bands.
+ *
  * The root layout wires HarbourNav + NavBar + Footer + FeedbackWidget
  * around every page. The mini needs a clean kid-first canvas without
  * restructuring the whole app into route groups, so this layout marks
  * itself with [data-mini-root] and a body:has() rule hides the app
- * chrome (everything except #main-content and the skip link). Pilot-
- * grade pragmatism — revisit if the mini graduates to its own app.
+ * chrome. !important because the root FeedbackWidget portals into body
+ * with inline styles — and it posts to the prod db this worker can't
+ * reach. The mini mounts its OWN FeedbackWidget (same familiar 🐛,
+ * bottom-right) pointed at the pilot endpoint instead.
  *
- * Deliberately NOT touching middleware.ts for this (it crashed the CF
- * worker once already — commit 1780f80).
+ * Deliberately NOT touching middleware.ts (crashed the CF worker once —
+ * commit 1780f80).
  */
 
 export const metadata: Metadata = {
@@ -30,30 +37,24 @@ export default function MiniLayout({
   return (
     <div data-mini-root className="mini-shell">
       <style>{`
-        /* hide app chrome (nav, footer, feedback widget) on mini pages.
-           direct children of body other than the main-content wrapper
-           and the skip link. */
         body:has([data-mini-root]) > *:not(:has([data-mini-root])):not(.skip-link):not(script) {
-          /* !important: the FeedbackWidget 🐛 button portals into body
-             with inline styles — and it's a dead button on the pilot
-             worker anyway (posts to the main app's db, which this
-             worker can't reach). the mini's own "tell us" replaces it. */
           display: none !important;
         }
         body:has([data-mini-root]) {
           padding-top: 0;
-          background: var(--wv-cream);
+          background: var(--wv-white);
         }
         .mini-shell {
           min-height: 100vh;
           display: flex;
           flex-direction: column;
-          background: var(--wv-cream);
+          background: var(--wv-white);
         }
         .mini-header {
           display: flex;
           align-items: center;
           justify-content: space-between;
+          gap: 10px;
           padding: 14px 18px 10px;
         }
         .mini-wordmark {
@@ -62,6 +63,7 @@ export default function MiniLayout({
           font-size: 16px;
           color: var(--wv-cadet);
           letter-spacing: 0.01em;
+          white-space: nowrap;
         }
         .mini-wordmark .mini-tag {
           font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
@@ -79,7 +81,10 @@ export default function MiniLayout({
           width: 100%;
           max-width: 640px;
           margin: 0 auto;
-          padding: 8px 18px 32px;
+          padding: 8px 18px 64px; /* room for the grown-ups tab */
+        }
+        @media print {
+          .mini-header { display: none; }
         }
       `}</style>
 
@@ -91,7 +96,10 @@ export default function MiniLayout({
       </header>
 
       <main className="mini-main">{children}</main>
-      <MiniFeedbackButton />
+
+      <GrownUpCorner />
+      {/* the familiar 🐛, bottom-right, wired to the pilot store */}
+      <FeedbackWidget appSlug="creaseworks-mini" endpoint={apiUrl("/api/mini/feedback")} />
     </div>
   );
 }

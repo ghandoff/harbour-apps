@@ -14,12 +14,7 @@ import CharacterSlot from "@windedvertigo/characters";
 import { useCharacterVariant } from "@windedvertigo/characters/variant-context";
 import { MINI_STAGES, miniHref, miniStageFromPathname } from "@/lib/mini-pilot";
 
-const STAGE_ACCENTS: Record<string, string> = {
-  look: "var(--wv-cornflower)",
-  make: "var(--wv-teal)",
-  show: "var(--wv-seafoam)",
-  wow: "var(--wv-periwinkle)",
-};
+
 
 export function MiniStageNav() {
   const pathname = usePathname();
@@ -49,9 +44,10 @@ export function MiniStageNav() {
           text-decoration: none;
         }
         .mini-stage-dot[data-active="true"] {
-          color: var(--wv-white);
-          background: var(--accent);
+          color: var(--wv-cadet);
+          background: var(--tint);
           border-color: var(--accent);
+          border-width: 2px;
         }
         .mini-stage-dot:focus-visible {
           outline: 3px solid var(--color-focus);
@@ -69,7 +65,10 @@ export function MiniStageNav() {
           className="mini-stage-dot"
           data-active={current === stage.key}
           aria-current={current === stage.key ? "step" : undefined}
-          style={{ ["--accent" as string]: STAGE_ACCENTS[stage.key] }}
+          style={{
+            ["--accent" as string]: stage.accent,
+            ["--tint" as string]: stage.tint,
+          }}
         >
           <CharacterSlot
             character={stage.character}

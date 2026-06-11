@@ -105,9 +105,9 @@ export default function MiniLookPage() {
           line-height: 1.2;
         }
         .mini-look-desc {
-          font-size: 11px;
-          color: var(--wv-cadet);
-          opacity: 0.55;
+          font-size: 12px;
+          font-weight: 600;
+          color: #4b5563;
         }
         .mini-look-soon {
           position: absolute;

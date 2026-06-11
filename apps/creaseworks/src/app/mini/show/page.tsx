@@ -76,7 +76,8 @@ export default function MiniShowPage() {
           justify-content: center;
           gap: 8px;
           min-height: 140px;
-          border: 2px dashed rgba(203, 120, 88, 0.5);
+          border: 3px dashed var(--wv-navy);
+          background: color-mix(in srgb, var(--wv-periwinkle) 30%, var(--wv-white));
           border-radius: 18px 24px 16px 22px;
           cursor: pointer;
           margin-bottom: 14px;
@@ -89,10 +90,9 @@ export default function MiniShowPage() {
         }
         .mini-show-photo-hint {
           font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
-          font-weight: 700;
-          font-size: 14px;
+          font-weight: 800;
+          font-size: 16px;
           color: var(--wv-cadet);
-          opacity: 0.6;
           padding: 20px;
           text-align: center;
         }
@@ -102,8 +102,8 @@ export default function MiniShowPage() {
           font-size: 15px;
           line-height: 1.5;
           color: var(--wv-cadet);
-          background: var(--wv-cream);
-          border: 1.5px solid rgba(39, 50, 72, 0.1);
+          background: var(--wv-white);
+          border: 2px solid var(--wv-navy);
           border-radius: 14px;
           padding: 12px 14px;
           min-height: 84px;
@@ -134,8 +134,7 @@ export default function MiniShowPage() {
           outline: 3px solid var(--color-focus);
           outline-offset: 3px;
         }
-        .mini-show-note { font-size: 12px; color: var(--wv-cadet); opacity: 0.5; margin-top: 12px; line-height: 1.6; }
-        .mini-show-note a { text-decoration: underline; }
+        .mini-show-note { font-size: 13px; font-weight: 600; color: #4b5563; margin-top: 12px; line-height: 1.6; }
         .mini-show-done {
           font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
           font-weight: 800;
@@ -209,9 +208,8 @@ export default function MiniShowPage() {
           )}
           {!code && (
             <p className="mini-show-note">
-              grown-ups: enter your family code on the{" "}
-              <Link href={miniHref("/")}>welcome page</Link> (under &ldquo;for
-              grown-ups&rdquo;) to share photos.
+              grown-ups: tap &ldquo;☝ for grown-ups&rdquo; on the left edge to enter your
+              family code — then sharing unlocks.
             </p>
           )}
         </div>

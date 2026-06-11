@@ -50,6 +50,15 @@ export function FoundPicker({
   return (
     <div className="mini-found">
       <style>{`
+        /* white tiles + readable labels — scoped so prod's EmojiTile is untouched */
+        .mini-found .et-tile {
+          background: var(--wv-white);
+          border-width: 2px;
+        }
+        .mini-found .et-label {
+          opacity: 1;
+          color: #4b5563;
+        }
         .mini-found-prompt {
           font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
           font-weight: 800;

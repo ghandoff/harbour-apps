@@ -61,11 +61,16 @@ export default function MiniWowPage() {
           line-height: 1.45;
         }
         .mini-wall-activity {
+          display: inline-block;
           font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
           font-weight: 800;
           font-size: 11px;
-          color: var(--accent);
-          margin-top: 6px;
+          color: var(--wv-cadet);
+          background: color-mix(in srgb, var(--accent) 22%, var(--wv-white));
+          border: 1.5px solid var(--accent);
+          border-radius: 10px 14px 8px 12px;
+          padding: 3px 9px;
+          margin-top: 8px;
         }
         .mini-wall-empty {
           text-align: center;
@@ -74,7 +79,6 @@ export default function MiniWowPage() {
           font-weight: 700;
           font-size: 15px;
           color: var(--wv-cadet);
-          opacity: 0.6;
           line-height: 1.6;
         }
       `}</style>

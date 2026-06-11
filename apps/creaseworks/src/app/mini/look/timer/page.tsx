@@ -69,7 +69,7 @@ export default function MiniTimerLookPage() {
           gap: 6px;
           padding: 22px 8px;
           background: var(--wv-white);
-          border: 1.5px solid rgba(39, 50, 72, 0.08);
+          border: 2.5px solid var(--accent);
           border-radius: var(--corners);
           box-shadow: 0 3px 0 rgba(39, 50, 72, 0.08);
           cursor: pointer;
@@ -85,7 +85,7 @@ export default function MiniTimerLookPage() {
           font-family: var(--font-fraunces), serif;
           font-weight: 600;
           font-size: 30px;
-          color: var(--accent);
+          color: var(--wv-cadet);
         }
         .mini-timer-word {
           font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
@@ -110,7 +110,6 @@ export default function MiniTimerLookPage() {
           font-weight: 800;
           font-size: 18px;
           color: var(--wv-cadet);
-          opacity: 0.7;
           margin-top: 16px;
           animation: miniGoPulse 1.2s ease-in-out infinite;
         }

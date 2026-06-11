@@ -149,8 +149,14 @@ export interface MiniStage {
   character: CharacterName;
   /** one-line kid-language blurb, read aloud by the facilitator */
   kidBlurb: string;
-  /** one-line adult framing shown in the facilitator strip */
+  /** one-line adult framing — print guide only, NOT shown on kid surfaces */
   adultBlurb: string;
+  /** light tint for the stage hero band (cadet text stays ≥ AA on all) */
+  tint: string;
+  /** mid-tone accent for chips/borders/active states */
+  accent: string;
+  /** the grown-up corner content for this stage — short lines, read in the sheet */
+  adultGuide: string[];
 }
 
 /**
@@ -164,33 +170,61 @@ export const MINI_STAGES: MiniStage[] = [
     key: "look",
     label: "look!",
     character: "twig",
-    kidBlurb: "let's go hunting! what can you find around you?",
+    kidBlurb: "let's go hunting! what can you find?",
     adultBlurb:
       "the find phase — children gather everyday materials. minimal instruction; let them lead.",
+    tint: "var(--wv-periwinkle)",
+    accent: "var(--wv-cornflower)",
+    adultGuide: [
+      "this is the find phase: your child hunts for everyday materials around the house or classroom.",
+      "give minimal instruction — \u201cwhat can you find?\u201d is enough. let them lead.",
+      "anything they bring back is right. odd choices make the best activities.",
+    ],
   },
   {
     key: "make",
     label: "make!",
     character: "mud",
-    kidBlurb: "time to make something with what you found!",
+    kidBlurb: "time to make something!",
     adultBlurb:
       "the fold phase — a playdate matched to their materials. form and function become fluid.",
+    tint: "var(--wv-mint)",
+    accent: "var(--wv-teal)",
+    adultGuide: [
+      "the app matched an activity to what they found — the instructions are right on this page.",
+      "read the \u201cread aloud\u201d block to them, then step back.",
+      "resist fixing or finishing their build. when they use something \u201cwrong\u201d, that's the point.",
+    ],
   },
   {
     key: "show",
     label: "show!",
     character: "swatch",
-    kidBlurb: "show us what you made! tell us about it!",
+    kidBlurb: "show us what you made!",
     adultBlurb:
       "the unfold phase — snap a photo, capture their words. you type or record; they talk.",
+    tint: "var(--wv-seafoam)",
+    accent: "var(--wv-navy)",
+    adultGuide: [
+      "snap a photo of the creation and type what your child says about it.",
+      "their exact words beat tidy summaries — \u201cit has three eyes and its name is wobbles\u201d is perfect.",
+      "you need your family code saved (below) to share.",
+    ],
   },
   {
     key: "wow",
     label: "wow!",
     character: "drip",
-    kidBlurb: "look what other kids made! what will you try next?",
+    kidBlurb: "look what other kids made!",
     adultBlurb:
       "the find-again phase — the curated wall. submissions are reviewed before they appear.",
+    tint: "color-mix(in srgb, var(--wv-cornflower) 18%, var(--wv-white))",
+    accent: "var(--wv-cornflower)",
+    adultGuide: [
+      "everything here was shared by other pilot families and reviewed by us first.",
+      "nothing your family shares is public until we approve it.",
+      "ask: \u201cwhat would you try next?\u201d — then go look again!",
+    ],
   },
 ];
 
@@ -252,6 +286,9 @@ const CODE_KEY = "cw-mini-code";
 export function saveCode(code: string): void {
   try {
     localStorage.setItem(CODE_KEY, code);
+    // cookie too, so server routes (the 🐛 feedback endpoint) can attach
+    // the code without the client threading it through every payload
+    document.cookie = `cw-mini-code=${code}; path=/; max-age=31536000; SameSite=Lax`;
   } catch {
     /* private mode — show falls back to asking again */
   }
