@@ -20,6 +20,13 @@ describe("mini pilot config", () => {
   it("the fallback slug is one of the five activities", () => {
     expect(MINI_ACTIVITIES.map((a) => a.slug)).toContain(MINI_FALLBACK_SLUG);
   });
+
+  it("no material name exceeds the 16-char tile cap", () => {
+    // keeps mini tiles uniform on a 3-col phone grid (one clean line at
+    // ~110px tile width). renaming long names is the fix, not truncation.
+    const over = MINI_MATERIALS.filter((m) => m.title.length > 16).map((m) => m.title);
+    expect(over).toEqual([]);
+  });
 });
 
 describe("matchActivities", () => {

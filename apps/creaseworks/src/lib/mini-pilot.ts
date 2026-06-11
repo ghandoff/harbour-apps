@@ -47,14 +47,14 @@ export const MINI_ACTIVITIES: MiniActivity[] = [
     hardeningNote:
       "best in collection. directly enacts trace theory. add layer 3 provocation.",
     materials: [
-      "construction paper",
+      "craft paper",
       "cardstock",
-      "big paper (flip chart / large sheets)",
+      "big paper",
       "aluminum foil",
       "washable markers",
       "colored pencils",
       "googly eyes",
-      "stickers / emoji stickers",
+      "stickers",
     ],
   },
   {
@@ -69,9 +69,9 @@ export const MINI_ACTIVITIES: MiniActivity[] = [
       "paper cups",
       "clothespins",
       "binder clips",
-      "cardboard tubes (wrapping paper / mailing tubes)",
+      "cardboard tubes",
       "wine corks",
-      "muffin tin / ice cube tray",
+      "muffin tin",
       "paper plates",
     ],
   },
@@ -88,9 +88,9 @@ export const MINI_ACTIVITIES: MiniActivity[] = [
       "playing cards",
       "popsicle sticks",
       "plastic beads",
-      "alphabet letters (tiles/cards)",
+      "letter tiles",
       "string / yarn",
-      "tape (clear/masking/duct)",
+      "tape",
     ],
   },
   {
@@ -101,8 +101,8 @@ export const MINI_ACTIVITIES: MiniActivity[] = [
     corners: "28px 22px 26px 20px",
     hardeningNote: "closest to layer 3 already. deepen facilitator pace substantially.",
     materials: [
-      "obsolete tech (broken calculator/mouse/circuit boards)",
-      "toy parts (broken toys, safe pieces)",
+      "old gadgets",
+      "toy parts",
       "egg cartons",
       "plastic bottles",
       "shoebox",
@@ -118,7 +118,7 @@ export const MINI_ACTIVITIES: MiniActivity[] = [
     hardeningNote:
       "kintsugi already gestures at layer 3. strengthen provocation. UDL: fine motor.",
     materials: [
-      "cloth scraps / fabric swatches",
+      "cloth scraps",
       "felt sheets",
       "string / yarn",
       "buttons",

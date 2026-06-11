@@ -58,6 +58,9 @@ export function FoundPicker({
         .mini-found .et-label {
           opacity: 1;
           color: #4b5563;
+          /* reserve two lines so 1-line and 2-line names yield equal
+             tile heights — uniform grid regardless of label length */
+          min-height: 2.4em;
         }
         .mini-found-prompt {
           font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
