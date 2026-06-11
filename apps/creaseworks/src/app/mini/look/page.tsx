@@ -49,6 +49,15 @@ const LOOK_MODES = [
     corners: "28px 22px 26px 20px",
     ready: true,
   },
+  {
+    key: "scavenger",
+    emoji: "🗺️",
+    label: "scavenger hunt",
+    description: "find the whole list!",
+    accent: "var(--wv-navy)",
+    corners: "22px 28px 18px 26px",
+    ready: true,
+  },
 ] as const;
 
 import { miniHref } from "@/lib/mini-pilot";
