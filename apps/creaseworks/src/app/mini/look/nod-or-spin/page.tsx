@@ -218,20 +218,21 @@ export default function MiniNodOrSpinPage() {
           margin-bottom: 12px;
         }
         .nos-howto {
-          display: flex;
-          justify-content: center;
-          gap: 14px;
-          flex-wrap: wrap;
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 6px;
           margin-bottom: 12px;
           font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
           font-weight: 800;
-          font-size: 13px;
+          font-size: 11px;
           color: var(--wv-cadet);
         }
         .nos-howto span {
           background: var(--wv-white);
           border-radius: 12px;
-          padding: 6px 10px;
+          padding: 7px 4px;
+          text-align: center;
+          white-space: nowrap;
         }
         .nos-card {
           position: relative;
@@ -325,9 +326,9 @@ export default function MiniNodOrSpinPage() {
 
       {motion === "on" && (
         <div className="nos-howto" aria-hidden="true">
+          <span>↺ spin = back</span>
           <span>nod = got it ✓</span>
-          <span>full spin ↺ = back</span>
-          <span>full spin ↻ = skip</span>
+          <span>↻ spin = skip</span>
         </div>
       )}
 
