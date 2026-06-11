@@ -1,0 +1,34 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  // creaseworks mini — pilot canary. Deploys the feat/creaseworks-mini
+  // branch to its own worker so friends & family preview /mini without
+  // prod ever seeing branch code. No custom-domain routes on purpose:
+  // workers.dev only until the pilot graduates.
+  //
+  // Deploy: npx opennextjs-cloudflare build
+  //         && node ../../packages/security/scripts/write-assets-headers.mjs /harbour/creaseworks
+  //         && npx wrangler deploy --config wrangler.mini.jsonc
+  //
+  // NOTE: auth flows are knowingly broken on this canary (cookie domain
+  // is .windedvertigo.com; AUTH_URL points at prod). /mini is
+  // unauthenticated by design, so the pilot doesn't care.
+  "name": "wv-harbour-creaseworks-mini",
+  "main": ".open-next/worker.js",
+  "account_id": "097c92553b268f8360b74f625f6d980a",
+  "compatibility_date": "2025-04-01",
+  "compatibility_flags": ["nodejs_compat"],
+
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "wv-harbour-creaseworks-mini"
+    }
+  ],
+
+  "workers_dev": true
+}
