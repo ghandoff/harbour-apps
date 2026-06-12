@@ -119,6 +119,13 @@ are **dormant** (flag off) — zero behaviour change today.
 Cost-bearing / LLM tiers remain a *future* addition and must be **server-enforced**
 (each calls `hasAppAccess` in its own API route — never rely on the client gate).
 
+**Preview before you flip:** staff can walk every sampler *without* arming the
+global switch at `/harbour/gate-preview` (staff-only). It sets a `wv_gate_preview`
+cookie so `/api/tier` returns the sampler for that one viewer (honoured only for a
+real-staff session — a forged cookie does nothing); real visitors stay on full.
+Toggle on → open each app → toggle off (auto-expires after 4h). This is the
+pre-launch QA path; the actual launch is still the single hub-secret flip above.
+
 ## Security / scope notes
 - Single public code: shareable by design (it's printed in a report). Bounded by
   **expiry 2026-12-31**, **scope = the 7 zero-priced packs only** (no paid apps),
