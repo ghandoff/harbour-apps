@@ -2089,6 +2089,20 @@
           if (btn.hasAttribute('disabled')) return;
           const action = btn.getAttribute('data-action');
           if (action === 'create') {
+            // good-faith freemium gate: hosting a room is the companion
+            // (facilitation) feature — joining stays free. The tier check goes
+            // SAME-ORIGIN to /harbour/api/tier so the .windedvertigo.com session
+            // cookie is sent (the room API itself is cross-origin on workers.dev,
+            // which the cookie can't reach). Dormant until HARBOUR_GATE_ENFORCED
+            // flips; fails open so a hiccup never blocks hosting.
+            const gate = await fetch('/harbour/api/tier?app=read-the-room', { credentials: 'include' })
+              .then(r => (r.ok ? r.json() : { enforced: false }))
+              .catch(() => ({ enforced: false }));
+            if (gate.enforced && gate.tier === 'sampler') {
+              state.joinError = 'hosting a room is part of the companion tier — free for the PRME community. redeem your access code at windedvertigo.com/harbour/redeem.';
+              render();
+              return;
+            }
             try {
               state.screen = 'joining';
               render();
