@@ -43,9 +43,15 @@ where**). Each needs vault's tier pattern + a defined **sampler boundary**.
 ## Architecture
 
 1. **Kill-switch (global, default OFF).** Env `HARBOUR_GATE_ENFORCED` (default
-   `"false"`). While off, every app serves **full** content to everyone — zero
-   behaviour change. Flip to `"true"` (per-app Worker secret, or one shared value)
-   when the report ships → non-entitled users drop to the sampler.
+   `"false"`), read in exactly ONE place — the **harbour hub Worker**
+   (`wv-harbour-harbour`), in `resolveTier` (`packages/stripe/queries.ts`) and the
+   `/harbour/api/tier` route (`apps/harbour/app/api/tier/route.ts`). All five gated
+   apps resolve their tier by calling that hub endpoint, so the switch is NOT
+   per-app. While off, every app serves **full** content to everyone — zero
+   behaviour change. At launch, flip to `"true"` with a single
+   `wrangler secret put HARBOUR_GATE_ENFORCED` on the hub (a secret, so it takes
+   effect immediately with no code redeploy) → non-entitled users drop to the
+   sampler.
 2. **Shared gate helper** (new `packages/access-gate` or extend `packages/stripe`):
    `resolveTier({ app, orgId, userId, isInternal })` → `"full" | "sampler"`.
    Returns `"full"` when `HARBOUR_GATE_ENFORCED!=="true"` OR the user is internal
@@ -88,8 +94,30 @@ where**). Each needs vault's tier pattern + a defined **sampler boundary**.
   sampler boundary, render sampler vs full via `resolveTier`, add the "go full"
   prompt + redeem entry. vertigo-vault is already done (reference). Each app is its
   own CF Worker deploy.
-- **Launch:** report ships → distribute PPCS2026 → set `HARBOUR_GATE_ENFORCED=true`
-  on the app Workers. Community redeems once → full access through 2026-12-31.
+- **Launch (one flip):** report ships → distribute PPCS2026 → set
+  `HARBOUR_GATE_ENFORCED=true` **on the hub Worker only** (`wv-harbour-harbour`)
+  via `wrangler secret put HARBOUR_GATE_ENFORCED`. Because every app's gate reads
+  the hub's `/harbour/api/tier`, this one secret arms all five at once — no per-app
+  redeploy. Community redeems once → full access through 2026-12-31. To stand down,
+  `wrangler secret delete HARBOUR_GATE_ENFORCED` on the hub.
+
+### Companion sweep — status (12 june 2026): COMPLETE
+All five gates are **client-side, same-origin** calls to
+`/harbour/api/tier?app=<slug>` (the `.windedvertigo.com` session cookie rides
+because every app serves from `windedvertigo.com/harbour/*`), **fail OPEN**, and
+are **dormant** (flag off) — zero behaviour change today.
+
+| app | host Worker | sampler boundary |
+|-----|-------------|------------------|
+| co-rubric | `wv-harbour-rcb-companion` | save/export the rubric |
+| read-the-room | `wv-harbour-read-the-room` | hosting a room (joining free) |
+| lines-become-loops | `wv-site` (static) | hosting a class session |
+| values-companion | `wv-site` (static) | limited taster — 2 orgs, 5 values |
+| cuts-catalogue | `wv-site` (static) | limited taster — first 12 of 100 moves |
+| regenerative-practices-catalogue | — | **not gated** (pure CC-BY) |
+
+Cost-bearing / LLM tiers remain a *future* addition and must be **server-enforced**
+(each calls `hasAppAccess` in its own API route — never rely on the client gate).
 
 ## Security / scope notes
 - Single public code: shareable by design (it's printed in a report). Bounded by
