@@ -1,4 +1,5 @@
 export { createHarbourAuth } from "./config";
+export { CollectiveDrawer } from "./collective-drawer";
 export { createAuthRouteHandler } from "./route-handler";
 export { harbourAdapter } from "./adapter";
 export { harbourCookies } from "./cookies";

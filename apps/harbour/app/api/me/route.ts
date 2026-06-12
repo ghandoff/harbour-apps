@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { getOwnedPacks } from "@/lib/queries/membership";
 import { recommendFromRoles } from "@/lib/pier-data";
 import { getViewer } from "@/lib/viewer";
+import { GATE_PREVIEW_COOKIE } from "../tier/route";
 
 /**
  * GET /harbour/api/me
@@ -20,9 +22,14 @@ export async function GET() {
   const viewer = await getViewer();
   const { effective, realStaff, persona } = viewer;
 
+  // Freemium-preview state (the CollectiveDrawer's "full ⇄ sampler" toggle) —
+  // honoured only for real staff, mirroring /api/tier's override.
+  const jar = await cookies();
+  const gatePreview = realStaff && jar.get(GATE_PREVIEW_COOKIE)?.value === "sampler";
+
   if (!effective.signedIn) {
     return NextResponse.json(
-      { signedIn: false, isStaff: false, realStaff, activePersona: persona },
+      { signedIn: false, isStaff: false, realStaff, activePersona: persona, gatePreview },
       { headers: { "cache-control": "no-store" } },
     );
   }
@@ -56,6 +63,7 @@ export async function GET() {
       recommendedApps,
       realStaff,
       activePersona: persona,
+      gatePreview,
     },
     { headers: { "cache-control": "no-store" } },
   );

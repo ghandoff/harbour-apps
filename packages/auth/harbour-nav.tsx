@@ -30,6 +30,7 @@ import {
   type HarbourAppEntry,
   type HarbourAppKey,
 } from "./harbour-apps-data";
+import { CollectiveDrawer } from "./collective-drawer";
 
 export type { HarbourAppKey } from "./harbour-apps-data";
 
@@ -197,6 +198,7 @@ export function HarbourNav({
 
   return (
     <>
+      <CollectiveDrawer />
       <header
         className="harbour-topbar"
         style={

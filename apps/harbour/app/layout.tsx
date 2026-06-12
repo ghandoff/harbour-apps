@@ -2,7 +2,7 @@ import { Inter } from "next/font/google";
 import type { Metadata } from "next";
 import { FeedbackWidget } from "@windedvertigo/feedback";
 import AuthSessionProvider from "@/components/session-provider";
-import { ViewAsBar } from "@/components/view-as-bar";
+import { CollectiveDrawer } from "@windedvertigo/auth";
 import "./globals.css";
 
 const inter = Inter({
@@ -85,7 +85,7 @@ export default function RootLayout({
             Skip to content
           </a>
           {children}
-          <ViewAsBar />
+          <CollectiveDrawer />
           <FeedbackWidget appSlug="harbour" />
         </AuthSessionProvider>
       </body>
