@@ -73,7 +73,9 @@ export function CollectiveDrawer() {
     let live = true;
     fetch("/harbour/api/me", { credentials: "include" })
       .then((r) => (r.ok ? r.json() : null))
-      .then((d: Me | null) => live && setMe(d))
+      .then((d) => {
+        if (live) setMe(d as Me | null);
+      })
       .catch(() => {});
     return () => {
       live = false;

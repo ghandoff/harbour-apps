@@ -23,8 +23,12 @@ export function GatePreviewLive({ slug }: { slug: string }) {
     const load = () =>
       fetch(`/harbour/api/tier?app=${encodeURIComponent(slug)}`, { credentials: "include" })
         .then((r) => (r.ok ? r.json() : null))
-        .then((d) => live && setT(d))
-        .catch(() => live && setT(null));
+        .then((d) => {
+          if (live) setT(d);
+        })
+        .catch(() => {
+          if (live) setT(null);
+        });
     load();
     window.addEventListener("focus", load);
     return () => {
