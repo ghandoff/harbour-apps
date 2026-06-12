@@ -67,7 +67,11 @@ export function ShipyardDock({
                 {b.inDevelopment ? (
                   <span className="dev-badge">crew preview</span>
                 ) : (
-                  b.recommended && <span className="fit-ribbon">a fit for you</span>
+                  b.recommended && (
+                    <span className="fit-star" title="recommended for you" aria-label="recommended for you">
+                      ✦
+                    </span>
+                  )
                 )}
               </button>
             </li>

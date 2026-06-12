@@ -225,7 +225,6 @@ html {
 .boardwalk-label-sub {
   font-size: clamp(0.875rem, 1.4vw, 1.0625rem);
   letter-spacing: 0.05em;
-  text-transform: uppercase;
   color: var(--color-text-on-dark-muted);
   margin-bottom: 0.5rem;
 }
@@ -348,11 +347,11 @@ html {
 .bay-boat .bay-name { margin-top: 4px; font-size: 12px; font-weight: 600; color: var(--color-text-on-dark); text-shadow: 0 1px 3px rgba(0,0,0,.55); }
 .bay-boat.is-docked .bay-name { color: var(--accent, var(--wv-champagne)); }
 .bay-boat.is-docked .boat-art { filter: drop-shadow(0 0 10px color-mix(in srgb, var(--accent, #fff) 55%, transparent)); }
-.fit-ribbon {
-  margin-top: 4px; font-size: 10px; font-weight: 700; letter-spacing: .02em;
-  color: var(--wv-champagne); background: color-mix(in srgb, var(--wv-champagne) 16%, transparent);
-  border: 1px solid color-mix(in srgb, var(--wv-champagne) 32%, transparent);
-  padding: 1px 8px; border-radius: 999px;
+/* a quiet "guiding star" marks a recommended boat — no badge, just a small
+   star to steer by (replaces the noisy "a fit for you" pill). */
+.fit-star {
+  margin-top: 3px; font-size: 13px; line-height: 1;
+  color: color-mix(in srgb, var(--wv-champagne) 88%, transparent);
 }
 /* collective-only "in development" marker (only staff ever see these boats) */
 .dev-badge {

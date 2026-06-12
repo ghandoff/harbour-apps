@@ -30,10 +30,10 @@ export const HARBOUR_APPS = [
   { key: "vertigo-vault",      label: "vertigo.vault",      href: "/harbour/vertigo-vault",      tagline: "learning activities",            accent: "#43b187", pier: "launch"  },
   { key: "lines-become-loops", label: "lines become loops", href: "/harbour/lines-become-loops", tagline: "systems thinking simulator",     accent: "#6ee7b7", pier: "launch"  },
   { key: "read-the-room",      label: "read the room",      href: "/harbour/read-the-room",      tagline: "a quiet game of interpretation", accent: "#c084fc", pier: "launch"  },
-  { key: "values-companion",   label: "values.companion",   href: "/harbour/values-companion",   tagline: "live values game",               accent: "#fbbf24", pier: "launch"  },
+  { key: "values-companion",   label: "values.auction",     href: "/harbour/values-companion",   tagline: "live values game",               accent: "#fbbf24", pier: "launch"  },
   { key: "cuts-catalogue",     label: "cuts.catalogue",     href: "/harbour/cuts-catalogue",     tagline: "editorial pacing tool",          accent: "#fb923c", pier: "launch"  },
   { key: "co-rubric-companion",label: "co.rubric",          href: "/harbour/co-rubric-companion",tagline: "rubric co-design",               accent: "#93c5fd", pier: "launch"  },
-  { key: "regenerative-practices-catalogue", label: "regenerative.practices", href: "/harbour/regenerative-practices-catalogue", tagline: "open practice library", accent: "#a8c97c", pier: "launch"  },
+  { key: "regenerative-practices-catalogue", label: "regenerative.library", href: "/harbour/regenerative-practices-catalogue", tagline: "open practice library", accent: "#a8c97c", pier: "launch"  },
   // ── repairs pier — on the harbour map, coming soon ─────────────
   { key: "depth-chart",        label: "depth.chart",        href: "/harbour/depth-chart",        tagline: "assessment generator",           accent: "#7dd3fc", pier: "repairs", comingSoon: true },
   { key: "creaseworks",        label: "creaseworks",        href: "/harbour/creaseworks",        tagline: "creative playdates",             accent: "#cb7858", pier: "repairs", comingSoon: true },

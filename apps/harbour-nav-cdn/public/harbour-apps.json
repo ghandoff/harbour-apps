@@ -25,7 +25,7 @@
   },
   {
     "key": "values-companion",
-    "label": "values.companion",
+    "label": "values.auction",
     "href": "/harbour/values-companion",
     "tagline": "live values game",
     "accent": "#fbbf24",
@@ -49,7 +49,7 @@
   },
   {
     "key": "regenerative-practices-catalogue",
-    "label": "regenerative.practices",
+    "label": "regenerative.library",
     "href": "/harbour/regenerative-practices-catalogue",
     "tagline": "open practice library",
     "accent": "#a8c97c",
