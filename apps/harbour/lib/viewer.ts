@@ -34,6 +34,7 @@ export interface Viewer {
   realSignedIn: boolean;
   realEmail: string | null;
   realUserId?: string;
+  realOrgId: string | null;
   realName: string | null;
   /** active "view as" persona (staff only); null = the viewer's own real view */
   persona: PreviewPersona | null;
@@ -94,6 +95,7 @@ export async function getViewer(): Promise<Viewer> {
     realSignedIn,
     realEmail: email,
     realUserId: session?.userId,
+    realOrgId: session?.orgId ?? null,
     realName,
     persona,
     effective,

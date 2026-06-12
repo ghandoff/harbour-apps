@@ -9,11 +9,13 @@ import type { Draft } from "@/lib/types";
 
 type Props = {
   draft: Draft;
+  /** sampler tier (gate on): the rubric preview stays free, saving is companion-only */
+  locked?: boolean;
   onBack: () => void;
   onReset: () => void;
 };
 
-export function StepCommit({ draft, onBack, onReset }: Props) {
+export function StepCommit({ draft, locked = false, onBack, onReset }: Props) {
   const [confirmReset, setConfirmReset] = useState(false);
 
   // Markdown export buttons (download / copy) removed per PR #113.
@@ -254,13 +256,19 @@ export function StepCommit({ draft, onBack, onReset }: Props) {
             more honest than naming it after the underlying mechanic
             (print). Hint sentence below covers the two dialog
             checkboxes worth tweaking for the cleanest output. */}
-        <button
-          type="button"
-          onClick={() => window.print()}
-          className="btn-secondary text-sm"
-        >
-          save as PDF
-        </button>
+        {locked ? (
+          <a href="/harbour/redeem" className="btn-secondary text-sm">
+            unlock to save your rubric →
+          </a>
+        ) : (
+          <button
+            type="button"
+            onClick={() => window.print()}
+            className="btn-secondary text-sm"
+          >
+            save as PDF
+          </button>
+        )}
         {confirmReset ? (
           <button
             type="button"
@@ -289,10 +297,23 @@ export function StepCommit({ draft, onBack, onReset }: Props) {
         className="text-xs no-print"
         style={{ color: "var(--color-cadet)", opacity: 0.65 }}
       >
-        opens your browser&apos;s print dialog with{" "}
-        <strong>save as PDF</strong> pre-selected. for the cleanest output,
-        uncheck <em>headers and footers</em> and check{" "}
-        <em>background graphics</em>.
+        {locked ? (
+          <>
+            building and previewing your rubric is free. saving it is part of the
+            companion tier — free for the PRME community.{" "}
+            <a href="/harbour/redeem" className="underline underline-offset-4">
+              enter your access code to unlock
+            </a>
+            .
+          </>
+        ) : (
+          <>
+            opens your browser&apos;s print dialog with{" "}
+            <strong>save as PDF</strong> pre-selected. for the cleanest output,
+            uncheck <em>headers and footers</em> and check{" "}
+            <em>background graphics</em>.
+          </>
+        )}
       </p>
     </div>
   );

@@ -233,17 +233,44 @@ export async function grantEntitlement(
 /**
  * Grant an entitlement to an individual user for a pack.
  */
-export type AccessTier = "full" | "sampler";
+/** A tier name (open-ended; per-app ladders define the set). */
+export type AccessTier = string;
+
+/** One rung of a per-app tier ladder. `app` undefined = the free floor. */
+export interface TierRung {
+  tier: string;
+  /** app slug whose active entitlement unlocks this rung (else free floor) */
+  app?: string;
+}
 
 /**
- * Binary freemium gate for harbour companion apps.
+ * Per-app ordered tier ladders (low → high). The first rung is the free floor
+ * (no entitlement). Higher rungs unlock by holding an entitlement for `app`.
+ * PPCS2026 grants the companion-tier pack (keyed by the app slug), so
+ * `hasAppAccess(app)` resolves the companion rung. Future facilitation/LLM tiers
+ * slot in as additional rungs with their own (distinct) pack apps — no rework.
+ */
+export const TIER_LADDERS: Record<string, TierRung[]> = {
+  "co-rubric-companion": [
+    { tier: "sampler" },
+    { tier: "companion", app: "co-rubric-companion" },
+  ],
+  // other apps are added here as they're gated (read-the-room, lines-become-loops, …)
+};
+
+/** The ladder for an app (default: sampler → companion gated by the app's pack). */
+function ladderFor(app: string): TierRung[] {
+  return TIER_LADDERS[app] ?? [{ tier: "sampler" }, { tier: "companion", app }];
+}
+
+/**
+ * Resolve a viewer's tier for an app from its ordered ladder.
  *
- * Returns "full" when the global kill-switch is OFF
- * (`HARBOUR_GATE_ENFORCED !== "true"`), the viewer is internal (collective), or
- * they hold an active entitlement for `app` (user- or org-level); otherwise
- * "sampler". The switch lets every app ship its gate dormant (full access for
- * everyone) until launch, then flip `HARBOUR_GATE_ENFORCED="true"` per Worker.
- * Signed-out viewers (no userId) get the sampler once enforcement is on.
+ * Returns the TOP tier when the global kill-switch is OFF
+ * (`HARBOUR_GATE_ENFORCED !== "true"`) or the viewer is internal (collective).
+ * Otherwise returns the highest rung whose entitlement the viewer holds
+ * (user- or org-level), falling back to the free floor. Signed-out viewers get
+ * the floor. The switch lets every app ship its gate dormant until launch.
  */
 export async function resolveTier(opts: {
   app: string;
@@ -251,11 +278,21 @@ export async function resolveTier(opts: {
   orgId: string | null;
   isInternal?: boolean;
 }): Promise<AccessTier> {
-  if (process.env.HARBOUR_GATE_ENFORCED !== "true") return "full";
-  if (opts.isInternal) return "full";
-  if (!opts.userId) return "sampler";
-  const access = await hasAppAccess(opts.userId, opts.orgId, opts.app);
-  return access ? "full" : "sampler";
+  const ladder = ladderFor(opts.app);
+  const top = ladder[ladder.length - 1].tier;
+  const floor = ladder[0].tier;
+
+  if (process.env.HARBOUR_GATE_ENFORCED !== "true") return top;
+  if (opts.isInternal) return top;
+  if (!opts.userId) return floor;
+
+  for (let i = ladder.length - 1; i >= 1; i--) {
+    const rung = ladder[i];
+    if (rung.app && (await hasAppAccess(opts.userId, opts.orgId, rung.app))) {
+      return rung.tier;
+    }
+  }
+  return floor;
 }
 
 export async function grantUserEntitlement(

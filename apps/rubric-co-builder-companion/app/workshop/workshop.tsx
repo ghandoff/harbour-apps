@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useReducer } from "react";
+import { useEffect, useReducer, useState } from "react";
 // Wordmark now lives in the root layout as a global footer (PR #112) —
 // no longer imported per-page.
 import { StepFrame } from "./steps/frame";
@@ -9,6 +9,7 @@ import { StepScale } from "./steps/scale";
 import { StepPledge } from "./steps/pledge";
 import { StepCommit } from "./steps/commit";
 import { loadDraft, saveDraft } from "@/lib/storage";
+import { fetchTier } from "@/lib/tier";
 import { emptyDraft, STEP_ORDER } from "@/lib/types";
 import type { Draft, DraftStep } from "@/lib/types";
 
@@ -47,6 +48,20 @@ function reducer(state: Draft, action: Action): Draft {
 
 export function Workshop() {
   const [draft, dispatch] = useReducer(reducer, null, emptyDraft);
+
+  // Freemium gate: when enforcement is on and the viewer is on the sampler tier,
+  // the build + preview stay free but the take-away (save as PDF) is the
+  // companion feature. Fails open; no-op while HARBOUR_GATE_ENFORCED is off.
+  const [locked, setLocked] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    fetchTier("co-rubric-companion").then((t) => {
+      if (!cancelled) setLocked(t.enforced && t.tier === "sampler");
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // hydrate from sessionStorage on mount. avoids hydration mismatch by
   // starting with emptyDraft on both server and client, then replacing
@@ -113,6 +128,7 @@ export function Workshop() {
         {draft.step === "commit" && (
           <StepCommit
             draft={draft}
+            locked={locked}
             onBack={() => dispatch({ type: "back" })}
             onReset={() => dispatch({ type: "reset" })}
           />
