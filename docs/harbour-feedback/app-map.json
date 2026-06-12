@@ -24,7 +24,7 @@
       "live_source": "site/public/harbour/lines-become-loops/",
       "runtime": "static-site",
       "deploy": "site project build (static public/ asset)",
-      "note": "index.html, simulator.html, lakeshore-simulator.html, facilitator.html. A stale duplicate exists at harbour-apps/apps/lines-become-loops (do not edit; pending deletion)."
+      "note": "index.html, simulator.html, lakeshore-simulator.html, facilitator.html. Session API runs on wv-site at app/portfolio/assets/lines-become-loops/api/session/*."
     },
     "read-the-room": {
       "repo": "windedvertigo",
