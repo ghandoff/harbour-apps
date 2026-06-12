@@ -106,7 +106,36 @@ where**). Each needs vault's tier pattern + a defined **sampler boundary**.
   windedvertigo.com/harbour to unlock free, full access to all seven PPCS companion
   apps through 31 December 2026."
 
-## Open inputs needed before per-app gating
-1. The **sampler boundary** for each of the 6 apps (what's free vs full).
-2. Confirm **values-companion** = `values-auction` (windedvertigo repo)?
-3. Confirm **regenerative-practices-catalogue** app — where is it / does it exist?
+## Tier model — CONFIRMED (Garrett, this is an ORDERED LADDER, not binary)
+
+The gate is **multi-tier**, not sampler-vs-full. The unifying rule is the IP model:
+**open educational content (CC BY 4.0 Works) is never gated; the *tooling* layer —
+facilitation automation, save/export, multiplayer, and especially LLM-backed
+features — is winded.vertigo IP and stacks as paid tiers above the companion.**
+PPCS2026 unlocks **only the companion tier** (free for the PRME community + paying
+users); the higher facilitation/LLM tiers are separate, future paid entitlements.
+
+Per-app ladder (free → companion[PPCS2026] → paid facilitation → paid LLM/advanced):
+
+| App (slug) | Sampler (free public) | Companion (PPCS2026 + paid) | Higher paid tiers |
+|---|---|---|---|
+| vertigo.vault (`vertigo-vault`) | 22 PRME activities (live) | all activities | practitioner prompts/video |
+| values **companion** (`values-companion`) | solo/practice taste | full companion game | **values.auction** (`/harbour/values-auction`, separate app) = auto-calc budgets−bids + facilitation wins |
+| lines.become.loops | one system playable | full simulator | ≥2 paid tiers: facilitation, then LLM-backed |
+| co.rubric (`co-rubric-companion`) | build+preview one rubric | full builder | ≥2 paid tiers: facilitation, then LLM-revision |
+| read.the.room | short demo (~3 rounds) | full deck + group mode | (future) |
+| cuts.catalogue | one worked example | unlimited + export | (future) |
+| regenerative.library (`regenerative-practices-catalogue`) | **100% free — pure CC-BY, NO gate** | n/a | separate paid product: curated + **LLM-revised** submissions |
+
+**Implications for the build:**
+- **Generalise `resolveTier`** from binary `"full"|"sampler"` to an **ordered tier**
+  (like vault's teaser/entitled/practitioner/internal): a per-app tier→pack map,
+  return the highest tier the viewer's entitlements satisfy. PPCS pack → companion.
+- **LLM-backed tiers are COST-GATED** — never free, never PPCS2026 (they accrue
+  token / tool-call costs to w.v). Same discipline as the dormant depth-chart cost
+  gate. The companion tier must contain **no** uncapped LLM calls.
+- **`regenerative-practices-catalogue` has no gate** — PPCS2026 "includes" it
+  symbolically; the paid curated/LLM product is a *separate* app/pack, not a tier
+  on the open library.
+- The PPCS2026 pack set (migration 060) already maps to the **companion** tier of
+  each app, which is correct — no change to the code/packs needed.
