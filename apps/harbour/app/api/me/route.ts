@@ -11,7 +11,7 @@ import { GATE_PREVIEW_COOKIE } from "../tier/route";
  * Personalization payload for the signed-in-aware hub, reported for the
  * EFFECTIVE viewer — so a staff member previewing "as public/visitor/crew"
  * (via the wv_view_as cookie) gets that persona's hero + boat marks. Also
- * returns `realStaff` + `activePersona` so the (staff-only) ViewAsBar knows to
+ * returns `realStaff` + `activePersona` so the (staff-only) CollectiveDrawer knows to
  * render and which chip is active.
  *
  * No secrets; session-dependent → never cached.

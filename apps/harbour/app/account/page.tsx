@@ -78,7 +78,7 @@ async function signOutAction() {
 
 export default async function AccountPage() {
   // The viewer (and any staff "view as <persona>" override from the global
-  // ViewAsBar). Persona previews render from SAMPLE fixtures — never another
+  // CollectiveDrawer). Persona previews render from SAMPLE fixtures — never another
   // person's real data — and the cookie is honoured only for real staff.
   const viewer = await getViewer();
 
@@ -185,7 +185,7 @@ export default async function AccountPage() {
         </header>
 
         {/* view-as preview state. The persona switcher itself is the global
-            ViewAsBar (staff-only). Public = members-only stub; other personas
+            CollectiveDrawer (staff-only). Public = members-only stub; other personas
             render sample data, flagged below. */}
         {persona === "public" && (
           <section

@@ -2,7 +2,7 @@
  * getViewer — the single source of truth for "who is looking at this page",
  * including the collective-only "view as <persona>" override.
  *
- * A w.v staff member can set a `wv_view_as` cookie (via the ViewAsBar) to see
+ * A w.v staff member can set a `wv_view_as` cookie (via the CollectiveDrawer) to see
  * any harbour page from another member's perspective. The override is honoured
  * ONLY for a real-staff session — a forged cookie does nothing for anyone else,
  * and it can only ever *downgrade* a staff member's view (there is no persona
