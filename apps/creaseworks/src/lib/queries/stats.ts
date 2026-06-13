@@ -5,6 +5,7 @@
  */
 
 import { sql } from "@/lib/db";
+import { unstable_cache } from "next/cache";
 
 export interface PublicStats {
   playdateCount: number;
@@ -12,12 +13,7 @@ export interface PublicStats {
   reflectionCount: number;
 }
 
-/**
- * Fetch aggregate counts for the social proof section.
- * Cheap COUNT(*) queries — safe to call on every landing page load
- * behind ISR (revalidate = 3600).
- */
-export async function getPublicStats(): Promise<PublicStats> {
+async function _getPublicStats(): Promise<PublicStats> {
   const [playdates, materials, reflections] = await Promise.all([
     sql.query(
       `SELECT COUNT(*)::int AS count FROM playdates_cache WHERE status = 'published'`,
@@ -34,3 +30,7 @@ export async function getPublicStats(): Promise<PublicStats> {
     reflectionCount: reflections.rows[0]?.count ?? 0,
   };
 }
+
+export const getPublicStats = unstable_cache(_getPublicStats, ["public-stats"], {
+  revalidate: 3600,
+});
