@@ -5,7 +5,6 @@
  */
 
 import { sql } from "@/lib/db";
-import { unstable_cache } from "next/cache";
 import { mapCreaseworksRows } from "./cover-row";
 
 // Import + re-export the pure slug helper so existing server-side imports keep working.
@@ -14,21 +13,17 @@ export { materialSlug };
 
 /**
  * Fetch all materials excluding do-not-use, ordered by form then title.
- * Used to populate the matcher material picker. Cached 1 hour — synced by daily cron.
+ * Used to populate the matcher material picker. Page-level revalidate handles caching via KV ISR.
  */
-export const getAllMaterials = unstable_cache(
-  async () => {
-    const result = await sql.query(
-      `SELECT id, title, emoji, icon, form_primary, functions, context_tags
-       FROM materials_cache
-       WHERE do_not_use = false
-       ORDER BY form_primary ASC, title ASC`,
-    );
-    return result.rows;
-  },
-  ["all-materials"],
-  { revalidate: 3600 },
-);
+export async function getAllMaterials() {
+  const result = await sql.query(
+    `SELECT id, title, emoji, icon, form_primary, functions, context_tags
+     FROM materials_cache
+     WHERE do_not_use = false
+     ORDER BY form_primary ASC, title ASC`,
+  );
+  return result.rows;
+}
 
 /**
  * Fetch a single material by its slugified title.

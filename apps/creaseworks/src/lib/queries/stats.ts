@@ -5,7 +5,6 @@
  */
 
 import { sql } from "@/lib/db";
-import { unstable_cache } from "next/cache";
 
 export interface PublicStats {
   playdateCount: number;
@@ -13,7 +12,7 @@ export interface PublicStats {
   reflectionCount: number;
 }
 
-async function _getPublicStats(): Promise<PublicStats> {
+export async function getPublicStats(): Promise<PublicStats> {
   const [playdates, materials, reflections] = await Promise.all([
     sql.query(
       `SELECT COUNT(*)::int AS count FROM playdates_cache WHERE status = 'published'`,
@@ -30,7 +29,3 @@ async function _getPublicStats(): Promise<PublicStats> {
     reflectionCount: reflections.rows[0]?.count ?? 0,
   };
 }
-
-export const getPublicStats = unstable_cache(_getPublicStats, ["public-stats"], {
-  revalidate: 3600,
-});

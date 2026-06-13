@@ -1,5 +1,4 @@
 import { sql } from "@/lib/db";
-import { unstable_cache } from "next/cache";
 
 export interface CopyBlock {
   key: string;
@@ -19,31 +18,27 @@ export interface CopyBlock {
  *
  * Cached for 5 minutes via Next.js data cache (revalidated on sync).
  */
-export const getCopyForPage = unstable_cache(
-  async (page: string): Promise<Record<string, CopyBlock>> => {
-    const result = await sql`
-      SELECT key, copy, copy_html, page, section, sort_order
-      FROM site_copy_cache
-      WHERE page = ${page} AND status = 'live'
-      ORDER BY sort_order ASC
-    `;
+export async function getCopyForPage(page: string): Promise<Record<string, CopyBlock>> {
+  const result = await sql`
+    SELECT key, copy, copy_html, page, section, sort_order
+    FROM site_copy_cache
+    WHERE page = ${page} AND status = 'live'
+    ORDER BY sort_order ASC
+  `;
 
-    const map: Record<string, CopyBlock> = {};
-    for (const row of result.rows) {
-      map[row.key] = {
-        key: row.key,
-        copy: row.copy ?? "",
-        copyHtml: row.copy_html,
-        page: row.page,
-        section: row.section,
-        sortOrder: row.sort_order ?? 0,
-      };
-    }
-    return map;
-  },
-  ["site-copy"],
-  { revalidate: 300 },
-);
+  const map: Record<string, CopyBlock> = {};
+  for (const row of result.rows) {
+    map[row.key] = {
+      key: row.key,
+      copy: row.copy ?? "",
+      copyHtml: row.copy_html,
+      page: row.page,
+      section: row.section,
+      sortOrder: row.sort_order ?? 0,
+    };
+  }
+  return map;
+}
 
 /**
  * Fetch a single copy block by key.
