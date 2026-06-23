@@ -5,6 +5,7 @@
  */
 
 import { sql } from "@/lib/db";
+import { withKVCache } from "@/lib/kv-cache";
 
 export interface PublicStats {
   playdateCount: number;
@@ -13,19 +14,21 @@ export interface PublicStats {
 }
 
 export async function getPublicStats(): Promise<PublicStats> {
-  const [playdates, materials, reflections] = await Promise.all([
-    sql.query(
-      `SELECT COUNT(*)::int AS count FROM playdates_cache WHERE status = 'published'`,
-    ),
-    sql.query(
-      `SELECT COUNT(*)::int AS count FROM materials_cache WHERE do_not_use = FALSE`,
-    ),
-    sql.query(`SELECT COUNT(*)::int AS count FROM runs_cache`),
-  ]);
+  return withKVCache("public-stats", 3600, async () => {
+    const [playdates, materials, reflections] = await Promise.all([
+      sql.query(
+        `SELECT COUNT(*)::int AS count FROM playdates_cache WHERE status = 'published'`,
+      ),
+      sql.query(
+        `SELECT COUNT(*)::int AS count FROM materials_cache WHERE do_not_use = FALSE`,
+      ),
+      sql.query(`SELECT COUNT(*)::int AS count FROM runs_cache`),
+    ]);
 
-  return {
-    playdateCount: playdates.rows[0]?.count ?? 0,
-    materialCount: materials.rows[0]?.count ?? 0,
-    reflectionCount: reflections.rows[0]?.count ?? 0,
-  };
+    return {
+      playdateCount: playdates.rows[0]?.count ?? 0,
+      materialCount: materials.rows[0]?.count ?? 0,
+      reflectionCount: reflections.rows[0]?.count ?? 0,
+    };
+  });
 }

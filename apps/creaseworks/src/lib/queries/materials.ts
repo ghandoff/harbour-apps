@@ -5,6 +5,7 @@
  */
 
 import { sql } from "@/lib/db";
+import { withKVCache } from "@/lib/kv-cache";
 import { mapCreaseworksRows } from "./cover-row";
 
 // Import + re-export the pure slug helper so existing server-side imports keep working.
@@ -16,13 +17,15 @@ export { materialSlug };
  * Used to populate the matcher material picker. Page-level revalidate handles caching via KV ISR.
  */
 export async function getAllMaterials() {
-  const result = await sql.query(
-    `SELECT id, title, emoji, icon, form_primary, functions, context_tags
-     FROM materials_cache
-     WHERE do_not_use = false
-     ORDER BY form_primary ASC, title ASC`,
-  );
-  return result.rows;
+  return withKVCache("all-materials", 3600, async () => {
+    const result = await sql.query(
+      `SELECT id, title, emoji, icon, form_primary, functions, context_tags
+       FROM materials_cache
+       WHERE do_not_use = false
+       ORDER BY form_primary ASC, title ASC`,
+    );
+    return result.rows;
+  });
 }
 
 /**

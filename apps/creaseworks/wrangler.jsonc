@@ -11,6 +11,10 @@
     "binding": "ASSETS"
   },
 
+  "kv_namespaces": [
+    { "binding": "NEXT_INC_CACHE_KV", "id": "1b95b8b8c2724f039e30d2ae9bfbe78c" }
+  ],
+
   "services": [
     {
       "binding": "WORKER_SELF_REFERENCE",
@@ -53,6 +57,7 @@
   //   AUTH_GOOGLE_ID=...
   //   AUTH_GOOGLE_SECRET=...
 
-  // Uncomment for ISR:
+  // ISR cache via KV (wired above as NEXT_INC_CACHE_KV).
+  // R2 alternative kept for reference if cache storage needs to grow.
   // "r2_buckets": [{ "binding": "NEXT_INC_CACHE_R2_BUCKET", "bucket_name": "wv-creaseworks-cache" }]
 }
