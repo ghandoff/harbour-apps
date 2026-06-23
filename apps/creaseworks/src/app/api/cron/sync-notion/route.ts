@@ -4,6 +4,7 @@ import {
   getImageFailureCount,
   resetImageFailureCount,
 } from "@/lib/sync/sync-image";
+import { purgeKVPrefix } from "@/lib/kv-cache";
 
 /** Allow up to 60 s on Hobby, 300 s on Pro. */
 export const maxDuration = 300;
@@ -39,6 +40,14 @@ export async function POST(request: Request) {
     resetImageFailureCount();
     const result = await syncAll();
     const imageFailures = getImageFailureCount();
+
+    // Evict stale Notion-backed content from KV so changes land immediately
+    // rather than waiting for the 300 s TTL. Failures are non-fatal.
+    await Promise.allSettled([
+      purgeKVPrefix("cw:data:site-copy:"),
+      purgeKVPrefix("cw:data:app-config:"),
+    ]);
+
     return NextResponse.json({ ok: true, ...result, imageFailures });
   } catch (err: any) {
     console.error("[cron] sync failed:", err);
