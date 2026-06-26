@@ -45,5 +45,25 @@ export async function POST(req: NextRequest) {
     .bind(crypto.randomUUID(), code, stage, feedbackType, severity, route, ua, comment)
     .run();
 
+  // ping Slack — same awaited pattern as api-handler.ts (fire-and-forget silently drops on CF Workers)
+  const slackToken = process.env.SLACK_BOT_TOKEN;
+  const slackChannel = process.env.SLACK_FEEDBACK_CHANNEL;
+  if (slackToken && slackChannel) {
+    const icon = feedbackType === "bug" ? "🔴" : feedbackType === "confusing" ? "🟡" : feedbackType === "idea" ? "💡" : "💬";
+    const text = `${icon} *[creaseworks-mini]* ${feedbackType ?? "?"} (${severity ?? "?"}/5)${comment ? `\n> ${comment}` : ""}${route ? `\n_${route}_` : ""}${code ? `\n:family: ${code}` : ""}`;
+    try {
+      const res = await fetch("https://slack.com/api/chat.postMessage", {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${slackToken}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ channel: slackChannel, text }),
+      });
+      if (!res.ok) console.error("[mini/feedback] slack error:", res.status, await res.text().catch(() => ""));
+    } catch (err) {
+      console.error("[mini/feedback] slack threw:", err);
+    }
+  } else {
+    console.warn("[mini/feedback] SLACK_BOT_TOKEN or SLACK_FEEDBACK_CHANNEL not set — Slack skipped");
+  }
+
   return NextResponse.json({ ok: true });
 }
