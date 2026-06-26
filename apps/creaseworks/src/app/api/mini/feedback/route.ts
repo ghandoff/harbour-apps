@@ -57,7 +57,8 @@ export async function POST(req: NextRequest) {
         headers: { "Authorization": `Bearer ${slackToken}`, "Content-Type": "application/json" },
         body: JSON.stringify({ channel: slackChannel, text }),
       });
-      if (!res.ok) console.error("[mini/feedback] slack error:", res.status, await res.text().catch(() => ""));
+      const slackBody = await res.json().catch(() => ({})) as { ok?: boolean; error?: string };
+      if (!slackBody.ok) console.error("[mini/feedback] slack error:", slackBody.error ?? res.status);
     } catch (err) {
       console.error("[mini/feedback] slack threw:", err);
     }
