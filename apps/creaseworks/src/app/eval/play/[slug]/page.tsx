@@ -32,6 +32,11 @@ export default function EvalPlayPage({ params }: { params: Promise<{ slug: strin
   const [name, setName] = useState("");
   const [answers, setAnswers] = useState<Record<string, AnswerValue>>({});
   const [state, setState] = useState<SendState>("idle");
+  const [oneRead, setOneRead] = useState<{ loading: boolean; configured: boolean; text?: string }>({
+    loading: false,
+    configured: false,
+  });
+  const [readVote, setReadVote] = useState<boolean | null>(null);
 
   useEffect(() => {
     try {
@@ -67,10 +72,41 @@ export default function EvalPlayPage({ params }: { params: Promise<{ slug: strin
         }),
       });
       setState(res.ok ? "done" : "error");
-      if (res.ok) window.scrollTo({ top: 0, behavior: "smooth" });
+      if (res.ok) {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        void loadOneRead();
+      }
     } catch {
       setState("error");
     }
+  }
+
+  async function loadOneRead() {
+    if (!playdate) return;
+    setOneRead({ loading: true, configured: false });
+    try {
+      const res = await fetch(apiUrl("/api/eval/one-read"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug: playdate.slug }),
+      });
+      const data = (await res.json().catch(() => ({}))) as { configured?: boolean; text?: string };
+      setOneRead({ loading: false, configured: !!data.configured, text: data.text });
+    } catch {
+      setOneRead({ loading: false, configured: false });
+    }
+  }
+
+  async function voteRead(agree: boolean) {
+    if (!playdate) return;
+    setReadVote(agree);
+    try {
+      await fetch(apiUrl("/api/eval/one-read/vote"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug: playdate.slug, evaluator_name: name, agree }),
+      });
+    } catch {}
   }
 
   if (!playdate) {
@@ -149,6 +185,18 @@ export default function EvalPlayPage({ params }: { params: Promise<{ slug: strin
         .ep-done h2 { font-family: var(--font-fraunces), serif; font-weight: 600; font-size: 22px; color: var(--wv-cadet); margin: 6px 0 8px; }
         .ep-done p { font-size: 14px; color: #4b5563; margin: 0 0 18px; }
         .ep-done a { display: inline-block; margin: 0 8px; font-weight: 800; font-size: 14px; color: var(--wv-teal); text-decoration: none; }
+        .ep-salience { font-size: 12.5px; color: #6b7280; margin: 8px 0 0; line-height: 1.5; }
+        .ep-read { text-align: left; background: color-mix(in srgb, var(--wv-periwinkle) 16%, var(--wv-white));
+          border: 1.5px solid rgba(39,50,72,0.12); border-radius: 14px 18px 12px 16px; padding: 16px; margin: 18px 0; }
+        .ep-read-h { font-weight: 800; font-size: 12.5px; color: var(--wv-cadet); margin-bottom: 8px; }
+        .ep-read-text { font-size: 14px; line-height: 1.6; color: var(--wv-cadet); margin: 0; white-space: pre-wrap; }
+        .ep-read-muted { font-size: 13px; color: #6b7280; margin: 4px 0 0; }
+        .ep-vote { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+        .ep-vote-q { font-size: 13px; font-weight: 700; color: var(--wv-cadet); margin-right: 2px; }
+        button.ep-vote-btn:not([type="submit"]) { font-family: inherit; font-weight: 800; font-size: 13px; cursor: pointer;
+          color: var(--wv-white); background: var(--wv-teal); border: none; border-radius: 10px 14px 9px 12px; padding: 7px 14px; }
+        button.ep-vote-btn.ghost { background: var(--wv-white); color: var(--wv-cadet); border: 2px solid rgba(39,50,72,0.16); }
+        button.ep-vote-btn:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
       `}</style>
 
       {state === "done" ? (
@@ -156,6 +204,29 @@ export default function EvalPlayPage({ params }: { params: Promise<{ slug: strin
           <div style={{ fontSize: 34 }}>✓</div>
           <h2>logged — thank you, {name}.</h2>
           <p>your read of “{playdate.title}” is in. the dashboard updates as the team submits.</p>
+
+          <div className="ep-read">
+            <div className="ep-read-h">🤖 one read — one voice, not the answer</div>
+            {oneRead.loading && <p className="ep-read-muted">generating a read…</p>}
+            {!oneRead.loading && !oneRead.configured && (
+              <p className="ep-read-muted">the one read isn&rsquo;t switched on yet. (it needs the model key on the worker.)</p>
+            )}
+            {!oneRead.loading && oneRead.configured && oneRead.text && (
+              <>
+                <p className="ep-read-text">{oneRead.text}</p>
+                {readVote === null ? (
+                  <div className="ep-vote">
+                    <span className="ep-vote-q">did this match what you found?</span>
+                    <button type="button" className="ep-vote-btn" onClick={() => voteRead(true)}>it matched</button>
+                    <button type="button" className="ep-vote-btn ghost" onClick={() => voteRead(false)}>mark it wrong</button>
+                  </div>
+                ) : (
+                  <p className="ep-read-muted">{readVote ? "noted — it matched." : "noted — the room outranks the page."}</p>
+                )}
+              </>
+            )}
+          </div>
+
           <Link href={evalHref("")}>evaluate another →</Link>
           <Link href={evalHref("/dashboard")}>see the coherence dashboard →</Link>
         </div>
@@ -166,8 +237,9 @@ export default function EvalPlayPage({ params }: { params: Promise<{ slug: strin
             <h1 className="ep-title">{playdate.title}</h1>
             <p className="ep-tag">{playdate.tagline}</p>
             <span className="ep-reg">
-              {register === "felt" ? "🌿 the felt play" : "🧭 the full cascade"} · {name}
+              {register === "felt" ? "🌿 the felt play" : "🧭 the five lenses"} · {name}
             </span>
+            <p className="ep-salience">mark only what feels salient — skip anything that doesn&rsquo;t. nothing here is required.</p>
           </div>
 
           {groups.map((group, i) => (
@@ -193,7 +265,7 @@ export default function EvalPlayPage({ params }: { params: Promise<{ slug: strin
               {state === "sending" ? "logging…" : "submit evaluation →"}
             </button>
             <span className="ep-count">
-              {answeredCount} answered
+              {answeredCount} marked
               {state === "error" && " · that didn't go through — try again?"}
             </span>
           </div>

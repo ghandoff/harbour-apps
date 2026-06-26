@@ -1,84 +1,108 @@
 /**
- * creaseworks-eval — the rubric (question bank).
+ * creaseworks-eval — the rubric (question bank), faceted as jamie's lenses.
  *
- * This is the design cascade, run in reverse. Designing a game flows DOWN
- * the cascade (theory → manifesto → framework → brief → card); evaluating
- * one climbs UP. Every item below is lifted from jamie's Games Design
- * Framework and the Creaseworks design brief, and worded as a CONDITION
- * present, never an OUTCOME achieved — the one rule the whole framework
- * exists to protect.
+ * Wednesday's "felt session" tool organises the framework into five
+ * LENSES. We adopt that vocabulary verbatim — the team already thinks in
+ * it — and run it as the async twin of the live session. The shape:
  *
- * Two registers map onto where an evaluator enters the cascade:
- *   felt   — friends & family who PLAYED it. The bottom layer only,
- *            in plain language.
- *   frame  — the collective, climbing the whole cascade against the
- *            framework instruments.
+ *   the felt play   — what it was like (everyone; the universal opening)
+ *   lens 1          — the play condition (the floor)
+ *   lens 2          — the mechanics (the lever + KEK return)
+ *   lens 3          — justice and access (who the design lets in)
+ *   lens 4          — aliveness and coherence (the decisive test)
+ *   lens 5          — what the documents failed to see (the room outranks the page)
+ *   the verdict
+ *   redesign        — rebuild it from what you felt (eval → design)
  *
- * Sources (read 26 june 2026):
- *   • winded.vertigo — Games Design Framework (the 6-stage spine)
- *   • creaseworks design brief (the instance: 3 layers, two-face dig,
- *     conditions not outcomes)
+ * Salience-first: mark only what feels salient — never fill it like
+ * homework. Unanswered items are skipped in scoring, never counted zero.
+ *
+ * Two registers map to where you enter: felt (friends & family, the felt
+ * play only) and frame (the collective, the whole climb). Every item is
+ * lifted from the Games Design Framework + Creaseworks brief, worded as a
+ * condition present, never an outcome achieved.
  */
 
 export type Register = "felt" | "frame";
 
-/** the cascade layers, bottom → top (the order an evaluation climbs). */
-export type Layer = "cards" | "brief" | "framework" | "foundation" | "verdict";
+export type Layer =
+  | "cards"
+  | "lens1"
+  | "lens2"
+  | "lens3"
+  | "lens4"
+  | "lens5"
+  | "verdict"
+  | "redesign";
 
-export type ItemType =
-  | "scale5" // 1–5 likert
-  | "gate3" // clear / partial / blocked (the floor scale)
-  | "yesno" // yes / no / unsure
-  | "choice" // single pick from `options`
-  | "triad" // play / justice / aliveness — mark each present
-  | "text"; // free response
+export type ItemType = "scale5" | "gate3" | "yesno" | "choice" | "triad" | "text";
 
 export interface EvalItem {
   id: string;
   layer: Layer;
-  registers: Register[]; // who sees it
+  registers: Register[];
   prompt: string;
-  /** the framework source / clarifier, shown small under the prompt. */
   help?: string;
   type: ItemType;
   options?: string[];
-  /** scale5 where a HIGH answer is bad (e.g. "felt like a test"). */
-  reverse?: boolean;
+  reverse?: boolean; // scale5 where a HIGH answer is bad
 }
 
 export interface LayerMeta {
   key: Layer;
   label: string;
   blurb: string;
+  /** lenses that carry a 0–1 health score in the dashboard heatmap. */
+  scored?: boolean;
 }
 
-/* ── the cascade layers (bottom → top) ──────────────────────── */
+/* ── the lenses (bottom → top), blurbs verbatim from the felt-session app ── */
 
 export const LAYERS: LayerMeta[] = [
   {
     key: "cards",
     label: "the felt play",
-    blurb: "what it was actually like to play. anyone who played can answer this.",
+    blurb: "what it was actually like to play. feel it before you frame it — anyone who played can answer this.",
+    scored: true,
   },
   {
-    key: "brief",
-    label: "the creaseworks brief",
-    blurb: "the three layers, the two-face dig, conditions not outcomes.",
+    key: "lens1",
+    label: "lens 1 · the play condition",
+    blurb: "the floor. this is not the easy rung, it is often where games fail. clearing it only means a game may invite play, it does not yet say it is one of ours.",
+    scored: true,
   },
   {
-    key: "framework",
-    label: "the games design framework",
-    blurb: "the floor, the no-default-player gate, the lever, the decisive test, the guards.",
+    key: "lens2",
+    label: "lens 2 · the mechanics",
+    blurb: "the lever — the design work, where the difference from a fun game becomes visible. the eight principles and the KEK arc with its return. mark the ones that feel salient.",
+    scored: true,
   },
   {
-    key: "foundation",
-    label: "manifesto & theory of change",
-    blurb: "does the mechanic chain back to play, justice and aliveness?",
+    key: "lens3",
+    label: "lens 3 · justice and access",
+    blurb: "not who happened to be good at it, but whether the design lets many kinds of people in. decided at the design table, not at the point of sale.",
+    scored: true,
+  },
+  {
+    key: "lens4",
+    label: "lens 4 · aliveness and coherence",
+    blurb: "the decisive test. did it widen what you feel able to do, and was it more than just engaging in the moment? and does the mechanic still chain back to the theory?",
+    scored: true,
+  },
+  {
+    key: "lens5",
+    label: "lens 5 · what the documents failed to see",
+    blurb: "where the framework had no language for what you felt, where it misled you, where the game was richer or worse than it could account for. this is how the room outranks the page.",
   },
   {
     key: "verdict",
     label: "the verdict",
     blurb: "where this playdate lands.",
+  },
+  {
+    key: "redesign",
+    label: "redesign — rebuild from what you felt",
+    blurb: "not how to make it more fun. work from what you felt playing it. optional — skip if you're only here to evaluate.",
   },
 ];
 
@@ -88,6 +112,8 @@ export interface EvalPlaydate {
   slug: string;
   title: string;
   tagline: string;
+  /** a short essence of the activity, fed to the AI one-read. */
+  content: string;
 }
 
 export const EVAL_PLAYDATES: EvalPlaydate[] = [
@@ -95,26 +121,36 @@ export const EVAL_PLAYDATES: EvalPlaydate[] = [
     slug: "character-from-a-crease",
     title: "character from a crease",
     tagline: "fold paper and let the creases tell you who lives inside",
+    content:
+      "fold paper, find a face or creature hiding in the creases, draw it in and give it a name; refold to hide or reveal it. find again: characters hide in cracks, wood grain, clouds.",
   },
   {
     slug: "function-swap-same-form",
     title: "function swap, same form",
     tagline: "keep the same stuff — change what it's for",
+    content:
+      "gather 10–15 similar small objects; do three rounds with the same pieces under different missions — tell a story, organise them, explain something. same material, new function.",
   },
   {
     slug: "design-a-rule-not-an-object",
     title: "design a rule, not an object",
     tagline: "invent a rule that changes how things work",
+    content:
+      "invent one rule that changes how ordinary objects behave (e.g. only move things by blowing); play it; then rewrite it simpler so anyone can learn it in under 30 seconds.",
   },
   {
     slug: "take-apart-archaeology",
     title: "take-apart archaeology",
     tagline: "open a broken thing and discover what's inside",
+    content:
+      "with permission and safety, open a broken device; lay out the parts; work out what each one does; map how they worked together; recombine the parts into something new.",
   },
   {
     slug: "mend-a-stuffed-friend",
     title: "mend a stuffed friend",
     tagline: "fix a torn toy and learn the superpower of repair",
+    content:
+      "find a torn stuffed toy; sew the rip with visible colourful thread (a 'cool scar', kintsugi); restuff it; the repair tells a story. mending works on everything.",
   },
 ];
 
@@ -126,12 +162,11 @@ export function playdateBySlug(slug: string): EvalPlaydate | undefined {
 
 export const GATE3_OPTIONS = ["clear", "partial", "blocked"] as const;
 export const YESNO_OPTIONS = ["yes", "no", "unsure"] as const;
-export const DOOR_OPTIONS = ["yes — a real door", "light — only hinted", "no"] as const;
 
 /* ── the items ──────────────────────────────────────────────── */
 
 export const ITEMS: EvalItem[] = [
-  /* ===== LAYER: cards & sessions — the felt play (FELT + FRAME) ===== */
+  /* ===== the felt play (FELT + FRAME) — feel it before you frame it ===== */
   {
     id: "felt-arrived",
     layer: "cards",
@@ -144,7 +179,6 @@ export const ITEMS: EvalItem[] = [
     layer: "cards",
     registers: ["felt", "frame"],
     prompt: "could you start in about two minutes, with stuff you already had?",
-    help: "the floor — low stakes, ready in under two minutes.",
     type: "yesno",
   },
   {
@@ -152,7 +186,6 @@ export const ITEMS: EvalItem[] = [
     layer: "cards",
     registers: ["felt", "frame"],
     prompt: "was there a “huh, i didn't expect that” moment?",
-    help: "metabolisable surprise — it stretched without shattering.",
     type: "scale5",
   },
   {
@@ -160,7 +193,7 @@ export const ITEMS: EvalItem[] = [
     layer: "cards",
     registers: ["felt", "frame"],
     prompt: "how much did it feel like there was a right answer, or like you were being tested?",
-    help: "no verdict on the player — lower is better here.",
+    help: "lower is better — no verdict on the player.",
     type: "scale5",
     reverse: true,
   },
@@ -168,8 +201,8 @@ export const ITEMS: EvalItem[] = [
     id: "felt-keepgoing",
     layer: "cards",
     registers: ["felt", "frame"],
-    prompt: "did you want to keep going, or try it on something else?",
-    help: "the return that travels — it followed you out of the box.",
+    prompt: "afterwards, did the range of things you felt able to do feel wider, or narrower?",
+    help: "the widening — did you want to keep going, or try it on something else?",
     type: "scale5",
   },
   {
@@ -189,307 +222,274 @@ export const ITEMS: EvalItem[] = [
     type: "text",
   },
 
-  /* ===== LAYER: the creaseworks brief (FRAME) ===== */
-  {
-    id: "brief-l1",
-    layer: "brief",
-    registers: ["frame"],
-    prompt: "layer 1 — is there immediate, low-stakes surface play with everyday materials and no correct answer?",
-    help: "the entry. ready in under two minutes.",
-    type: "gate3",
-  },
-  {
-    id: "brief-l2",
-    layer: "brief",
-    registers: ["frame"],
-    prompt: "layer 2 — does it reveal the object isn't what it seemed (the model shift)?",
-    help: "“our models are constructed not given”, enacted rather than explained.",
-    type: "gate3",
-  },
-  {
-    id: "brief-l3",
-    layer: "brief",
-    registers: ["frame"],
-    prompt: "layer 3 — is there a door to the wider world the object comes from (the deeper connection)?",
-    help: "the layer most absent from the current collection — the bottle cap → factory → forest → water.",
-    type: "choice",
-    options: ["yes — a real door", "light — only hinted", "no"],
-  },
-  {
-    id: "brief-dig-player",
-    layer: "brief",
-    registers: ["frame"],
-    prompt: "two-face dig — is there one open question for the player at the end (a door left ajar, not a lesson or comprehension check)?",
-    type: "yesno",
-  },
-  {
-    id: "brief-dig-facilitator",
-    layer: "brief",
-    registers: ["frame"],
-    prompt: "two-face dig — is the theory carried in a separate facilitator face, kept off the child-facing card?",
-    help: "the facilitator face carries the theory so the child card doesn't have to — the answer to playwashing.",
-    type: "yesno",
-  },
-  {
-    id: "brief-conditions",
-    layer: "brief",
-    registers: ["frame"],
-    prompt: "conditions not outcomes — does the child-facing card avoid naming what the child “learns” or “practises”?",
-    help: "the what-kids-practise tags are the clearest place creaseworks falls off its own floor.",
-    type: "yesno",
-  },
-  {
-    id: "brief-samematerial",
-    layer: "brief",
-    registers: ["frame"],
-    prompt: "find again — is it a true “same material, new function” shift, not “same build, new constraint” / “now make it harder” drift?",
-    type: "yesno",
-  },
-  {
-    id: "brief-notes",
-    layer: "brief",
-    registers: ["frame"],
-    prompt: "notes on the three layers and the dig.",
-    type: "text",
-  },
-
-  /* ===== LAYER: the games design framework (FRAME) ===== */
-  /* the floor — four qualities, each clear / partial / blocked */
+  /* ===== lens 1 · the play condition — the floor (FRAME) ===== */
   {
     id: "fw-floor-stakes",
-    layer: "framework",
+    layer: "lens1",
     registers: ["frame"],
-    prompt: "the floor · low stakes — errors don't cascade, nobody's in survival mode, the danger is held not absent.",
+    prompt: "low stakes — consequence-reduced, not trivial. errors don't cascade, nobody is in survival mode.",
     type: "gate3",
   },
   {
     id: "fw-floor-surprise",
-    layer: "framework",
+    layer: "lens1",
     registers: ["frame"],
-    prompt: "the floor · metabolisable surprise — prediction error that stretches without shattering, bounded and recoverable.",
+    prompt: "metabolisable surprise — prediction error that stretches without shattering.",
     type: "gate3",
   },
   {
     id: "fw-floor-messy",
-    layer: "framework",
+    layer: "lens1",
     registers: ["frame"],
-    prompt: "the floor · messy & non-performative — no correct output and no audience.",
+    prompt: "messy & non-performative — no correct output and no audience to satisfy.",
     help: "a timer, a score, a watching crowd or an outcome tag pulls a game part-way off this rung.",
     type: "gate3",
   },
   {
     id: "fw-floor-hopeful",
-    layer: "framework",
+    layer: "lens1",
     registers: ["frame"],
-    prompt: "the floor · implicitly hopeful — the next move feels possible, the loop stays open after error.",
+    prompt: "implicitly hopeful — acting as if the next move can land, the loop staying open after error.",
     type: "gate3",
   },
-  /* the no-default-player gate — HARD gate */
+
+  /* ===== lens 2 · the mechanics — the lever + KEK return (FRAME) ===== */
+  {
+    id: "brief-l1",
+    layer: "lens2",
+    registers: ["frame"],
+    prompt: "layer 1 — immediate, low-stakes surface play with everyday materials and no correct answer.",
+    type: "gate3",
+  },
+  {
+    id: "brief-l2",
+    layer: "lens2",
+    registers: ["frame"],
+    prompt: "layer 2 — it reveals the object isn't what it seemed (the model shift).",
+    type: "gate3",
+  },
+  {
+    id: "brief-samematerial",
+    layer: "lens2",
+    registers: ["frame"],
+    prompt: "the return (KEK) — a true “same material, new function” shift, not “same build, new constraint” / “now make it harder” drift.",
+    type: "yesno",
+  },
+  {
+    id: "brief-dig-player",
+    layer: "lens2",
+    registers: ["frame"],
+    prompt: "the two-face dig — one open question for the player at the end (a door left ajar, not a lesson or comprehension check).",
+    type: "yesno",
+  },
+  {
+    id: "brief-dig-facilitator",
+    layer: "lens2",
+    registers: ["frame"],
+    prompt: "the theory is carried in a separate facilitator face, kept off the child-facing card.",
+    type: "yesno",
+  },
+  {
+    id: "brief-conditions",
+    layer: "lens2",
+    registers: ["frame"],
+    prompt: "conditions not outcomes — the child card avoids naming what the child “learns” or “practises”.",
+    type: "yesno",
+  },
+  {
+    id: "fw-lever-conditions",
+    layer: "lens2",
+    registers: ["frame"],
+    prompt: "design the conditions, not the play — a player can go somewhere you didn't anticipate and still have a valid experience.",
+    type: "yesno",
+  },
+  {
+    id: "fw-lever-error",
+    layer: "lens2",
+    registers: ["frame"],
+    prompt: "error is information — a mistake reveals or unlocks something, never just a dead end.",
+    type: "yesno",
+  },
+  {
+    id: "fw-lever-noverdict",
+    layer: "lens2",
+    registers: ["frame"],
+    prompt: "no verdict on the player — a player could be wrong and feel curiosity rather than shame, no one ranked against the result.",
+    type: "yesno",
+  },
+  {
+    id: "fw-lever-heighten",
+    layer: "lens2",
+    registers: ["frame"],
+    prompt: "heighten, then hold — there is a lower-intensity path that doesn't feel like failure.",
+    type: "yesno",
+  },
+  {
+    id: "fw-lever-stakes",
+    layer: "lens2",
+    registers: ["frame"],
+    prompt: "stakes are structural — someone in a high-stakes frame would feel safe being wrong here.",
+    type: "yesno",
+  },
+  {
+    id: "fw-lever-relationships",
+    layer: "lens2",
+    registers: ["frame"],
+    prompt: "thinking in relationships — the game gets better when people think together.",
+    type: "yesno",
+  },
+  {
+    id: "fw-guard-redflags",
+    layer: "lens2",
+    registers: ["frame"],
+    prompt: "red-flag mechanics present?",
+    help: "leaderboards, elimination, timed pressure, public scoring, correct-answer reveals, single-channel mechanics…",
+    type: "choice",
+    options: ["none", "one or two", "several"],
+  },
+  {
+    id: "brief-notes",
+    layer: "lens2",
+    registers: ["frame"],
+    prompt: "notes on the mechanics.",
+    type: "text",
+  },
+
+  /* ===== lens 3 · justice and access (FRAME) ===== */
   {
     id: "fw-gate-essential",
-    layer: "framework",
+    layer: "lens3",
     registers: ["frame"],
-    prompt: "hard gate — is the essential experience named in one sentence, stripped of its default sensory / physical / linguistic form?",
+    prompt: "the essential experience is named in one sentence, stripped of its default sensory / physical / linguistic form.",
     help: "not “draw a character from creases”, but “discover that a material trace can suggest a form you didn't invent from nothing”.",
     type: "yesno",
   },
   {
     id: "fw-gate-routes",
-    layer: "framework",
+    layer: "lens3",
     registers: ["frame"],
-    prompt: "hard gate — are there at least three genuine routes into that essential experience?",
+    prompt: "at least three genuine routes into that essential experience.",
     type: "yesno",
   },
   {
     id: "fw-gate-reachable",
-    layer: "framework",
+    layer: "lens3",
     registers: ["frame"],
-    prompt: "hard gate — could a blind, a limited-motor, and a non-reading player each reach the same essential experience, no route framed as a lesser version?",
-    type: "yesno",
-  },
-  /* the lever — 8 principles, each its practical test (verbatim) */
-  {
-    id: "fw-lever-conditions",
-    layer: "framework",
-    registers: ["frame"],
-    prompt: "lever — can a player go somewhere you didn't anticipate and still have a valid experience?",
-    help: "design the conditions, not the play.",
+    prompt: "a blind, a limited-motor, and a non-reading player could each reach the same experience — no route framed as a lesser version.",
+    help: "the no-default-player gate. run it before any redesign.",
     type: "yesno",
   },
   {
-    id: "fw-lever-error",
-    layer: "framework",
+    id: "brief-l3",
+    layer: "lens3",
     registers: ["frame"],
-    prompt: "lever — does failure generate something useful rather than a dead end?",
-    help: "error is information.",
+    prompt: "layer 3 — a door to the wider world the object comes from (the deeper connection / the justice angle).",
+    help: "the layer most absent from the current collection — the bottle cap → factory → forest → water.",
+    type: "choice",
+    options: ["yes — a real door", "light — only hinted", "no"],
+  },
+  {
+    id: "fw-guard-adapt",
+    layer: "lens3",
+    registers: ["frame"],
+    prompt: "it can be adapted locally (vs rigid replication).",
     type: "yesno",
   },
   {
-    id: "fw-lever-noverdict",
-    layer: "framework",
+    id: "fw-guard-scale",
+    layer: "lens3",
     registers: ["frame"],
-    prompt: "lever — could a player be wrong here and feel curiosity rather than shame, with no one ranked against the result?",
-    help: "no verdict on the player.",
+    prompt: "honest about who benefits financially from its scale (vs extraction in regeneration's clothes).",
     type: "yesno",
   },
-  {
-    id: "fw-lever-heighten",
-    layer: "framework",
-    registers: ["frame"],
-    prompt: "lever — is there a lower-intensity path that doesn't feel like failure?",
-    help: "heighten, then hold.",
-    type: "yesno",
-  },
-  {
-    id: "fw-lever-stakes",
-    layer: "framework",
-    registers: ["frame"],
-    prompt: "lever — would a person in a high-stakes frame feel safe being wrong here?",
-    help: "stakes are structural.",
-    type: "yesno",
-  },
-  {
-    id: "fw-lever-relationships",
-    layer: "framework",
-    registers: ["frame"],
-    prompt: "lever — does the game get better when people think together?",
-    help: "thinking in relationships.",
-    type: "yesno",
-  },
-  {
-    id: "fw-lever-cannot",
-    layer: "framework",
-    registers: ["frame"],
-    prompt: "lever — can you name a specific person who cannot access this, and the barrier?",
-    help: "name what it cannot do.",
-    type: "yesno",
-  },
-  {
-    id: "fw-lever-defaultplayer",
-    layer: "framework",
-    registers: ["frame"],
-    prompt: "lever — after the lever work, does the no-default-player gate still hold?",
-    type: "yesno",
-  },
-  /* the decisive test — the single question that separates a w.v game from a merely fun one */
+
+  /* ===== lens 4 · aliveness and coherence — the decisive test (FRAME) ===== */
   {
     id: "fw-decisive",
-    layer: "framework",
+    layer: "lens4",
     registers: ["frame"],
     prompt: "the decisive test — does what happened return in a form that travels, and did the field of possible action widen?",
     help: "or did it only manufacture local engagement? if the floor is met and this is not, you have a fun game, not a winded.vertigo one.",
     type: "choice",
     options: ["return travels & field widens", "partial", "fun only — no return that travels"],
   },
-  /* the guards — commercial integrity test (7 rows) */
-  {
-    id: "fw-guard-conditions",
-    layer: "framework",
-    registers: ["frame"],
-    prompt: "guard — does it create conditions for play, rather than claim to produce transformation?",
-    help: "protects against salvation-selling.",
-    type: "yesno",
-  },
-  {
-    id: "fw-guard-adapt",
-    layer: "framework",
-    registers: ["frame"],
-    prompt: "guard — can it be adapted locally?",
-    help: "protects against rigid replication.",
-    type: "yesno",
-  },
-  {
-    id: "fw-guard-agency",
-    layer: "framework",
-    registers: ["frame"],
-    prompt: "guard — does it preserve agency for facilitators and players?",
-    help: "protects against installable-capacity logic.",
-    type: "yesno",
-  },
-  {
-    id: "fw-guard-justice",
-    layer: "framework",
-    registers: ["frame"],
-    prompt: "guard — is there a justice access route?",
-    help: "protects against play becoming privilege.",
-    type: "yesno",
-  },
-  {
-    id: "fw-guard-overclaim",
-    layer: "framework",
-    registers: ["frame"],
-    prompt: "guard — does the framing avoid overclaiming outcomes?",
-    help: "protects against becoming a bad evidence generator with our name on it.",
-    type: "yesno",
-  },
-  {
-    id: "fw-guard-traces",
-    layer: "framework",
-    registers: ["frame"],
-    prompt: "guard — does it keep traces of process, not only a polished surface?",
-    help: "protects against betraying the theory's epistemology.",
-    type: "yesno",
-  },
-  {
-    id: "fw-guard-scale",
-    layer: "framework",
-    registers: ["frame"],
-    prompt: "guard — is it honest about who benefits financially from its scale?",
-    help: "protects against extraction wearing regeneration's clothes.",
-    type: "yesno",
-  },
-  /* red flags + indicator discipline */
-  {
-    id: "fw-guard-redflags",
-    layer: "framework",
-    registers: ["frame"],
-    prompt: "guard — any red-flag mechanics present?",
-    help: "leaderboards, elimination, timed pressure, public scoring, correct-answer reveals, single-channel mechanics…",
-    type: "choice",
-    options: ["none", "one or two", "several"],
-  },
-  {
-    id: "fw-guard-indicators",
-    layer: "framework",
-    registers: ["frame"],
-    prompt: "guard — if success is named at all, is there at least one justice indicator and one negative indicator?",
-    help: "an evaluation with neither is performance, never learning.",
-    type: "yesno",
-  },
-  {
-    id: "fw-notes",
-    layer: "framework",
-    registers: ["frame"],
-    prompt: "notes on the floor / gate / lever / decisive test / guards.",
-    type: "text",
-  },
-
-  /* ===== LAYER: manifesto & theory of change (FRAME) ===== */
   {
     id: "fnd-chain",
-    layer: "foundation",
+    layer: "lens4",
     registers: ["frame"],
-    prompt: "coherence chain — does it complete for the main mechanic? (mechanic → condition → manifesto principle → theory-of-change link → outcome direction → brief question)",
+    prompt: "the coherence chain completes for the main mechanic. (mechanic → condition → principle → theory-of-change link → outcome direction → brief question)",
     type: "yesno",
   },
   {
     id: "fnd-triad",
-    layer: "foundation",
+    layer: "lens4",
     registers: ["frame"],
-    prompt: "the triad — which of these live here concretely (not as decoration)?",
-    help: "mark each that is genuinely present.",
+    prompt: "which of the triad live here concretely (not as decoration)?",
     type: "triad",
     options: ["play", "justice", "aliveness"],
   },
   {
+    id: "fw-guard-conditions",
+    layer: "lens4",
+    registers: ["frame"],
+    prompt: "it creates conditions for play, rather than claiming to produce transformation (vs salvation-selling).",
+    type: "yesno",
+  },
+  {
+    id: "fw-guard-overclaim",
+    layer: "lens4",
+    registers: ["frame"],
+    prompt: "the framing avoids overclaiming outcomes (vs a bad evidence generator with our name on it).",
+    type: "yesno",
+  },
+  {
+    id: "fw-guard-traces",
+    layer: "lens4",
+    registers: ["frame"],
+    prompt: "it keeps traces of process, not only a polished surface (vs betraying the theory's epistemology).",
+    type: "yesno",
+  },
+  {
+    id: "fw-guard-indicators",
+    layer: "lens4",
+    registers: ["frame"],
+    prompt: "if success is named at all, there is at least one justice indicator and one negative indicator.",
+    help: "an evaluation with neither is performance, never learning.",
+    type: "yesno",
+  },
+  {
     id: "fnd-gravity",
-    layer: "foundation",
+    layer: "lens4",
     registers: ["frame"],
     prompt: "the gravity guard — what does the theory help us see here, and what might it be making harder to see?",
     type: "text",
   },
 
-  /* ===== LAYER: the verdict (FRAME) ===== */
+  /* ===== lens 5 · what the documents failed to see (FRAME, NEW) ===== */
+  {
+    id: "lens5-capture",
+    layer: "lens5",
+    registers: ["frame"],
+    prompt: "how well did the framework capture what you actually felt playing this?",
+    help: "low = the page missed the room.",
+    type: "scale5",
+  },
+  {
+    id: "lens5-nolang",
+    layer: "lens5",
+    registers: ["frame"],
+    prompt: "where did the framework have no language for what you felt?",
+    type: "text",
+  },
+  {
+    id: "lens5-misled",
+    layer: "lens5",
+    registers: ["frame"],
+    prompt: "where did it mislead you — the game richer or worse than the rubric could account for?",
+    type: "text",
+  },
+
+  /* ===== the verdict (FRAME) ===== */
   {
     id: "verdict-call",
     layer: "verdict",
@@ -512,21 +512,60 @@ export const ITEMS: EvalItem[] = [
     prompt: "anything else for the team?",
     type: "text",
   },
+
+  /* ===== redesign — rebuild from what you felt (FRAME, NEW) ===== */
+  {
+    id: "redesign-stakes",
+    layer: "redesign",
+    registers: ["frame"],
+    prompt: "where might the stakes be accidentally too high?",
+    type: "text",
+  },
+  {
+    id: "redesign-flat",
+    layer: "redesign",
+    registers: ["frame"],
+    prompt: "where might the uncertainty be too flat, or too much?",
+    type: "text",
+  },
+  {
+    id: "redesign-hidden",
+    layer: "redesign",
+    registers: ["frame"],
+    prompt: "where might there be a hidden correct answer?",
+    type: "text",
+  },
+  {
+    id: "redesign-routes",
+    layer: "redesign",
+    registers: ["frame"],
+    prompt: "what routes through could multiply?",
+    type: "text",
+  },
+  {
+    id: "redesign-direction",
+    layer: "redesign",
+    registers: ["frame"],
+    prompt: "one redesign direction you'd try.",
+    type: "text",
+  },
 ];
 
 /* ── helpers ────────────────────────────────────────────────── */
 
-/** items a given register sees, in cascade-climb order. */
 export function itemsFor(register: Register): EvalItem[] {
   return ITEMS.filter((it) => it.registers.includes(register));
 }
 
-/** layers a given register touches, in climb order, with their items. */
 export function layersFor(register: Register): { meta: LayerMeta; items: EvalItem[] }[] {
   return LAYERS.map((meta) => ({
     meta,
     items: itemsFor(register).filter((it) => it.layer === meta.key),
   })).filter((group) => group.items.length > 0);
+}
+
+export function itemById(id: string): EvalItem | undefined {
+  return ITEMS.find((it) => it.id === id);
 }
 
 export const REGISTER_META: Record<Register, { label: string; sub: string; emoji: string }> = {
@@ -537,7 +576,7 @@ export const REGISTER_META: Record<Register, { label: string; sub: string; emoji
   },
   frame: {
     label: "i'm reviewing it",
-    sub: "the collective — climb the cascade against the framework",
+    sub: "the collective — climb the five lenses against the framework",
     emoji: "🧭",
   },
 };

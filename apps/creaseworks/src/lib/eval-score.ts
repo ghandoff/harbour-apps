@@ -1,18 +1,21 @@
 /**
- * creaseworks eval — scoring.
+ * creaseworks-eval — scoring, faceted by lens.
  *
- * Turns a submission's raw answers into per-cascade-layer health scores
- * (0–1) and the collection-matrix fields jamie's brief calls for. Kept
- * separate from the rubric and the dashboard so it can be unit-tested.
+ * Turns a submission's raw answers into per-lens health scores (0–1),
+ * the collection-matrix fields, and a generic per-item normaliser the
+ * dashboard uses to measure where the room converges vs splits.
  *
- * A layer score is the mean of its present, scorable items — unanswered
- * items are skipped, never counted as zero, so a partial review isn't
- * punished for being partial.
+ * A lens score is the mean of its present, scorable items — unanswered
+ * items are skipped, never counted as zero, so salience-first marking
+ * isn't punished for being partial.
  */
+
+import type { EvalItem, Layer } from "./eval-rubric";
+import { itemById } from "./eval-rubric";
 
 export type RawAnswers = Record<string, number | string | string[]>;
 
-/* ── per-item normalisers (→ 0..1, or null when absent/unscorable) ── */
+/* ── per-value normalisers (→ 0..1, or null when absent/unscorable) ── */
 
 function s5(v: unknown): number | null {
   return typeof v === "number" && v >= 1 && v <= 5 ? (v - 1) / 4 : null;
@@ -59,62 +62,57 @@ function mean(vals: (number | null)[]): number | null {
   return present.reduce((a, b) => a + b, 0) / present.length;
 }
 
-/* ── per-layer scores ───────────────────────────────────────── */
-
-export function feltScore(a: RawAnswers): number | null {
-  return mean([s5(a["felt-arrived"]), s5(a["felt-surprise"]), s5(a["felt-keepgoing"]), s5rev(a["felt-test"])]);
+/**
+ * Normalise any item's value to a 0–1 health score, or null if the item
+ * carries no health dimension (free text, the linger choice, the verdict
+ * call). Used for lens scores AND for divergence on numeric-ish items.
+ */
+export function normalizeItem(item: EvalItem, value: unknown): number | null {
+  switch (item.type) {
+    case "scale5":
+      return item.reverse ? s5rev(value) : s5(value);
+    case "gate3":
+      return gate(value);
+    case "yesno":
+      return yn(value);
+    case "triad":
+      return Array.isArray(value) ? value.length / 3 : null;
+    case "choice":
+      if (item.id === "brief-l3") return doorScore(value);
+      if (item.id === "fw-decisive") return decisiveScore(value);
+      if (item.id === "fw-guard-redflags") return redflagScore(value);
+      return null; // felt-linger, verdict-call: categorical, no health axis
+    default:
+      return null; // text
+  }
 }
 
-export function briefScore(a: RawAnswers): number | null {
-  return mean([
-    gate(a["brief-l1"]),
-    gate(a["brief-l2"]),
-    doorScore(a["brief-l3"]),
-    yn(a["brief-dig-player"]),
-    yn(a["brief-dig-facilitator"]),
-    yn(a["brief-conditions"]),
-    yn(a["brief-samematerial"]),
-  ]);
+function scoreLayer(layer: Layer, a: RawAnswers): number | null {
+  const vals: (number | null)[] = [];
+  for (const id of Object.keys(a)) {
+    const item = itemById(id);
+    if (!item || item.layer !== layer) continue;
+    vals.push(normalizeItem(item, a[id]));
+  }
+  return mean(vals);
 }
 
-export function frameworkScore(a: RawAnswers): number | null {
-  return mean([
-    gate(a["fw-floor-stakes"]),
-    gate(a["fw-floor-surprise"]),
-    gate(a["fw-floor-messy"]),
-    gate(a["fw-floor-hopeful"]),
-    yn(a["fw-gate-essential"]),
-    yn(a["fw-gate-routes"]),
-    yn(a["fw-gate-reachable"]),
-    yn(a["fw-lever-conditions"]),
-    yn(a["fw-lever-error"]),
-    yn(a["fw-lever-noverdict"]),
-    yn(a["fw-lever-heighten"]),
-    yn(a["fw-lever-stakes"]),
-    yn(a["fw-lever-relationships"]),
-    yn(a["fw-lever-cannot"]),
-    yn(a["fw-lever-defaultplayer"]),
-    decisiveScore(a["fw-decisive"]),
-    yn(a["fw-guard-conditions"]),
-    yn(a["fw-guard-adapt"]),
-    yn(a["fw-guard-agency"]),
-    yn(a["fw-guard-justice"]),
-    yn(a["fw-guard-overclaim"]),
-    yn(a["fw-guard-traces"]),
-    yn(a["fw-guard-scale"]),
-    redflagScore(a["fw-guard-redflags"]),
-    yn(a["fw-guard-indicators"]),
-  ]);
-}
+/* ── per-lens scores (the heatmap columns) ──────────────────── */
 
-export function foundationScore(a: RawAnswers): number | null {
-  const triad = Array.isArray(a["fnd-triad"]) ? a["fnd-triad"].length / 3 : null;
-  return mean([yn(a["fnd-chain"]), triad]);
+export const SCORED_LAYERS: { key: Layer; label: string }[] = [
+  { key: "cards", label: "felt play" },
+  { key: "lens1", label: "lens 1 · play" },
+  { key: "lens2", label: "lens 2 · mechanics" },
+  { key: "lens3", label: "lens 3 · justice" },
+  { key: "lens4", label: "lens 4 · aliveness" },
+];
+
+export function layerScore(layer: Layer, a: RawAnswers): number | null {
+  return scoreLayer(layer, a);
 }
 
 /* ── matrix fields (jamie's collection matrix) ──────────────── */
 
-/** the no-default-player HARD gate: passes only if all three are yes. */
 export function gatePass(a: RawAnswers): boolean | null {
   const parts = [a["fw-gate-essential"], a["fw-gate-routes"], a["fw-gate-reachable"]];
   if (parts.every((p) => p === undefined)) return null;
@@ -128,7 +126,7 @@ export function layer3Door(a: RawAnswers): string | null {
 
 export function justicePresent(a: RawAnswers): boolean | null {
   const triad = Array.isArray(a["fnd-triad"]) ? a["fnd-triad"].includes("justice") : null;
-  const guard = a["fw-guard-justice"];
+  const guard = a["fw-guard-justice"]; // legacy id; kept for safety
   if (triad === null && guard === undefined) return null;
   return triad === true || guard === "yes";
 }
@@ -143,8 +141,8 @@ export function coherenceRaw(a: RawAnswers): number | null {
   return typeof v === "number" ? v : null;
 }
 
-/** the single decisive verdict, mapped to a label. */
-export function decisiveVerdict(a: RawAnswers): string | null {
-  const v = a["fw-decisive"];
-  return typeof v === "string" ? v : null;
+export function frameworkFit(a: RawAnswers): number | null {
+  // lens 5 capture: how well the framework caught the felt reality
+  const v = a["lens5-capture"];
+  return typeof v === "number" ? v : null;
 }
