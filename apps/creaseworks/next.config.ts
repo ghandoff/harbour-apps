@@ -9,12 +9,23 @@ const nextConfig: NextConfig = {
      /harbour/creaseworks-mini, deployed to the wv-harbour-creaseworks-mini
      worker with direct zone routes (see wrangler.mini.jsonc). Same app,
      different mount point — keeps the pilot off prod's path entirely. */
-  basePath: process.env.CW_MINI ? "/harbour/creaseworks-mini" : "/harbour/creaseworks",
+  /* three flavours, one app:
+       default  → /harbour/creaseworks            (prod, Neon + Stripe + auth)
+       CW_MINI  → /harbour/creaseworks-mini        (pilot canary, D1 + R2)
+       CW_EVAL  → /harbour/creaseworks-eval        (cascade audit tool, own D1) */
+  basePath: process.env.CW_EVAL
+    ? "/harbour/creaseworks-eval"
+    : process.env.CW_MINI
+      ? "/harbour/creaseworks-mini"
+      : "/harbour/creaseworks",
   poweredByHeader: false,
 
-  // expose the flavour to client components — miniHref() in
-  // src/lib/mini-pilot.ts uses it to emit clean pilot URLs
-  env: { NEXT_PUBLIC_CW_MINI: process.env.CW_MINI ? "1" : "" },
+  // expose the flavour to client components — miniHref()/evalHref() use it
+  // to emit clean pilot URLs (src/lib/mini-pilot.ts, src/lib/eval-nav.ts)
+  env: {
+    NEXT_PUBLIC_CW_MINI: process.env.CW_MINI ? "1" : "",
+    NEXT_PUBLIC_CW_EVAL: process.env.CW_EVAL ? "1" : "",
+  },
 
   /* mini flavour only: serve the /mini pages at the basePath root so the
      pilot URL is windedvertigo.com/harbour/creaseworks-mini with no
@@ -26,6 +37,19 @@ const nextConfig: NextConfig = {
      loses to the landing page. the stage paths have no filesystem
      routes, so afterFiles is fine for them. */
   async rewrites() {
+    /* eval flavour: serve the /eval surfaces at the basePath root so the
+       audit URL is windedvertigo.com/harbour/creaseworks-eval with no
+       /eval tail. same beforeFiles/afterFiles split as mini. */
+    if (process.env.CW_EVAL) {
+      return {
+        beforeFiles: [{ source: "/", destination: "/eval" }],
+        afterFiles: [
+          { source: "/dashboard", destination: "/eval/dashboard" },
+          { source: "/play/:slug", destination: "/eval/play/:slug" },
+        ],
+        fallback: [],
+      };
+    }
     if (!process.env.CW_MINI) return [];
     return {
       beforeFiles: [{ source: "/", destination: "/mini" }],

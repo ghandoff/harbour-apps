@@ -9,11 +9,14 @@
  * Usage:
  *   fetch(apiUrl("/api/matcher"), { method: "POST", ... })
  */
-// flavour-aware: the CW_MINI build mounts at /harbour/creaseworks-mini
+// flavour-aware: the CW_MINI build mounts at /harbour/creaseworks-mini,
+// the CW_EVAL build at /harbour/creaseworks-eval
 const BASE_PATH =
-  process.env.NEXT_PUBLIC_CW_MINI === "1"
-    ? "/harbour/creaseworks-mini"
-    : "/harbour/creaseworks";
+  process.env.NEXT_PUBLIC_CW_EVAL === "1"
+    ? "/harbour/creaseworks-eval"
+    : process.env.NEXT_PUBLIC_CW_MINI === "1"
+      ? "/harbour/creaseworks-mini"
+      : "/harbour/creaseworks";
 
 export function apiUrl(path: string): string {
   // Avoid double-prefixing if the path already starts with basePath
