@@ -25,6 +25,10 @@ import {
   saveCode,
   type MiniStageKey,
 } from "@/lib/mini-pilot";
+import { postEval } from "@/lib/eval-submit";
+import { itemsFor } from "@/lib/eval-rubric";
+
+const GROWNUP_ITEMS = itemsFor("grownup");
 
 const WELCOME_GUIDE = [
   "a tiny pilot of creaseworks for ages 4–6: look (hunt for materials) → make → show → wow.",
@@ -38,6 +42,9 @@ export function GrownUpCorner() {
   const [code, setCode] = useState("");
   const [codeState, setCodeState] = useState<"none" | "checking" | "ok" | "bad">("none");
   const [unfoldPrompt, setUnfoldPrompt] = useState<string | null>(null);
+  const [matchedSlug, setMatchedSlug] = useState<string | null>(null);
+  const [obs, setObs] = useState<Record<string, string | string[] | number>>({});
+  const [obsSent, setObsSent] = useState(false);
 
   const stageKey = miniStageFromPathname(pathname);
   const stage =
@@ -59,6 +66,12 @@ export function GrownUpCorner() {
     setUnfoldPrompt(MINI_ACTIVITY_CONTENT[slug]?.unfold ?? null);
   }, [stageKey]);
 
+  // the matched playdate for this session — drives the grown-up observation
+  useEffect(() => {
+    const found = loadFound();
+    if (found.length) setMatchedSlug(matchActivities(found)[0].activity.slug);
+  }, [stageKey, open]);
+
   async function checkCode() {
     const trimmed = code.trim().toLowerCase();
     if (!trimmed) return;
@@ -76,6 +89,12 @@ export function GrownUpCorner() {
     } catch {
       setCodeState("bad");
     }
+  }
+
+  function sendObs() {
+    if (!matchedSlug || Object.keys(obs).length === 0) return;
+    setObsSent(true);
+    void postEval({ slug: matchedSlug, register: "grownup", name: loadCode(), answers: obs });
   }
 
   return (
@@ -215,6 +234,38 @@ export function GrownUpCorner() {
           color: var(--wv-cadet);
         }
         .guc-code-bad { font-size: 12px; color: var(--wv-redwood); margin-top: 6px; }
+        .guc-obs { border-top: 1.5px solid rgba(39, 50, 72, 0.1); padding-top: 14px; margin-bottom: 6px; }
+        .guc-obs-h { font-family: var(--font-fraunces), serif; font-weight: 600; font-size: 16px; color: var(--wv-cadet); margin: 0 0 10px; }
+        .guc-obs-item { margin-bottom: 12px; }
+        .guc-obs-q { font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif; font-weight: 700; font-size: 13.5px; color: var(--wv-cadet); margin: 0 0 6px; }
+        .guc-obs-help { font-size: 11.5px; color: #6b7280; margin: 0 0 6px; }
+        .guc-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+        button.guc-chip:not([type="submit"]):not(.wv-header-signout) {
+          cursor: pointer; font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif; font-weight: 700; font-size: 12.5px;
+          color: var(--wv-cadet); background: var(--wv-white); border: 1.5px solid rgba(39, 50, 72, 0.16); border-radius: 11px; padding: 7px 11px;
+        }
+        button.guc-chip[data-on="true"] { border-color: var(--wv-teal); background: var(--wv-mint); }
+        button.guc-chip:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
+        .guc-nums { display: flex; gap: 6px; }
+        button.guc-num:not([type="submit"]):not(.wv-header-signout) {
+          cursor: pointer; flex: 1; max-width: 48px; font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif; font-weight: 800; font-size: 14px;
+          color: var(--wv-cadet); background: var(--wv-white); border: 1.5px solid rgba(39, 50, 72, 0.16); border-radius: 10px; padding: 8px 0;
+        }
+        button.guc-num[data-on="true"] { border-color: var(--wv-teal); background: var(--wv-teal); color: var(--wv-white); }
+        button.guc-num:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
+        .guc-obs-text {
+          width: 100%; box-sizing: border-box; font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif; font-size: 13px;
+          color: var(--wv-cadet); background: var(--wv-white); border: 1.5px solid rgba(39, 50, 72, 0.16); border-radius: 10px; padding: 8px 10px; resize: vertical;
+        }
+        .guc-obs-text:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 1px; }
+        button.guc-obs-send:not([type="submit"]):not(.wv-header-signout) {
+          margin-top: 4px; cursor: pointer; font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif; font-weight: 800; font-size: 13px;
+          color: var(--wv-white); background: var(--wv-teal); border: none; border-radius: 12px; padding: 9px 18px;
+        }
+        button.guc-obs-send:disabled { opacity: 0.4; cursor: default; }
+        button.guc-obs-send:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
+        .guc-obs-done { font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif; font-weight: 700; font-size: 13px; color: var(--wv-cadet); }
+        .guc-collective { display: block; margin-top: 12px; font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif; font-size: 12px; font-weight: 700; color: var(--wv-teal); text-decoration: underline; }
         .guc-print {
           display: inline-block;
           margin-top: 12px;
@@ -263,6 +314,95 @@ export function GrownUpCorner() {
               <div className="guc-readaloud">
                 <strong>read this aloud:</strong>
                 {unfoldPrompt}
+              </div>
+            )}
+
+            {matchedSlug && (
+              <div className="guc-obs">
+                <p className="guc-obs-h">tell us what you saw</p>
+                {obsSent ? (
+                  <p className="guc-obs-done">✓ thank you — logged for the team.</p>
+                ) : (
+                  <>
+                    {GROWNUP_ITEMS.map((it) => (
+                      <div key={it.id} className="guc-obs-item">
+                        <p className="guc-obs-q">{it.prompt}</p>
+                        {it.help && <p className="guc-obs-help">{it.help}</p>}
+                        {it.type === "checklist" && (
+                          <div className="guc-chips">
+                            {(it.options ?? []).map((opt) => {
+                              const arr = Array.isArray(obs[it.id]) ? (obs[it.id] as string[]) : [];
+                              const on = arr.includes(opt);
+                              return (
+                                <button
+                                  key={opt}
+                                  type="button"
+                                  className="guc-chip"
+                                  data-on={on}
+                                  onClick={() =>
+                                    setObs((o) => ({ ...o, [it.id]: on ? arr.filter((x) => x !== opt) : [...arr, opt] }))
+                                  }
+                                >
+                                  {on ? "✓ " : ""}{opt}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+                        {it.type === "scale5" && (
+                          <div className="guc-nums">
+                            {[1, 2, 3, 4, 5].map((n) => (
+                              <button
+                                key={n}
+                                type="button"
+                                className="guc-num"
+                                data-on={obs[it.id] === n}
+                                onClick={() => setObs((o) => ({ ...o, [it.id]: n }))}
+                              >
+                                {n}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                        {it.type === "choice" && (
+                          <div className="guc-chips">
+                            {(it.options ?? []).map((opt) => (
+                              <button
+                                key={opt}
+                                type="button"
+                                className="guc-chip"
+                                data-on={obs[it.id] === opt}
+                                onClick={() => setObs((o) => ({ ...o, [it.id]: opt }))}
+                              >
+                                {opt}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                        {it.type === "text" && (
+                          <textarea
+                            className="guc-obs-text"
+                            rows={2}
+                            placeholder="optional"
+                            value={(obs[it.id] as string) ?? ""}
+                            onChange={(e) => setObs((o) => ({ ...o, [it.id]: e.target.value }))}
+                          />
+                        )}
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      className="guc-obs-send"
+                      disabled={Object.keys(obs).length === 0}
+                      onClick={sendObs}
+                    >
+                      send what you saw →
+                    </button>
+                  </>
+                )}
+                <a className="guc-collective" href="/harbour/creaseworks-eval?register=collective">
+                  reviewing for the collective? open the full five-lens review →
+                </a>
               </div>
             )}
 

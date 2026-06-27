@@ -16,6 +16,8 @@ import Link from "next/link";
 import { apiUrl } from "@/lib/api-url";
 import { loadCode, loadFound, matchActivities, miniHref, saveCode } from "@/lib/mini-pilot";
 import { MiniStageHero } from "../stage-hero";
+import { postEval } from "@/lib/eval-submit";
+import { FACE_EMOJI } from "@/lib/eval-rubric";
 
 type SendState = "idle" | "sending" | "done" | "error";
 
@@ -29,6 +31,10 @@ export default function MiniShowPage() {
   const [words, setWords] = useState("");
   const [state, setState] = useState<SendState>("idle");
   const inputRef = useRef<HTMLInputElement>(null);
+  // the kid's own end-of-play moment (posts to the eval worker, register=kid)
+  const [kidFun, setKidFun] = useState<string | null>(null);
+  const [kidAgain, setKidAgain] = useState<string | null>(null);
+  const [kidSent, setKidSent] = useState(false);
 
   useEffect(() => {
     setCode(loadCode());
@@ -67,6 +73,15 @@ export default function MiniShowPage() {
     } catch {
       setState("error");
     }
+  }
+
+  function sendKid() {
+    if (!kidFun) return;
+    const slug = activitySlug ?? "character-from-a-crease";
+    const answers: Record<string, string> = { "kid-fun": kidFun };
+    if (kidAgain) answers["kid-again"] = kidAgain;
+    setKidSent(true); // optional, optimistic — it's the child's voice, not gated
+    void postEval({ slug, register: "kid", name: code, answers });
   }
 
   return (
@@ -214,6 +229,48 @@ export default function MiniShowPage() {
           color: var(--wv-redwood);
           margin-top: 6px;
         }
+        /* the kid's end-of-play moment — bright, big, tappable */
+        .mini-kid-card {
+          background: color-mix(in srgb, var(--wv-mint) 45%, var(--wv-white));
+          border: 2px solid var(--wv-teal);
+          border-radius: 22px 28px 20px 26px;
+          padding: 18px 18px 20px;
+          margin-bottom: 16px;
+          box-shadow: 0 4px 0 rgba(39, 50, 72, 0.08);
+        }
+        .mini-kid-q, .mini-kid-q2 {
+          font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+          font-weight: 800; font-size: 18px; color: var(--wv-cadet); text-align: center; margin: 0 0 12px;
+        }
+        .mini-kid-q2 { font-size: 16px; margin: 16px 0 10px; }
+        .mini-kid-faces { display: flex; gap: 10px; justify-content: center; }
+        button.mini-kid-face:not([type="submit"]):not(.wv-header-signout) {
+          flex: 1; max-width: 110px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px;
+          background: var(--wv-white); border: 2px solid rgba(39, 50, 72, 0.14); border-radius: 16px 20px 14px 18px; padding: 12px 8px;
+          font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif; font-weight: 800; font-size: 13px; color: var(--wv-cadet);
+          transition: transform 120ms ease, border-color 120ms ease;
+        }
+        button.mini-kid-face[data-on="true"] { border-color: var(--wv-teal); background: var(--wv-mint); transform: translateY(-2px); }
+        button.mini-kid-face:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
+        .mini-kid-emoji { font-size: 38px; line-height: 1; }
+        .mini-kid-again { display: flex; gap: 8px; justify-content: center; }
+        button.mini-kid-opt:not([type="submit"]):not(.wv-header-signout) {
+          cursor: pointer; font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif; font-weight: 800; font-size: 15px;
+          color: var(--wv-cadet); background: var(--wv-white); border: 2px solid rgba(39, 50, 72, 0.14); border-radius: 14px; padding: 10px 22px;
+        }
+        button.mini-kid-opt[data-on="true"] { border-color: var(--wv-teal); background: var(--wv-mint); }
+        button.mini-kid-opt:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
+        button.mini-kid-send:not([type="submit"]):not(.wv-header-signout) {
+          display: block; margin: 18px auto 0; cursor: pointer; font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+          font-weight: 800; font-size: 17px; color: var(--wv-white); background: var(--wv-teal); border: none;
+          border-radius: 18px 22px 16px 20px; padding: 12px 30px; box-shadow: 0 4px 0 rgba(39, 50, 72, 0.15);
+        }
+        button.mini-kid-send:disabled { opacity: 0.4; cursor: default; }
+        button.mini-kid-send:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
+        .mini-kid-thanks {
+          text-align: center; font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif; font-weight: 800;
+          font-size: 18px; color: var(--wv-cadet); padding: 24px 18px;
+        }
       `}</style>
 
       {state === "done" ? (
@@ -222,7 +279,49 @@ export default function MiniShowPage() {
           <Link href={miniHref("/wow")}>see the wow wall →</Link>
         </div>
       ) : (
-        <div className="mini-show-card">
+        <>
+          {!kidSent ? (
+            <div className="mini-kid-card">
+              <p className="mini-kid-q">your turn! how was it?</p>
+              <div className="mini-kid-faces">
+                {["good", "great", "the best"].map((f) => (
+                  <button
+                    key={f}
+                    type="button"
+                    className="mini-kid-face"
+                    data-on={kidFun === f}
+                    aria-pressed={kidFun === f}
+                    onClick={() => setKidFun(f)}
+                  >
+                    <span className="mini-kid-emoji" aria-hidden="true">{FACE_EMOJI[f]}</span>
+                    <span>{f}</span>
+                  </button>
+                ))}
+              </div>
+              <p className="mini-kid-q2">play it again?</p>
+              <div className="mini-kid-again">
+                {["yes", "maybe", "no"].map((a) => (
+                  <button
+                    key={a}
+                    type="button"
+                    className="mini-kid-opt"
+                    data-on={kidAgain === a}
+                    aria-pressed={kidAgain === a}
+                    onClick={() => setKidAgain(a)}
+                  >
+                    {a}
+                  </button>
+                ))}
+              </div>
+              <button type="button" className="mini-kid-send" disabled={!kidFun} onClick={sendKid}>
+                send it! 🎉
+              </button>
+            </div>
+          ) : (
+            <div className="mini-kid-card mini-kid-thanks">🎉 thanks for telling us!</div>
+          )}
+
+          <div className="mini-show-card">
 
           {!code && (
             <div className="mini-show-code-box">
@@ -297,7 +396,8 @@ export default function MiniShowPage() {
               that didn&rsquo;t go through — try again in a moment?
             </p>
           )}
-        </div>
+          </div>
+        </>
       )}
     </div>
   );

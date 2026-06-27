@@ -292,11 +292,11 @@ export default function EvalPlayPage({ params }: { params: Promise<{ slug: strin
               disabled={answeredCount === 0 || state === "sending"}
               onClick={submit}
             >
-              {state === "sending" ? "logging…" : "submit evaluation →"}
+              {state === "sending" ? "sending…" : register === "kid" ? "all done! 🎉" : "submit evaluation →"}
             </button>
             <span className="ep-count">
-              {answeredCount} marked
-              {state === "error" && " · that didn't go through — try again?"}
+              {register !== "kid" && `${answeredCount} marked`}
+              {state === "error" && `${register !== "kid" ? " · " : ""}that didn't go through — try again?`}
             </span>
           </div>
         </>

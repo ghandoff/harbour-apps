@@ -33,6 +33,9 @@ export default function EvalHome() {
       const r = sessionStorage.getItem(REG_KEY) as Register | null;
       if (n) setName(n);
       if (r === "kid" || r === "grownup" || r === "collective") setRegister(r);
+      // deep-link from the mini's grown-up corner: ?register=collective
+      const q = new URLSearchParams(window.location.search).get("register");
+      if (q === "kid" || q === "grownup" || q === "collective") setRegister(q);
     } catch {}
   }, []);
 

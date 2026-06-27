@@ -80,6 +80,9 @@ export default function EvalLayout({ children }: { children: React.ReactNode }) 
           color: var(--wv-teal);
           text-decoration: none;
         }
+        /* the kid play screen is a child's surface — hide the grown-up
+           analytics link when the kid register is active */
+        .eval-shell:has(.ep-kid) .eval-dashlink { display: none; }
         .eval-main {
           flex: 1;
           width: 100%;
