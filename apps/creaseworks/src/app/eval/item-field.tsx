@@ -1,20 +1,20 @@
 "use client";
 
 /**
- * creaseworks eval — one rubric item, rendered by type.
+ * creaseworks-eval — one rubric item, rendered by type.
  *
- * Value shapes by type:
- *   scale5            → number 1–5
- *   gate3/yesno/choice→ string (the chosen option)
- *   triad             → string[] (the present qualities)
- *   text              → string
+ * Value shapes:
+ *   faces                  → string (the chosen label)
+ *   scale5                 → number 1–5
+ *   gate3/yesno/choice     → string
+ *   checklist              → string[]
+ *   text                   → string
  *
- * Styles live in the play page's <style> block (shared classNames) so a
- * long rubric doesn't ship the same CSS dozens of times.
+ * Styles live in the play page's <style> block (shared classNames).
  */
 
 import type { EvalItem } from "@/lib/eval-rubric";
-import { GATE3_OPTIONS, YESNO_OPTIONS } from "@/lib/eval-rubric";
+import { GATE3_OPTIONS, YESNO_OPTIONS, FACE_EMOJI } from "@/lib/eval-rubric";
 
 export type AnswerValue = number | string | string[];
 
@@ -24,9 +24,11 @@ interface Props {
   onChange: (id: string, value: AnswerValue) => void;
 }
 
+/** low/high labels for the 1–5 scales, keyed by item id. */
 const SCALE_ENDS: Record<string, [string, string]> = {
-  // low-label, high-label for the 1–5 scales (per item where it helps)
-  "felt-test": ["not at all", "a lot"],
+  "watch-involved": ["drifting", "absorbed"],
+  "watch-atease": ["tense", "delighted"],
+  "c-l4-creaseworks": ["not really", "clearly"],
 };
 
 export function ItemField({ item, value, onChange }: Props) {
@@ -36,6 +38,24 @@ export function ItemField({ item, value, onChange }: Props) {
     <div className="ef-item">
       <p className="ef-prompt">{item.prompt}</p>
       {item.help && <p className="ef-help">{item.help}</p>}
+
+      {item.type === "faces" && (
+        <div className="ef-faces" role="group" aria-label={item.prompt}>
+          {(item.options ?? []).map((opt) => (
+            <button
+              key={opt}
+              type="button"
+              className="ef-face"
+              data-on={value === opt}
+              aria-pressed={value === opt}
+              onClick={() => set(opt)}
+            >
+              <span className="ef-face-emoji" aria-hidden="true">{FACE_EMOJI[opt] ?? "🙂"}</span>
+              <span className="ef-face-label">{opt}</span>
+            </button>
+          ))}
+        </div>
+      )}
 
       {item.type === "scale5" && (
         <div>
@@ -82,8 +102,8 @@ export function ItemField({ item, value, onChange }: Props) {
         </div>
       )}
 
-      {item.type === "triad" && (
-        <div className="ef-opts" role="group" aria-label={item.prompt}>
+      {item.type === "checklist" && (
+        <div className="ef-checks" role="group" aria-label={item.prompt}>
           {(item.options ?? []).map((opt) => {
             const arr = Array.isArray(value) ? value : [];
             const on = arr.includes(opt);
@@ -91,12 +111,13 @@ export function ItemField({ item, value, onChange }: Props) {
               <button
                 key={opt}
                 type="button"
-                className="ef-opt"
+                className="ef-check"
                 data-on={on}
                 aria-pressed={on}
                 onClick={() => set(on ? arr.filter((x) => x !== opt) : [...arr, opt])}
               >
-                {opt}
+                <span className="ef-check-box" aria-hidden="true">{on ? "✓" : ""}</span>
+                <span>{opt}</span>
               </button>
             );
           })}

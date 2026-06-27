@@ -1,32 +1,29 @@
 /**
- * creaseworks-eval — the rubric (question bank), faceted as jamie's lenses.
+ * creaseworks-eval — the rubric (question bank), three registers.
  *
- * Wednesday's "felt session" tool organises the framework into five
- * LENSES. We adopt that vocabulary verbatim — the team already thinks in
- * it — and run it as the async twin of the live session. The shape:
+ * The tool matches the instrument to the human (research-backed redesign,
+ * 2026-06-26):
+ *   kid        — the player. ~5 items, all-positive faces / yes-maybe-no,
+ *                concrete, asked right after play, a grown-up scribes.
+ *   grownup    — the watcher. observe the child and tick what you SAW
+ *                (Leuven involvement & well-being + LEGO's 5 characteristics
+ *                + EYFS characteristics of effective learning).
+ *   collective — the designer. jamie's 5 lenses, trimmed (~40→~15), plain,
+ *                one idea per item, salience-first.
  *
- *   the felt play   — what it was like (everyone; the universal opening)
- *   lens 1          — the play condition (the floor)
- *   lens 2          — the mechanics (the lever + KEK return)
- *   lens 3          — justice and access (who the design lets in)
- *   lens 4          — aliveness and coherence (the decisive test)
- *   lens 5          — what the documents failed to see (the room outranks the page)
- *   the verdict
- *   redesign        — rebuild it from what you felt (eval → design)
+ * Kid self-report and grown-up observation are SEPARATE submissions, never
+ * pooled — they measure different things and diverge by design.
  *
- * Salience-first: mark only what feels salient — never fill it like
- * homework. Unanswered items are skipped in scoring, never counted zero.
- *
- * Two registers map to where you enter: felt (friends & family, the felt
- * play only) and frame (the collective, the whole climb). Every item is
- * lifted from the Games Design Framework + Creaseworks brief, worded as a
- * condition present, never an outcome achieved.
+ * Sources: Fun Toolkit / Smileyometer (Read & MacFarlane); Five Degrees of
+ * Happiness (Hall et al. 2016); Leuven scales (Laevers); LEGO Foundation
+ * Learning-through-Play; EYFS CoEL; Coombes 2021; Mellor & Moore 2014.
  */
 
-export type Register = "felt" | "frame";
+export type Register = "kid" | "grownup" | "collective";
 
 export type Layer =
-  | "cards"
+  | "kid"
+  | "watch"
   | "lens1"
   | "lens2"
   | "lens3"
@@ -35,7 +32,14 @@ export type Layer =
   | "verdict"
   | "redesign";
 
-export type ItemType = "scale5" | "gate3" | "yesno" | "choice" | "triad" | "text";
+export type ItemType =
+  | "faces" // kid: all-positive graded faces (options carry the labels)
+  | "scale5" // 1–5 (collective + grown-up Leuven reads)
+  | "gate3" // clear / partial / blocked (collective floor/mechanics)
+  | "yesno" // yes / no / unsure (collective)
+  | "choice" // single pick from options
+  | "checklist" // multi-select (grown-up behaviours)
+  | "text";
 
 export interface EvalItem {
   id: string;
@@ -45,65 +49,27 @@ export interface EvalItem {
   help?: string;
   type: ItemType;
   options?: string[];
-  reverse?: boolean; // scale5 where a HIGH answer is bad
+  reverse?: boolean;
 }
 
 export interface LayerMeta {
   key: Layer;
   label: string;
   blurb: string;
-  /** lenses that carry a 0–1 health score in the dashboard heatmap. */
-  scored?: boolean;
 }
 
-/* ── the lenses (bottom → top), blurbs verbatim from the felt-session app ── */
+/* ── layers (display order) ─────────────────────────────────── */
 
 export const LAYERS: LayerMeta[] = [
-  {
-    key: "cards",
-    label: "the felt play",
-    blurb: "what it was actually like to play. feel it before you frame it — anyone who played can answer this.",
-    scored: true,
-  },
-  {
-    key: "lens1",
-    label: "lens 1 · the play condition",
-    blurb: "the floor. this is not the easy rung, it is often where games fail. clearing it only means a game may invite play, it does not yet say it is one of ours.",
-    scored: true,
-  },
-  {
-    key: "lens2",
-    label: "lens 2 · the mechanics",
-    blurb: "the lever — the design work, where the difference from a fun game becomes visible. the eight principles and the KEK arc with its return. mark the ones that feel salient.",
-    scored: true,
-  },
-  {
-    key: "lens3",
-    label: "lens 3 · justice and access",
-    blurb: "not who happened to be good at it, but whether the design lets many kinds of people in. decided at the design table, not at the point of sale.",
-    scored: true,
-  },
-  {
-    key: "lens4",
-    label: "lens 4 · aliveness and coherence",
-    blurb: "the decisive test. did it widen what you feel able to do, and was it more than just engaging in the moment? and does the mechanic still chain back to the theory?",
-    scored: true,
-  },
-  {
-    key: "lens5",
-    label: "lens 5 · what the documents failed to see",
-    blurb: "where the framework had no language for what you felt, where it misled you, where the game was richer or worse than it could account for. this is how the room outranks the page.",
-  },
-  {
-    key: "verdict",
-    label: "the verdict",
-    blurb: "where this playdate lands.",
-  },
-  {
-    key: "redesign",
-    label: "redesign — rebuild from what you felt",
-    blurb: "not how to make it more fun. work from what you felt playing it. optional — skip if you're only here to evaluate.",
-  },
+  { key: "kid", label: "your turn!", blurb: "tap the answer that feels right. there are no wrong answers." },
+  { key: "watch", label: "what you saw", blurb: "watch the child play, then tick what you actually saw them do — about the play, not a test of the child." },
+  { key: "lens1", label: "lens 1 · the play condition", blurb: "the floor. clearing it only means a game may invite play — it doesn't yet make it one of ours." },
+  { key: "lens2", label: "lens 2 · the mechanics", blurb: "the design work — where the difference from a merely fun game shows up. mark what's salient." },
+  { key: "lens3", label: "lens 3 · justice & access", blurb: "whether the design lets many kinds of kids in — decided at the design table, not the point of sale." },
+  { key: "lens4", label: "lens 4 · aliveness & coherence", blurb: "the decisive test: did it widen what you can do, and does it really belong to creaseworks?" },
+  { key: "lens5", label: "lens 5 · what the framework missed", blurb: "where the page lost to the room — what you felt that the framework couldn't name." },
+  { key: "verdict", label: "the verdict", blurb: "where this playdate lands." },
+  { key: "redesign", label: "redesign (optional)", blurb: "rebuild from what you felt — skip if you're only here to evaluate." },
 ];
 
 /* ── the playdates under evaluation (the 5 mini pilot activities) ── */
@@ -112,8 +78,7 @@ export interface EvalPlaydate {
   slug: string;
   title: string;
   tagline: string;
-  /** a short essence of the activity, fed to the AI one-read. */
-  content: string;
+  content: string; // short essence, fed to the AI one-read
 }
 
 export const EVAL_PLAYDATES: EvalPlaydate[] = [
@@ -162,391 +127,223 @@ export function playdateBySlug(slug: string): EvalPlaydate | undefined {
 
 export const GATE3_OPTIONS = ["clear", "partial", "blocked"] as const;
 export const YESNO_OPTIONS = ["yes", "no", "unsure"] as const;
+/** all-positive kid faces — kids won't use a negative end (Hall et al. 2016). */
+export const FACE_EMOJI: Record<string, string> = {
+  good: "🙂",
+  great: "😀",
+  "the best": "🤩",
+};
 
 /* ── the items ──────────────────────────────────────────────── */
 
 export const ITEMS: EvalItem[] = [
-  /* ===== the felt play (FELT + FRAME) — feel it before you frame it ===== */
+  /* ===== 🧒 the player (register kid) ===== */
   {
-    id: "felt-arrived",
-    layer: "cards",
-    registers: ["felt", "frame"],
-    prompt: "did it feel like play actually happened — not a task to get through?",
-    type: "scale5",
+    id: "kid-fun",
+    layer: "kid",
+    registers: ["kid"],
+    prompt: "how was it?",
+    type: "faces",
+    options: ["good", "great", "the best"],
   },
   {
-    id: "felt-quickstart",
-    layer: "cards",
-    registers: ["felt", "frame"],
-    prompt: "could you start in about two minutes, with stuff you already had?",
-    type: "yesno",
-  },
-  {
-    id: "felt-surprise",
-    layer: "cards",
-    registers: ["felt", "frame"],
-    prompt: "was there a “huh, i didn't expect that” moment?",
-    type: "scale5",
-  },
-  {
-    id: "felt-test",
-    layer: "cards",
-    registers: ["felt", "frame"],
-    prompt: "how much did it feel like there was a right answer, or like you were being tested?",
-    help: "lower is better — no verdict on the player.",
-    type: "scale5",
-    reverse: true,
-  },
-  {
-    id: "felt-keepgoing",
-    layer: "cards",
-    registers: ["felt", "frame"],
-    prompt: "afterwards, did the range of things you felt able to do feel wider, or narrower?",
-    help: "the widening — did you want to keep going, or try it on something else?",
-    type: "scale5",
-  },
-  {
-    id: "felt-linger",
-    layer: "cards",
-    registers: ["felt", "frame"],
-    prompt: "did you feel you had to do the steps in order, or could you linger and jump around?",
-    help: "non-linearity — play should follow the player's lead, not a fixed sequence.",
+    id: "kid-again",
+    layer: "kid",
+    registers: ["kid"],
+    prompt: "want to do it again?",
     type: "choice",
-    options: ["had to follow the order", "somewhere in between", "could linger / jump freely"],
+    options: ["yes", "maybe", "no"],
   },
   {
-    id: "felt-notes",
-    layer: "cards",
-    registers: ["felt", "frame"],
-    prompt: "where did it sing? where did it sag?",
+    id: "kid-ownway",
+    layer: "kid",
+    registers: ["kid"],
+    prompt: "could you do it your own way?",
+    type: "choice",
+    options: ["yes", "sort of", "no"],
+  },
+  {
+    id: "kid-goldilocks",
+    layer: "kid",
+    registers: ["kid"],
+    prompt: "was it too easy, just right, or too tricky?",
+    type: "choice",
+    options: ["too easy", "just right", "too tricky"],
+  },
+  {
+    id: "kid-fav",
+    layer: "kid",
+    registers: ["kid"],
+    prompt: "what was your favourite bit?",
+    help: "grown-up: write down what they say, in their words.",
     type: "text",
   },
 
-  /* ===== lens 1 · the play condition — the floor (FRAME) ===== */
+  /* ===== 👀 the grown-up (register grownup) — observe, don't quiz ===== */
   {
-    id: "fw-floor-stakes",
-    layer: "lens1",
-    registers: ["frame"],
-    prompt: "low stakes — consequence-reduced, not trivial. errors don't cascade, nobody is in survival mode.",
-    type: "gate3",
+    id: "watch-saw",
+    layer: "watch",
+    registers: ["grownup"],
+    prompt: "tick what you saw them do",
+    help: "only what you actually saw — leave the rest blank.",
+    type: "checklist",
+    options: [
+      "got really absorbed",
+      "kept going after a mistake",
+      "made it their own (own ideas, not copying)",
+      "talked about what they were doing",
+      "came back to it / didn't want to stop",
+      "chose and led it themselves",
+      "looked happy and at ease",
+    ],
   },
   {
-    id: "fw-floor-surprise",
-    layer: "lens1",
-    registers: ["frame"],
-    prompt: "metabolisable surprise — prediction error that stretches without shattering.",
-    type: "gate3",
+    id: "watch-involved",
+    layer: "watch",
+    registers: ["grownup"],
+    prompt: "how deeply involved were they?",
+    help: "1 = drifting / going through the motions · 5 = totally absorbed",
+    type: "scale5",
   },
   {
-    id: "fw-floor-messy",
-    layer: "lens1",
-    registers: ["frame"],
-    prompt: "messy & non-performative — no correct output and no audience to satisfy.",
-    help: "a timer, a score, a watching crowd or an outcome tag pulls a game part-way off this rung.",
-    type: "gate3",
+    id: "watch-atease",
+    layer: "watch",
+    registers: ["grownup"],
+    prompt: "how at-ease and happy did they seem?",
+    help: "1 = tense or unsettled · 5 = relaxed and delighted",
+    type: "scale5",
   },
   {
-    id: "fw-floor-hopeful",
-    layer: "lens1",
-    registers: ["frame"],
-    prompt: "implicitly hopeful — acting as if the next move can land, the loop staying open after error.",
-    type: "gate3",
-  },
-
-  /* ===== lens 2 · the mechanics — the lever + KEK return (FRAME) ===== */
-  {
-    id: "brief-l1",
-    layer: "lens2",
-    registers: ["frame"],
-    prompt: "layer 1 — immediate, low-stakes surface play with everyday materials and no correct answer.",
-    type: "gate3",
-  },
-  {
-    id: "brief-l2",
-    layer: "lens2",
-    registers: ["frame"],
-    prompt: "layer 2 — it reveals the object isn't what it seemed (the model shift).",
-    type: "gate3",
-  },
-  {
-    id: "brief-samematerial",
-    layer: "lens2",
-    registers: ["frame"],
-    prompt: "the return (KEK) — a true “same material, new function” shift, not “same build, new constraint” / “now make it harder” drift.",
-    type: "yesno",
-  },
-  {
-    id: "brief-dig-player",
-    layer: "lens2",
-    registers: ["frame"],
-    prompt: "the two-face dig — one open question for the player at the end (a door left ajar, not a lesson or comprehension check).",
-    type: "yesno",
-  },
-  {
-    id: "brief-dig-facilitator",
-    layer: "lens2",
-    registers: ["frame"],
-    prompt: "the theory is carried in a separate facilitator face, kept off the child-facing card.",
-    type: "yesno",
-  },
-  {
-    id: "brief-conditions",
-    layer: "lens2",
-    registers: ["frame"],
-    prompt: "conditions not outcomes — the child card avoids naming what the child “learns” or “practises”.",
-    type: "yesno",
-  },
-  {
-    id: "fw-lever-conditions",
-    layer: "lens2",
-    registers: ["frame"],
-    prompt: "design the conditions, not the play — a player can go somewhere you didn't anticipate and still have a valid experience.",
-    type: "yesno",
-  },
-  {
-    id: "fw-lever-error",
-    layer: "lens2",
-    registers: ["frame"],
-    prompt: "error is information — a mistake reveals or unlocks something, never just a dead end.",
-    type: "yesno",
-  },
-  {
-    id: "fw-lever-noverdict",
-    layer: "lens2",
-    registers: ["frame"],
-    prompt: "no verdict on the player — a player could be wrong and feel curiosity rather than shame, no one ranked against the result.",
-    type: "yesno",
-  },
-  {
-    id: "fw-lever-heighten",
-    layer: "lens2",
-    registers: ["frame"],
-    prompt: "heighten, then hold — there is a lower-intensity path that doesn't feel like failure.",
-    type: "yesno",
-  },
-  {
-    id: "fw-lever-stakes",
-    layer: "lens2",
-    registers: ["frame"],
-    prompt: "stakes are structural — someone in a high-stakes frame would feel safe being wrong here.",
-    type: "yesno",
-  },
-  {
-    id: "fw-lever-relationships",
-    layer: "lens2",
-    registers: ["frame"],
-    prompt: "thinking in relationships — the game gets better when people think together.",
-    type: "yesno",
-  },
-  {
-    id: "fw-guard-redflags",
-    layer: "lens2",
-    registers: ["frame"],
-    prompt: "red-flag mechanics present?",
-    help: "leaderboards, elimination, timed pressure, public scoring, correct-answer reveals, single-channel mechanics…",
+    id: "watch-flow",
+    layer: "watch",
+    registers: ["grownup"],
+    prompt: "did they move through it freely, or feel pushed to do the steps in order?",
     type: "choice",
-    options: ["none", "one or two", "several"],
+    options: ["moved freely", "a bit of both", "pushed through in order"],
   },
   {
-    id: "brief-notes",
-    layer: "lens2",
-    registers: ["frame"],
-    prompt: "notes on the mechanics.",
+    id: "watch-moment",
+    layer: "watch",
+    registers: ["grownup"],
+    prompt: "one moment that stood out",
     type: "text",
   },
 
-  /* ===== lens 3 · justice and access (FRAME) ===== */
+  /* ===== 🧭 the collective (register collective) — 5 lenses, trimmed & plain ===== */
+  /* lens 1 · the play condition */
   {
-    id: "fw-gate-essential",
-    layer: "lens3",
-    registers: ["frame"],
-    prompt: "the essential experience is named in one sentence, stripped of its default sensory / physical / linguistic form.",
-    help: "not “draw a character from creases”, but “discover that a material trace can suggest a form you didn't invent from nothing”.",
+    id: "c-l1-stakes",
+    layer: "lens1",
+    registers: ["collective"],
+    prompt: "low stakes — a mistake costs nothing here; nobody's worried about getting it wrong.",
+    type: "gate3",
+  },
+  {
+    id: "c-l1-surprise",
+    layer: "lens1",
+    registers: ["collective"],
+    prompt: "a surprise that stretched them without overwhelming.",
+    type: "gate3",
+  },
+  {
+    id: "c-l1-noperform",
+    layer: "lens1",
+    registers: ["collective"],
+    prompt: "no right answer, and no audience to perform for.",
+    help: "a timer, score, or watching crowd pulls a game off this rung.",
+    type: "gate3",
+  },
+  /* lens 2 · the mechanics */
+  {
+    id: "c-l2-modelshift",
+    layer: "lens2",
+    registers: ["collective"],
+    prompt: "the object becomes something new — it's not what it first seemed.",
+    type: "gate3",
+  },
+  {
+    id: "c-l2-error",
+    layer: "lens2",
+    registers: ["collective"],
+    prompt: "wrong moves still lead somewhere; being wrong brings no shame.",
     type: "yesno",
   },
   {
-    id: "fw-gate-routes",
-    layer: "lens3",
-    registers: ["frame"],
-    prompt: "at least three genuine routes into that essential experience.",
+    id: "c-l2-return",
+    layer: "lens2",
+    registers: ["collective"],
+    prompt: "they leave with something they can use again — same stuff, new idea.",
     type: "yesno",
   },
   {
-    id: "fw-gate-reachable",
+    id: "c-l2-dig",
+    layer: "lens2",
+    registers: ["collective"],
+    prompt: "it ends with one open question, not a lesson or a quiz.",
+    type: "yesno",
+  },
+  /* lens 3 · justice & access */
+  {
+    id: "c-l3-access",
     layer: "lens3",
-    registers: ["frame"],
-    prompt: "a blind, a limited-motor, and a non-reading player could each reach the same experience — no route framed as a lesser version.",
-    help: "the no-default-player gate. run it before any redesign.",
+    registers: ["collective"],
+    prompt: "a kid who can't see, can't use their hands easily, or can't read could still fully join in.",
     type: "yesno",
   },
   {
-    id: "brief-l3",
+    id: "c-l3-door",
     layer: "lens3",
-    registers: ["frame"],
-    prompt: "layer 3 — a door to the wider world the object comes from (the deeper connection / the justice angle).",
-    help: "the layer most absent from the current collection — the bottle cap → factory → forest → water.",
+    registers: ["collective"],
+    prompt: "it opens a door to the bigger world the object comes from.",
+    help: "e.g. the bottle cap → a factory → a forest → water.",
     type: "choice",
-    options: ["yes — a real door", "light — only hinted", "no"],
+    options: ["yes — a real door", "a little", "no"],
   },
+  /* lens 4 · aliveness & coherence */
   {
-    id: "fw-guard-adapt",
-    layer: "lens3",
-    registers: ["frame"],
-    prompt: "it can be adapted locally (vs rigid replication).",
+    id: "c-l4-widen",
+    layer: "lens4",
+    registers: ["collective"],
+    prompt: "it opened up more things to try, beyond just being fun in the moment.",
     type: "yesno",
   },
   {
-    id: "fw-guard-scale",
-    layer: "lens3",
-    registers: ["frame"],
-    prompt: "honest about who benefits financially from its scale (vs extraction in regeneration's clothes).",
-    type: "yesno",
-  },
-
-  /* ===== lens 4 · aliveness and coherence — the decisive test (FRAME) ===== */
-  {
-    id: "fw-decisive",
+    id: "c-l4-creaseworks",
     layer: "lens4",
-    registers: ["frame"],
-    prompt: "the decisive test — does what happened return in a form that travels, and did the field of possible action widen?",
-    help: "or did it only manufacture local engagement? if the floor is met and this is not, you have a fun game, not a winded.vertigo one.",
-    type: "choice",
-    options: ["return travels & field widens", "partial", "fun only — no return that travels"],
+    registers: ["collective"],
+    prompt: "this clearly belongs to creaseworks — not a generic game with a wrapper.",
+    type: "scale5",
   },
+  /* lens 5 · what the framework missed */
   {
-    id: "fnd-chain",
-    layer: "lens4",
-    registers: ["frame"],
-    prompt: "the coherence chain completes for the main mechanic. (mechanic → condition → principle → theory-of-change link → outcome direction → brief question)",
-    type: "yesno",
-  },
-  {
-    id: "fnd-triad",
-    layer: "lens4",
-    registers: ["frame"],
-    prompt: "which of the triad live here concretely (not as decoration)?",
-    type: "triad",
-    options: ["play", "justice", "aliveness"],
-  },
-  {
-    id: "fw-guard-conditions",
-    layer: "lens4",
-    registers: ["frame"],
-    prompt: "it creates conditions for play, rather than claiming to produce transformation (vs salvation-selling).",
-    type: "yesno",
-  },
-  {
-    id: "fw-guard-overclaim",
-    layer: "lens4",
-    registers: ["frame"],
-    prompt: "the framing avoids overclaiming outcomes (vs a bad evidence generator with our name on it).",
-    type: "yesno",
-  },
-  {
-    id: "fw-guard-traces",
-    layer: "lens4",
-    registers: ["frame"],
-    prompt: "it keeps traces of process, not only a polished surface (vs betraying the theory's epistemology).",
-    type: "yesno",
-  },
-  {
-    id: "fw-guard-indicators",
-    layer: "lens4",
-    registers: ["frame"],
-    prompt: "if success is named at all, there is at least one justice indicator and one negative indicator.",
-    help: "an evaluation with neither is performance, never learning.",
-    type: "yesno",
-  },
-  {
-    id: "fnd-gravity",
-    layer: "lens4",
-    registers: ["frame"],
-    prompt: "the gravity guard — what does the theory help us see here, and what might it be making harder to see?",
-    type: "text",
-  },
-
-  /* ===== lens 5 · what the documents failed to see (FRAME, NEW) ===== */
-  {
-    id: "lens5-capture",
+    id: "c-l5-missed",
     layer: "lens5",
-    registers: ["frame"],
-    prompt: "how well did the framework capture what you actually felt playing this?",
-    help: "low = the page missed the room.",
-    type: "scale5",
-  },
-  {
-    id: "lens5-nolang",
-    layer: "lens5",
-    registers: ["frame"],
-    prompt: "where did the framework have no language for what you felt?",
+    registers: ["collective"],
+    prompt: "where did this framework miss, or get wrong, what you actually felt?",
     type: "text",
   },
+  /* the verdict */
   {
-    id: "lens5-misled",
-    layer: "lens5",
-    registers: ["frame"],
-    prompt: "where did it mislead you — the game richer or worse than the rubric could account for?",
-    type: "text",
-  },
-
-  /* ===== the verdict (FRAME) ===== */
-  {
-    id: "verdict-call",
+    id: "c-verdict",
     layer: "verdict",
-    registers: ["frame"],
+    registers: ["collective"],
     prompt: "the call for this playdate.",
     type: "choice",
     options: ["keep", "strengthen", "redesign", "remove"],
   },
   {
-    id: "verdict-coherence",
+    id: "c-final",
     layer: "verdict",
-    registers: ["frame"],
-    prompt: "how coherent is this as a *creaseworks* activity — vs a wrapper around a generic game?",
-    type: "scale5",
-  },
-  {
-    id: "verdict-final",
-    layer: "verdict",
-    registers: ["felt", "frame"],
+    registers: ["collective"],
     prompt: "anything else for the team?",
     type: "text",
   },
-
-  /* ===== redesign — rebuild from what you felt (FRAME, NEW) ===== */
+  /* redesign (optional) */
   {
-    id: "redesign-stakes",
+    id: "c-redesign",
     layer: "redesign",
-    registers: ["frame"],
-    prompt: "where might the stakes be accidentally too high?",
-    type: "text",
-  },
-  {
-    id: "redesign-flat",
-    layer: "redesign",
-    registers: ["frame"],
-    prompt: "where might the uncertainty be too flat, or too much?",
-    type: "text",
-  },
-  {
-    id: "redesign-hidden",
-    layer: "redesign",
-    registers: ["frame"],
-    prompt: "where might there be a hidden correct answer?",
-    type: "text",
-  },
-  {
-    id: "redesign-routes",
-    layer: "redesign",
-    registers: ["frame"],
-    prompt: "what routes through could multiply?",
-    type: "text",
-  },
-  {
-    id: "redesign-direction",
-    layer: "redesign",
-    registers: ["frame"],
-    prompt: "one redesign direction you'd try.",
+    registers: ["collective"],
+    prompt: "one thing you'd change, working from what you felt.",
     type: "text",
   },
 ];
@@ -569,14 +366,19 @@ export function itemById(id: string): EvalItem | undefined {
 }
 
 export const REGISTER_META: Record<Register, { label: string; sub: string; emoji: string }> = {
-  felt: {
-    label: "i played it",
-    sub: "friends & family — a few quick questions about what it was like",
-    emoji: "🌿",
+  kid: {
+    label: "i played it!",
+    sub: "for the kid — a few quick taps about what it was like",
+    emoji: "🧒",
   },
-  frame: {
+  grownup: {
+    label: "i watched a kid play",
+    sub: "for a grown-up — tick what you saw them do",
+    emoji: "👀",
+  },
+  collective: {
     label: "i'm reviewing it",
-    sub: "the collective — climb the five lenses against the framework",
+    sub: "the collective — the five lenses, kept light",
     emoji: "🧭",
   },
 };

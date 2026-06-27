@@ -32,7 +32,7 @@ export default function EvalHome() {
       const n = sessionStorage.getItem(NAME_KEY);
       const r = sessionStorage.getItem(REG_KEY) as Register | null;
       if (n) setName(n);
-      if (r === "felt" || r === "frame") setRegister(r);
+      if (r === "kid" || r === "grownup" || r === "collective") setRegister(r);
     } catch {}
   }, []);
 
@@ -55,8 +55,8 @@ export default function EvalHome() {
         .eh-sub { font-size: 14px; line-height: 1.6; color: #4b5563; margin: 0 0 22px; }
         .eh-h { font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
           font-weight: 800; font-size: 14px; color: var(--wv-cadet); margin: 0 0 10px; }
-        .eh-regs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 22px; }
-        @media (max-width: 540px) { .eh-regs { grid-template-columns: 1fr; } }
+        .eh-regs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 22px; }
+        @media (max-width: 640px) { .eh-regs { grid-template-columns: 1fr; } }
         button.eh-reg:not([type="submit"]) {
           text-align: left; cursor: pointer; background: var(--wv-white);
           border: 2px solid rgba(39,50,72,0.12); border-radius: 16px 20px 14px 18px;
@@ -93,11 +93,11 @@ export default function EvalHome() {
       `}</style>
 
       <p className="eh-lede">
-        evaluate a creaseworks playdate by <strong>climbing the cascade</strong>.
+        tell us what a creaseworks playdate was <strong>really like</strong>.
       </p>
       <p className="eh-sub">
-        designing a game flows down the cascade — theory to card. evaluating one climbs back up.
-        where you start depends on how you met the game.
+        pick how you met it. kids tap a few faces; grown-ups tick what they saw;
+        the collective climbs the five lenses.
       </p>
 
       <p className="eh-h">how did you meet it?</p>

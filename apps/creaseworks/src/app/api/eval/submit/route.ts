@@ -28,7 +28,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "unknown playdate" }, { status: 400 });
   }
 
-  const register = json.register === "felt" || json.register === "frame" ? json.register : null;
+  const register =
+    json.register === "kid" || json.register === "grownup" || json.register === "collective"
+      ? json.register
+      : null;
   if (!register) return NextResponse.json({ error: "register required" }, { status: 400 });
 
   const name =
@@ -59,7 +62,7 @@ export async function POST(req: NextRequest) {
   const slackToken = process.env.SLACK_BOT_TOKEN;
   const slackChannel = process.env.SLACK_FEEDBACK_CHANNEL;
   if (slackToken && slackChannel) {
-    const icon = register === "frame" ? "🧭" : "🌿";
+    const icon = register === "collective" ? "🧭" : register === "grownup" ? "👀" : "🧒";
     const text = `${icon} *[creaseworks-audit]* ${register} eval of *${slug}*${name ? ` by ${name}` : ""} — ${Object.keys(answers).length} answers`;
     try {
       const res = await fetch("https://slack.com/api/chat.postMessage", {

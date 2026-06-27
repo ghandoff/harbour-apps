@@ -42,7 +42,7 @@ export default function EvalPlayPage({ params }: { params: Promise<{ slug: strin
     try {
       const n = sessionStorage.getItem(NAME_KEY);
       const r = sessionStorage.getItem(REG_KEY) as Register | null;
-      if (!n || (r !== "felt" && r !== "frame")) {
+      if (!n || (r !== "kid" && r !== "grownup" && r !== "collective")) {
         router.replace(evalHref(""));
         return;
       }
@@ -74,7 +74,7 @@ export default function EvalPlayPage({ params }: { params: Promise<{ slug: strin
       setState(res.ok ? "done" : "error");
       if (res.ok) {
         window.scrollTo({ top: 0, behavior: "smooth" });
-        void loadOneRead();
+        if (register === "collective") void loadOneRead();
       }
     } catch {
       setState("error");
@@ -126,7 +126,7 @@ export default function EvalPlayPage({ params }: { params: Promise<{ slug: strin
   const answeredCount = Object.keys(answers).length;
 
   return (
-    <div>
+    <div className={register === "kid" ? "ep-kid" : undefined}>
       <style>{`
         .ep-head { margin-bottom: 18px; }
         .ep-crumb { font-size: 13px; color: var(--wv-teal); font-weight: 800; text-decoration: none; }
@@ -134,7 +134,7 @@ export default function EvalPlayPage({ params }: { params: Promise<{ slug: strin
           color: var(--wv-cadet); margin: 10px 0 2px; }
         .ep-tag { font-size: 14px; color: #4b5563; margin: 0 0 6px; }
         .ep-reg { display: inline-block; font-weight: 800; font-size: 12px; color: var(--wv-white);
-          background: ${register === "felt" ? "var(--wv-seafoam)" : "var(--wv-cornflower)"};
+          background: ${register === "kid" ? "var(--wv-seafoam)" : register === "grownup" ? "var(--wv-teal)" : "var(--wv-cornflower)"};
           border-radius: 10px 14px 10px 12px; padding: 3px 10px; margin-top: 4px; }
 
         .ep-layer { background: var(--wv-white); border: 1.5px solid rgba(39,50,72,0.10);
@@ -171,6 +171,32 @@ export default function EvalPlayPage({ params }: { params: Promise<{ slug: strin
           border-radius: 12px; padding: 10px 12px; resize: vertical; }
         .ef-text:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 1px; }
 
+        /* kid faces — all-positive, big and tappable */
+        .ef-faces { display: flex; gap: 12px; flex-wrap: wrap; }
+        button.ef-face:not([type="submit"]) { cursor: pointer; font-family: inherit; display: flex; flex-direction: column;
+          align-items: center; gap: 4px; background: var(--wv-white); border: 2px solid rgba(39,50,72,0.14);
+          border-radius: 16px 20px 14px 18px; padding: 12px 18px; min-width: 92px; transition: all 120ms ease; }
+        button.ef-face[data-on="true"] { border-color: var(--wv-teal); background: color-mix(in srgb, var(--wv-mint) 45%, var(--wv-white)); transform: translateY(-2px); }
+        button.ef-face:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
+        .ef-face-emoji { font-size: 40px; line-height: 1; }
+        .ef-face-label { font-weight: 800; font-size: 14px; color: var(--wv-cadet); }
+
+        /* grown-up observation checklist — vertical tick rows */
+        .ef-checks { display: flex; flex-direction: column; gap: 8px; }
+        button.ef-check:not([type="submit"]) { cursor: pointer; font-family: inherit; display: flex; align-items: center; gap: 10px;
+          text-align: left; font-weight: 700; font-size: 14px; color: var(--wv-cadet); background: var(--wv-white);
+          border: 2px solid rgba(39,50,72,0.14); border-radius: 12px; padding: 10px 14px; width: 100%; transition: all 120ms ease; }
+        button.ef-check[data-on="true"] { border-color: var(--wv-teal); background: color-mix(in srgb, var(--wv-mint) 40%, var(--wv-white)); }
+        button.ef-check:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
+        .ef-check-box { flex: none; width: 22px; height: 22px; border-radius: 6px; border: 2px solid var(--wv-teal);
+          display: inline-flex; align-items: center; justify-content: center; font-weight: 900; color: var(--wv-teal); font-size: 14px; }
+
+        /* kid mode — bigger, friendlier */
+        .ep-kid .ep-title { font-size: 26px; }
+        .ep-kid .ef-prompt { font-size: 19px; }
+        .ep-kid .ep-layer { padding: 20px 18px 8px; }
+        .ep-kid button.ef-opt:not([type="submit"]) { font-size: 16px; padding: 12px 20px; }
+
         .ep-foot { position: sticky; bottom: 0; background: color-mix(in srgb, var(--wv-periwinkle) 18%, var(--wv-white));
           padding: 12px 0 8px; display: flex; align-items: center; gap: 14px; }
         button.ep-submit:not([type="submit"]) { font-family: inherit; font-weight: 800; font-size: 16px;
@@ -205,27 +231,29 @@ export default function EvalPlayPage({ params }: { params: Promise<{ slug: strin
           <h2>logged — thank you, {name}.</h2>
           <p>your read of “{playdate.title}” is in. the dashboard updates as the team submits.</p>
 
-          <div className="ep-read">
-            <div className="ep-read-h">🤖 one read — one voice, not the answer</div>
-            {oneRead.loading && <p className="ep-read-muted">generating a read…</p>}
-            {!oneRead.loading && !oneRead.configured && (
-              <p className="ep-read-muted">the one read isn&rsquo;t switched on yet. (it needs the model key on the worker.)</p>
-            )}
-            {!oneRead.loading && oneRead.configured && oneRead.text && (
-              <>
-                <p className="ep-read-text">{oneRead.text}</p>
-                {readVote === null ? (
-                  <div className="ep-vote">
-                    <span className="ep-vote-q">did this match what you found?</span>
-                    <button type="button" className="ep-vote-btn" onClick={() => voteRead(true)}>it matched</button>
-                    <button type="button" className="ep-vote-btn ghost" onClick={() => voteRead(false)}>mark it wrong</button>
-                  </div>
-                ) : (
-                  <p className="ep-read-muted">{readVote ? "noted — it matched." : "noted — the room outranks the page."}</p>
-                )}
-              </>
-            )}
-          </div>
+          {register === "collective" && (
+            <div className="ep-read">
+              <div className="ep-read-h">🤖 one read — one voice, not the answer</div>
+              {oneRead.loading && <p className="ep-read-muted">generating a read…</p>}
+              {!oneRead.loading && !oneRead.configured && (
+                <p className="ep-read-muted">the one read isn&rsquo;t switched on yet. (it needs the model key on the worker.)</p>
+              )}
+              {!oneRead.loading && oneRead.configured && oneRead.text && (
+                <>
+                  <p className="ep-read-text">{oneRead.text}</p>
+                  {readVote === null ? (
+                    <div className="ep-vote">
+                      <span className="ep-vote-q">did this match what you found?</span>
+                      <button type="button" className="ep-vote-btn" onClick={() => voteRead(true)}>it matched</button>
+                      <button type="button" className="ep-vote-btn ghost" onClick={() => voteRead(false)}>mark it wrong</button>
+                    </div>
+                  ) : (
+                    <p className="ep-read-muted">{readVote ? "noted — it matched." : "noted — the room outranks the page."}</p>
+                  )}
+                </>
+              )}
+            </div>
+          )}
 
           <Link href={evalHref("")}>evaluate another →</Link>
           <Link href={evalHref("/dashboard")}>see the coherence dashboard →</Link>
@@ -237,9 +265,11 @@ export default function EvalPlayPage({ params }: { params: Promise<{ slug: strin
             <h1 className="ep-title">{playdate.title}</h1>
             <p className="ep-tag">{playdate.tagline}</p>
             <span className="ep-reg">
-              {register === "felt" ? "🌿 the felt play" : "🧭 the five lenses"} · {name}
+              {register === "kid" ? "🧒 your turn" : register === "grownup" ? "👀 what you saw" : "🧭 the five lenses"} · {name}
             </span>
-            <p className="ep-salience">mark only what feels salient — skip anything that doesn&rsquo;t. nothing here is required.</p>
+            {register === "collective" && (
+              <p className="ep-salience">mark only what feels salient — skip anything that doesn&rsquo;t. nothing here is required.</p>
+            )}
           </div>
 
           {groups.map((group, i) => (
