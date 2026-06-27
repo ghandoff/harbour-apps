@@ -18,6 +18,7 @@ import { loadCode, loadFound, matchActivities, miniHref, saveCode } from "@/lib/
 import { MiniStageHero } from "../stage-hero";
 import { postEval } from "@/lib/eval-submit";
 import { FACE_EMOJI } from "@/lib/eval-rubric";
+import { MINI_ACTIVITY_CONTENT } from "@/lib/mini-data";
 
 type SendState = "idle" | "sending" | "done" | "error";
 
@@ -35,12 +36,14 @@ export default function MiniShowPage() {
   const [kidFun, setKidFun] = useState<string | null>(null);
   const [kidAgain, setKidAgain] = useState<string | null>(null);
   const [kidSent, setKidSent] = useState(false);
+  const [showBanner, setShowBanner] = useState(true);
 
   useEffect(() => {
     setCode(loadCode());
     // best-effort: attach the activity the matcher picked this session
     const found = loadFound();
     if (found.length) setActivitySlug(matchActivities(found)[0].activity.slug);
+    try { if (sessionStorage.getItem("cw-mini-reflect-banner")) setShowBanner(false); } catch {}
   }, []);
 
   function pickPhoto(file: File | undefined) {
@@ -84,9 +87,30 @@ export default function MiniShowPage() {
     void postEval({ slug, register: "kid", name: code, answers });
   }
 
+  // the unfold reflection for the matched activity — reflection on what
+  // changed is as important as the photo (jamie, playbook bloc party)
+  const unfoldPrompt = MINI_ACTIVITY_CONTENT[activitySlug ?? "character-from-a-crease"]?.unfold ?? null;
+
+  function dismissBanner() {
+    setShowBanner(false);
+    try { sessionStorage.setItem("cw-mini-reflect-banner", "1"); } catch {}
+  }
+
   return (
     <div>
       <MiniStageHero stage="show" />
+
+      {showBanner && state !== "done" && (
+        <div className="mini-banner" role="note">
+          <span className="mini-banner-text">
+            🌱 grown-ups — your reflections matter as much as the photos, and they shape what we build next. tap{" "}
+            <strong>☝ for grown-ups</strong> (left edge) to share what you saw.
+          </span>
+          <button type="button" className="mini-banner-x" onClick={dismissBanner} aria-label="dismiss this note">
+            ✕
+          </button>
+        </div>
+      )}
 
       <style>{`
         .mini-show-card {
@@ -271,6 +295,33 @@ export default function MiniShowPage() {
           text-align: center; font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif; font-weight: 800;
           font-size: 18px; color: var(--wv-cadet); padding: 24px 18px;
         }
+        /* show = two co-equal halves: a photo AND the reflection on what changed */
+        .mini-show-section {
+          font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif; font-weight: 800; font-size: 14px;
+          color: var(--wv-cadet); margin: 4px 0 8px;
+        }
+        .mini-show-reflect {
+          background: color-mix(in srgb, var(--wv-periwinkle) 30%, var(--wv-white));
+          border-radius: 12px 16px 10px 14px; padding: 10px 13px; margin: 0 0 10px;
+          font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif; font-size: 13.5px; line-height: 1.55; color: var(--wv-cadet);
+        }
+        .mini-show-reflect strong {
+          display: block; font-size: 11px; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--wv-navy);
+        }
+        /* gentle, dismissible nudge — caregivers' register is easy to miss */
+        .mini-banner {
+          display: flex; align-items: flex-start; gap: 10px; background: color-mix(in srgb, var(--wv-mint) 55%, var(--wv-white));
+          border: 1.5px solid var(--wv-teal); border-radius: 14px 18px 12px 16px; padding: 12px 14px; margin-bottom: 14px;
+        }
+        .mini-banner-text {
+          flex: 1; font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif; font-size: 13px; line-height: 1.5; color: var(--wv-cadet);
+        }
+        .mini-banner-text strong { font-weight: 800; white-space: nowrap; }
+        button.mini-banner-x:not([type="submit"]):not(.wv-header-signout) {
+          flex: none; cursor: pointer; font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif; font-weight: 800; font-size: 12px;
+          color: var(--wv-cadet); background: transparent; border: none; padding: 2px 4px; line-height: 1;
+        }
+        button.mini-banner-x:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
       `}</style>
 
       {state === "done" ? (
@@ -349,6 +400,7 @@ export default function MiniShowPage() {
             </div>
           )}
 
+          <p className="mini-show-section">📸 show what they made</p>
           <div
             className="mini-show-photo-zone"
             onClick={() => inputRef.current?.click()}
@@ -374,11 +426,17 @@ export default function MiniShowPage() {
             onChange={(e) => pickPhoto(e.target.files?.[0])}
           />
 
+          <p className="mini-show-section">💬 tell what they discovered</p>
+          {unfoldPrompt && (
+            <p className="mini-show-reflect">
+              <strong>talk about it</strong>{unfoldPrompt}
+            </p>
+          )}
           <textarea
             className="mini-show-words"
             value={words}
             onChange={(e) => setWords(e.target.value)}
-            placeholder="grown-ups: what did they say about it? type their words here…"
+            placeholder="their words — what surprised them? what changed when they looked again?"
             maxLength={2000}
           />
 

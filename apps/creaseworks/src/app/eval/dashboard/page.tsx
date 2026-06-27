@@ -184,7 +184,28 @@ export default async function EvalDashboard() {
         .ed-dist { display: inline-block; background: color-mix(in srgb, var(--wv-periwinkle) 18%, var(--wv-white));
           border: 1px solid rgba(39,50,72,0.1); border-radius: 999px; padding: 1px 9px; margin: 2px 4px 0 0; font-size: 11.5px; color: #4b5563; }
         .ed-quotes { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
-        @media (max-width: 640px) { .ed-quotes { grid-template-columns: 1fr; } }
+        @media (max-width: 640px) {
+          .ed-quotes { grid-template-columns: 1fr; }
+          /* stack data tables into per-row cards on phones (no horizontal scroll) */
+          table.ed-grid, table.ed-roll { min-width: 0; }
+          .ed-grid thead, .ed-roll thead { display: none; }
+          .ed-grid tbody, .ed-roll tbody, .ed-grid tr, .ed-roll tr, .ed-grid td, .ed-roll td { display: block; width: auto; }
+          .ed-grid tr, .ed-roll tr {
+            border: 1px solid rgba(39, 50, 72, 0.12); border-radius: 12px; padding: 8px 12px; margin-bottom: 10px;
+          }
+          .ed-grid td, .ed-roll td {
+            display: flex; justify-content: space-between; align-items: center; gap: 12px; text-align: right; padding: 5px 0;
+          }
+          .ed-grid td::before, .ed-roll td::before {
+            content: attr(data-label); font-weight: 800; font-size: 12px; color: var(--wv-cadet); text-align: left;
+          }
+          .ed-grid td.play, .ed-roll td:first-child {
+            justify-content: flex-start; font-size: 15px; font-weight: 800;
+            border-bottom: 1px solid rgba(39, 50, 72, 0.08); margin-bottom: 4px; padding-bottom: 6px;
+          }
+          .ed-grid td.play::before, .ed-roll td:first-child::before { content: ""; }
+          .ed-grid td.heat { border-radius: 6px; padding: 6px 10px; margin: 2px 0; }
+        }
         .ed-quote { padding: 8px 0; border-bottom: 1px solid rgba(39,50,72,0.07); }
         .ed-quote:last-child { border-bottom: none; }
         .ed-quote p { margin: 0; font-size: 13.5px; color: var(--wv-cadet); line-height: 1.5; }
@@ -233,12 +254,12 @@ export default async function EvalDashboard() {
                   const subs = byPlaydate.get(p.slug) ?? [];
                   return (
                     <tr key={p.slug}>
-                      <td className="play">{p.title}</td>
+                      <td className="play" data-label="playdate">{p.title}</td>
                       {SCORED_LAYERS.map((c) => {
                         const cl = cell(mean(subs.map((s) => layerScore(c.key, s.answers))));
-                        return <td key={c.key} className="heat" style={{ background: cl.bg, color: cl.fg }}>{cl.txt}</td>;
+                        return <td key={c.key} className="heat" data-label={c.label} style={{ background: cl.bg, color: cl.fg }}>{cl.txt}</td>;
                       })}
-                      <td className="ed-n">{subs.length}</td>
+                      <td className="ed-n" data-label="reviews">{subs.length}</td>
                     </tr>
                   );
                 })}
@@ -298,12 +319,12 @@ export default async function EvalDashboard() {
                   };
                   return (
                     <tr key={p.slug}>
-                      <td style={{ fontWeight: 700 }}>{p.title}</td>
-                      <td>{accRate === null ? "—" : `${accRate}%`}</td>
-                      <td>{door ?? "—"}</td>
-                      <td>{widenRate === null ? "—" : `${widenRate}%`}</td>
-                      <td>{coh === null ? "—" : `${coh.toFixed(1)}/5`}</td>
-                      <td>{verdict ? <span className="ed-pill" style={{ background: vColor[verdict] ?? "rgba(39,50,72,0.08)", color: "var(--wv-cadet)" }}>{verdict}</span> : "—"}</td>
+                      <td data-label="playdate" style={{ fontWeight: 700 }}>{p.title}</td>
+                      <td data-label="access">{accRate === null ? "—" : `${accRate}%`}</td>
+                      <td data-label="layer-3 door">{door ?? "—"}</td>
+                      <td data-label="opened up">{widenRate === null ? "—" : `${widenRate}%`}</td>
+                      <td data-label="coherence">{coh === null ? "—" : `${coh.toFixed(1)}/5`}</td>
+                      <td data-label="verdict">{verdict ? <span className="ed-pill" style={{ background: vColor[verdict] ?? "rgba(39,50,72,0.08)", color: "var(--wv-cadet)" }}>{verdict}</span> : "—"}</td>
                     </tr>
                   );
                 })}
@@ -359,10 +380,10 @@ export default async function EvalDashboard() {
                   const reg = r.register === "collective" ? "🧭 collective" : r.register === "grownup" ? "👀 grown-up" : "🧒 kid";
                   return (
                     <tr key={i}>
-                      <td style={{ color: "#6b7280", fontSize: 12 }}>{r.created_at}</td>
-                      <td>{r.evaluator_name ?? "—"}</td>
-                      <td>{reg}</td>
-                      <td>{title}</td>
+                      <td data-label="when" style={{ color: "#6b7280", fontSize: 12 }}>{r.created_at}</td>
+                      <td data-label="who">{r.evaluator_name ?? "—"}</td>
+                      <td data-label="register">{reg}</td>
+                      <td data-label="playdate">{title}</td>
                     </tr>
                   );
                 })}

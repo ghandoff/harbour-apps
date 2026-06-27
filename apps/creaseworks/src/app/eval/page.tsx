@@ -33,9 +33,11 @@ export default function EvalHome() {
       const r = sessionStorage.getItem(REG_KEY) as Register | null;
       if (n) setName(n);
       if (r === "kid" || r === "grownup" || r === "collective") setRegister(r);
-      // deep-link from the mini's grown-up corner: ?register=collective
-      const q = new URLSearchParams(window.location.search).get("register");
-      if (q === "kid" || q === "grownup" || q === "collective") setRegister(q);
+      // deep-link from the mini's grown-up corner: #collective (a HASH, not a
+      // query — a query on the basePath root 404s in Next; the hash is
+      // client-only so the server still serves the clean 200 home)
+      const h = window.location.hash.replace(/^#/, "");
+      if (h === "kid" || h === "grownup" || h === "collective") setRegister(h);
     } catch {}
   }, []);
 
@@ -101,6 +103,9 @@ export default function EvalHome() {
       <p className="eh-sub">
         pick how you met it. kids tap a few faces; grown-ups tick what they saw;
         the collective climbs the five lenses.
+      </p>
+      <p className="eh-sub" style={{ fontWeight: 700, color: "var(--wv-cadet)" }}>
+        your reflections shape what we build next — they matter as much as the photos.
       </p>
 
       <p className="eh-h">how did you meet it?</p>

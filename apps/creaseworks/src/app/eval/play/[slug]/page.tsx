@@ -18,6 +18,16 @@ import { evalHref } from "@/lib/eval-nav";
 import { layersFor, playdateBySlug, type Register } from "@/lib/eval-rubric";
 import { ItemField, type AnswerValue } from "../../item-field";
 
+const JUMP_LABELS: Record<string, string> = {
+  lens1: "1 · play",
+  lens2: "2 · mechanics",
+  lens3: "3 · access",
+  lens4: "4 · aliveness",
+  lens5: "5 · missed",
+  verdict: "verdict",
+  redesign: "redesign",
+};
+
 const NAME_KEY = "cw-eval-name";
 const REG_KEY = "cw-eval-register";
 
@@ -205,6 +215,13 @@ export default function EvalPlayPage({ params }: { params: Promise<{ slug: strin
         button.ep-submit:disabled { opacity: 0.45; cursor: default; }
         button.ep-submit:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
         .ep-count { font-size: 13px; color: #6b7280; }
+        .ep-jump { position: sticky; top: 52px; z-index: 20; display: flex; gap: 6px; flex-wrap: wrap;
+          padding: 8px 0 10px; margin-bottom: 4px; background: color-mix(in srgb, var(--wv-periwinkle) 18%, var(--wv-white)); }
+        button.ep-jumpchip:not([type="submit"]) { cursor: pointer; font-family: inherit; font-weight: 800; font-size: 11.5px;
+          color: var(--wv-cadet); background: var(--wv-white); border: 1.5px solid rgba(39, 50, 72, 0.14); border-radius: 999px; padding: 5px 11px; }
+        button.ep-jumpchip:hover { border-color: var(--wv-teal); }
+        button.ep-jumpchip:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
+        .ep-layer { scroll-margin-top: 104px; }
 
         .ep-done { background: var(--wv-white); border: 1.5px solid rgba(39,50,72,0.10);
           border-radius: 20px 26px 18px 24px; padding: 28px 22px; text-align: center; box-shadow: 0 4px 0 rgba(39,50,72,0.07); }
@@ -272,8 +289,25 @@ export default function EvalPlayPage({ params }: { params: Promise<{ slug: strin
             )}
           </div>
 
+          {register === "collective" && groups.length > 1 && (
+            <nav className="ep-jump" aria-label="jump to a lens">
+              {groups.map((g) => (
+                <button
+                  key={g.meta.key}
+                  type="button"
+                  className="ep-jumpchip"
+                  onClick={() =>
+                    document.getElementById(`lens-${g.meta.key}`)?.scrollIntoView({ behavior: "smooth", block: "start" })
+                  }
+                >
+                  {JUMP_LABELS[g.meta.key] ?? g.meta.label}
+                </button>
+              ))}
+            </nav>
+          )}
+
           {groups.map((group, i) => (
-            <section key={group.meta.key} className="ep-layer">
+            <section key={group.meta.key} id={`lens-${group.meta.key}`} className="ep-layer">
               <div className="ep-layer-h">
                 <span className="ep-layer-n" aria-hidden="true">{i + 1}</span>
                 <span className="ep-layer-label">{group.meta.label}</span>

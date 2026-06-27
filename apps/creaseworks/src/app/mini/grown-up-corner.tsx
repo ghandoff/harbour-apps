@@ -400,7 +400,7 @@ export function GrownUpCorner() {
                     </button>
                   </>
                 )}
-                <a className="guc-collective" href="/harbour/creaseworks-eval?register=collective">
+                <a className="guc-collective" href="/harbour/creaseworks-eval#collective">
                   reviewing for the collective? open the full five-lens review →
                 </a>
               </div>
