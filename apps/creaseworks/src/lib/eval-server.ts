@@ -46,3 +46,38 @@ export function getEvalEnv(): EvalEnv | null {
 
 export const EVAL_NAME_MAX = 60;
 export const EVAL_ANSWERS_MAX = 20000; // generous cap on the JSON blob
+
+// ── roster + traces (schema v4) ──────────────────────────────────────────
+// A group is a family or class code (pseudonym) that owns a roster of
+// anonymous player avatars. events carry the nested identity (group →
+// player → device → session); player_id is nullable for the anonymous
+// fallback. All caps are sanity bounds, not policy.
+export const GROUP_KINDS = ["family", "class"] as const;
+export type GroupKind = (typeof GROUP_KINDS)[number];
+
+export const ROSTER_MAX_FAMILY = 8; // a generous family
+export const ROSTER_MAX_CLASS = 40; // a generous classroom
+export const EVENT_BATCH_MAX = 50; // events per ingest POST
+export const TOKEN_MAX = 64; // device_token / session_id / player_id length cap
+
+export const TRACE_EVENT_TYPES = [
+  "session_start",
+  "stage_enter",
+  "activity_open",
+] as const;
+export type TraceEventType = (typeof TRACE_EVENT_TYPES)[number];
+
+export const TRACE_STAGES = ["look", "make", "show", "wow"] as const;
+
+/**
+ * Group codes are pseudonyms entered by a caregiver/teacher. Accept a
+ * forgiving but bounded shape (lowercased, alnum + hyphen, 2–40 chars) so
+ * collective-issued codes and family codes both pass, and nothing weird
+ * (paths, scripts, PII-ish free text) lands in the key.
+ */
+export function normalizeGroupCode(raw: unknown): string | null {
+  if (typeof raw !== "string") return null;
+  const code = raw.trim().toLowerCase();
+  if (!/^[a-z0-9][a-z0-9-]{1,39}$/.test(code)) return null;
+  return code;
+}

@@ -13,6 +13,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { MiniStageHero } from "../stage-hero";
 import { MINI_ACTIVITY_CONTENT } from "@/lib/mini-data";
+import { logEvent } from "@/lib/cw-trace";
 import {
   loadFound,
   matchActivities,
@@ -28,6 +29,12 @@ export default function MiniMakePage() {
   }, []);
 
   const best = matches?.[0];
+
+  // trace which playdate the match-rate surfaced — the activity_open signal
+  // (the stage-level stage_enter is emitted by the shell's TraceProbe)
+  useEffect(() => {
+    if (best) logEvent("activity_open", { stage: "make", activity: best.activity.slug });
+  }, [best?.activity.slug]); // eslint-disable-line react-hooks/exhaustive-deps
   const foldText = best ? MINI_ACTIVITY_CONTENT[best.activity.slug]?.fold : null;
   const findText = best ? MINI_ACTIVITY_CONTENT[best.activity.slug]?.find : null;
 

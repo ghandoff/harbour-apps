@@ -393,7 +393,10 @@ export default async function EvalDashboard() {
         </>
       )}
 
-      <Link href={evalHref("")} className="ed-back">← back to the audit home</Link>
+      <div style={{ display: "flex", gap: 18, flexWrap: "wrap" }}>
+        <Link href={evalHref("")} className="ed-back">← back to the audit home</Link>
+        <Link href={evalHref("/insights")} className="ed-back">engagement insights (how children play) →</Link>
+      </div>
     </div>
   );
 }

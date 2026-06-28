@@ -27,6 +27,7 @@ import {
 } from "@/lib/mini-pilot";
 import { postEval } from "@/lib/eval-submit";
 import { itemsFor } from "@/lib/eval-rubric";
+import { RosterSetup } from "./roster-setup";
 
 const GROWNUP_ITEMS = itemsFor("grownup");
 
@@ -405,6 +406,8 @@ export function GrownUpCorner() {
                 </a>
               </div>
             )}
+
+            <RosterSetup familyCode={loadCode()} />
 
             <div className="guc-code">
               {codeState === "ok" ? (

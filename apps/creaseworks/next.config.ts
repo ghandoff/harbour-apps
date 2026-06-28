@@ -45,6 +45,7 @@ const nextConfig: NextConfig = {
         beforeFiles: [{ source: "/", destination: "/eval" }],
         afterFiles: [
           { source: "/dashboard", destination: "/eval/dashboard" },
+          { source: "/insights", destination: "/eval/insights" },
           { source: "/play/:slug", destination: "/eval/play/:slug" },
         ],
         fallback: [],
