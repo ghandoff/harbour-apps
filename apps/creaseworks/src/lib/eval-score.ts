@@ -44,6 +44,7 @@ const CHOICE_SCORES: Record<string, Record<string, number>> = {
   "kid-goldilocks": { "just right": 1, "too easy": 0.5, "too tricky": 0.5 },
   "watch-flow": { "moved freely": 1, "a bit of both": 0.5, "pushed through in order": 0 },
   "c-l3-door": { "yes — a real door": 1, "a little": 0.5, no: 0 },
+  "c-l3-equal": { "designed in as equal": 1, partly: 0.5, "bolted on after": 0 },
   // c-verdict is categorical with no health axis → not listed
 };
 
@@ -88,6 +89,7 @@ function scoreLayer(layer: Layer, a: RawAnswers): number | null {
   for (const id of Object.keys(a)) {
     const item = itemById(id);
     if (!item || item.layer !== layer) continue;
+    if (item.scored === false) continue; // descriptive inventory, not a quality judgment
     vals.push(normalizeItem(item, a[id]));
   }
   return mean(vals);
@@ -110,10 +112,16 @@ export function layerScore(layer: Layer, a: RawAnswers): number | null {
 
 /* ── matrix fields (the per-playdate roll-up) ───────────────── */
 
-export function accessPass(a: RawAnswers): boolean | null {
-  const v = a["c-l3-access"];
-  if (v === undefined) return null;
-  return v === "yes";
+/** breadth of access — how many ways into the activity were genuinely available. */
+export function accessRoutes(a: RawAnswers): number | null {
+  const v = a["c-l3-routes"];
+  return Array.isArray(v) ? v.length : null;
+}
+
+/** were the non-default routes designed in as equal, or bolted on after? */
+export function equalExperience(a: RawAnswers): string | null {
+  const v = a["c-l3-equal"];
+  return typeof v === "string" ? v : null;
 }
 
 export function layer3Door(a: RawAnswers): string | null {

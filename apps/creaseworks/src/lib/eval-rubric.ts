@@ -50,6 +50,12 @@ export interface EvalItem {
   type: ItemType;
   options?: string[];
   reverse?: boolean;
+  /**
+   * Descriptive inventory item — excluded from the layer health score
+   * (it counts what was present, it isn't a quality judgment). Still feeds
+   * the roll-up + divergence. Default true (scored).
+   */
+  scored?: boolean;
 }
 
 export interface LayerMeta {
@@ -253,6 +259,14 @@ export const ITEMS: EvalItem[] = [
     help: "a timer, score, or watching crowd pulls a game off this rung.",
     type: "gate3",
   },
+  {
+    id: "c-l1-hopeful",
+    layer: "lens1",
+    registers: ["collective"],
+    prompt: "hopeful loop — after something goes wrong or gets stuck, trying again still makes sense.",
+    help: "blocked = a stall or mistake ends the play · clear = setbacks pull them back in for another go.",
+    type: "gate3",
+  },
   /* lens 2 · the mechanics */
   {
     id: "c-l2-modelshift",
@@ -284,11 +298,36 @@ export const ITEMS: EvalItem[] = [
   },
   /* lens 3 · justice & access */
   {
-    id: "c-l3-access",
+    // descriptive inventory (scored:false) — breadth of access, not a
+    // quality judgment; feeds the roll-up "ways in" + divergence.
+    id: "c-l3-routes",
     layer: "lens3",
     registers: ["collective"],
-    prompt: "a kid who can't see, can't use their hands easily, or can't read could still fully join in.",
-    type: "yesno",
+    prompt: "which ways into the activity were genuinely available this time?",
+    help: "mark every route that was actually possible today — not what could be added later.",
+    type: "checklist",
+    options: [
+      "sight",
+      "touch",
+      "voice",
+      "gesture",
+      "making",
+      "shared description",
+      "supported handling",
+      "slower pace",
+      "watching first",
+      "another route",
+    ],
+    scored: false,
+  },
+  {
+    id: "c-l3-equal",
+    layer: "lens3",
+    registers: ["collective"],
+    prompt: "were the non-default ways in designed as full, equal ways to play?",
+    help: "not an adaptation bolted on after the 'real' activity was already designed.",
+    type: "choice",
+    options: ["designed in as equal", "partly", "bolted on after"],
   },
   {
     id: "c-l3-door",

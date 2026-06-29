@@ -21,7 +21,8 @@ import {
   SCORED_LAYERS,
   layerScore,
   normalizeItem,
-  accessPass,
+  accessRoutes,
+  equalExperience,
   layer3Door,
   widenPass,
   coherenceRaw,
@@ -355,16 +356,17 @@ export default async function EvalDashboard() {
 
           <div className="ed-card">
             <h2>per-playdate roll-up</h2>
-            <p className="note">the collective&rsquo;s signals: access, the layer-3 door, whether it opened things up, coherence, and the call.</p>
+            <p className="note">the collective&rsquo;s signals: how many ways into the activity were available, whether the non-default routes were designed in as equal, the layer-3 door, whether it opened things up, coherence, and the call.</p>
             <table className="ed-roll">
               <thead>
-                <tr><th>playdate</th><th>access</th><th>layer-3 door</th><th>opened up</th><th>coherence</th><th>verdict</th></tr>
+                <tr><th>playdate</th><th>ways in</th><th>equal?</th><th>layer-3 door</th><th>opened up</th><th>coherence</th><th>verdict</th></tr>
               </thead>
               <tbody>
                 {EVAL_PLAYDATES.map((p) => {
                   const coll = (byPlaydate.get(p.slug) ?? []).filter((s) => s.register === "collective");
-                  const accVals = coll.map((s) => accessPass(s.answers)).filter((v): v is boolean => v !== null);
-                  const accRate = accVals.length ? Math.round((accVals.filter(Boolean).length / accVals.length) * 100) : null;
+                  const routeVals = coll.map((s) => accessRoutes(s.answers)).filter((v): v is number => v !== null);
+                  const routesMean = routeVals.length ? routeVals.reduce((a, b) => a + b, 0) / routeVals.length : null;
+                  const equalCall = modal(coll.map((s) => equalExperience(s.answers)));
                   const door = modal(coll.map((s) => layer3Door(s.answers)));
                   const widenVals = coll.map((s) => widenPass(s.answers)).filter((v): v is boolean => v !== null);
                   const widenRate = widenVals.length ? Math.round((widenVals.filter(Boolean).length / widenVals.length) * 100) : null;
@@ -379,7 +381,8 @@ export default async function EvalDashboard() {
                   return (
                     <tr key={p.slug}>
                       <td data-label="playdate" style={{ fontWeight: 700 }}>{p.title}</td>
-                      <td data-label="access">{accRate === null ? "—" : `${accRate}%`}</td>
+                      <td data-label="ways in">{routesMean === null ? "—" : routesMean.toFixed(1)}</td>
+                      <td data-label="equal?">{equalCall ?? "—"}</td>
                       <td data-label="layer-3 door">{door ?? "—"}</td>
                       <td data-label="opened up">{widenRate === null ? "—" : `${widenRate}%`}</td>
                       <td data-label="coherence">{coh === null ? "—" : `${coh.toFixed(1)}/5`}</td>
