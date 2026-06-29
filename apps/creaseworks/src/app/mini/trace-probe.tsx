@@ -27,6 +27,7 @@ import {
   setSelectedPlayer,
   getLastPlayer,
   fetchRoster,
+  splitRoster,
   type Player,
 } from "@/lib/cw-identity";
 import { logEvent, flushTraces } from "@/lib/cw-trace";
@@ -73,13 +74,15 @@ export function TraceProbe() {
     let cancelled = false;
     void fetchRoster(group.code).then((r) => {
       if (cancelled) return;
-      setRoster(r.players);
-      // prompt only if there's a roster, nobody chosen yet, and not skipped
+      // the kid picker only shows children — adults are chosen in the corner
+      const kids = splitRoster(r.players).children;
+      setRoster(kids);
+      // prompt only if there are children, nobody chosen yet, and not skipped
       let skipped = false;
       try {
         skipped = sessionStorage.getItem(SKIPPED_KEY) === "1";
       } catch {}
-      if (r.players.length > 0 && !getSelectedPlayer() && !skipped) {
+      if (kids.length > 0 && !getSelectedPlayer() && !skipped) {
         setPickerOpen(true);
       }
     });

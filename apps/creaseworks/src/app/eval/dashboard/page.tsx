@@ -92,19 +92,48 @@ function cell(score: number | null) {
 
 const COLLECTIVE_ITEMS = ITEMS.filter((it) => it.registers.includes("collective") && it.type !== "text");
 
+interface TraceRow {
+  player_id: string | null;
+  session_id: string | null;
+  event_type: string;
+  stage: string | null;
+}
+const TRACE_STAGE_RANK: Record<string, number> = { look: 1, make: 2, show: 3, wow: 4 };
+
 export default async function EvalDashboard() {
   const env = getEvalEnv();
 
   let rows: Row[] = [];
   let oneReads: { playdate_slug: string; text: string }[] = [];
   let votes: { playdate_slug: string; agree: number }[] = [];
+  let events: TraceRow[] = [];
   if (env) {
     rows = (await env.db
       .prepare("SELECT playdate_slug, evaluator_name, register, answers_json, created_at FROM evaluations ORDER BY created_at DESC")
       .all<Row>()).results ?? [];
     oneReads = (await env.db.prepare("SELECT playdate_slug, text FROM one_reads").all<{ playdate_slug: string; text: string }>()).results ?? [];
     votes = (await env.db.prepare("SELECT playdate_slug, agree FROM one_read_votes").all<{ playdate_slug: string; agree: number }>()).results ?? [];
+    events = (await env.db.prepare("SELECT player_id, session_id, event_type, stage FROM events").all<TraceRow>()).results ?? [];
   }
+
+  // behavioural signals — fold the passive traces into per-session shapes
+  // (same pipeline as /insights), summarised here as the fourth stream.
+  const bSess = new Map<string, { stages: Set<string>; player: string | null }>();
+  for (const e of events) {
+    if (!e.session_id) continue;
+    let s = bSess.get(e.session_id);
+    if (!s) { s = { stages: new Set(), player: null }; bSess.set(e.session_id, s); }
+    if (e.player_id && !s.player) s.player = e.player_id;
+    if (e.event_type === "stage_enter" && e.stage) s.stages.add(e.stage);
+  }
+  const bAll = [...bSess.values()];
+  const bPlayed = bAll.filter((s) => s.stages.size > 0);
+  const bReachShow = bPlayed.filter((s) => [...s.stages].some((st) => (TRACE_STAGE_RANK[st] ?? 0) >= 3)).length;
+  const bLookOnly = bPlayed.filter(
+    (s) => s.stages.has("look") && Math.max(0, ...[...s.stages].map((st) => TRACE_STAGE_RANK[st] ?? 0)) === 1,
+  ).length;
+  const bChildren = new Set(bAll.map((s) => s.player).filter(Boolean)).size;
+  const bpct = (n: number, d: number) => (d > 0 ? Math.round((n / d) * 100) : 0);
 
   const byPlaydate = new Map<string, { answers: RawAnswers; register: string; name: string | null }[]>();
   for (const r of rows) {
@@ -262,6 +291,27 @@ export default async function EvalDashboard() {
         <div className="ed-stat"><b>{nKid}</b><span>🧒 kids</span></div>
         <div className="ed-stat"><b>{nGrown}</b><span>👀 grown-ups</span></div>
         <div className="ed-stat"><b>{nColl}</b><span>🧭 collective</span></div>
+      </div>
+
+      {/* the fourth stream — behavioural traces (#6), always shown so it's findable */}
+      <div className="ed-card">
+        <h2>behavioural signals</h2>
+        <p className="note">
+          how children actually moved through the stages (passive play traces) — the fourth stream beside what kids felt 🧒, grown-ups saw 👀, and the collective judged 🧭. fills as families play with a roster set up.
+        </p>
+        {bAll.length === 0 ? (
+          <p className="ed-read-text">no play traces yet — set up a family/class roster (one code) and play a session, then this fills.</p>
+        ) : (
+          <div className="ed-stats" style={{ marginBottom: 12 }}>
+            <div className="ed-stat"><b>{bAll.length}</b><span>play sessions</span></div>
+            <div className="ed-stat"><b>{bChildren}</b><span>children seen</span></div>
+            <div className="ed-stat"><b>{bpct(bReachShow, bPlayed.length)}%</b><span>reached show</span></div>
+            <div className="ed-stat"><b>{bpct(bLookOnly, bPlayed.length)}%</b><span>look-only</span></div>
+          </div>
+        )}
+        <Link href={evalHref("/insights")} className="ed-back">
+          open full engagement insights — within-child, cohorts, justice →
+        </Link>
       </div>
 
       {rows.length === 0 ? (

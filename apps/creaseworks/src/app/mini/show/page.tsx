@@ -19,6 +19,7 @@ import { MiniStageHero } from "../stage-hero";
 import { postEval } from "@/lib/eval-submit";
 import { FACE_EMOJI } from "@/lib/eval-rubric";
 import { MINI_ACTIVITY_CONTENT } from "@/lib/mini-data";
+import { setGroup } from "@/lib/cw-identity";
 import { ReadAloud } from "../read-aloud";
 
 type SendState = "idle" | "sending" | "done" | "error";
@@ -27,6 +28,7 @@ export default function MiniShowPage() {
   const [code, setCode] = useState<string | null>(null);
   const [codeInput, setCodeInput] = useState("");
   const [codeError, setCodeError] = useState(false);
+  const [codeChecking, setCodeChecking] = useState(false);
   const [activitySlug, setActivitySlug] = useState<string | null>(null);
   const [photo, setPhoto] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -53,14 +55,31 @@ export default function MiniShowPage() {
     setPreviewUrl(URL.createObjectURL(file));
   }
 
-  function submitCode() {
+  async function submitCode() {
     const trimmed = codeInput.trim().toLowerCase();
-    if (!trimmed) return;
-    // client-side: just check format (two lowercase words joined by a dash)
-    if (!/^[a-z]+-[a-z]+$/.test(trimmed)) { setCodeError(true); return; }
-    saveCode(trimmed);
-    setCode(trimmed);
+    if (!trimmed || codeChecking) return;
+    // server-validate against the real codes (not a client-only regex) so a
+    // mistyped / wrong code can't arm a share that then fails at the server.
+    setCodeChecking(true);
     setCodeError(false);
+    try {
+      const res = await fetch(apiUrl("/api/mini/session"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: trimmed }),
+      });
+      if (res.ok) {
+        saveCode(trimmed);
+        setGroup(trimmed, "family"); // one code: also the roster/traces key
+        setCode(trimmed);
+      } else {
+        setCodeError(true);
+      }
+    } catch {
+      setCodeError(true);
+    } finally {
+      setCodeChecking(false);
+    }
   }
 
   async function share() {
@@ -404,12 +423,12 @@ export default function MiniShowPage() {
                   autoCorrect="off"
                   spellCheck={false}
                 />
-                <button type="button" className="mini-show-code-btn" onClick={submitCode}>
-                  go →
+                <button type="button" className="mini-show-code-btn" onClick={submitCode} disabled={codeChecking}>
+                  {codeChecking ? "checking…" : "go →"}
                 </button>
               </div>
               {codeError && (
-                <p className="mini-show-code-err">that code isn&rsquo;t recognised — check the welcome page for your code</p>
+                <p className="mini-show-code-err">that code isn&rsquo;t recognised — check it with the collective</p>
               )}
             </div>
           )}

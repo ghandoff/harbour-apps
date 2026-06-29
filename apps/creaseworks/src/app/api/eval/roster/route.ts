@@ -29,6 +29,7 @@ import { isValidAvatar } from "@/lib/cw-avatars";
 interface PlayerRow {
   id: string;
   avatar: string;
+  kind: string;
 }
 
 export async function GET(req: NextRequest) {
@@ -46,7 +47,7 @@ export async function GET(req: NextRequest) {
   const players =
     (
       await env.db
-        .prepare("SELECT id, avatar FROM players WHERE group_code = ? ORDER BY created_at ASC")
+        .prepare("SELECT id, avatar, kind FROM players WHERE group_code = ? ORDER BY created_at ASC")
         .bind(code)
         .all<PlayerRow>()
     ).results ?? [];
@@ -68,6 +69,7 @@ export async function POST(req: NextRequest) {
     action?: unknown;
     avatar?: unknown;
     id?: unknown;
+    playerKind?: unknown;
   } | null;
   if (!json) return NextResponse.json({ error: "json body required" }, { status: 400 });
 
@@ -94,6 +96,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "valid avatar required" }, { status: 400 });
   }
   const avatar = json.avatar;
+  const playerKind = json.playerKind === "adult" ? "adult" : "child";
 
   // create the group on first use (idempotent); keep the original kind if
   // it already exists.
@@ -117,7 +120,7 @@ export async function POST(req: NextRequest) {
         .all<PlayerRow>()
     ).results ?? [];
 
-  // dedupe: one of each avatar per group (re-adding is a no-op)
+  // dedupe: one of each avatar per group, regardless of kind (re-adding is a no-op)
   const already = existing.find((p) => p.avatar === avatar);
   if (already) return NextResponse.json({ ok: true, player: already, players: existing });
 
@@ -127,10 +130,10 @@ export async function POST(req: NextRequest) {
 
   const id = crypto.randomUUID();
   await env.db
-    .prepare("INSERT INTO players (id, group_code, avatar) VALUES (?, ?, ?)")
-    .bind(id, code, avatar)
+    .prepare("INSERT INTO players (id, group_code, avatar, kind) VALUES (?, ?, ?, ?)")
+    .bind(id, code, avatar, playerKind)
     .run();
 
-  const player = { id, avatar };
+  const player = { id, avatar, kind: playerKind };
   return NextResponse.json({ ok: true, player, players: [...existing, player] });
 }
