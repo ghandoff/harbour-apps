@@ -144,7 +144,7 @@ export function FoundPicker({
             emojiSrc={
               mat.icon ? `${ICON_BASE}/icons/materials/${mat.icon}.png` : undefined
             }
-            characterName={resolveCharacterFromForm(mat.formPrimary, mat.title)}
+            characterName={mat.preferIcon ? null : resolveCharacterFromForm(mat.formPrimary, mat.title)}
             label={mat.title}
             selected={picked.has(mat.title)}
             onClick={() => toggle(mat.title)}

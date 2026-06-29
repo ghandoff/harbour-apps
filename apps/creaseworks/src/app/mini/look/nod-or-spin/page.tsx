@@ -183,7 +183,7 @@ export default function MiniNodOrSpinPage() {
 
   const mat = deck[idx];
   if (!mat) return null;
-  const char = resolveCharacterFromForm(mat.formPrimary, mat.title);
+  const char = mat.preferIcon ? null : resolveCharacterFromForm(mat.formPrimary, mat.title);
   const foundCount = decisions.filter((d) => d === "got").length;
 
   const flashLabel = flash === "got" ? "got it! ✓" : flash === "skip" ? "skip →" : "← back";
