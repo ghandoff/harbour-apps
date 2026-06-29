@@ -85,7 +85,6 @@ export function RosterSetup({ familyCode }: { familyCode?: string | null }) {
     }
     setPlayers(r.players);
     setBusy(false);
-    if (r.players.length === 0) setAdding(true);
   }
 
   async function add(avatar: string) {
@@ -116,6 +115,24 @@ export function RosterSetup({ familyCode }: { familyCode?: string | null }) {
     setAdding(false);
     setCodeInput("");
   }
+
+  const addGrid = (
+    <div className="rs-add-grid" role="group" aria-label="choose a buddy to add">
+      {available.map((a) => (
+        <button
+          key={a}
+          type="button"
+          className="rs-av"
+          style={{ background: avatarHex(a) }}
+          onClick={() => add(a)}
+          disabled={busy}
+          aria-label={`add ${avatarLabel(a)}`}
+        >
+          {avatarEmoji(a)}
+        </button>
+      ))}
+    </div>
+  );
 
   return (
     <div className="rs">
@@ -150,6 +167,7 @@ export function RosterSetup({ familyCode }: { familyCode?: string | null }) {
         .rs-chip-name { font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif; font-weight: 700; font-size: 12px; color: var(--wv-cadet); }
         button.rs-chip-x { cursor: pointer; background: none; border: none; color: #9ca3af; font-size: 15px; font-weight: 800; line-height: 1; padding: 0 2px; }
         button.rs-chip-x:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 1px; border-radius: 4px; }
+        .rs-add-prompt { font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif; font-weight: 700; font-size: 12.5px; line-height: 1.5; color: var(--wv-cadet); margin: 0 0 8px; }
         button.rs-add-toggle { cursor: pointer; font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif; font-weight: 800; font-size: 13px;
           color: var(--wv-cadet); background: var(--wv-white); border: 1.5px dashed rgba(39, 50, 72, 0.25); border-radius: 12px; padding: 8px 14px; }
         button.rs-add-toggle:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
@@ -236,28 +254,26 @@ export function RosterSetup({ familyCode }: { familyCode?: string | null }) {
             </div>
           )}
 
-          {!full && (
-            <button type="button" className="rs-add-toggle" onClick={() => setAdding((a) => !a)}>
-              {adding ? "done adding" : players.length ? "+ add another buddy" : "+ add a buddy"}
-            </button>
+          {/* empty roster → show the avatars straight away, so adding a child
+              isn't hidden behind a toggle (the gap that left a code with zero
+              avatars). once there's ≥1, collapse behind "add another buddy"
+              for adding throughout — new siblings / classmates. */}
+          {players.length === 0 && !full && (
+            <>
+              <p className="rs-add-prompt">
+                tap a buddy for each child{group.kind === "class" ? " — one per pupil" : ""}. you can add more anytime — new sibling or classmate? add them here.
+              </p>
+              {addGrid}
+            </>
           )}
 
-          {adding && !full && (
-            <div className="rs-add-grid" role="group" aria-label="choose a buddy to add">
-              {available.map((a) => (
-                <button
-                  key={a}
-                  type="button"
-                  className="rs-av"
-                  style={{ background: avatarHex(a) }}
-                  onClick={() => add(a)}
-                  disabled={busy}
-                  aria-label={`add ${avatarLabel(a)}`}
-                >
-                  {avatarEmoji(a)}
-                </button>
-              ))}
-            </div>
+          {players.length > 0 && !full && (
+            <>
+              <button type="button" className="rs-add-toggle" onClick={() => setAdding((a) => !a)}>
+                {adding ? "done adding" : "+ add another buddy"}
+              </button>
+              {adding && addGrid}
+            </>
           )}
 
           <p className="rs-cap">
