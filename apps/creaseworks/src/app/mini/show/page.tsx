@@ -19,6 +19,7 @@ import { MiniStageHero } from "../stage-hero";
 import { postEval } from "@/lib/eval-submit";
 import { FACE_EMOJI } from "@/lib/eval-rubric";
 import { MINI_ACTIVITY_CONTENT } from "@/lib/mini-data";
+import { ReadAloud } from "../read-aloud";
 
 type SendState = "idle" | "sending" | "done" | "error";
 
@@ -269,21 +270,33 @@ export default function MiniShowPage() {
         .mini-kid-q2 { font-size: 16px; margin: 16px 0 10px; }
         .mini-kid-faces { display: flex; gap: 10px; justify-content: center; }
         button.mini-kid-face:not([type="submit"]):not(.wv-header-signout) {
+          position: relative;
           flex: 1; max-width: 110px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px;
           background: var(--wv-white); border: 2px solid rgba(39, 50, 72, 0.14); border-radius: 16px 20px 14px 18px; padding: 12px 8px;
           font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif; font-weight: 800; font-size: 13px; color: var(--wv-cadet);
-          transition: transform 120ms ease, border-color 120ms ease;
+          transition: transform 120ms ease, border-color 120ms ease, scale 120ms ease;
         }
-        button.mini-kid-face[data-on="true"] { border-color: var(--wv-teal); background: var(--wv-mint); transform: translateY(-2px); }
+        button.mini-kid-face[data-on="true"] { border-color: var(--wv-teal);
+          box-shadow: 0 0 0 3px color-mix(in srgb, var(--wv-teal) 35%, var(--wv-white));
+          background: color-mix(in srgb, var(--wv-teal) 18%, var(--wv-white)); transform: translateY(-2px); }
         button.mini-kid-face:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
+        button.mini-kid-face:active { scale: 0.96; }
+        .mini-kid-tick { position: absolute; top: 6px; right: 8px; width: 20px; height: 20px; border-radius: 50%;
+          background: var(--wv-teal); color: var(--wv-white); font-size: 12px; font-weight: 900;
+          display: inline-flex; align-items: center; justify-content: center; }
         .mini-kid-emoji { font-size: 38px; line-height: 1; }
         .mini-kid-again { display: flex; gap: 8px; justify-content: center; }
         button.mini-kid-opt:not([type="submit"]):not(.wv-header-signout) {
           cursor: pointer; font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif; font-weight: 800; font-size: 15px;
           color: var(--wv-cadet); background: var(--wv-white); border: 2px solid rgba(39, 50, 72, 0.14); border-radius: 14px; padding: 10px 22px;
+          transition: scale 120ms ease, border-color 120ms ease, background 120ms ease;
         }
-        button.mini-kid-opt[data-on="true"] { border-color: var(--wv-teal); background: var(--wv-mint); }
+        button.mini-kid-opt[data-on="true"] { border-color: var(--wv-teal); border-width: 2.5px; background: color-mix(in srgb, var(--wv-teal) 24%, var(--wv-white)); }
         button.mini-kid-opt:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
+        button.mini-kid-opt:active { scale: 0.96; }
+        @media (prefers-reduced-motion: reduce) {
+          button.mini-kid-face:active, button.mini-kid-opt:active { scale: 1; }
+        }
         button.mini-kid-send:not([type="submit"]):not(.wv-header-signout) {
           display: block; margin: 18px auto 0; cursor: pointer; font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
           font-weight: 800; font-size: 17px; color: var(--wv-white); background: var(--wv-teal); border: none;
@@ -344,6 +357,7 @@ export default function MiniShowPage() {
                     aria-pressed={kidFun === f}
                     onClick={() => setKidFun(f)}
                   >
+                    {kidFun === f && <span className="mini-kid-tick" aria-hidden="true">✓</span>}
                     <span className="mini-kid-emoji" aria-hidden="true">{FACE_EMOJI[f]}</span>
                     <span>{f}</span>
                   </button>
@@ -360,7 +374,7 @@ export default function MiniShowPage() {
                     aria-pressed={kidAgain === a}
                     onClick={() => setKidAgain(a)}
                   >
-                    {a}
+                    {kidAgain === a && "✓ "}{a}
                   </button>
                 ))}
               </div>
@@ -428,9 +442,10 @@ export default function MiniShowPage() {
 
           <p className="mini-show-section">💬 tell what they discovered</p>
           {unfoldPrompt && (
-            <p className="mini-show-reflect">
-              <strong>talk about it</strong>{unfoldPrompt}
-            </p>
+            <div className="mini-show-reflect">
+              <strong>talk about it</strong>
+              <ReadAloud text={unfoldPrompt} />
+            </div>
           )}
           <textarea
             className="mini-show-words"

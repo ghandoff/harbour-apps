@@ -28,6 +28,7 @@ import {
 import { postEval } from "@/lib/eval-submit";
 import { itemsFor } from "@/lib/eval-rubric";
 import { RosterSetup } from "./roster-setup";
+import { ReadAloud } from "./read-aloud";
 
 const GROWNUP_ITEMS = itemsFor("grownup");
 
@@ -244,16 +245,20 @@ export function GrownUpCorner() {
         button.guc-chip:not([type="submit"]):not(.wv-header-signout) {
           cursor: pointer; font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif; font-weight: 700; font-size: 12.5px;
           color: var(--wv-cadet); background: var(--wv-white); border: 1.5px solid rgba(39, 50, 72, 0.16); border-radius: 11px; padding: 7px 11px;
+          transition: scale 120ms ease, background 120ms ease, border-color 120ms ease;
         }
-        button.guc-chip[data-on="true"] { border-color: var(--wv-teal); background: var(--wv-mint); }
+        button.guc-chip[data-on="true"] { border-color: var(--wv-teal); border-width: 2px; background: color-mix(in srgb, var(--wv-teal) 24%, var(--wv-white)); font-weight: 800; }
         button.guc-chip:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
+        button.guc-chip:active, button.guc-num:active { scale: 0.95; }
         .guc-nums { display: flex; gap: 6px; }
         button.guc-num:not([type="submit"]):not(.wv-header-signout) {
           cursor: pointer; flex: 1; max-width: 48px; font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif; font-weight: 800; font-size: 14px;
           color: var(--wv-cadet); background: var(--wv-white); border: 1.5px solid rgba(39, 50, 72, 0.16); border-radius: 10px; padding: 8px 0;
+          transition: scale 120ms ease, background 120ms ease, border-color 120ms ease;
         }
         button.guc-num[data-on="true"] { border-color: var(--wv-teal); background: var(--wv-teal); color: var(--wv-white); }
         button.guc-num:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
+        @media (prefers-reduced-motion: reduce) { button.guc-chip:active, button.guc-num:active { scale: 1; } }
         .guc-obs-text {
           width: 100%; box-sizing: border-box; font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif; font-size: 13px;
           color: var(--wv-cadet); background: var(--wv-white); border: 1.5px solid rgba(39, 50, 72, 0.16); border-radius: 10px; padding: 8px 10px; resize: vertical;
@@ -314,7 +319,7 @@ export function GrownUpCorner() {
             {unfoldPrompt && (
               <div className="guc-readaloud">
                 <strong>read this aloud:</strong>
-                {unfoldPrompt}
+                <ReadAloud text={unfoldPrompt} />
               </div>
             )}
 
@@ -375,7 +380,7 @@ export function GrownUpCorner() {
                                 data-on={obs[it.id] === opt}
                                 onClick={() => setObs((o) => ({ ...o, [it.id]: opt }))}
                               >
-                                {opt}
+                                {obs[it.id] === opt ? "✓ " : ""}{opt}
                               </button>
                             ))}
                           </div>

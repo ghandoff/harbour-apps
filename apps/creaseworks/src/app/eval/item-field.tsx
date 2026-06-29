@@ -50,6 +50,7 @@ export function ItemField({ item, value, onChange }: Props) {
               aria-pressed={value === opt}
               onClick={() => set(opt)}
             >
+              {value === opt && <span className="ef-face-tick" aria-hidden="true">✓</span>}
               <span className="ef-face-emoji" aria-hidden="true">{FACE_EMOJI[opt] ?? "🙂"}</span>
               <span className="ef-face-label">{opt}</span>
             </button>
@@ -96,7 +97,7 @@ export function ItemField({ item, value, onChange }: Props) {
               aria-pressed={value === opt}
               onClick={() => set(opt)}
             >
-              {opt}
+              {value === opt && <span className="ef-tick" aria-hidden="true">✓ </span>}{opt}
             </button>
           ))}
         </div>

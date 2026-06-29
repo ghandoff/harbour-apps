@@ -166,9 +166,14 @@ export default function EvalPlayPage({ params }: { params: Promise<{ slug: strin
           font-size: 13.5px; color: var(--wv-cadet); background: var(--wv-white);
           border: 2px solid rgba(39,50,72,0.14); border-radius: 12px; padding: 8px 14px;
           transition: all 120ms ease; }
-        button.ef-opt[data-on="true"] { border-color: var(--wv-teal);
-          background: color-mix(in srgb, var(--wv-mint) 40%, var(--wv-white)); color: var(--wv-cadet); }
+        button.ef-opt[data-on="true"] { border-color: var(--wv-teal); border-width: 2.5px;
+          background: color-mix(in srgb, var(--wv-teal) 26%, var(--wv-white)); color: var(--wv-cadet); font-weight: 800; }
+        .ef-tick { color: var(--wv-teal); font-weight: 900; }
         button.ef-opt:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
+        button.ef-opt:active, button.ef-scalebtn:active, button.ef-face:active, button.ef-check:active { scale: 0.96; }
+        @media (prefers-reduced-motion: reduce) {
+          button.ef-opt:active, button.ef-scalebtn:active, button.ef-face:active, button.ef-check:active { scale: 1; }
+        }
         .ef-scale { display: flex; gap: 8px; }
         button.ef-scalebtn:not([type="submit"]) { cursor: pointer; flex: 1; max-width: 56px; font-family: inherit;
           font-weight: 800; font-size: 15px; color: var(--wv-cadet); background: var(--wv-white);
@@ -183,11 +188,16 @@ export default function EvalPlayPage({ params }: { params: Promise<{ slug: strin
 
         /* kid faces — all-positive, big and tappable */
         .ef-faces { display: flex; gap: 12px; flex-wrap: wrap; }
-        button.ef-face:not([type="submit"]) { cursor: pointer; font-family: inherit; display: flex; flex-direction: column;
+        button.ef-face:not([type="submit"]) { position: relative; cursor: pointer; font-family: inherit; display: flex; flex-direction: column;
           align-items: center; gap: 4px; background: var(--wv-white); border: 2px solid rgba(39,50,72,0.14);
           border-radius: 16px 20px 14px 18px; padding: 12px 18px; min-width: 92px; transition: all 120ms ease; }
-        button.ef-face[data-on="true"] { border-color: var(--wv-teal); background: color-mix(in srgb, var(--wv-mint) 45%, var(--wv-white)); transform: translateY(-2px); }
+        button.ef-face[data-on="true"] { border-color: var(--wv-teal);
+          box-shadow: 0 0 0 3px color-mix(in srgb, var(--wv-teal) 35%, var(--wv-white));
+          background: color-mix(in srgb, var(--wv-teal) 18%, var(--wv-white)); transform: translateY(-2px); }
         button.ef-face:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
+        .ef-face-tick { position: absolute; top: 6px; right: 8px; width: 20px; height: 20px; border-radius: 50%;
+          background: var(--wv-teal); color: var(--wv-white); font-size: 12px; font-weight: 900;
+          display: inline-flex; align-items: center; justify-content: center; }
         .ef-face-emoji { font-size: 40px; line-height: 1; }
         .ef-face-label { font-weight: 800; font-size: 14px; color: var(--wv-cadet); }
 
@@ -196,7 +206,8 @@ export default function EvalPlayPage({ params }: { params: Promise<{ slug: strin
         button.ef-check:not([type="submit"]) { cursor: pointer; font-family: inherit; display: flex; align-items: center; gap: 10px;
           text-align: left; font-weight: 700; font-size: 14px; color: var(--wv-cadet); background: var(--wv-white);
           border: 2px solid rgba(39,50,72,0.14); border-radius: 12px; padding: 10px 14px; width: 100%; transition: all 120ms ease; }
-        button.ef-check[data-on="true"] { border-color: var(--wv-teal); background: color-mix(in srgb, var(--wv-mint) 40%, var(--wv-white)); }
+        button.ef-check[data-on="true"] { border-color: var(--wv-teal); border-width: 2.5px; background: color-mix(in srgb, var(--wv-teal) 20%, var(--wv-white)); }
+        button.ef-check[data-on="true"] .ef-check-box { background: var(--wv-teal); color: var(--wv-white); }
         button.ef-check:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
         .ef-check-box { flex: none; width: 22px; height: 22px; border-radius: 6px; border: 2px solid var(--wv-teal);
           display: inline-flex; align-items: center; justify-content: center; font-weight: 900; color: var(--wv-teal); font-size: 14px; }
