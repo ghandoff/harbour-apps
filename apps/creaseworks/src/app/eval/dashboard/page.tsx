@@ -151,6 +151,37 @@ export default async function EvalDashboard() {
   const nGrown = rows.filter((r) => r.register === "grownup").length;
   const nColl = rows.filter((r) => r.register === "collective").length;
 
+  // sprint readiness — one row per game for the camp's rank-on-Miro step.
+  // the tool measures (overall coherence + coverage + divergence + verdict);
+  // the collective ranks. coverage surfaces thin-data games so they aren't
+  // ranked with false confidence.
+  const readiness = EVAL_PLAYDATES.map((p) => {
+    const subs = byPlaydate.get(p.slug) ?? [];
+    const coll = subs.filter((s) => s.register === "collective");
+    const cellVals = SCORED_LAYERS.map((c) => mean(subs.map((s) => layerScore(c.key, s.answers)))).filter(
+      (v): v is number => v !== null,
+    );
+    const overall = cellVals.length ? cellVals.reduce((a, b) => a + b, 0) / cellVals.length : null;
+    let maxSplit = 0;
+    for (const item of COLLECTIVE_ITEMS) {
+      const vals = coll.map((s) => s.answers[item.id]).filter((v) => v !== undefined);
+      if (vals.length < 2) continue;
+      const { split } = splitOf(item, vals);
+      if (split > maxSplit) maxSplit = split;
+    }
+    return {
+      slug: p.slug,
+      title: p.title,
+      overall,
+      nKid: subs.filter((s) => s.register === "kid").length,
+      nGrown: subs.filter((s) => s.register === "grownup").length,
+      nColl: coll.length,
+      total: subs.length,
+      maxSplit,
+      verdict: modal(coll.map((s) => verdictCall(s.answers))),
+    };
+  }).sort((a, b) => (b.overall ?? -1) - (a.overall ?? -1));
+
   return (
     <div>
       <style>{`
@@ -238,6 +269,34 @@ export default async function EvalDashboard() {
         </div>
       ) : (
         <>
+          <div className="ed-card">
+            <h2>sprint readiness</h2>
+            <p className="note">
+              rank input for the camp: overall coherence (0&ndash;100), how many reads back it (coverage by 🧒 kids / 👀 grown-ups / 🧭 collective), where the room most splits, and the modal call. the tool measures &mdash; you rank on Miro. ⚠ marks thin coverage (under 2 reads) &mdash; don&rsquo;t over-rank it.
+            </p>
+            <table className="ed-roll">
+              <thead>
+                <tr><th>game</th><th>readiness</th><th>reads 🧒/👀/🧭</th><th>divergence</th><th>verdict</th></tr>
+              </thead>
+              <tbody>
+                {readiness.map((r) => {
+                  const cl = cell(r.overall);
+                  return (
+                    <tr key={r.slug}>
+                      <td data-label="game" style={{ fontWeight: 700 }}>{r.total < 2 ? "⚠ " : ""}{r.title}</td>
+                      <td data-label="readiness">
+                        <span className="ed-pill" style={{ background: cl.bg, color: cl.fg }}>{cl.txt === "—" ? "no data" : cl.txt}</span>
+                      </td>
+                      <td data-label="reads">{r.nKid}/{r.nGrown}/{r.nColl}</td>
+                      <td data-label="divergence">{r.nColl < 2 ? "—" : `${Math.round(r.maxSplit * 100)}%`}</td>
+                      <td data-label="verdict">{r.verdict ?? "—"}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
           <div className="ed-card">
             <h2>the heatmap</h2>
             <p className="note">average health (0–100) per column. kids 🧒 = what children felt · watched 👀 = grown-ups&rsquo; observed involvement · lenses 1–4 = the collective&rsquo;s review. these are different lenses on the same playdate — read them side by side, not summed.</p>

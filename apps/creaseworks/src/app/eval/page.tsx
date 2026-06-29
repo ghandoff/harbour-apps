@@ -21,17 +21,26 @@ import {
 const NAME_KEY = "cw-eval-name";
 const REG_KEY = "cw-eval-register";
 
+// the collective — tap your name so the dashboard attributes reads cleanly
+// (no free-type drift); "someone else" opens a field for friends/family.
+// interim until @windedvertigo.com Google login (unified-auth track).
+const COLLECTIVE = ["jamie", "garrett", "maria", "payton", "lamis"];
+
 export default function EvalHome() {
   const router = useRouter();
   const [register, setRegister] = useState<Register | null>(null);
   const [name, setName] = useState("");
+  const [customName, setCustomName] = useState(false);
 
   // restore a prior session so a returning evaluator isn't re-asked
   useEffect(() => {
     try {
       const n = sessionStorage.getItem(NAME_KEY);
       const r = sessionStorage.getItem(REG_KEY) as Register | null;
-      if (n) setName(n);
+      if (n) {
+        setName(n);
+        if (!COLLECTIVE.includes(n.toLowerCase())) setCustomName(true);
+      }
       if (r === "kid" || r === "grownup" || r === "collective") setRegister(r);
       // deep-link from the mini's grown-up corner: #collective (a HASH, not a
       // query — a query on the basePath root 404s in Next; the hash is
@@ -74,7 +83,18 @@ export default function EvalHome() {
         .eh-reg-label { font-weight: 800; font-size: 16px; color: var(--wv-cadet); margin: 8px 0 2px; }
         .eh-reg-sub { font-size: 13px; line-height: 1.5; color: #4b5563; }
         .eh-name { display: ${register ? "block" : "none"}; margin-bottom: 22px; }
-        .eh-name label { display: block; font-weight: 800; font-size: 14px; color: var(--wv-cadet); margin-bottom: 6px; }
+        .eh-name-label { font-weight: 800; font-size: 14px; color: var(--wv-cadet); margin: 0 0 8px; }
+        .eh-names { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+        button.eh-namechip:not([type="submit"]) {
+          cursor: pointer; font-family: inherit; font-weight: 700; font-size: 14px; text-transform: capitalize;
+          color: var(--wv-cadet); background: var(--wv-white); border: 2px solid rgba(39,50,72,0.16);
+          border-radius: 12px; padding: 9px 16px; transition: all 120ms ease;
+        }
+        button.eh-namechip[data-on="true"] { border-color: var(--wv-teal); border-width: 2.5px;
+          background: color-mix(in srgb, var(--wv-teal) 26%, var(--wv-white)); font-weight: 800; }
+        button.eh-namechip:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
+        button.eh-namechip:active { scale: 0.96; }
+        @media (prefers-reduced-motion: reduce) { button.eh-namechip:active { scale: 1; } }
         .eh-name input {
           width: 100%; box-sizing: border-box; font-family: inherit; font-size: 15px;
           color: var(--wv-cadet); background: var(--wv-white); border: 2px solid rgba(39,50,72,0.16);
@@ -127,16 +147,42 @@ export default function EvalHome() {
       </div>
 
       <div className="eh-name">
-        <label htmlFor="eh-name-input">your name (so the team knows whose eyes these are)</label>
-        <input
-          id="eh-name-input"
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="e.g. jamie"
-          maxLength={60}
-          autoCapitalize="words"
-        />
+        <p className="eh-name-label">who&rsquo;s evaluating? (so the team knows whose eyes these are)</p>
+        <div className="eh-names">
+          {COLLECTIVE.map((n) => (
+            <button
+              key={n}
+              type="button"
+              className="eh-namechip"
+              data-on={!customName && name === n}
+              aria-pressed={!customName && name === n}
+              onClick={() => { setCustomName(false); setName(n); }}
+            >
+              {!customName && name === n ? "✓ " : ""}{n}
+            </button>
+          ))}
+          <button
+            type="button"
+            className="eh-namechip"
+            data-on={customName}
+            aria-pressed={customName}
+            onClick={() => { setCustomName(true); setName(""); }}
+          >
+            someone else
+          </button>
+        </div>
+        {customName && (
+          <input
+            id="eh-name-input"
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="your name"
+            maxLength={60}
+            autoCapitalize="words"
+            autoFocus
+          />
+        )}
       </div>
 
       <p className="eh-h">pick a playdate to evaluate</p>
