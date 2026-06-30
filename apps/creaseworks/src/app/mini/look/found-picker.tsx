@@ -208,9 +208,9 @@ export function FoundPicker({
             key={mat.id}
             emoji={mat.emoji ?? "🧱"}
             emojiSrc={
-              mat.icon ? `${ICON_BASE}/icons/materials/${mat.icon}.png` : undefined
+              mat.iconUrl ?? (mat.icon ? `${ICON_BASE}/icons/materials/${mat.icon}.png` : undefined)
             }
-            characterName={mat.preferIcon ? null : resolveCharacterFromForm(mat.formPrimary, mat.title)}
+            characterName={mat.preferIcon || mat.iconUrl ? null : resolveCharacterFromForm(mat.formPrimary, mat.title)}
             label={mat.title}
             selected={picked.has(mat.title)}
             onClick={() => toggle(mat.title)}

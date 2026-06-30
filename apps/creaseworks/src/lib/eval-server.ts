@@ -27,18 +27,34 @@ export interface EvalD1 {
   };
 }
 
+/** Minimal R2 surface — only what the material-icon routes use. */
+export interface EvalR2Object {
+  body: ReadableStream;
+  httpMetadata?: { contentType?: string };
+}
+export interface EvalR2 {
+  put(
+    key: string,
+    value: ArrayBuffer | ReadableStream,
+    opts?: { httpMetadata?: { contentType?: string } },
+  ): Promise<unknown>;
+  get(key: string): Promise<EvalR2Object | null>;
+}
+
 export interface EvalEnv {
   db: EvalD1;
+  /** material-icons bucket — present only on the eval worker (null elsewhere). */
+  icons: EvalR2 | null;
 }
 
 /** Binding, or null when running in a flavour without the eval store. */
 export function getEvalEnv(): EvalEnv | null {
   try {
     const { env } = getCloudflareContext() as unknown as {
-      env: { EVAL_DB?: EvalD1 };
+      env: { EVAL_DB?: EvalD1; MATERIAL_ICONS?: EvalR2 };
     };
     if (!env?.EVAL_DB) return null;
-    return { db: env.EVAL_DB };
+    return { db: env.EVAL_DB, icons: env.MATERIAL_ICONS ?? null };
   } catch {
     return null;
   }

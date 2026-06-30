@@ -2,12 +2,13 @@
  * cw-materials — client for the open-ended materials pipeline.
  *
  * Kids submit materials that aren't on the list (used privately in their
- * session); the collective reviews them on the dashboard. Same-host,
- * root-relative POST to the eval worker (mirrors cw-trace / cw-identity).
- * Everything fails soft — a dropped submission must never break play.
+ * session); the collective reviews them; Payton uploads 3 icon candidates;
+ * the family picks the one that goes live. Same-host, root-relative calls to
+ * the eval worker (mirrors cw-trace / cw-identity). Everything fails soft.
  */
 
 const MATERIALS_URL = "/harbour/creaseworks-eval/api/eval/materials";
+const ICONS_URL = "/harbour/creaseworks-eval/api/eval/materials/icons";
 
 /** The material form categories (formPrimary) — these drive the character
  *  cast + matching, so the collective assigns one when accepting. Kept in
@@ -32,8 +33,19 @@ export interface SubmittedMaterial {
   description: string | null;
   form_primary: string | null;
   status: string;
+  icon_candidate_urls: string | null; // json array (icons_proposed onward)
   chosen_icon_url: string | null;
   created_at: string;
+}
+
+/** Parse the stored json array of candidate icon URLs (or []). */
+export function iconCandidates(m: SubmittedMaterial): string[] {
+  try {
+    const a = m.icon_candidate_urls ? JSON.parse(m.icon_candidate_urls) : [];
+    return Array.isArray(a) ? a.filter((u) => typeof u === "string") : [];
+  } catch {
+    return [];
+  }
 }
 
 /** Submit a kid-found material for collective review. Returns true on 200. */
@@ -60,10 +72,13 @@ export async function submitMaterial(input: {
   }
 }
 
-/** List submissions by status (default pending) for the review card. */
-export async function fetchMaterials(status = "pending"): Promise<SubmittedMaterial[]> {
+/** List submissions by status (default pending), optionally scoped to a
+ *  group, or status="all" for a family's whole collection (group required). */
+export async function fetchMaterials(status = "pending", group?: string | null): Promise<SubmittedMaterial[]> {
   try {
-    const res = await fetch(`${MATERIALS_URL}?status=${encodeURIComponent(status)}`);
+    const qs = new URLSearchParams({ status });
+    if (group) qs.set("group", group);
+    const res = await fetch(`${MATERIALS_URL}?${qs.toString()}`);
     if (!res.ok) return [];
     const body = (await res.json()) as { materials?: SubmittedMaterial[] };
     return Array.isArray(body.materials) ? body.materials : [];
@@ -89,6 +104,40 @@ export async function reviewMaterial(input: {
         form_primary: input.formPrimary,
         reviewer: input.reviewer,
       }),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+/** Payton: upload exactly 3 bespoke icon candidates for an accepted material. */
+export async function uploadIcons(input: {
+  id: string;
+  files: File[];
+  reviewer?: string | null;
+}): Promise<string[] | null> {
+  try {
+    const form = new FormData();
+    form.set("id", input.id);
+    if (input.reviewer) form.set("reviewer", input.reviewer);
+    input.files.slice(0, 3).forEach((f, i) => form.set(`icon${i}`, f));
+    const res = await fetch(ICONS_URL, { method: "POST", body: form });
+    if (!res.ok) return null;
+    const body = (await res.json()) as { urls?: string[] };
+    return Array.isArray(body.urls) ? body.urls : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Family: pick the icon that goes live (→ status live + spotlight). */
+export async function chooseIcon(input: { id: string; chosenIconUrl: string }): Promise<boolean> {
+  try {
+    const res = await fetch(MATERIALS_URL, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: input.id, action: "choose", chosen_icon_url: input.chosenIconUrl }),
     });
     return res.ok;
   } catch {

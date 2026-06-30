@@ -19,6 +19,14 @@ export interface MiniMaterial {
    * materials where the cast mapping reads as confusing (e.g. a shoebox).
    */
   preferIcon?: boolean;
+  /**
+   * Promoted open-ended materials (B5): a bespoke-icon URL (served by the
+   * eval worker) instead of the bundled icons/materials/<icon>.png, plus the
+   * family/class code that discovered it (recognition — surfaced in the
+   * grown-up corner, not the kid grid).
+   */
+  iconUrl?: string;
+  discoveredBy?: string;
 }
 
 export const MINI_MATERIALS: MiniMaterial[] = [
