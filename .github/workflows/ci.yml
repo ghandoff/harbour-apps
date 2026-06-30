@@ -40,13 +40,15 @@ jobs:
           cache: npm
           cache-dependency-path: package-lock.json
 
-      # `npm install` (not `npm ci`): a mac-generated lockfile omits the
-      # linux native binaries (rollup/rolldown), so `npm ci` — which installs
-      # the lockfile verbatim — can't find @rollup/rollup-linux-x64-gnu in CI
-      # (npm optional-deps bug, npm/cli#4828). `npm install` re-resolves the
-      # correct platform binary; the ephemeral lockfile drift is discarded.
+      # npm records only the CURRENT platform's native optional deps in
+      # package-lock.json (npm#4828), and our committed lockfile is macOS-only
+      # (@rollup/rollup-darwin-arm64) — so both `npm ci` and `npm install`
+      # skip @rollup/rollup-linux-x64-gnu on this linux runner and vitest/rollup
+      # die with "Cannot find module". Deleting the throwaway lockfile forces a
+      # full re-resolve for linux. The committed lockfile in the repo is left
+      # untouched; only this ephemeral CI copy is regenerated.
       - name: Install dependencies
-        run: npm install
+        run: rm -f package-lock.json && npm install
         working-directory: .
 
       - name: TypeScript check
