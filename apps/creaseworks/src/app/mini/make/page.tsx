@@ -22,6 +22,7 @@ import {
   loadFound,
   matchActivities,
   miniHref,
+  saveSelected,
   MINI_ACTIVITIES,
   type MiniMatch,
 } from "@/lib/mini-pilot";
@@ -42,9 +43,14 @@ export default function MiniMakePage() {
 
   const matched = hasFound && matches ? matches[0] : null;
 
-  // trace every playdate opened (switching logs each open)
+  // trace every playdate opened (switching logs each open) + persist the
+  // choice so the show stage attributes the reflection/eval/evidence to the
+  // game the child actually played — not a re-guess from the matcher.
   useEffect(() => {
-    if (selectedSlug) logEvent("activity_open", { stage: "make", activity: selectedSlug });
+    if (selectedSlug) {
+      saveSelected(selectedSlug);
+      logEvent("activity_open", { stage: "make", activity: selectedSlug });
+    }
   }, [selectedSlug]);
 
   const selected = selectedSlug ? MINI_ACTIVITIES.find((a) => a.slug === selectedSlug) ?? null : null;
