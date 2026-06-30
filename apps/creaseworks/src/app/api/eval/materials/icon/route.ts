@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
 
   const key = req.nextUrl.searchParams.get("key") ?? "";
   // strict shape: <uuid>/<0-2>.<ext> — no traversal, no reading arbitrary keys
-  if (!/^[0-9a-f-]{36}\/[0-2]\.(png|svg|webp|jpg)$/.test(key)) {
+  if (!/^[0-9a-f-]{36}\/[0-2]\.(png|webp|jpg)$/.test(key)) {
     return NextResponse.json({ error: "bad key" }, { status: 400 });
   }
 

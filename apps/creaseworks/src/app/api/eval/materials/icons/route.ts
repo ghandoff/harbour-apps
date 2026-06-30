@@ -11,9 +11,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getEvalEnv } from "@/lib/eval-server";
 
+// No SVG: it can carry inline script and the worker's global CSP allows
+// 'unsafe-inline', so a malicious SVG opened directly would run same-origin
+// (the icon upload isn't authenticated). Raster only — can't execute.
 const ICON_TYPES: Record<string, string> = {
   "image/png": "png",
-  "image/svg+xml": "svg",
   "image/webp": "webp",
   "image/jpeg": "jpg",
 };

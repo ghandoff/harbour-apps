@@ -62,7 +62,7 @@ export function MaterialsIcons() {
       `}</style>
       <h2>icons to design 🎨 <span style={{ fontWeight: 600, fontSize: 13, color: "#6b7280" }}>(payton)</span></h2>
       <p className="note">
-        accepted materials waiting for icons. upload <strong>3 bespoke candidates</strong> each — the family then picks the one that goes live. png / svg / webp, ≤ 512KB.
+        accepted materials waiting for icons. upload <strong>3 bespoke candidates</strong> each — the family then picks the one that goes live. png / webp / jpg, ≤ 512KB.
       </p>
 
       {!reviewer && (
@@ -81,7 +81,7 @@ export function MaterialsIcons() {
               <input
                 key={i}
                 type="file"
-                accept="image/png,image/svg+xml,image/webp,image/jpeg"
+                accept="image/png,image/webp,image/jpeg"
                 aria-label={`${m.title} icon candidate ${i + 1}`}
                 onChange={(e) => {
                   const arr = files.current[m.id] ?? [null, null, null];
