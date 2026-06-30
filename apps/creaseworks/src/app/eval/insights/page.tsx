@@ -70,7 +70,9 @@ export default async function EvalInsights() {
       (
         await env.db
           .prepare(
-            "SELECT group_code, player_id, device_token, session_id, event_type, stage, activity, created_at FROM events ORDER BY created_at ASC",
+            // rolling 90-day window — bounds the scan as events grow over the
+            // sprint (covers the whole pilot; uses idx_events_created).
+            "SELECT group_code, player_id, device_token, session_id, event_type, stage, activity, created_at FROM events WHERE created_at >= datetime('now', '-90 days') ORDER BY created_at ASC",
           )
           .all<EventRow>()
       ).results ?? [];

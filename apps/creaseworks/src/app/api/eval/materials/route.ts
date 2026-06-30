@@ -60,6 +60,23 @@ export async function POST(req: NextRequest) {
   const description = str(json.description, DESC_MAX);
   const submittedBy = str(json.submitted_by, EVAL_NAME_MAX);
 
+  // dedup: the same family re-submitting the same title is idempotent — no
+  // duplicate row, no second Slack ping (guards double-taps + spam).
+  const dup = await env.db
+    .prepare("SELECT id FROM submitted_materials WHERE group_code = ? AND lower(title) = lower(?) AND status != 'declined'")
+    .bind(code, title)
+    .first();
+  if (dup) return NextResponse.json({ ok: true, deduped: true });
+
+  // cap the pending queue per family so no one can flood review + #crease-camp.
+  const pend = await env.db
+    .prepare("SELECT count(*) AS n FROM submitted_materials WHERE group_code = ? AND status = 'pending'")
+    .bind(code)
+    .first<{ n: number }>();
+  if ((pend?.n ?? 0) >= 12) {
+    return NextResponse.json({ error: "lots waiting for review already — let the collective catch up first" }, { status: 429 });
+  }
+
   await env.db
     .prepare(
       "INSERT INTO submitted_materials (id, group_code, submitted_by, title, description, status) VALUES (?, ?, ?, ?, ?, 'pending')",
@@ -119,19 +136,28 @@ export async function PATCH(req: NextRequest) {
   } else if (action === "choose") {
     const chosen = str(json.chosen_icon_url, URL_MAX);
     if (!chosen) return NextResponse.json({ error: "chosen_icon_url required" }, { status: 400 });
+    const m = await env.db
+      .prepare("SELECT status, icon_candidate_urls, title, group_code FROM submitted_materials WHERE id=?")
+      .bind(id)
+      .first<{ status: string; icon_candidate_urls: string | null; title: string; group_code: string }>();
+    if (!m || m.status !== "icons_proposed") {
+      return NextResponse.json({ error: "not awaiting an icon choice" }, { status: 409 });
+    }
+    // the chosen URL MUST be one Payton actually proposed — never an arbitrary
+    // caller-supplied URL, which would become the tile icon for EVERYONE.
+    let candidates: string[] = [];
+    try {
+      const a = m.icon_candidate_urls ? JSON.parse(m.icon_candidate_urls) : [];
+      candidates = Array.isArray(a) ? a : [];
+    } catch {}
+    if (!candidates.includes(chosen)) {
+      return NextResponse.json({ error: "chosen icon must be one of the proposed candidates" }, { status: 400 });
+    }
     await env.db
-      .prepare(
-        "UPDATE submitted_materials SET chosen_icon_url=?, status='live' WHERE id=? AND status='icons_proposed'",
-      )
+      .prepare("UPDATE submitted_materials SET chosen_icon_url=?, status='live' WHERE id=? AND status='icons_proposed'")
       .bind(chosen, id)
       .run();
-    const row = await env.db
-      .prepare("SELECT title, group_code FROM submitted_materials WHERE id=?")
-      .bind(id)
-      .first<{ title: string; group_code: string }>();
-    if (row) {
-      await slack(`🌟 *[creaseworks]* a new material is live — *${row.title}*, discovered by the ${row.group_code} family! it's now on the list for everyone 🎉`, "spotlight");
-    }
+    await slack(`🌟 *[creaseworks]* a new material is live — *${m.title}*, discovered by the ${m.group_code} family! it's now on the list for everyone 🎉`, "spotlight");
   } else {
     await env.db
       .prepare(

@@ -16,8 +16,11 @@ export async function GET(req: NextRequest) {
   const env = getEvalEnv();
   if (!env?.icons) return NextResponse.json({ error: "not available" }, { status: 404 });
 
-  const key = req.nextUrl.searchParams.get("key");
-  if (!key || key.includes("..")) return NextResponse.json({ error: "bad key" }, { status: 400 });
+  const key = req.nextUrl.searchParams.get("key") ?? "";
+  // strict shape: <uuid>/<0-2>.<ext> — no traversal, no reading arbitrary keys
+  if (!/^[0-9a-f-]{36}\/[0-2]\.(png|webp|jpg)$/.test(key)) {
+    return NextResponse.json({ error: "bad key" }, { status: 400 });
+  }
 
   const obj = await env.icons.get(key);
   if (!obj) return NextResponse.json({ error: "not found" }, { status: 404 });
@@ -26,6 +29,10 @@ export async function GET(req: NextRequest) {
     headers: {
       "Content-Type": obj.httpMetadata?.contentType ?? "application/octet-stream",
       "Cache-Control": "public, max-age=31536000, immutable",
+      // an uploaded SVG could carry script; block sniffing + execution when the
+      // icon URL is opened directly (img-loading ignores CSP, so tiles are fine)
+      "X-Content-Type-Options": "nosniff",
+      "Content-Security-Policy": "default-src 'none'; sandbox",
     },
   });
 }

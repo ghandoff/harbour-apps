@@ -11,9 +11,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getEvalEnv } from "@/lib/eval-server";
 
+// No SVG: it can carry inline script and the worker's global CSP allows
+// 'unsafe-inline', so a malicious SVG opened directly would run same-origin
+// (the icon upload isn't authenticated). Raster only — can't execute.
 const ICON_TYPES: Record<string, string> = {
   "image/png": "png",
-  "image/svg+xml": "svg",
   "image/webp": "webp",
   "image/jpeg": "jpg",
 };
@@ -29,7 +31,10 @@ export async function POST(req: NextRequest) {
   if (!form) return NextResponse.json({ error: "multipart form required" }, { status: 400 });
 
   const id = String(form.get("id") ?? "").slice(0, 64);
-  if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
+  // UUID-shaped only — id becomes an R2 key prefix, so reject anything with a
+  // slash / traversal before a key is constructed (defence-in-depth; the DB
+  // lookup below also gates non-existent ids).
+  if (!/^[0-9a-f-]{36}$/.test(id)) return NextResponse.json({ error: "valid id required" }, { status: 400 });
 
   // only accepted materials may receive icons
   const row = await env.db
