@@ -56,7 +56,7 @@ export function FamilyMaterials() {
   async function pick(m: SubmittedMaterial, url: string) {
     if (busy) return;
     setBusy(m.id);
-    const ok = await chooseIcon({ id: m.id, chosenIconUrl: url });
+    const ok = await chooseIcon({ id: m.id, chosenIconUrl: url, group: code ?? "" });
     setBusy(null);
     if (ok && code) void load(code);
   }

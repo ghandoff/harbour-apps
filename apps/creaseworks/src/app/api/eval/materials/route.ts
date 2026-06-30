@@ -14,7 +14,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { getEvalEnv, normalizeGroupCode, EVAL_NAME_MAX } from "@/lib/eval-server";
+import { getEvalEnv, normalizeGroupCode, isCollective, EVAL_NAME_MAX } from "@/lib/eval-server";
 
 const TITLE_MAX = 48;
 const DESC_MAX = 280;
@@ -124,6 +124,12 @@ export async function PATCH(req: NextRequest) {
   const reviewer = str(json.reviewer, EVAL_NAME_MAX);
   if (!id || !action) return NextResponse.json({ error: "id + action required" }, { status: 400 });
 
+  // collective-only moderation for accept/decline (choose is gated by group
+  // ownership inside its branch below).
+  if ((action === "accept" || action === "decline") && !isCollective(reviewer)) {
+    return NextResponse.json({ error: "only the collective can review materials" }, { status: 403 });
+  }
+
   if (action === "accept") {
     const form = str(json.form_primary, FORM_MAX);
     if (!form) return NextResponse.json({ error: "form_primary required to accept" }, { status: 400 });
@@ -142,6 +148,12 @@ export async function PATCH(req: NextRequest) {
       .first<{ status: string; icon_candidate_urls: string | null; title: string; group_code: string }>();
     if (!m || m.status !== "icons_proposed") {
       return NextResponse.json({ error: "not awaiting an icon choice" }, { status: 409 });
+    }
+    // only the family that discovered it may pick the icon — they prove it by
+    // supplying their own code (which equals the material's group_code).
+    const group = normalizeGroupCode(json.group);
+    if (!group || group !== m.group_code) {
+      return NextResponse.json({ error: "only the family that found it can choose its icon" }, { status: 403 });
     }
     // the chosen URL MUST be one Payton actually proposed — never an arbitrary
     // caller-supplied URL, which would become the tile icon for EVERYONE.

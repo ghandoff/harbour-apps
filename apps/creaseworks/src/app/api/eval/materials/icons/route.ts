@@ -9,7 +9,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { getEvalEnv } from "@/lib/eval-server";
+import { getEvalEnv, isCollective, EVAL_NAME_MAX } from "@/lib/eval-server";
 
 // No SVG: it can carry inline script and the worker's global CSP allows
 // 'unsafe-inline', so a malicious SVG opened directly would run same-origin
@@ -36,6 +36,12 @@ export async function POST(req: NextRequest) {
   // lookup below also gates non-existent ids).
   if (!/^[0-9a-f-]{36}$/.test(id)) return NextResponse.json({ error: "valid id required" }, { status: 400 });
 
+  // collective-only: uploading icons is a moderation action
+  const reviewer = String(form.get("reviewer") ?? "").slice(0, EVAL_NAME_MAX) || null;
+  if (!isCollective(reviewer)) {
+    return NextResponse.json({ error: "only the collective can upload icons" }, { status: 403 });
+  }
+
   // only accepted materials may receive icons
   const row = await env.db
     .prepare("SELECT status FROM submitted_materials WHERE id = ?")
@@ -60,7 +66,6 @@ export async function POST(req: NextRequest) {
     urls.push(`${SERVE_BASE}?key=${encodeURIComponent(key)}`);
   }
 
-  const reviewer = String(form.get("reviewer") ?? "").slice(0, 60) || null;
   await env.db
     .prepare(
       "UPDATE submitted_materials SET icon_candidate_urls = ?, status = 'icons_proposed', accepted_by = COALESCE(?, accepted_by) WHERE id = ? AND status = 'accepted'",
