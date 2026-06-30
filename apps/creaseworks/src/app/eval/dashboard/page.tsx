@@ -28,6 +28,7 @@ import {
   coherenceRaw,
   verdictCall,
 } from "@/lib/eval-score";
+import { MaterialsReview } from "./materials-review";
 
 export const dynamic = "force-dynamic";
 
@@ -313,6 +314,9 @@ export default async function EvalDashboard() {
           open full engagement insights — within-child, cohorts, justice →
         </Link>
       </div>
+
+      {/* B3 — collective moderation of kid-submitted open-ended materials */}
+      <MaterialsReview />
 
       {rows.length === 0 ? (
         <div className="ed-empty">

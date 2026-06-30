@@ -17,10 +17,16 @@ import { resolveCharacterFromForm } from "@windedvertigo/characters";
 import { EmojiTile } from "@/components/matcher/emoji-tile";
 import { MINI_MATERIALS } from "@/lib/mini-data";
 import { MINI_AT_ROOT, miniHref, saveFound } from "@/lib/mini-pilot";
+import { getGroup, getSelectedPlayer } from "@/lib/cw-identity";
+import { submitMaterial } from "@/lib/cw-materials";
 
 // plain <img> srcs don't get basePath auto-prepended — serve icons from
 // whichever flavour this build is mounted at
 const ICON_BASE = MINI_AT_ROOT ? "/harbour/creaseworks-mini" : "/harbour/creaseworks";
+
+// titles already on the list — a typed match selects the tile instead of
+// submitting a duplicate for review.
+const MATERIAL_TITLES = new Set(MINI_MATERIALS.map((m) => m.title));
 
 export function FoundPicker({
   /** heading above the grid — modes set their own framing */
@@ -46,6 +52,23 @@ export function FoundPicker({
       return next;
     });
   }, []);
+
+  // "bring back whatever you find" — a material that isn't on the list.
+  // Used privately in this session immediately; submitted to the collective
+  // for review (only when a family/class code is set, so it's attributable).
+  const [custom, setCustom] = useState<string[]>([]);
+  const [draft, setDraft] = useState("");
+
+  const addCustom = useCallback(() => {
+    const title = draft.trim().toLowerCase().slice(0, 48);
+    if (!title) return;
+    setPicked((prev) => new Set(prev).add(title));
+    setDraft("");
+    if (MATERIAL_TITLES.has(title)) return; // already listed — just select it
+    setCustom((prev) => (prev.includes(title) ? prev : [...prev, title]));
+    const code = getGroup()?.code;
+    if (code) void submitMaterial({ code, title, submittedBy: getSelectedPlayer()?.avatar ?? null });
+  }, [draft]);
 
   const done = useCallback(() => {
     if (onDone) {
@@ -85,10 +108,53 @@ export function FoundPicker({
           display: grid;
           grid-template-columns: repeat(3, 1fr);
           gap: 10px;
-          padding-bottom: 96px; /* room for the sticky done bar */
+          padding-bottom: 14px;
         }
         @media (min-width: 480px) {
           .mini-found-grid { grid-template-columns: repeat(4, 1fr); }
+        }
+        .mini-found-add {
+          padding: 4px 0 96px; /* clears the sticky done bar */
+        }
+        .mini-found-add-label {
+          display: block;
+          font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+          font-weight: 800;
+          font-size: 14px;
+          color: var(--color-text-on-dark);
+          margin-bottom: 8px;
+        }
+        .mini-found-add-row { display: flex; gap: 8px; }
+        .mini-found-add-input {
+          flex: 1;
+          min-width: 0;
+          font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+          font-size: 16px; /* ≥16px avoids iOS zoom-on-focus */
+          color: var(--wv-cadet);
+          background: var(--wv-white);
+          border: 2px solid rgba(39, 50, 72, 0.18);
+          border-radius: 14px;
+          padding: 10px 14px;
+        }
+        .mini-found-add-input:focus-visible {
+          outline: 3px solid var(--color-focus);
+          outline-offset: 2px;
+        }
+        button.mini-found-add-btn:not([type="submit"]):not(.wv-header-signout) {
+          font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+          font-weight: 800;
+          font-size: 15px;
+          color: var(--wv-white);
+          background: var(--wv-teal);
+          border: none;
+          border-radius: 14px;
+          padding: 10px 18px;
+          cursor: pointer;
+          white-space: nowrap;
+        }
+        button.mini-found-add-btn:not([type="submit"]):not(.wv-header-signout):disabled {
+          opacity: 0.4;
+          cursor: default;
         }
         .mini-found-bar {
           position: fixed;
@@ -153,6 +219,52 @@ export function FoundPicker({
             fluid
           />
         ))}
+        {custom.map((title, i) => (
+          <EmojiTile
+            key={`custom-${title}`}
+            emoji="🧱"
+            characterName={null}
+            label={title}
+            selected={picked.has(title)}
+            onClick={() => toggle(title)}
+            index={MINI_MATERIALS.length + i}
+            size="md"
+            fluid
+          />
+        ))}
+      </div>
+
+      <div className="mini-found-add">
+        <label htmlFor="mini-add-mat" className="mini-found-add-label">
+          didn’t see it? add what you found:
+        </label>
+        <div className="mini-found-add-row">
+          <input
+            id="mini-add-mat"
+            className="mini-found-add-input"
+            type="text"
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                addCustom();
+              }
+            }}
+            placeholder="type what you found"
+            maxLength={48}
+            autoComplete="off"
+            aria-label="add a material you found that isn’t on the list"
+          />
+          <button
+            type="button"
+            className="mini-found-add-btn"
+            onClick={addCustom}
+            disabled={!draft.trim()}
+          >
+            + add
+          </button>
+        </div>
       </div>
 
       <div className="mini-found-bar">
