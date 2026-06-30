@@ -1,0 +1,69 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  // creaseworks eval — the cascade audit tool. Deploys the
+  // feat/creaseworks-eval branch to its own worker so the collective and
+  // friends & family can evaluate the mini playdates against the design
+  // cascade, without prod or the mini pilot ever seeing this code.
+  //
+  // Served on the main domain at windedvertigo.com/harbour/creaseworks-eval
+  // via the direct zone routes below (most-specific-match beats the
+  // wv-site /* catchall — same precedence the mini relies on, so NO
+  // rewrite is needed in the sibling windedvertigo repo).
+  //
+  // Deploy (note CW_EVAL=1 — switches basePath to /harbour/creaseworks-eval):
+  //   CW_EVAL=1 npx opennextjs-cloudflare build
+  //   && node ../../packages/security/scripts/write-assets-headers.mjs /harbour/creaseworks-eval
+  //   && npx wrangler deploy --config wrangler.eval.jsonc
+  //
+  // The worker carries NO production credentials — only its own D1.
+  "name": "wv-harbour-creaseworks-eval",
+  // worker.eval.ts wraps the OpenNext handler to redirect "/" (and any
+  // path outside the basePath) to the eval home.
+  "main": "worker.eval.ts",
+
+  "routes": [
+    {
+      "pattern": "windedvertigo.com/harbour/creaseworks-eval",
+      "zone_id": "3b70c2ddcf9976faccb01d37ccf2e1ee"
+    },
+    {
+      "pattern": "windedvertigo.com/harbour/creaseworks-eval/*",
+      "zone_id": "3b70c2ddcf9976faccb01d37ccf2e1ee"
+    },
+    {
+      "pattern": "www.windedvertigo.com/harbour/creaseworks-eval",
+      "zone_id": "3b70c2ddcf9976faccb01d37ccf2e1ee"
+    },
+    {
+      "pattern": "www.windedvertigo.com/harbour/creaseworks-eval/*",
+      "zone_id": "3b70c2ddcf9976faccb01d37ccf2e1ee"
+    }
+  ],
+  "account_id": "097c92553b268f8360b74f625f6d980a",
+  "compatibility_date": "2025-04-01",
+  "compatibility_flags": ["nodejs_compat"],
+
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "wv-harbour-creaseworks-eval"
+    }
+  ],
+
+  // audit persistence — one dedicated, isolated D1. No R2 (no photos),
+  // no prod credentials: the worker can only touch this one store.
+  "d1_databases": [
+    {
+      "binding": "EVAL_DB",
+      "database_name": "wv-creaseworks-eval",
+      "database_id": "b4588191-32cd-491c-b221-512c6772a90c"
+    }
+  ],
+
+  "workers_dev": true
+}

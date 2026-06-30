@@ -189,7 +189,7 @@ export default function MiniScavengerPage() {
       <div className="scav-grid">
         {card.map((mat) => {
           const isFound = found.has(mat.title);
-          const char = resolveCharacterFromForm(mat.formPrimary, mat.title);
+          const char = mat.preferIcon ? null : resolveCharacterFromForm(mat.formPrimary, mat.title);
           return (
             <button
               key={mat.id}

@@ -25,6 +25,22 @@ import {
   saveCode,
   type MiniStageKey,
 } from "@/lib/mini-pilot";
+import { postEval } from "@/lib/eval-submit";
+import { itemsFor } from "@/lib/eval-rubric";
+import {
+  setGroup,
+  clearGroup,
+  fetchRoster,
+  splitRoster,
+  getSelectedAdult,
+  setSelectedAdult,
+  type Player,
+} from "@/lib/cw-identity";
+import { avatarEmoji, avatarHex, avatarLabel } from "@/lib/cw-avatars";
+import { RosterSetup } from "./roster-setup";
+import { ReadAloud } from "./read-aloud";
+
+const GROWNUP_ITEMS = itemsFor("grownup");
 
 const WELCOME_GUIDE = [
   "a tiny pilot of creaseworks for ages 4–6: look (hunt for materials) → make → show → wow.",
@@ -37,7 +53,13 @@ export function GrownUpCorner() {
   const [open, setOpen] = useState(false);
   const [code, setCode] = useState("");
   const [codeState, setCodeState] = useState<"none" | "checking" | "ok" | "bad">("none");
+  const [savedCode, setSavedCode] = useState<string | null>(null);
+  const [adults, setAdults] = useState<Player[]>([]);
+  const [adult, setAdult] = useState<Player | null>(null);
   const [unfoldPrompt, setUnfoldPrompt] = useState<string | null>(null);
+  const [matchedSlug, setMatchedSlug] = useState<string | null>(null);
+  const [obs, setObs] = useState<Record<string, string | string[] | number>>({});
+  const [obsSent, setObsSent] = useState(false);
 
   const stageKey = miniStageFromPathname(pathname);
   const stage =
@@ -47,8 +69,32 @@ export function GrownUpCorner() {
   const lines = stage?.adultGuide ?? WELCOME_GUIDE;
 
   useEffect(() => {
-    if (loadCode()) setCodeState("ok");
+    const c = loadCode();
+    if (c) {
+      setCodeState("ok");
+      setSavedCode(c);
+    }
+    setAdult(getSelectedAdult());
   }, []);
+
+  // the first-run banner (and anywhere else) can ask the corner to open
+  useEffect(() => {
+    const openIt = () => setOpen(true);
+    window.addEventListener("cw:open-corner", openIt);
+    return () => window.removeEventListener("cw:open-corner", openIt);
+  }, []);
+
+  // load the roster's grown-ups for the "who's the grown-up today?" picker
+  useEffect(() => {
+    if (!open || !savedCode) return;
+    let cancelled = false;
+    void fetchRoster(savedCode).then((r) => {
+      if (!cancelled) setAdults(splitRoster(r.players).adults);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [open, savedCode]);
 
   // on show: surface the matched activity's unfold prompt for read-aloud
   useEffect(() => {
@@ -58,6 +104,12 @@ export function GrownUpCorner() {
     const slug = matchActivities(found)[0].activity.slug;
     setUnfoldPrompt(MINI_ACTIVITY_CONTENT[slug]?.unfold ?? null);
   }, [stageKey]);
+
+  // the matched playdate for this session — drives the grown-up observation
+  useEffect(() => {
+    const found = loadFound();
+    if (found.length) setMatchedSlug(matchActivities(found)[0].activity.slug);
+  }, [stageKey, open]);
 
   async function checkCode() {
     const trimmed = code.trim().toLowerCase();
@@ -71,11 +123,27 @@ export function GrownUpCorner() {
       });
       if (res.ok) {
         saveCode(trimmed);
+        setGroup(trimmed, "family"); // bind the one code as the roster group too
+        setSavedCode(trimmed);
         setCodeState("ok");
+        window.dispatchEvent(new Event("cw:code-set")); // clear the first-run banner
       } else setCodeState("bad");
     } catch {
       setCodeState("bad");
     }
+  }
+
+  function pickAdult(p: Player) {
+    setSelectedAdult(p);
+    setAdult(p);
+  }
+
+  function sendObs() {
+    if (!matchedSlug || Object.keys(obs).length === 0) return;
+    setObsSent(true);
+    // attribute the facilitating grown-up (avatar only, never a name)
+    const answers = adult ? { ...obs, "grown-up": adult.avatar } : obs;
+    void postEval({ slug: matchedSlug, register: "grownup", name: loadCode(), answers });
   }
 
   return (
@@ -215,6 +283,59 @@ export function GrownUpCorner() {
           color: var(--wv-cadet);
         }
         .guc-code-bad { font-size: 12px; color: var(--wv-redwood); margin-top: 6px; }
+        .guc-code-why { font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif; font-size: 12px; line-height: 1.55; color: #6b7280; margin: 0 0 8px; }
+        .guc-code-ok strong { font-weight: 800; }
+        button.guc-code-change { cursor: pointer; background: none; border: none; padding: 0; font: inherit; font-size: 12px; font-weight: 700; color: var(--wv-teal); text-decoration: underline; }
+        button.guc-code-change:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; border-radius: 4px; }
+        .guc-adult { border-top: 1.5px solid rgba(39, 50, 72, 0.1); padding-top: 12px; margin-top: 12px; }
+        .guc-adult-h { font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif; font-weight: 800; font-size: 13px; color: var(--wv-cadet); margin: 0 0 8px; }
+        .guc-adult-row { display: flex; flex-wrap: wrap; gap: 8px; }
+        button.guc-adult-chip:not([type="submit"]):not(.wv-header-signout) {
+          display: inline-flex; align-items: center; gap: 6px; cursor: pointer; padding: 4px 11px 4px 4px;
+          font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif; font-weight: 700; font-size: 12.5px; color: var(--wv-cadet);
+          background: var(--wv-white); border: 1.5px solid rgba(39, 50, 72, 0.16); border-radius: 14px; transition: scale 120ms ease, background 120ms ease, border-color 120ms ease;
+        }
+        button.guc-adult-chip[data-on="true"] { border-color: var(--wv-teal); border-width: 2px; background: color-mix(in srgb, var(--wv-teal) 22%, var(--wv-white)); font-weight: 800; }
+        button.guc-adult-chip:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
+        button.guc-adult-chip:active { scale: 0.96; }
+        .guc-adult-face { width: 26px; height: 26px; border-radius: 9px 11px 8px 10px; display: inline-flex; align-items: center; justify-content: center; font-size: 15px; }
+        @media (prefers-reduced-motion: reduce) { button.guc-adult-chip:active { scale: 1; } }
+        .guc-obs { border-top: 1.5px solid rgba(39, 50, 72, 0.1); padding-top: 14px; margin-bottom: 6px; }
+        .guc-obs-h { font-family: var(--font-fraunces), serif; font-weight: 600; font-size: 16px; color: var(--wv-cadet); margin: 0 0 10px; }
+        .guc-obs-item { margin-bottom: 12px; }
+        .guc-obs-q { font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif; font-weight: 700; font-size: 13.5px; color: var(--wv-cadet); margin: 0 0 6px; }
+        .guc-obs-help { font-size: 11.5px; color: #6b7280; margin: 0 0 6px; }
+        .guc-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+        button.guc-chip:not([type="submit"]):not(.wv-header-signout) {
+          cursor: pointer; font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif; font-weight: 700; font-size: 12.5px;
+          color: var(--wv-cadet); background: var(--wv-white); border: 1.5px solid rgba(39, 50, 72, 0.16); border-radius: 11px; padding: 7px 11px;
+          transition: scale 120ms ease, background 120ms ease, border-color 120ms ease;
+        }
+        button.guc-chip[data-on="true"] { border-color: var(--wv-teal); border-width: 2px; background: color-mix(in srgb, var(--wv-teal) 24%, var(--wv-white)); font-weight: 800; }
+        button.guc-chip:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
+        button.guc-chip:active, button.guc-num:active { scale: 0.95; }
+        .guc-nums { display: flex; gap: 6px; }
+        button.guc-num:not([type="submit"]):not(.wv-header-signout) {
+          cursor: pointer; flex: 1; max-width: 48px; font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif; font-weight: 800; font-size: 14px;
+          color: var(--wv-cadet); background: var(--wv-white); border: 1.5px solid rgba(39, 50, 72, 0.16); border-radius: 10px; padding: 8px 0;
+          transition: scale 120ms ease, background 120ms ease, border-color 120ms ease;
+        }
+        button.guc-num[data-on="true"] { border-color: var(--wv-teal); background: var(--wv-teal); color: var(--wv-white); }
+        button.guc-num:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
+        @media (prefers-reduced-motion: reduce) { button.guc-chip:active, button.guc-num:active { scale: 1; } }
+        .guc-obs-text {
+          width: 100%; box-sizing: border-box; font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif; font-size: 13px;
+          color: var(--wv-cadet); background: var(--wv-white); border: 1.5px solid rgba(39, 50, 72, 0.16); border-radius: 10px; padding: 8px 10px; resize: vertical;
+        }
+        .guc-obs-text:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 1px; }
+        button.guc-obs-send:not([type="submit"]):not(.wv-header-signout) {
+          margin-top: 4px; cursor: pointer; font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif; font-weight: 800; font-size: 13px;
+          color: var(--wv-white); background: var(--wv-teal); border: none; border-radius: 12px; padding: 9px 18px;
+        }
+        button.guc-obs-send:disabled { opacity: 0.4; cursor: default; }
+        button.guc-obs-send:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
+        .guc-obs-done { font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif; font-weight: 700; font-size: 13px; color: var(--wv-cadet); }
+        .guc-collective { display: block; margin-top: 12px; font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif; font-size: 12px; font-weight: 700; color: var(--wv-teal); text-decoration: underline; }
         .guc-print {
           display: inline-block;
           margin-top: 12px;
@@ -259,21 +380,35 @@ export function GrownUpCorner() {
               ))}
             </ul>
 
-            {unfoldPrompt && (
-              <div className="guc-readaloud">
-                <strong>read this aloud:</strong>
-                {unfoldPrompt}
-              </div>
-            )}
-
+            {/* ONE code — gates sharing + the roster and ties the family's evidence together (#2) */}
             <div className="guc-code">
-              {codeState === "ok" ? (
-                <p className="guc-code-ok">✓ family code saved — sharing is on.</p>
+              {codeState === "ok" && savedCode ? (
+                <p className="guc-code-ok">
+                  ✓ code <strong>{savedCode}</strong> saved — sharing + who&rsquo;s-playing are on.{" "}
+                  <button
+                    type="button"
+                    className="guc-code-change"
+                    onClick={() => {
+                      clearGroup();
+                      setSavedCode(null);
+                      setCode("");
+                      setCodeState("none");
+                      setAdults([]);
+                      setAdult(null);
+                    }}
+                  >
+                    use a different code
+                  </button>
+                </p>
               ) : (
                 <>
                   <label htmlFor="guc-code" className="guc-code-label">
-                    family code (from us) — unlocks photo sharing:
+                    your family or class code
                   </label>
+                  <p className="guc-code-why">
+                    one code from the collective. it unlocks photo sharing, sets up who&rsquo;s playing (anonymous
+                    avatars), and ties your family&rsquo;s evidence together. don&rsquo;t have one? ask us.
+                  </p>
                   <div className="guc-code-row">
                     <input
                       id="guc-code"
@@ -286,24 +421,145 @@ export function GrownUpCorner() {
                       autoCorrect="off"
                       className="guc-code-input"
                     />
-                    <button
-                      type="button"
-                      className="guc-code-save"
-                      disabled={codeState === "checking"}
-                      onClick={checkCode}
-                    >
+                    <button type="button" className="guc-code-save" disabled={codeState === "checking"} onClick={checkCode}>
                       {codeState === "checking" ? "checking…" : "save"}
                     </button>
                   </div>
                   {codeState === "bad" && (
-                    <p className="guc-code-bad">we don&rsquo;t recognise that one — check the spelling?</p>
+                    <p className="guc-code-bad">
+                      we don&rsquo;t recognise that one — check the spelling, or ask the collective for your code.
+                    </p>
                   )}
                 </>
               )}
-              <Link href={miniHref("/guide")} className="guc-print">
-                printable version of the full guide
-              </Link>
             </div>
+
+            <RosterSetup code={savedCode} />
+
+            {adults.length > 0 && (
+              <div className="guc-adult">
+                <p className="guc-adult-h">👤 who&rsquo;s the grown-up today?</p>
+                <div className="guc-adult-row">
+                  {adults.map((a) => (
+                    <button
+                      key={a.id}
+                      type="button"
+                      className="guc-adult-chip"
+                      data-on={adult?.id === a.id}
+                      aria-pressed={adult?.id === a.id}
+                      onClick={() => pickAdult(a)}
+                      aria-label={avatarLabel(a.avatar)}
+                    >
+                      <span className="guc-adult-face" style={{ background: avatarHex(a.avatar) }} aria-hidden="true">
+                        {avatarEmoji(a.avatar)}
+                      </span>
+                      {adult?.id === a.id ? "✓ " : ""}
+                      {avatarLabel(a.avatar)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {unfoldPrompt && (
+              <div className="guc-readaloud">
+                <strong>read this aloud:</strong>
+                <ReadAloud text={unfoldPrompt} />
+              </div>
+            )}
+
+            {matchedSlug && (
+              <div className="guc-obs">
+                <p className="guc-obs-h">tell us what you saw</p>
+                {obsSent ? (
+                  <p className="guc-obs-done">✓ thank you — logged for the team.</p>
+                ) : (
+                  <>
+                    {GROWNUP_ITEMS.map((it) => (
+                      <div key={it.id} className="guc-obs-item">
+                        <p className="guc-obs-q">{it.prompt}</p>
+                        {it.help && <p className="guc-obs-help">{it.help}</p>}
+                        {it.type === "checklist" && (
+                          <div className="guc-chips">
+                            {(it.options ?? []).map((opt) => {
+                              const arr = Array.isArray(obs[it.id]) ? (obs[it.id] as string[]) : [];
+                              const on = arr.includes(opt);
+                              return (
+                                <button
+                                  key={opt}
+                                  type="button"
+                                  className="guc-chip"
+                                  data-on={on}
+                                  onClick={() =>
+                                    setObs((o) => ({ ...o, [it.id]: on ? arr.filter((x) => x !== opt) : [...arr, opt] }))
+                                  }
+                                >
+                                  {on ? "✓ " : ""}{opt}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+                        {it.type === "scale5" && (
+                          <div className="guc-nums">
+                            {[1, 2, 3, 4, 5].map((n) => (
+                              <button
+                                key={n}
+                                type="button"
+                                className="guc-num"
+                                data-on={obs[it.id] === n}
+                                onClick={() => setObs((o) => ({ ...o, [it.id]: n }))}
+                              >
+                                {n}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                        {it.type === "choice" && (
+                          <div className="guc-chips">
+                            {(it.options ?? []).map((opt) => (
+                              <button
+                                key={opt}
+                                type="button"
+                                className="guc-chip"
+                                data-on={obs[it.id] === opt}
+                                onClick={() => setObs((o) => ({ ...o, [it.id]: opt }))}
+                              >
+                                {obs[it.id] === opt ? "✓ " : ""}{opt}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                        {it.type === "text" && (
+                          <textarea
+                            className="guc-obs-text"
+                            rows={2}
+                            placeholder="optional"
+                            value={(obs[it.id] as string) ?? ""}
+                            onChange={(e) => setObs((o) => ({ ...o, [it.id]: e.target.value }))}
+                          />
+                        )}
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      className="guc-obs-send"
+                      disabled={Object.keys(obs).length === 0}
+                      onClick={sendObs}
+                    >
+                      send what you saw →
+                    </button>
+                  </>
+                )}
+                <a className="guc-collective" href="/harbour/creaseworks-eval#collective">
+                  reviewing for the collective? open the full five-lens review →
+                </a>
+              </div>
+            )}
+
+            <Link href={miniHref("/guide")} className="guc-print">
+              printable version of the full guide
+            </Link>
           </div>
         </>
       )}

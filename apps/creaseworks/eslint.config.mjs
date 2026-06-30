@@ -30,6 +30,13 @@ const eslintConfig = defineConfig([
       "@typescript-eslint/no-explicit-any": "warn",
       "@next/next/no-html-link-for-pages": "warn",
       "react/no-unescaped-entities": "warn",
+      // eslint-plugin-react-hooks v7 added React-Compiler-readiness rules
+      // that error on valid, common patterns (init-from-storage in a mount
+      // effect, etc.) across the whole codebase. Surface them as warnings
+      // to migrate incrementally rather than block CI on a bulk rewrite.
+      "react-hooks/set-state-in-effect": "warn",
+      "react-hooks/refs": "warn",
+      "react-hooks/purity": "warn",
     },
   },
 ]);

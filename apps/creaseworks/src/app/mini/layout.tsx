@@ -5,6 +5,8 @@ import { apiUrl } from "@/lib/api-url";
 import { miniHref } from "@/lib/mini-pilot";
 import { GrownUpCorner } from "./grown-up-corner";
 import { MiniStageNav } from "./stage-nav";
+import { TraceProbe } from "./trace-probe";
+import { FirstRunNudge } from "./first-run-nudge";
 
 /**
  * creaseworks mini — pilot shell.
@@ -112,8 +114,13 @@ export default function MiniLayout({
         <MiniStageNav />
       </header>
 
-      <main className="mini-main">{children}</main>
+      <main className="mini-main">
+        <FirstRunNudge />
+        {children}
+      </main>
 
+      {/* passive trace layer + "who's playing?" picker (anonymous roster) */}
+      <TraceProbe />
       <GrownUpCorner />
       {/* the familiar 🐛, bottom-right, wired to the pilot store */}
       <FeedbackWidget appSlug="creaseworks-mini" endpoint={apiUrl("/api/mini/feedback")} />
