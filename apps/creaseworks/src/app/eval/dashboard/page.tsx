@@ -29,6 +29,7 @@ import {
   verdictCall,
 } from "@/lib/eval-score";
 import { MaterialsReview } from "./materials-review";
+import { MaterialsIcons } from "./materials-icons";
 
 export const dynamic = "force-dynamic";
 
@@ -317,6 +318,8 @@ export default async function EvalDashboard() {
 
       {/* B3 — collective moderation of kid-submitted open-ended materials */}
       <MaterialsReview />
+      {/* B4 — Payton uploads 3 icon candidates per accepted material */}
+      <MaterialsIcons />
 
       {rows.length === 0 ? (
         <div className="ed-empty">

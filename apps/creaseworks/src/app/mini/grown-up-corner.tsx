@@ -38,6 +38,7 @@ import {
 } from "@/lib/cw-identity";
 import { avatarEmoji, avatarHex, avatarLabel } from "@/lib/cw-avatars";
 import { RosterSetup } from "./roster-setup";
+import { FamilyMaterials } from "./family-materials";
 import { ReadAloud } from "./read-aloud";
 
 const GROWNUP_ITEMS = itemsFor("grownup");
@@ -435,6 +436,9 @@ export function GrownUpCorner() {
             </div>
 
             <RosterSetup code={savedCode} />
+
+            {/* B4/B6 — pick your accepted material's icon + "materials we added" */}
+            <FamilyMaterials />
 
             {adults.length > 0 && (
               <div className="guc-adult">
