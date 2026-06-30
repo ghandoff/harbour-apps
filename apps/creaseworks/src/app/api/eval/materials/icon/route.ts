@@ -8,6 +8,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getEvalEnv } from "@/lib/eval-server";
 
+// GET-only route reads the query string → must be dynamic (a multi-method
+// route is implicitly dynamic, but this one needs the explicit marker).
+export const dynamic = "force-dynamic";
+
 export async function GET(req: NextRequest) {
   const env = getEvalEnv();
   if (!env?.icons) return NextResponse.json({ error: "not available" }, { status: 404 });
