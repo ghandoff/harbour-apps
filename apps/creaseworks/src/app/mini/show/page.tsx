@@ -72,6 +72,7 @@ export default function MiniShowPage() {
         saveCode(trimmed);
         setGroup(trimmed, "family"); // one code: also the roster/traces key
         setCode(trimmed);
+        window.dispatchEvent(new Event("cw:code-set")); // clear the first-run banner
       } else {
         setCodeError(true);
       }

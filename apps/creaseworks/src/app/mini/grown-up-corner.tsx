@@ -77,6 +77,13 @@ export function GrownUpCorner() {
     setAdult(getSelectedAdult());
   }, []);
 
+  // the first-run banner (and anywhere else) can ask the corner to open
+  useEffect(() => {
+    const openIt = () => setOpen(true);
+    window.addEventListener("cw:open-corner", openIt);
+    return () => window.removeEventListener("cw:open-corner", openIt);
+  }, []);
+
   // load the roster's grown-ups for the "who's the grown-up today?" picker
   useEffect(() => {
     if (!open || !savedCode) return;
@@ -119,6 +126,7 @@ export function GrownUpCorner() {
         setGroup(trimmed, "family"); // bind the one code as the roster group too
         setSavedCode(trimmed);
         setCodeState("ok");
+        window.dispatchEvent(new Event("cw:code-set")); // clear the first-run banner
       } else setCodeState("bad");
     } catch {
       setCodeState("bad");
