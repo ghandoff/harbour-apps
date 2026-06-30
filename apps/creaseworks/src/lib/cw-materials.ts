@@ -131,13 +131,14 @@ export async function uploadIcons(input: {
   }
 }
 
-/** Family: pick the icon that goes live (→ status live + spotlight). */
-export async function chooseIcon(input: { id: string; chosenIconUrl: string }): Promise<boolean> {
+/** Family: pick the icon that goes live (→ status live + spotlight). The
+ *  group code proves ownership — only the family that found it may choose. */
+export async function chooseIcon(input: { id: string; chosenIconUrl: string; group: string }): Promise<boolean> {
   try {
     const res = await fetch(MATERIALS_URL, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: input.id, action: "choose", chosen_icon_url: input.chosenIconUrl }),
+      body: JSON.stringify({ id: input.id, action: "choose", chosen_icon_url: input.chosenIconUrl, group: input.group }),
     });
     return res.ok;
   } catch {

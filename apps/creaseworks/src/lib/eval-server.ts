@@ -63,6 +63,15 @@ export function getEvalEnv(): EvalEnv | null {
 export const EVAL_NAME_MAX = 60;
 export const EVAL_ANSWERS_MAX = 20000; // generous cap on the JSON blob
 
+// The collective — who may MODERATE open-ended materials (accept/decline +
+// upload icons). Mirrors the preset login on the eval home. Interim guard
+// until @windedvertigo.com Google login (unified-auth track): it stops
+// accidents + casual cross-family collisions, not a determined spoofer.
+export const COLLECTIVE = ["jamie", "garrett", "maria", "payton", "lamis"];
+export function isCollective(name: unknown): boolean {
+  return typeof name === "string" && COLLECTIVE.includes(name.trim().toLowerCase());
+}
+
 // ── roster + traces (schema v4) ──────────────────────────────────────────
 // A group is a family or class code (pseudonym) that owns a roster of
 // anonymous player avatars. events carry the nested identity (group →

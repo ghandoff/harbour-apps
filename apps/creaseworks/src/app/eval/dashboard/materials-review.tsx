@@ -30,6 +30,7 @@ export function MaterialsReview() {
   const [reviewer, setReviewer] = useState<string | null>(null);
   const [forms, setForms] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
     try {
@@ -42,9 +43,11 @@ export function MaterialsReview() {
     if (busy) return;
     const formPrimary = forms[m.id] ?? MATERIAL_FORMS[0];
     setBusy(m.id);
+    setErr(null);
     const ok = await reviewMaterial({ id: m.id, action, formPrimary, reviewer });
     setBusy(null);
     if (ok) setItems((prev) => (prev ?? []).filter((x) => x.id !== m.id));
+    else setErr("couldn't save — only the collective can review (tap your name on the eval home).");
   }
 
   // hold render until the first fetch resolves (avoids a flash of empty)
@@ -122,6 +125,7 @@ export function MaterialsReview() {
           </div>
         ))
       )}
+      {err && <p className="ed-read-text" style={{ color: "var(--wv-redwood)", marginTop: 8 }}>{err}</p>}
     </div>
   );
 }
