@@ -277,6 +277,31 @@ export function loadFound(): string[] {
   }
 }
 
+/* ── selected playdate (carried make → show) ────────────────────────
+ * The activity the child actually played. Without this the show stage
+ * re-guessed the playdate from the matcher (or fell back to a hard-coded
+ * default), so the reflection prompt + recorded eval/evidence + dashboard
+ * could attribute to the WRONG game — the make choice lived only in React
+ * state and was lost on navigation. sessionStorage, same as found. */
+
+const SELECTED_KEY = "cw-mini-activity";
+
+export function saveSelected(slug: string): void {
+  try {
+    sessionStorage.setItem(SELECTED_KEY, slug);
+  } catch {
+    /* private mode — show falls back to the matcher */
+  }
+}
+
+export function loadSelected(): string | null {
+  try {
+    return sessionStorage.getItem(SELECTED_KEY);
+  } catch {
+    return null;
+  }
+}
+
 /* ── family code (pilot session) ────────────────────────────────────
  * Entered once by the grown-up on the welcome page; everything the
  * family shares attaches to it. localStorage so it survives the visit. */

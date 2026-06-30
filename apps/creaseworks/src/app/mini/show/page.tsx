@@ -14,7 +14,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { apiUrl } from "@/lib/api-url";
-import { loadCode, loadFound, matchActivities, miniHref, saveCode } from "@/lib/mini-pilot";
+import { loadCode, loadFound, loadSelected, matchActivities, miniHref, saveCode } from "@/lib/mini-pilot";
 import { MiniStageHero } from "../stage-hero";
 import { postEval } from "@/lib/eval-submit";
 import { FACE_EMOJI } from "@/lib/eval-rubric";
@@ -43,9 +43,16 @@ export default function MiniShowPage() {
 
   useEffect(() => {
     setCode(loadCode());
-    // best-effort: attach the activity the matcher picked this session
-    const found = loadFound();
-    if (found.length) setActivitySlug(matchActivities(found)[0].activity.slug);
+    // attach the playdate the child ACTUALLY played (persisted in make). Only
+    // re-derive from the matcher when nothing was persisted — re-guessing here
+    // mis-attributed the reflection + eval/evidence to the wrong game.
+    const played = loadSelected();
+    if (played) {
+      setActivitySlug(played);
+    } else {
+      const found = loadFound();
+      if (found.length) setActivitySlug(matchActivities(found)[0].activity.slug);
+    }
     try { if (sessionStorage.getItem("cw-mini-reflect-banner")) setShowBanner(false); } catch {}
   }, []);
 
