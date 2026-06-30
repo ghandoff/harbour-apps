@@ -40,8 +40,13 @@ jobs:
           cache: npm
           cache-dependency-path: package-lock.json
 
+      # `npm install` (not `npm ci`): a mac-generated lockfile omits the
+      # linux native binaries (rollup/rolldown), so `npm ci` — which installs
+      # the lockfile verbatim — can't find @rollup/rollup-linux-x64-gnu in CI
+      # (npm optional-deps bug, npm/cli#4828). `npm install` re-resolves the
+      # correct platform binary; the ephemeral lockfile drift is discarded.
       - name: Install dependencies
-        run: npm ci
+        run: npm install
         working-directory: .
 
       - name: TypeScript check
