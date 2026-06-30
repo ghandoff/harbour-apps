@@ -80,24 +80,30 @@ export async function POST(req: NextRequest) {
   const events = list.slice(0, EVENT_BATCH_MAX).map(clean).filter((e): e is CleanEvent => e !== null);
   if (events.length === 0) return NextResponse.json({ ok: true, written: 0 });
 
-  for (const e of events) {
-    await env.db
-      .prepare(
-        "INSERT INTO events (id, group_code, player_id, device_token, session_id, event_type, stage, activity, seq) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-      )
-      .bind(
-        crypto.randomUUID(),
-        e.group_code,
-        e.player_id,
-        e.device_token,
-        e.session_id,
-        e.event_type,
-        e.stage,
-        e.activity,
-        e.seq,
-      )
-      .run();
-  }
+  // run the batch concurrently — a serial await-per-event loop stacked up to
+  // EVENT_BATCH_MAX (50) sequential D1 round-trips per flush, which adds
+  // hundreds of ms under multi-family play. Best-effort: a partial failure
+  // still records the rest.
+  await Promise.all(
+    events.map((e) =>
+      env.db
+        .prepare(
+          "INSERT INTO events (id, group_code, player_id, device_token, session_id, event_type, stage, activity, seq) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        )
+        .bind(
+          crypto.randomUUID(),
+          e.group_code,
+          e.player_id,
+          e.device_token,
+          e.session_id,
+          e.event_type,
+          e.stage,
+          e.activity,
+          e.seq,
+        )
+        .run(),
+    ),
+  );
 
   return NextResponse.json({ ok: true, written: events.length });
 }

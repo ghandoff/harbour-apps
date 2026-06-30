@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "a photo or some words required" }, { status: 400 });
   }
 
-  let r2Key: string | null = null;
+  // validate the photo before any write
   if (hasPhoto) {
     if (!MINI_PHOTO_TYPES.has(photo.type)) {
       return NextResponse.json({ error: "unsupported image type" }, { status: 400 });
@@ -47,21 +47,29 @@ export async function POST(req: NextRequest) {
     if (photo.size > MINI_PHOTO_MAX) {
       return NextResponse.json({ error: "photo must be under 5 MB" }, { status: 400 });
     }
-    const id = crypto.randomUUID();
-    const ext = photo.type === "image/png" ? "png" : photo.type === "image/webp" ? "webp" : photo.type === "image/heic" ? "heic" : "jpg";
-    r2Key = `${code}/${id}.${ext}`;
-    await env.evidence.put(r2Key, await photo.arrayBuffer(), {
-      httpMetadata: { contentType: photo.type },
-    });
   }
 
+  // Insert the row FIRST (keyless) so the evidence is always recorded +
+  // moderatable; upload to R2 after and backfill the key. A failed upload then
+  // leaves a keyless row (words saved, no broken image) rather than an orphaned
+  // R2 object with no row pointing at it — the order matters because D1 + R2
+  // can't share a transaction.
   const evidenceId = crypto.randomUUID();
   await env.db
     .prepare(
       "INSERT INTO evidence (id, code, activity_slug, r2_key, body) VALUES (?, ?, ?, ?, ?)",
     )
-    .bind(evidenceId, code, activitySlug, r2Key, body)
+    .bind(evidenceId, code, activitySlug, null, body)
     .run();
+
+  if (hasPhoto) {
+    const ext = photo.type === "image/png" ? "png" : photo.type === "image/webp" ? "webp" : photo.type === "image/heic" ? "heic" : "jpg";
+    const r2Key = `${code}/${evidenceId}.${ext}`;
+    await env.evidence.put(r2Key, await photo.arrayBuffer(), {
+      httpMetadata: { contentType: photo.type },
+    });
+    await env.db.prepare("UPDATE evidence SET r2_key = ? WHERE id = ?").bind(r2Key, evidenceId).run();
+  }
 
   return NextResponse.json({ ok: true, id: evidenceId });
 }

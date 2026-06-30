@@ -29,7 +29,10 @@ export async function POST(req: NextRequest) {
   if (!form) return NextResponse.json({ error: "multipart form required" }, { status: 400 });
 
   const id = String(form.get("id") ?? "").slice(0, 64);
-  if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
+  // UUID-shaped only — id becomes an R2 key prefix, so reject anything with a
+  // slash / traversal before a key is constructed (defence-in-depth; the DB
+  // lookup below also gates non-existent ids).
+  if (!/^[0-9a-f-]{36}$/.test(id)) return NextResponse.json({ error: "valid id required" }, { status: 400 });
 
   // only accepted materials may receive icons
   const row = await env.db

@@ -129,8 +129,10 @@ export async function POST(req: NextRequest) {
   }
 
   const id = crypto.randomUUID();
+  // OR IGNORE: the UNIQUE(group_code, avatar) index (migration 007) makes the
+  // dedup race-proof — a concurrent identical add is a no-op, not a 500.
   await env.db
-    .prepare("INSERT INTO players (id, group_code, avatar, kind) VALUES (?, ?, ?, ?)")
+    .prepare("INSERT OR IGNORE INTO players (id, group_code, avatar, kind) VALUES (?, ?, ?, ?)")
     .bind(id, code, avatar, playerKind)
     .run();
 

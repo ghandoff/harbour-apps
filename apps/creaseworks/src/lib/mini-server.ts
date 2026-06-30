@@ -62,7 +62,10 @@ export async function validateCode(
   db: MiniD1,
   code: string,
 ): Promise<boolean> {
-  if (!/^[a-z]+-[a-z]+$/.test(code)) return false;
+  // Same shape as normalizeGroupCode (eval-server): lowercased, alnum +
+  // hyphen, 2–40 chars. The old `^[a-z]+-[a-z]+$` rejected digits / multi-
+  // segment codes, so a roster code that's valid for traces could 403 here.
+  if (!/^[a-z0-9][a-z0-9-]{1,39}$/.test(code)) return false;
   const row = await db
     .prepare("SELECT code FROM sessions WHERE code = ?")
     .bind(code)

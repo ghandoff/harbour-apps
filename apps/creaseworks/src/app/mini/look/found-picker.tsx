@@ -11,7 +11,7 @@
  * done button carry the only words.
  */
 
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { resolveCharacterFromForm } from "@windedvertigo/characters";
 import { EmojiTile } from "@/components/matcher/emoji-tile";
@@ -58,6 +58,7 @@ export function FoundPicker({
   // for review (only when a family/class code is set, so it's attributable).
   const [custom, setCustom] = useState<string[]>([]);
   const [draft, setDraft] = useState("");
+  const submittedRef = useRef<Set<string>>(new Set());
 
   const addCustom = useCallback(() => {
     const title = draft.trim().toLowerCase().slice(0, 48);
@@ -65,6 +66,10 @@ export function FoundPicker({
     setPicked((prev) => new Set(prev).add(title));
     setDraft("");
     if (MATERIAL_TITLES.has(title)) return; // already listed — just select it
+    // synchronous guard: a rapid double-tap fires addCustom twice before state
+    // commits, so dedup on a ref (not the custom array) to avoid a double POST.
+    if (submittedRef.current.has(title)) return;
+    submittedRef.current.add(title);
     setCustom((prev) => (prev.includes(title) ? prev : [...prev, title]));
     const code = getGroup()?.code;
     if (code) void submitMaterial({ code, title, submittedBy: getSelectedPlayer()?.avatar ?? null });
