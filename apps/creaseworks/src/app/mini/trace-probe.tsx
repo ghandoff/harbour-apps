@@ -51,6 +51,9 @@ function nextSeq(): number {
 
 export function TraceProbe() {
   const pathname = usePathname();
+  // the moderator tool lives under /mini too — never trace it (it would
+  // pollute the roster/events data with reviewer activity)
+  const onModerate = pathname?.endsWith("/moderate") ?? false;
   const lastStage = useRef<string | null>(null);
   const [roster, setRoster] = useState<Player[]>([]);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -58,6 +61,7 @@ export function TraceProbe() {
 
   // once: device/session + session_start + roster check
   useEffect(() => {
+    if (onModerate) return;
     getDeviceToken();
     getSessionId();
     try {
@@ -114,6 +118,8 @@ export function TraceProbe() {
     } catch {}
     setPickerOpen(false);
   }
+
+  if (onModerate) return null;
 
   return (
     <>

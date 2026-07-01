@@ -61,6 +61,7 @@ const nextConfig: NextConfig = {
         { source: "/show", destination: "/mini/show" },
         { source: "/wow", destination: "/mini/wow" },
         { source: "/guide", destination: "/mini/guide" },
+        { source: "/moderate", destination: "/mini/moderate" },
       ],
       fallback: [],
     };
