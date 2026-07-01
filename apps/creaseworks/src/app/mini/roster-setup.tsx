@@ -64,7 +64,6 @@ export function RosterSetup({ code }: { code: string | null }) {
   const { children, adults } = splitRoster(players);
   const cap = kind === "class" ? CLASS_CAP : FAMILY_CAP;
   const full = players.length >= cap;
-  const available = ALL_AVATARS.filter((a) => !players.some((p) => p.avatar === a));
 
   async function add(avatar: string, playerKind: PlayerKind) {
     if (!code) return;
@@ -95,19 +94,26 @@ export function RosterSetup({ code }: { code: string | null }) {
   function addGrid(playerKind: PlayerKind) {
     return (
       <div className="rs-add-grid" role="group" aria-label={`choose a ${playerKind === "adult" ? "grown-up" : "buddy"} to add`}>
-        {available.map((a) => (
-          <button
-            key={a}
-            type="button"
-            className="rs-av"
-            style={{ background: avatarHex(a) }}
-            onClick={() => add(a, playerKind)}
-            disabled={busy}
-            aria-label={`add ${avatarLabel(a)}`}
-          >
-            {avatarEmoji(a)}
-          </button>
-        ))}
+        {/* the full 6×6 matrix — one colour per row, one animal per column.
+            render ALL avatars (taken ones dimmed + disabled) so the grid never
+            reflows raggedly as members are added. */}
+        {ALL_AVATARS.map((a) => {
+          const taken = players.some((p) => p.avatar === a);
+          return (
+            <button
+              key={a}
+              type="button"
+              className="rs-av"
+              style={{ background: avatarHex(a) }}
+              onClick={() => add(a, playerKind)}
+              disabled={busy || taken}
+              data-taken={taken}
+              aria-label={taken ? `${avatarLabel(a)} — already added` : `add ${avatarLabel(a)}`}
+            >
+              {avatarEmoji(a)}
+            </button>
+          );
+        })}
       </div>
     );
   }
@@ -168,11 +174,14 @@ export function RosterSetup({ code }: { code: string | null }) {
            tile size — the grown-up sheet is full-viewport-width, so without a
            cap the tiles stretch huge on desktop + the fixed emoji looks tiny.
            360px ≈ the mobile width where it already looks right. */
+        /* always 6 columns (the 6 animals) so rows stay one-colour-each and
+           columns stay one-animal-each; capped width keeps tiles a comfy size. */
         .rs-add-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-top: 8px; padding: 2px; max-width: 360px; }
-        @media (max-width: 380px) { .rs-add-grid { grid-template-columns: repeat(5, 1fr); } }
         button.rs-av { cursor: pointer; aspect-ratio: 1; border: none; border-radius: 12px 14px 10px 13px; display: flex; align-items: center; justify-content: center;
           font-size: 22px; box-shadow: 0 2px 0 rgba(39, 50, 72, 0.14); transition: scale 120ms ease; }
         button.rs-av:hover { scale: 1.08; }
+        button.rs-av[data-taken="true"] { opacity: 0.3; cursor: default; box-shadow: none; }
+        button.rs-av[data-taken="true"]:hover { scale: 1; }
         button.rs-av:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
         .rs-cap { font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif; font-size: 11.5px; color: #6b7280; margin-top: 10px; }
         .rs-err { font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif; font-size: 12px; color: var(--wv-redwood); margin-top: 8px; }
