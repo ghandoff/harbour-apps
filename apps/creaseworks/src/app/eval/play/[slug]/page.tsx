@@ -134,7 +134,7 @@ export default function EvalPlayPage({ params }: { params: Promise<{ slug: strin
   if (!register) return null; // redirecting
 
   const groups = layersFor(register);
-  const answeredCount = Object.keys(answers).length;
+  const answeredCount = Object.keys(answers).filter((k) => !k.endsWith("__why")).length;
 
   return (
     <div className={register === "kid" ? "ep-kid" : undefined}>
@@ -326,7 +326,14 @@ export default function EvalPlayPage({ params }: { params: Promise<{ slug: strin
               </div>
               <p className="ep-layer-blurb">{group.meta.blurb}</p>
               {group.items.map((item) => (
-                <ItemField key={item.id} item={item} value={answers[item.id]} onChange={onChange} />
+                <ItemField
+                  key={item.id}
+                  item={item}
+                  value={answers[item.id]}
+                  onChange={onChange}
+                  showNote={register === "collective"}
+                  note={typeof answers[`${item.id}__why`] === "string" ? (answers[`${item.id}__why`] as string) : undefined}
+                />
               ))}
             </section>
           ))}
