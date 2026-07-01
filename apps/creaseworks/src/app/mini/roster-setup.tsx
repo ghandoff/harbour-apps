@@ -73,7 +73,7 @@ export function RosterSetup({ code }: { code: string | null }) {
     const updated = await addPlayer(code, kind, avatar, playerKind);
     setBusy(false);
     if (!updated) {
-      setErr("couldn't add that one — the roster may be full.");
+      setErr("couldn't add that one — check your connection and try again.");
       return;
     }
     setPlayers(updated);
@@ -161,7 +161,10 @@ export function RosterSetup({ code }: { code: string | null }) {
         button.rs-add-toggle { cursor: pointer; font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif; font-weight: 800; font-size: 13px;
           color: var(--wv-cadet); background: var(--wv-white); border: 1.5px dashed rgba(39, 50, 72, 0.25); border-radius: 12px; padding: 8px 14px; }
         button.rs-add-toggle:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
-        .rs-add-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-top: 8px; max-height: 188px; overflow-y: auto; padding: 2px; }
+        /* no inner max-height/overflow: the grown-up sheet is the single
+           scroll. a nested scroll here was shorter than the grid (avatars
+           clipped) and ate taps on touch — flow the whole grid instead. */
+        .rs-add-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-top: 8px; padding: 2px; }
         @media (max-width: 380px) { .rs-add-grid { grid-template-columns: repeat(5, 1fr); } }
         button.rs-av { cursor: pointer; aspect-ratio: 1; border: none; border-radius: 12px 14px 10px 13px; display: flex; align-items: center; justify-content: center;
           font-size: 22px; box-shadow: 0 2px 0 rgba(39, 50, 72, 0.14); transition: scale 120ms ease; }
