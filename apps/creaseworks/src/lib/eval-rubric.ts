@@ -22,6 +22,7 @@
 export type Register = "kid" | "grownup" | "collective";
 
 export type Layer =
+  | "intent"
   | "kid"
   | "watch"
   | "lens1"
@@ -67,6 +68,7 @@ export interface LayerMeta {
 /* ── layers (display order) ─────────────────────────────────── */
 
 export const LAYERS: LayerMeta[] = [
+  { key: "intent", label: "first read", blurb: "before the lenses — your honest first take on what this game is reaching for. no wrong answers." },
   { key: "kid", label: "your turn!", blurb: "tap the answer that feels right. there are no wrong answers." },
   { key: "watch", label: "what you saw", blurb: "watch the child play, then tick what you actually saw them do — about the play, not a test of the child." },
   { key: "lens1", label: "lens 1 · the play condition", blurb: "the floor. clearing it only means a game may invite play — it doesn't yet make it one of ours." },
@@ -143,6 +145,16 @@ export const FACE_EMOJI: Record<string, string> = {
 /* ── the items ──────────────────────────────────────────────── */
 
 export const ITEMS: EvalItem[] = [
+  /* first read · the reviewer's unprimed take on the game's intent (asked
+     before the lenses; unscored, surfaced qualitatively on the dashboard) */
+  {
+    id: "c-intent",
+    layer: "intent",
+    registers: ["collective"],
+    prompt: "what do you think this game is trying to do?",
+    help: "in your own words — your first read, before you climb the lenses.",
+    type: "text",
+  },
   /* ===== 🧒 the player (register kid) ===== */
   {
     id: "kid-fun",

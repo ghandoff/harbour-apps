@@ -170,12 +170,15 @@ export default async function EvalDashboard() {
   // qualitative snippets
   const kidFavs: { title: string; name: string | null; text: string }[] = [];
   const grownMoments: { title: string; name: string | null; text: string }[] = [];
+  const intentReads: { slug: string; title: string; name: string | null; text: string }[] = [];
   for (const p of EVAL_PLAYDATES) {
     for (const s of byPlaydate.get(p.slug) ?? []) {
       const fav = s.answers["kid-fav"];
       if (s.register === "kid" && typeof fav === "string" && fav.trim()) kidFavs.push({ title: p.title, name: s.name, text: fav.trim() });
       const moment = s.answers["watch-moment"];
       if (s.register === "grownup" && typeof moment === "string" && moment.trim()) grownMoments.push({ title: p.title, name: s.name, text: moment.trim() });
+      const intent = s.answers["c-intent"];
+      if (s.register === "collective" && typeof intent === "string" && intent.trim()) intentReads.push({ slug: p.slug, title: p.title, name: s.name, text: intent.trim() });
     }
   }
 
@@ -450,6 +453,25 @@ export default async function EvalDashboard() {
               </tbody>
             </table>
           </div>
+
+          {intentReads.length > 0 && (
+            <div className="ed-card">
+              <h2>what reviewers think it&rsquo;s trying to do 🧭</h2>
+              <p className="note">the collective&rsquo;s first read of each game&rsquo;s intent, before the lenses. where these agree, the design reads clearly; where they scatter, it may be doing something other than intended.</p>
+              {EVAL_PLAYDATES.map((p) => {
+                const reads = intentReads.filter((r) => r.slug === p.slug);
+                if (reads.length === 0) return null;
+                return (
+                  <div key={p.slug} className="ed-read">
+                    <div className="ed-read-title">{p.title} <span className="agree">{reads.length} read{reads.length === 1 ? "" : "s"}</span></div>
+                    {reads.slice(0, 12).map((q, i) => (
+                      <div key={i} className="ed-quote"><p>&ldquo;{q.text}&rdquo;</p><span>{q.name ?? "someone"}</span></div>
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
           {(kidFavs.length > 0 || grownMoments.length > 0) && (
             <div className="ed-card">
