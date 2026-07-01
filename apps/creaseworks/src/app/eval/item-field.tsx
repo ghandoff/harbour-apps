@@ -22,6 +22,10 @@ interface Props {
   item: EvalItem;
   value: AnswerValue | undefined;
   onChange: (id: string, value: AnswerValue) => void;
+  /** collective register: show a per-item "why" note under the control. */
+  showNote?: boolean;
+  /** current text of the per-item "why" note (stored as `${id}__why`). */
+  note?: string;
 }
 
 /** low/high labels for the 1–5 scales, keyed by item id. */
@@ -31,7 +35,7 @@ const SCALE_ENDS: Record<string, [string, string]> = {
   "c-l4-creaseworks": ["not really", "clearly"],
 };
 
-export function ItemField({ item, value, onChange }: Props) {
+export function ItemField({ item, value, onChange, showNote, note }: Props) {
   const set = (v: AnswerValue) => onChange(item.id, v);
 
   return (
@@ -134,6 +138,24 @@ export function ItemField({ item, value, onChange }: Props) {
           rows={3}
           maxLength={2000}
         />
+      )}
+
+      {/* per-item "why" note — collective reviewers explain their mark
+          (skipped on text items, which are already free-form) */}
+      {showNote && item.type !== "text" && (
+        <>
+          <p className="ef-help" style={{ marginTop: 10, marginBottom: 4 }}>
+            why? <em>(optional)</em>
+          </p>
+          <textarea
+            className="ef-text"
+            value={note ?? ""}
+            onChange={(e) => onChange(`${item.id}__why`, e.target.value)}
+            placeholder="what made it clear, partial, or blocked?"
+            rows={2}
+            maxLength={2000}
+          />
+        </>
       )}
     </div>
   );
