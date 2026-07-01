@@ -49,7 +49,7 @@ export const MINI_MATERIALS: MiniMaterial[] = [
   { id: "7ec3988e-7ea8-4dc7-a169-efbde23ab193", title: "googly eyes", emoji: "👀", icon: "googly-eyes", formPrimary: "discrete small parts" },
   { id: "nat-leaves", title: "leaves", emoji: "🍃", icon: null, formPrimary: "found objects / evocative artifacts", preferIcon: true },
   { id: "10fb1bed-2028-41d0-af48-2d6297b6ccf0", title: "muffin tin", emoji: "🍱", icon: "muffin-tin", formPrimary: "containers / vessels" },
-  { id: "dcb1ada7-d02d-4f8d-b8b3-07520cda0cc8", title: "old gadgets", emoji: null, icon: null, formPrimary: "found objects / evocative artifacts" },
+  { id: "dcb1ada7-d02d-4f8d-b8b3-07520cda0cc8", title: "old gadgets", emoji: "🔧", icon: null, formPrimary: "found objects / evocative artifacts", preferIcon: true },
   { id: "2216d5dc-3fba-4e9f-b42f-2a3171c78997", title: "paper cups", emoji: "🥤", icon: "paper-cups", formPrimary: "containers / vessels", preferIcon: true },
   { id: "7498e5a3-6df0-4b4e-b30f-425c10b5683f", title: "paper plates", emoji: "🍽️", icon: "paper-plates", formPrimary: "sheet goods / surfaces", preferIcon: true },
   { id: "f53b82a2-274a-443d-8c7d-83e0593c7a43", title: "plastic beads", emoji: "🔮", icon: "beads", formPrimary: "discrete small parts" },

@@ -19,6 +19,7 @@ import { layersFor, playdateBySlug, type Register } from "@/lib/eval-rubric";
 import { ItemField, type AnswerValue } from "../../item-field";
 
 const JUMP_LABELS: Record<string, string> = {
+  intent: "first read",
   lens1: "1 · play",
   lens2: "2 · mechanics",
   lens3: "3 · access",

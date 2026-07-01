@@ -4,7 +4,7 @@
  * FoundPicker — the "tap what you have" grid, shared by the classic and
  * timer look modes.
  *
- * Renders the 36 pilot materials as EmojiTiles (characters resolve from
+ * Renders the 39 pilot materials as EmojiTiles (characters resolve from
  * form_primary automatically). Selection lives in local state; "done
  * looking!" saves the titles to sessionStorage and heads to make.
  * Zero reading required: tiles are pictures-first, the count chip and

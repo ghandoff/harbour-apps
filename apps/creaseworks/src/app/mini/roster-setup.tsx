@@ -80,10 +80,16 @@ export function RosterSetup({ code }: { code: string | null }) {
 
   async function remove(id: string) {
     if (!code) return;
+    setErr(null);
     setBusy(true);
-    await removePlayer(code, id);
-    setPlayers((ps) => ps.filter((p) => p.id !== id));
+    const prev = players;
+    setPlayers((ps) => ps.filter((p) => p.id !== id)); // optimistic
+    const ok = await removePlayer(code, id);
     setBusy(false);
+    if (!ok) {
+      setPlayers(prev); // revert — the server still has them
+      setErr("couldn't remove that one — check your connection and try again.");
+    }
   }
 
   function flipKind(k: GroupKind) {
