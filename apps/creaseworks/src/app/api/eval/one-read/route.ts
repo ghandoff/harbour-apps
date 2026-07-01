@@ -3,8 +3,8 @@
  *
  * "One voice, not the answer." A short Claude read across the five
  * lenses, shown AFTER the room has scored, that an evaluator can mark
- * wrong. Generated on demand and cached in D1 (one per playdate, 5
- * total), so the cost is a handful of small sonnet calls — not per view.
+ * wrong. Generated on demand and cached in D1 (one per playdate, 11
+ * currently), so the cost is a handful of small sonnet calls — not per view.
  *
  * Degrades gracefully: without ANTHROPIC_API_KEY it returns
  * { configured: false } and the UI says the read isn't switched on yet.
@@ -78,8 +78,10 @@ export async function POST(req: NextRequest) {
   }
   if (!text) return NextResponse.json({ error: "empty read" }, { status: 502 });
 
+  // first-writer-wins: if two reviewers of the same new (uncached) playdate race,
+  // one generated read shouldn't clobber the other's — the loser re-reads the cache.
   await env.db
-    .prepare("INSERT OR REPLACE INTO one_reads (playdate_slug, text, model) VALUES (?, ?, ?)")
+    .prepare("INSERT OR IGNORE INTO one_reads (playdate_slug, text, model) VALUES (?, ?, ?)")
     .bind(slug, text, MODEL)
     .run();
 

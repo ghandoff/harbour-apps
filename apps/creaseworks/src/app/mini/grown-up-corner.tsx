@@ -19,6 +19,7 @@ import {
   getMiniStage,
   loadCode,
   loadFound,
+  loadSelected,
   matchActivities,
   miniHref,
   miniStageFromPathname,
@@ -102,14 +103,18 @@ export function GrownUpCorner() {
     if (stageKey !== "show") return setUnfoldPrompt(null);
     const found = loadFound();
     if (!found.length) return;
-    const slug = matchActivities(found)[0].activity.slug;
-    setUnfoldPrompt(MINI_ACTIVITY_CONTENT[slug]?.unfold ?? null);
+    // the played playdate (what the child tapped in make) drives the read-aloud —
+    // fall back to the material-matcher only if nothing was explicitly selected.
+    const slug = loadSelected() ?? matchActivities(found)[0]?.activity.slug ?? null;
+    setUnfoldPrompt(slug ? (MINI_ACTIVITY_CONTENT[slug]?.unfold ?? null) : null);
   }, [stageKey]);
 
   // the matched playdate for this session — drives the grown-up observation
   useEffect(() => {
     const found = loadFound();
-    if (found.length) setMatchedSlug(matchActivities(found)[0].activity.slug);
+    if (!found.length) return;
+    // observation is logged against the played playdate, not the material-inferred one
+    setMatchedSlug(loadSelected() ?? matchActivities(found)[0]?.activity.slug ?? null);
   }, [stageKey, open]);
 
   async function checkCode() {
