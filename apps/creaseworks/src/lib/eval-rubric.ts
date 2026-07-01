@@ -125,6 +125,49 @@ export const EVAL_PLAYDATES: EvalPlaydate[] = [
     content:
       "find a torn stuffed toy; sew the rip with visible colourful thread (a 'cool scar', kintsugi); restuff it; the repair tells a story. mending works on everything.",
   },
+  /* the 6 sampler playdates, also added to creaseworks-mini (01 jul) */
+  {
+    slug: "cloud-cartographer",
+    title: "cloud cartographer",
+    tagline: "map the sky before it changes",
+    content:
+      "go where you can see the sky; pick three clouds and draw each fast (they move!), naming them like places on a map; wait 20–30 minutes and draw them again to compare. observation, capture, memory.",
+  },
+  {
+    slug: "function-tag-scavenger",
+    title: "function tag scavenger",
+    tagline: "find three things nearby and turn them into something you can play with",
+    content:
+      "grab any three nearby objects; give each a job (launcher / holder / roller); combine them into one playable invention; show it and let someone guess the jobs. arrangement teaches use — that's design.",
+  },
+  {
+    slug: "kek-loop-micro-experience",
+    title: "kek loop micro-experience",
+    tagline: "guess what will happen, make something fast, then see if your guess was right",
+    content:
+      "KNOW (say your prediction out loud) → EXPERIENCE (make something in 30 seconds, no planning) → KNOW (compare to your guess). the gap between expected and actual is the surprise where learning lives.",
+  },
+  {
+    slug: "leaf-press-telegraph",
+    title: "leaf press telegraph",
+    tagline: "send a message using only leaves",
+    content:
+      "collect about ten varied leaves; arrange them into a wordless message or picture; show it and see what a reader thinks it says; refine for clarity. try again with sticks or stones.",
+  },
+  {
+    slug: "shadow-tracker",
+    title: "shadow tracker",
+    tagline: "follow the sun with a pencil",
+    content:
+      "outside, pick a still object and trace its shadow; come back an hour later and trace again; compare the lines to see how and why the shadow moved. predict which of several moves most.",
+  },
+  {
+    slug: "transfer-test-find-again",
+    title: "transfer test (find again)",
+    tagline: "build the same idea with two totally different materials and see what changes in you",
+    content:
+      "pick one idea and two very different materials; build it with material A, then rebuild from scratch with B; compare — notice how each material changed not just what you built but how you thought while building.",
+  },
 ];
 
 export function playdateBySlug(slug: string): EvalPlaydate | undefined {
