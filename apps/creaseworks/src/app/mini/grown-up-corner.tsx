@@ -152,6 +152,9 @@ export function GrownUpCorner() {
     void postEval({ slug: matchedSlug, register: "grownup", name: loadCode(), answers });
   }
 
+  // the moderator tool lives under /mini too — keep the family corner off it
+  if (pathname?.endsWith("/moderate")) return null;
+
   return (
     <>
       <style>{`

@@ -15,9 +15,11 @@
  */
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { loadCode } from "@/lib/mini-pilot";
 
 export function FirstRunNudge() {
+  const pathname = usePathname();
   const [needsCode, setNeedsCode] = useState(false);
 
   useEffect(() => {
@@ -27,6 +29,8 @@ export function FirstRunNudge() {
     return () => window.removeEventListener("cw:code-set", check);
   }, []);
 
+  // the moderator tool lives under /mini too — no family-code nudge there
+  if (pathname?.endsWith("/moderate")) return null;
   if (!needsCode) return null;
 
   return (

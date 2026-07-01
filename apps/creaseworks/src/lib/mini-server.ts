@@ -94,6 +94,19 @@ export function normalizeCode(raw: unknown): string | null {
   return CODE_SHAPE.test(code) ? code : null;
 }
 
+/**
+ * Moderator gate: true only when the presented code matches the MODERATOR_CODE
+ * secret. Fail-closed — if the secret isn't set, nobody gets in (so the feature
+ * ships inert until the passphrase is configured on the worker).
+ */
+export function checkModerator(code: unknown): boolean {
+  const secret = process.env.MODERATOR_CODE;
+  return typeof secret === "string" && secret.length > 0 && code === secret;
+}
+
+/** who can moderate — the preset collective (attribution on each decision). */
+export const MODERATOR_REVIEWERS = ["jamie", "garrett", "maria", "payton", "lamis"] as const;
+
 export const MINI_PHOTO_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/heic"]);
 export const MINI_PHOTO_MAX = 5 * 1024 * 1024;
 export const MINI_BODY_MAX = 2000;
