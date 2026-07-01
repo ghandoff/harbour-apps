@@ -412,8 +412,9 @@ export function GrownUpCorner() {
                     your family or class code
                   </label>
                   <p className="guc-code-why">
-                    one code from the collective. it unlocks photo sharing, sets up who&rsquo;s playing (anonymous
-                    avatars), and ties your family&rsquo;s evidence together. don&rsquo;t have one? ask us.
+                    pick one family or class code. it unlocks photo sharing, sets up who&rsquo;s playing (anonymous
+                    avatars), and ties your family&rsquo;s evidence together. make up your own — anything memorable
+                    works (like sunny-fox or maria-class-3).
                   </p>
                   <div className="guc-code-row">
                     <input
@@ -433,7 +434,7 @@ export function GrownUpCorner() {
                   </div>
                   {codeState === "bad" && (
                     <p className="guc-code-bad">
-                      we don&rsquo;t recognise that one — check the spelling, or ask the collective for your code.
+                      codes are letters, numbers and hyphens — like sunny-fox or maria-class-3.
                     </p>
                   )}
                 </>
