@@ -66,8 +66,8 @@ export function FirstRunNudge() {
       <div className="cw-firstrun-text">
         <p className="cw-firstrun-h">👋 grown-ups, start here</p>
         <p className="cw-firstrun-t">
-          enter your family or class code <strong>before the first game</strong> — so we can save what your child
-          does and their feedback. (no code? ask the collective.)
+          set your family or class code <strong>before the first game</strong> — so we can save what your child
+          does and their feedback. (no code yet? make one up — anything memorable, like sunny-fox.)
         </p>
       </div>
       <button

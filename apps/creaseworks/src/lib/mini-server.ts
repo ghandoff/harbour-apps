@@ -57,20 +57,35 @@ export function getMiniEnv(): MiniEnv | null {
   }
 }
 
+// Code shape shared by validateCode + ensureCode, and matching
+// normalizeGroupCode (eval-server): lowercased, alnum + hyphen, 2–40 chars.
+// The old `^[a-z]+-[a-z]+$` rejected digits / multi-segment codes, so a
+// roster code that's valid for traces could 403 here.
+const CODE_SHAPE = /^[a-z0-9][a-z0-9-]{1,39}$/;
+
 /** A session code is valid when it exists in the seeded sessions table. */
 export async function validateCode(
   db: MiniD1,
   code: string,
 ): Promise<boolean> {
-  // Same shape as normalizeGroupCode (eval-server): lowercased, alnum +
-  // hyphen, 2–40 chars. The old `^[a-z]+-[a-z]+$` rejected digits / multi-
-  // segment codes, so a roster code that's valid for traces could 403 here.
-  if (!/^[a-z0-9][a-z0-9-]{1,39}$/.test(code)) return false;
+  if (!CODE_SHAPE.test(code)) return false;
   const row = await db
     .prepare("SELECT code FROM sessions WHERE code = ?")
     .bind(code)
     .first();
   return row !== null;
+}
+
+/**
+ * Pilot self-serve codes: a well-formed code is CREATED on first use, so a
+ * family/class can pick their own memorable code without pre-seeding. Keeps
+ * the format floor (junk still bounces) and leaves the row in place for the
+ * evidence-sharing + roster/traces flows that key off sessions(code).
+ */
+export async function ensureCode(db: MiniD1, code: string): Promise<boolean> {
+  if (!CODE_SHAPE.test(code)) return false;
+  await db.prepare("INSERT OR IGNORE INTO sessions (code) VALUES (?)").bind(code).run();
+  return true;
 }
 
 export const MINI_PHOTO_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/heic"]);
