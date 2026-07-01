@@ -31,6 +31,8 @@ export interface MiniActivity {
    * the match-rate. ⚠ review with jamie/garrett before family sessions.
    */
   materials: string[];
+  /** weather-dependent (needs sky/sun) — shows a "best outside ☀️" tag */
+  outdoor?: boolean;
 }
 
 /**
@@ -128,6 +130,65 @@ export const MINI_ACTIVITIES: MiniActivity[] = [
       "washi tape",
       "googly eyes",
     ],
+  },
+
+  /* ── the 6 sampler playdates, imported for the crease.camp session
+     (pull-and-map from playdates_cache; content in MINI_ACTIVITY_CONTENT) ── */
+  {
+    slug: "function-tag-scavenger",
+    title: "function tag scavenger",
+    headline: "find three things nearby and turn them into something you can play with",
+    accent: "var(--wv-sienna)",
+    corners: "26px 22px 28px 20px",
+    hardeningNote: "sampler import for crease.camp — any-materials; give each found object a job.",
+    materials: ["old gadgets", "toy parts", "paper cups", "bottle caps"],
+  },
+  {
+    slug: "kek-loop-micro-experience",
+    title: "kek loop micro-experience",
+    headline: "guess what will happen, make something fast, then see if your guess was right",
+    accent: "var(--wv-redwood)",
+    corners: "20px 28px 22px 26px",
+    hardeningNote: "sampler import for crease.camp — predict / make fast / compare loop.",
+    materials: ["big paper", "craft paper", "cardstock", "popsicle sticks"],
+  },
+  {
+    slug: "transfer-test-find-again",
+    title: "transfer test (find again)",
+    headline: "build the same idea with two totally different materials and see what changes in YOU",
+    accent: "var(--wv-forest)",
+    corners: "28px 24px 20px 26px",
+    hardeningNote: "sampler import for crease.camp — same idea, two very different materials.",
+    materials: ["cardstock", "craft paper", "buttons", "popsicle sticks", "tape"],
+  },
+  {
+    slug: "leaf-press-telegraph",
+    title: "leaf press telegraph",
+    headline: "send a message using only leaves",
+    accent: "var(--wv-moss)",
+    corners: "22px 26px 28px 20px",
+    hardeningNote: "sampler import for crease.camp — nature materials; bring leaves in if indoors.",
+    materials: ["leaves", "sticks", "stones", "big paper"],
+  },
+  {
+    slug: "cloud-cartographer",
+    title: "cloud cartographer",
+    headline: "map the sky before it changes",
+    accent: "var(--wv-cornflower)",
+    corners: "26px 20px 24px 28px",
+    hardeningNote: "sampler import for crease.camp — observation; needs a view of the sky.",
+    materials: ["washable markers", "colored pencils", "big paper", "craft paper"],
+    outdoor: true,
+  },
+  {
+    slug: "shadow-tracker",
+    title: "shadow tracker",
+    headline: "follow the sun with a pencil",
+    accent: "var(--wv-teal)",
+    corners: "24px 28px 20px 26px",
+    hardeningNote: "sampler import for crease.camp — observation; needs sun.",
+    materials: ["colored pencils", "washable markers", "sticks"],
+    outdoor: true,
   },
 ];
 

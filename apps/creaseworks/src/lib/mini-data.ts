@@ -47,6 +47,7 @@ export const MINI_MATERIALS: MiniMaterial[] = [
   { id: "f274b4b1-9833-4ee5-8813-9b8470b75eb4", title: "egg cartons", emoji: "🥚", icon: "egg-cartons", formPrimary: "containers / vessels" },
   { id: "4dfbdb56-3a7b-43a4-a62d-fea6eff12f4d", title: "felt sheets", emoji: "🧶", icon: "felt", formPrimary: "sheet goods / surfaces", preferIcon: true },
   { id: "7ec3988e-7ea8-4dc7-a169-efbde23ab193", title: "googly eyes", emoji: "👀", icon: "googly-eyes", formPrimary: "discrete small parts" },
+  { id: "nat-leaves", title: "leaves", emoji: "🍃", icon: null, formPrimary: "found objects / evocative artifacts", preferIcon: true },
   { id: "10fb1bed-2028-41d0-af48-2d6297b6ccf0", title: "muffin tin", emoji: "🍱", icon: "muffin-tin", formPrimary: "containers / vessels" },
   { id: "dcb1ada7-d02d-4f8d-b8b3-07520cda0cc8", title: "old gadgets", emoji: null, icon: null, formPrimary: "found objects / evocative artifacts" },
   { id: "2216d5dc-3fba-4e9f-b42f-2a3171c78997", title: "paper cups", emoji: "🥤", icon: "paper-cups", formPrimary: "containers / vessels", preferIcon: true },
@@ -59,6 +60,8 @@ export const MINI_MATERIALS: MiniMaterial[] = [
   { id: "10733729-9e9a-4581-90b8-dba499749b3c", title: "rubber bands", emoji: "➰", icon: "rubber-bands", formPrimary: "linear / filament", preferIcon: true },
   { id: "54430205-7db7-4f89-9784-dc2a8db82685", title: "shoebox", emoji: "📦", icon: "shoebox", formPrimary: "containers / vessels", preferIcon: true },
   { id: "ddb69f2a-6171-44f9-874c-9f2291d57934", title: "stickers", emoji: "⭐", icon: "stickers", formPrimary: "discrete small parts" },
+  { id: "nat-sticks", title: "sticks", emoji: "🪵", icon: null, formPrimary: "found objects / evocative artifacts", preferIcon: true },
+  { id: "nat-stones", title: "stones", emoji: "🪨", icon: null, formPrimary: "found objects / evocative artifacts", preferIcon: true },
   { id: "0cec69db-efb1-4ace-a82b-cea4aaeac234", title: "string / yarn", emoji: "🧶", icon: null, formPrimary: "linear / filament" },
   { id: "42618139-245d-43d3-84f6-0b47ffe977a0", title: "tape", emoji: "🩹", icon: "tape-roll", formPrimary: "joining / fastening" },
   { id: "8162b467-9b2d-4ad3-b4fa-5760b6b4466e", title: "toy parts", emoji: "🧩", icon: "blocks", formPrimary: "found objects / evocative artifacts" },
@@ -77,6 +80,43 @@ export interface MiniActivityContent {
 }
 
 export const MINI_ACTIVITY_CONTENT: Record<string, MiniActivityContent> = {
+  // ── the 6 sampler playdates (verbatim from playdates_cache, 01 jul) ──
+  "function-tag-scavenger": {
+    find: "look around you right now — what do you see? find three things that are just sitting there. a cup, a pencil, a sock, a block, a spoon — whatever is nearby! grab them and put them in front of you. these three things are about to become part of something amazing.",
+    fold: "now here's the fun part: give each thing a JOB. one thing is the \"launcher\" — it sends something flying. one thing is the \"holder\" — it keeps something safe. one thing is the \"roller\" — it moves across the floor. now put all three things together into one invention you can actually play with! how do the three jobs work together?",
+    unfold: "show your invention to someone without telling them what it does. can they figure out the jobs just by looking at it and trying it? what clues helped them guess? what confused them? the way you arrange things TEACHES people how to use them — that's called design! try swapping the jobs around: what if the cup is the launcher instead of the holder?",
+    findAgainPrompt: "keep the same three objects but give them completely different jobs. the cup was a holder — now it's a drum! the pencil was a launcher — now it's a bridge! same stuff, totally new invention.",
+  },
+  "kek-loop-micro-experience": {
+    find: "K stands for “KNOW” — before you touch anything, say out loud what you THINK you’re about to make. “I think I’m going to make a tall tower.” or “I think this paper will fold into a bird.” say your guess! this is your prediction, and it’s okay if it’s wrong.",
+    fold: "E stands for “EXPERIENCE” — now MAKE something, fast! grab paper, blocks, clay, whatever is near you. you have 30 seconds. don’t plan — just go! let your hands decide. what comes out might match your guess... or it might be completely different.",
+    unfold: "K again — “KNOW” — look at what you made. was it what you predicted? probably not exactly! say out loud what ACTUALLY happened: “I said I’d make a tower, but I actually made more of a cave.” the gap between what you EXPECTED and what HAPPENED is where all the learning lives. that gap is called a SURPRISE, and surprises are your brain’s favorite way to learn.",
+    findAgainPrompt: "do it again with a different material. make the same prediction — “I’ll make a tall tower” — but with something totally different. does the material change what comes out, even when you’re trying to make the same thing?",
+  },
+  "transfer-test-find-again": {
+    find: "think of something you want to build — a bridge, a container, a tower, a tool. now pick TWO materials that are really different from each other. material A might be paper and tape. material B might be playdough and sticks. or material A is LEGO and material B is fabric and string. you need both sets ready to go.",
+    fold: "first, build your idea with material A. take your time, make it work. now step back and LOOK at what you built — notice the shapes, the connections, what's strong and what's wobbly. now take a deep breath... and build the SAME idea from scratch with material B. same goal, completely different stuff!",
+    unfold: "put both versions side by side. they probably look really different even though they're supposed to do the same thing! here's the deep question: did YOU think differently when you used different materials? did the paper make you fold and the playdough make you squish? the material didn't just change what you built — it changed HOW YOUR BRAIN WORKED while building it. that's wild!",
+    findAgainPrompt: "keep material B but change your building idea. does material B suggest different things to build than material A did? what does each material WANT to become?",
+  },
+  "leaf-press-telegraph": {
+    find: "go outside and collect 10 different leaves. big ones, tiny ones, pointy ones, round ones. also find a flat place to lay them out — a table, a piece of cardboard, or the sidewalk.",
+    fold: "arrange your leaves into a message or a picture. can you make a face? an arrow pointing somewhere? a pattern that means something? no words allowed — just leaves and where you put them.",
+    unfold: "show your leaf message to someone. what did they think it said? was it what you meant? what would you change to make it clearer?",
+    findAgainPrompt: "try the same message but with sticks or stones instead of leaves. does it still work?",
+  },
+  "cloud-cartographer": {
+    find: "grab something to draw with — a crayon, a marker, a pencil. and something to draw on. go where you can see the sky.",
+    fold: "look up! pick three clouds. draw each one as fast as you can — you have 60 seconds per cloud because they're moving! give each cloud a name like it's a place on a map. \"mount fluffy.\" \"lake wisp.\"",
+    unfold: "wait 20 or 30 minutes. look up again. are your clouds still there? did they change shape? did they float away? draw what you see now and compare.",
+    findAgainPrompt: "this time, don't look at the sky. draw your clouds from memory. then check — how close were you?",
+  },
+  "shadow-tracker": {
+    find: "go outside and pick something that isn't moving — a stick in the ground, a toy on the step, a shoe. grab a pencil or chalk too.",
+    fold: "draw a line around the shadow right where it is. come back in one hour and draw the shadow again. it moved! where did it go?",
+    unfold: "look at both lines you drew. which way did the shadow move? why do you think that happened? what do you think would happen if you came back one more hour later?",
+    findAgainPrompt: "try three different things at the same time. before you go back to check, guess which shadow will move the most.",
+  },
   "mend-a-stuffed-friend": {
     find: "find a stuffed animal or fabric toy that needs some love — maybe it has a torn seam, a missing eye, stuffing coming out, or it's just looking a little sad and flat. if nothing's broken, you can practice on an old sock or a scrap of fabric. gather your repair kit: needle and thread (with grown-up help!), fabric scraps, buttons, stuffing material (cotton balls, old fabric scraps, or even clean plastic bags work), scissors.",
     fold: "with a grown-up helping you with the needle, start your repair. if there's a rip, pinch the edges together and sew small stitches to close it up — it doesn't have to be perfect! in fact, the stitches can be part of the character. use colorful thread so the repair shows like a cool scar. if your friend needs new stuffing, gently push filling in through the opening before sewing it shut. missing an eye? sew on a button — maybe a DIFFERENT one that gives your friend a whole new personality!",

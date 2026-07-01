@@ -267,6 +267,11 @@ export default function MiniMakePage() {
                   {isMatch && <span className="mini-make-badge">✨ matches your stuff</span>}
                   <span className="mini-make-tile-title">{a.title}</span>
                   <span className="mini-make-tile-headline">{a.headline}</span>
+                  {a.outdoor && (
+                    <span style={{ marginTop: 4, fontSize: 11, fontWeight: 800, color: "var(--wv-cadet)" }}>
+                      best outside ☀️
+                    </span>
+                  )}
                 </button>
               );
             })}
