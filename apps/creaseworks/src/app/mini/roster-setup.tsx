@@ -164,7 +164,11 @@ export function RosterSetup({ code }: { code: string | null }) {
         /* no inner max-height/overflow: the grown-up sheet is the single
            scroll. a nested scroll here was shorter than the grid (avatars
            clipped) and ate taps on touch — flow the whole grid instead. */
-        .rs-add-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-top: 8px; padding: 2px; }
+        /* cap the width so the 6-col grid (one colour per row) stays a comfy
+           tile size — the grown-up sheet is full-viewport-width, so without a
+           cap the tiles stretch huge on desktop + the fixed emoji looks tiny.
+           360px ≈ the mobile width where it already looks right. */
+        .rs-add-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-top: 8px; padding: 2px; max-width: 360px; }
         @media (max-width: 380px) { .rs-add-grid { grid-template-columns: repeat(5, 1fr); } }
         button.rs-av { cursor: pointer; aspect-ratio: 1; border: none; border-radius: 12px 14px 10px 13px; display: flex; align-items: center; justify-content: center;
           font-size: 22px; box-shadow: 0 2px 0 rgba(39, 50, 72, 0.14); transition: scale 120ms ease; }
