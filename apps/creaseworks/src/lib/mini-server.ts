@@ -88,6 +88,12 @@ export async function ensureCode(db: MiniD1, code: string): Promise<boolean> {
   return true;
 }
 
+/** Lowercase + trim a raw code; null when it fails the shape (junk / empty). */
+export function normalizeCode(raw: unknown): string | null {
+  const code = typeof raw === "string" ? raw.trim().toLowerCase() : "";
+  return CODE_SHAPE.test(code) ? code : null;
+}
+
 export const MINI_PHOTO_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/heic"]);
 export const MINI_PHOTO_MAX = 5 * 1024 * 1024;
 export const MINI_BODY_MAX = 2000;
