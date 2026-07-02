@@ -38,6 +38,9 @@ export async function POST(req: NextRequest) {
   const tags = Array.isArray(json?.tags)
     ? json.tags.filter((t: unknown): t is string => typeof t === "string").slice(0, 12).map((t: string) => t.slice(0, 60))
     : [];
+  // what the AI had suggested when the human decided — null if it wasn't shown
+  const aiSuggestion =
+    json?.aiSuggestion === "approve" || json?.aiSuggestion === "reject" ? json.aiSuggestion : null;
 
   // the row must exist + still be pending (idempotent — a double-tap on the
   // second reviewer's screen won't silently re-decide an already-handled item)
@@ -55,9 +58,9 @@ export async function POST(req: NextRequest) {
 
   await env.db
     .prepare(
-      "INSERT INTO moderation_log (id, evidence_id, decision, reviewer, reason, tags) VALUES (?, ?, ?, ?, ?, ?)",
+      "INSERT INTO moderation_log (id, evidence_id, decision, reviewer, reason, tags, ai_suggestion) VALUES (?, ?, ?, ?, ?, ?, ?)",
     )
-    .bind(crypto.randomUUID(), id, decision, reviewer, reason, JSON.stringify(tags))
+    .bind(crypto.randomUUID(), id, decision, reviewer, reason, JSON.stringify(tags), aiSuggestion)
     .run();
 
   return NextResponse.json({ ok: true });

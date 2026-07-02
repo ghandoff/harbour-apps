@@ -9,7 +9,7 @@
  * family shares reaches the public wall until it's approved here.
  */
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { apiUrl } from "@/lib/api-url";
 import { MINI_ACTIVITIES } from "@/lib/mini-pilot";
 
@@ -26,6 +26,13 @@ interface Item {
   created_at: string;
 }
 type Notes = { reason: string; tags: string[] };
+type Sug = {
+  loading: boolean;
+  configured: boolean;
+  suggestion: "approve" | "reject" | null;
+  reason: string;
+  tags: string[];
+};
 
 export default function MiniModeratePage() {
   const [code, setCode] = useState("");
@@ -36,6 +43,8 @@ export default function MiniModeratePage() {
   const [queue, setQueue] = useState<Item[] | null>(null);
   const [notes, setNotes] = useState<Record<string, Notes>>({});
   const [busy, setBusy] = useState<string | null>(null);
+  const [suggestions, setSuggestions] = useState<Record<string, Sug>>({});
+  const requested = useRef<Set<string>>(new Set());
 
   const loadQueue = useCallback(async (pass: string): Promise<boolean> => {
     setChecking(true);
@@ -65,6 +74,38 @@ export default function MiniModeratePage() {
     }
   }, []);
 
+  const fetchSuggestion = useCallback(async (id: string) => {
+    setSuggestions((s) => ({ ...s, [id]: { loading: true, configured: false, suggestion: null, reason: "", tags: [] } }));
+    try {
+      const res = await fetch(apiUrl("/api/mini/moderate/suggest"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-moderator-code": code },
+        body: JSON.stringify({ id }),
+      });
+      const d = (await res.json().catch(() => ({}))) as {
+        configured?: boolean; suggestion?: unknown; reason?: unknown; tags?: unknown;
+      };
+      const sug: Sug = {
+        loading: false,
+        configured: !!d.configured,
+        suggestion: d.suggestion === "approve" || d.suggestion === "reject" ? d.suggestion : null,
+        reason: typeof d.reason === "string" ? d.reason : "",
+        tags: Array.isArray(d.tags) ? d.tags.filter((t): t is string => typeof t === "string") : [],
+      };
+      setSuggestions((s) => ({ ...s, [id]: sug }));
+      // pre-fill the human's draft — but never clobber edits they've already made
+      if (sug.configured && sug.suggestion) {
+        setNotes((prev) => {
+          const cur = prev[id];
+          if (cur && (cur.reason || cur.tags.length)) return prev;
+          return { ...prev, [id]: { reason: sug.reason, tags: sug.tags } };
+        });
+      }
+    } catch {
+      setSuggestions((s) => ({ ...s, [id]: { loading: false, configured: false, suggestion: null, reason: "", tags: [] } }));
+    }
+  }, [code]);
+
   // resume an authed session on refresh
   useEffect(() => {
     let saved = "";
@@ -74,6 +115,16 @@ export default function MiniModeratePage() {
       void loadQueue(saved);
     }
   }, [loadQueue]);
+
+  // once authed, fetch the AI draft for each pending item (once each)
+  useEffect(() => {
+    if (!authed || !queue || !code) return;
+    for (const item of queue) {
+      if (requested.current.has(item.id)) continue;
+      requested.current.add(item.id);
+      void fetchSuggestion(item.id);
+    }
+  }, [authed, queue, code, fetchSuggestion]);
 
   const noteFor = (id: string): Notes => notes[id] ?? { reason: "", tags: [] };
   const setNote = (id: string, patch: Partial<Notes>) =>
@@ -91,7 +142,7 @@ export default function MiniModeratePage() {
       const res = await fetch(apiUrl("/api/mini/moderate/decide"), {
         method: "POST",
         headers: { "Content-Type": "application/json", "x-moderator-code": code },
-        body: JSON.stringify({ id: item.id, decision, reviewer, reason: n.reason, tags: n.tags }),
+        body: JSON.stringify({ id: item.id, decision, reviewer, reason: n.reason, tags: n.tags, aiSuggestion: suggestions[item.id]?.suggestion ?? null }),
       });
       if (res.ok || res.status === 409) {
         setQueue((q) => (q ? q.filter((x) => x.id !== item.id) : q));
@@ -125,6 +176,11 @@ export default function MiniModeratePage() {
         .mod-photo { width: 100%; max-height: 420px; object-fit: contain; background: rgba(39,50,72,0.06); border-radius: 12px; display: block; margin-bottom: 10px; }
         .mod-meta { font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif; font-size: 12px; color: #6b7280; font-weight: 700; }
         .mod-words { font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif; font-weight: 700; font-size: 15px; color: var(--wv-cadet); line-height: 1.45; margin: 4px 0 10px; }
+        .mod-ai { font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif; font-weight: 700; font-size: 13px; color: var(--wv-cadet); border-radius: 10px 14px 8px 12px; padding: 8px 12px; margin: 4px 0 12px; border: 1.5px solid rgba(39,50,72,0.14); background: rgba(39,50,72,0.04); }
+        .mod-ai[data-call="approve"] { border-color: var(--wv-teal); background: color-mix(in srgb, var(--wv-teal) 12%, var(--wv-white)); }
+        .mod-ai[data-call="reject"] { border-color: var(--wv-redwood); background: color-mix(in srgb, var(--wv-redwood) 12%, var(--wv-white)); }
+        .mod-ai-load { opacity: 0.7; }
+        .mod-ai-hint { font-weight: 700; color: #6b7280; }
         .mod-textarea { width: 100%; box-sizing: border-box; font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif; font-size: 15px; color: var(--wv-cadet); background: var(--wv-white); border: 2px solid rgba(39,50,72,0.16); border-radius: 12px; padding: 9px 12px; margin: 10px 0; }
         .mod-actions { display: flex; gap: 10px; }
         button.mod-btn { flex: 1; cursor: pointer; font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif; font-weight: 800; font-size: 15px; color: var(--wv-white); border: none; border-radius: 14px; padding: 12px; }
@@ -185,6 +241,7 @@ export default function MiniModeratePage() {
           ) : (
             queue.map((item) => {
               const n = noteFor(item.id);
+              const s = suggestions[item.id];
               return (
                 <div key={item.id} className="mod-card">
                   {item.has_photo ? (
@@ -197,6 +254,14 @@ export default function MiniModeratePage() {
                   ) : null}
                   <p className="mod-meta">{titleFor(item.activity_slug)} · {item.code} · {item.created_at}</p>
                   {item.body && <p className="mod-words">“{item.body}”</p>}
+
+                  {s?.loading && <p className="mod-ai mod-ai-load">🤖 reading it…</p>}
+                  {s && !s.loading && s.configured && s.suggestion && (
+                    <div className="mod-ai" data-call={s.suggestion}>
+                      🤖 suggests <strong>{s.suggestion}</strong>{s.reason ? ` — ${s.reason}` : ""}
+                      <span className="mod-ai-hint"> · your call below (it’s pre-filled)</span>
+                    </div>
+                  )}
 
                   <div className="mod-chips">
                     {TAGS.map((t) => (
