@@ -67,8 +67,21 @@ const SECRETS = {
     ],
     redeployVercelAfterUpdate: true,
   },
-  // ANTHROPIC_API_KEY: source-of-truth unclear (port/.env.local is stale; depth-chart
-  //   uses AI Gateway not direct Anthropic). Add once Garrett confirms which key is current.
+  ANTHROPIC_API_KEY: {
+    // GET /v1/models is 200 for a valid key, 401 otherwise — a cheap auth check.
+    // NOTE: Anthropic authenticates with the x-api-key header, NOT Authorization: Bearer.
+    probeUrl: "https://api.anthropic.com/v1/models",
+    probeHeaders: { "x-api-key": "$K", "anthropic-version": "2023-06-01" },
+    probeOkStatus: 200,
+    // Direct-Anthropic consumers ONLY. port + depth-chart use the Vercel AI
+    // Gateway (ANTHROPIC_AUTH_TOKEN / ANTHROPIC_BASE_URL), not this key — never
+    // add them here. The two creaseworks CF workers call the API directly:
+    //   eval → /api/eval/one-read ; mini → /api/mini/moderate/suggest
+    vercelProjects: [],
+    cfWorkers: ["wv-harbour-creaseworks-eval", "wv-harbour-creaseworks-mini"],
+    localFiles: [`${HOME}/Projects/harbour-apps/apps/creaseworks/.env.local`],
+    redeployVercelAfterUpdate: false, // CF worker secrets activate without a redeploy
+  },
   // STRIPE_SECRET_KEY, GOOGLE_CLIENT_*, AUTH_SECRET, R2_*: audit shows no drift currently.
   //   Add to SECRETS map when their next rotation surfaces.
 };
