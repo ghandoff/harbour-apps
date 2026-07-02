@@ -36,6 +36,7 @@ export interface MiniR2 {
   get(key: string): Promise<{
     body: ReadableStream;
     httpMetadata?: { contentType?: string };
+    arrayBuffer(): Promise<ArrayBuffer>;
   } | null>;
 }
 
