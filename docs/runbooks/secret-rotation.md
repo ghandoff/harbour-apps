@@ -44,6 +44,41 @@ The script:
 - Re-probes at the end as an end-to-end sanity check
 - Wipes the secret value from process memory before exit
 
+## ANTHROPIC_API_KEY (wired 01 jul 2026)
+
+Now in the `SECRETS` map. **Direct-Anthropic consumers = the two creaseworks CF
+workers only:** `wv-harbour-creaseworks-eval` (`/api/eval/one-read`) and
+`wv-harbour-creaseworks-mini` (`/api/mini/moderate/suggest`, the moderation
+pre-screen). **port + depth-chart use the Vercel AI Gateway
+(`ANTHROPIC_AUTH_TOKEN` / `ANTHROPIC_BASE_URL`), NOT this key — never add them.**
+Probe: `GET https://api.anthropic.com/v1/models` with the `x-api-key` header (NOT
+`Authorization: Bearer`).
+
+To rotate:
+1. Mint a fresh key in the Anthropic Console (console.anthropic.com → Settings →
+   API keys → Create key). It's shown once — copy it.
+2. Paste it into the `ANTHROPIC_API_KEY=` line of `port/.env.local` with a real
+   editor (never chat).
+3. `cd ~/Projects/harbour-apps && node scripts/rotate-secret.mjs --secret=ANTHROPIC_API_KEY`
+4. Only after the new key verifies on both workers, revoke the old key in the console.
+
+## Agent ownership (Claude runs the propagator)
+
+The propagator never echoes secret values (stdin-only, wiped at exit), so Claude
+can run it end-to-end. The auto-mode permission classifier blocks *ad-hoc* reads
+of `.env` / `.dev.vars` (credential harvesting) — the sanctioned path is a
+**narrow Bash allow rule for the audited scripts**, not broad file-read access:
+
+```json
+// .claude/settings.json → permissions.allow
+"Bash(node scripts/rotate-secret.mjs:*)",
+"Bash(node scripts/audit-secrets.mjs:*)"
+```
+
+With those in place, Claude runs rotations + audits itself. The only human-only
+step is minting the new key in the vendor console and pasting it into the
+source-of-truth file (`port/.env.local`) — the value never passes through chat.
+
 ## Adding a new secret to the rotation script
 
 In `~/Projects/harbour-apps/scripts/rotate-secret.mjs`, add an entry to the `SECRETS` map:
