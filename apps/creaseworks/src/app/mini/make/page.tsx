@@ -24,6 +24,7 @@ import {
   matchActivities,
   miniHref,
   saveSelected,
+  takeChainTarget,
   MINI_ACTIVITIES,
   type MiniMatch,
 } from "@/lib/mini-pilot";
@@ -32,14 +33,23 @@ export default function MiniMakePage() {
   const [matches, setMatches] = useState<MiniMatch[] | null>(null);
   const [hasFound, setHasFound] = useState(false);
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
+  const [cameFromChain, setCameFromChain] = useState(false);
 
   useEffect(() => {
     const found = loadFound();
     setHasFound(found.length > 0);
     const m = matchActivities(found);
     setMatches(m);
-    // came from look with a hunt → auto-open the match; else show the chooser
-    if (found.length > 0) setSelectedSlug(m[0].activity.slug);
+    // a "where this leads" chain names the next playdate — honour it over the
+    // matcher (one-shot). otherwise: came from find with a hunt → auto-open
+    // the match; else show the chooser.
+    const chainTo = takeChainTarget();
+    if (chainTo && MINI_ACTIVITIES.some((a) => a.slug === chainTo)) {
+      setSelectedSlug(chainTo);
+      setCameFromChain(true);
+    } else if (found.length > 0) {
+      setSelectedSlug(m[0].activity.slug);
+    }
   }, []);
 
   const matched = hasFound && matches ? matches[0] : null;
@@ -152,6 +162,13 @@ export default function MiniMakePage() {
         }
         button.mini-make-back:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; border-radius: 6px; }
 
+        .mini-make-chainnote {
+          font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+          font-weight: 800; font-size: 14px; color: var(--wv-cadet);
+          background: color-mix(in srgb, var(--wv-sun, #ffd166) 80%, var(--wv-white));
+          border-radius: 14px 18px 12px 16px; padding: 10px 14px; margin-bottom: 12px; line-height: 1.4;
+        }
+
         /* the chooser */
         .mini-make-chooser-h {
           font-family: var(--font-fraunces), serif; font-weight: 600; font-size: 26px; color: var(--wv-white); margin: 4px 0 2px;
@@ -207,6 +224,12 @@ export default function MiniMakePage() {
           <button type="button" className="mini-make-back" onClick={() => setSelectedSlug(null)}>
             ← pick a different playdate
           </button>
+
+          {cameFromChain && (
+            <p className="mini-make-chainnote">
+              🔗 you already have some of what you need — let&rsquo;s keep going!
+            </p>
+          )}
 
           <div className="mini-make-card" style={{ ["--accent" as string]: selected.accent }}>
             <p className="mini-make-kicker">

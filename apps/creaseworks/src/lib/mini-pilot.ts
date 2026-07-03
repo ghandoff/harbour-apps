@@ -383,6 +383,34 @@ export function loadSelected(): string | null {
   }
 }
 
+/* ── chain hand-off (find again → the next playdate) ─────────────────
+ * The "where this leads" door on find-again names a specific next
+ * playdate. make normally opens the MATCHER's top pick, so this one-shot
+ * key lets a chain override it: make reads-and-clears it on mount, opens
+ * that playdate, and shows the "you already have some of what you need"
+ * note. One-shot so a later plain visit to make isn't hijacked. */
+
+const CHAIN_KEY = "cw-mini-chain-to";
+
+export function saveChainTarget(slug: string): void {
+  try {
+    sessionStorage.setItem(CHAIN_KEY, slug);
+  } catch {
+    /* private mode — chain just lands on the matcher's pick instead */
+  }
+}
+
+/** Read the chain target and clear it (one-shot). */
+export function takeChainTarget(): string | null {
+  try {
+    const s = sessionStorage.getItem(CHAIN_KEY);
+    if (s) sessionStorage.removeItem(CHAIN_KEY);
+    return s;
+  } catch {
+    return null;
+  }
+}
+
 /* ── family code (pilot session) ────────────────────────────────────
  * Entered once by the grown-up on the welcome page; everything the
  * family shares attaches to it. localStorage so it survives the visit. */

@@ -12,14 +12,14 @@
  */
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import { apiUrl } from "@/lib/api-url";
-import { loadCode, loadFound, loadSelected, matchActivities, miniHref, saveCode } from "@/lib/mini-pilot";
+import { loadCode, loadFound, loadSelected, matchActivities, saveCode } from "@/lib/mini-pilot";
 import { MiniStageHero } from "../stage-hero";
 import { postEval } from "@/lib/eval-submit";
 import { FACE_EMOJI } from "@/lib/eval-rubric";
 import { MINI_ACTIVITY_CONTENT } from "@/lib/mini-data";
 import { GuessBeat, ProvocationCard } from "../unfold-tools";
+import { FindAgainDoors } from "../find-again-tools";
 import { setGroup } from "@/lib/cw-identity";
 import { ReadAloud } from "../read-aloud";
 
@@ -366,10 +366,7 @@ export default function MiniShowPage() {
       `}</style>
 
       {state === "done" ? (
-        <div className="mini-show-card mini-show-done">
-          <p>🎉 shared! a grown-up on our side will add it to the wow wall soon.</p>
-          <Link href={miniHref("/wow")}>see the wow wall →</Link>
-        </div>
+        <FindAgainDoors slug={activitySlug} photoUrl={previewUrl} />
       ) : (
         <>
           {!kidSent ? (
