@@ -68,6 +68,9 @@ const SECRETS = {
     redeployVercelAfterUpdate: true,
   },
   ANTHROPIC_API_KEY: {
+    // Source of truth: 1Password (winded.vertigo vault), released via Touch ID —
+    // NOT the plaintext port/.env.local file. `op read` prompts for the fingerprint.
+    opRef: "op://winded.vertigo/ANTHROPIC_API_KEY/credential",
     // GET /v1/models is 200 for a valid key, 401 otherwise — a cheap auth check.
     // NOTE: Anthropic authenticates with the x-api-key header, NOT Authorization: Bearer.
     probeUrl: "https://api.anthropic.com/v1/models",
@@ -117,25 +120,40 @@ async function rotateOne(name, cfg) {
   console.log(`ROTATING ${name}`);
   console.log("═".repeat(78));
 
-  // Step 1: load current value from source
-  if (!existsSync(SOURCE)) {
-    console.error(`  source-of-truth file missing: ${SOURCE}`);
-    return { name, success: false, reason: "no-source" };
+  // Step 1: load current value — from 1Password (opRef) if configured, else the
+  // source-of-truth file. The value is captured into a variable, never printed.
+  let secretValue;
+  if (cfg.opRef) {
+    try {
+      // `op read` prompts Touch ID via the desktop app; value → stdout → variable.
+      secretValue = execFileSync("op", ["read", cfg.opRef], { encoding: "utf8" }).trim();
+    } catch {
+      console.error(`  ✗ op read failed for ${cfg.opRef}`);
+      console.error(`    check: 1Password CLI integration is on, the item exists, and Touch ID was approved`);
+      return { name, success: false, reason: "op-read-failed" };
+    }
+    if (!secretValue) return { name, success: false, reason: "op-empty" };
+    console.log(`  ✓ loaded from 1Password (${cfg.opRef})`);
+  } else {
+    if (!existsSync(SOURCE)) {
+      console.error(`  source-of-truth file missing: ${SOURCE}`);
+      return { name, success: false, reason: "no-source" };
+    }
+    const raw = readFileSync(SOURCE, "utf8");
+    const lineMatch = raw.match(new RegExp(`^${name}=(.+)$`, "m"));
+    if (!lineMatch) {
+      console.error(`  ${name} not found in ${SOURCE}`);
+      return { name, success: false, reason: "missing-from-source" };
+    }
+    secretValue = lineMatch[1].trim();
+    if (
+      (secretValue.startsWith('"') && secretValue.endsWith('"')) ||
+      (secretValue.startsWith("'") && secretValue.endsWith("'"))
+    ) {
+      secretValue = secretValue.slice(1, -1);
+    }
+    console.log(`  ✓ loaded from source (length: ${secretValue.length})`);
   }
-  const raw = readFileSync(SOURCE, "utf8");
-  const lineMatch = raw.match(new RegExp(`^${name}=(.+)$`, "m"));
-  if (!lineMatch) {
-    console.error(`  ${name} not found in ${SOURCE}`);
-    return { name, success: false, reason: "missing-from-source" };
-  }
-  let secretValue = lineMatch[1].trim();
-  if (
-    (secretValue.startsWith('"') && secretValue.endsWith('"')) ||
-    (secretValue.startsWith("'") && secretValue.endsWith("'"))
-  ) {
-    secretValue = secretValue.slice(1, -1);
-  }
-  console.log(`  ✓ loaded from source (length: ${secretValue.length})`);
 
   // Step 2: probe validity
   const headerArgs = [];
