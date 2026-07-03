@@ -14,6 +14,7 @@ import { apiUrl } from "@/lib/api-url";
 import { MINI_ACTIVITIES, loadCode } from "@/lib/mini-pilot";
 import { MiniStageHero } from "../stage-hero";
 import { miniTrace } from "@/lib/cw-mini-trace";
+import { FamilyMuseum } from "../family-museum";
 
 interface WallItem {
   id: string;
@@ -216,31 +217,13 @@ export default function MiniWowPage() {
         }
       `}</style>
 
-      {/* ── your creations (scoped to the family code) ── */}
-      {code ? (
-        <section className="mini-wall-section">
-          <h2 className="mini-wall-h">⭐ your creations</h2>
-          <p className="mini-wall-sub">just for your family ({code}) — the moment you share them.</p>
-          {mine === null ? null : mine.length === 0 ? (
-            <p className="mini-wall-hint">nothing yet — take a photo on the show page and it appears here right away. 📸</p>
-          ) : (
-            <div className="mini-wall">{mine.map((item) => card(item, item.approved !== 1))}</div>
-          )}
-        </section>
-      ) : (
-        <section className="mini-wall-section">
-          <p className="mini-wall-hint">
-            set your family or class code to see your own creations here.{" "}
-            <button
-              type="button"
-              className="mini-wall-link"
-              onClick={() => window.dispatchEvent(new Event("cw:open-corner"))}
-            >
-              set it up →
-            </button>
-          </p>
-        </section>
-      )}
+      {/* ── your family museum (scoped to the family code) ── */}
+      <FamilyMuseum
+        mine={mine}
+        code={code}
+        renderCard={card}
+        onSetCode={() => window.dispatchEvent(new Event("cw:open-corner"))}
+      />
 
       {/* ── the wall (global, curated) ── */}
       <section className="mini-wall-section">
