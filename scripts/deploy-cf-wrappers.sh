@@ -14,9 +14,10 @@
 # tsconfig.json, wrangler.jsonc, and package.json. Each app is independent;
 # script continues past failures and reports per-app status at the end.
 #
-# Pre-requisite: ~/.cf-token must contain a valid CF API token with
-# Workers Scripts:Edit + Workers Routes:Edit + Zone DNS:Edit on the
-# windedvertigo.com zone.
+# CF auth: none required to store — wrangler is authed via its own OAuth login
+# (garrett@windedvertigo.com). Optionally, export CLOUDFLARE_API_TOKEN (or place a
+# token in ~/.cf-token) with Workers Scripts:Edit + Workers Routes:Edit + Zone
+# DNS:Edit on the windedvertigo.com zone to override the OAuth session.
 #
 # Usage:
 #   ./scripts/deploy-cf-wrappers.sh           # deploy all 16 apps
