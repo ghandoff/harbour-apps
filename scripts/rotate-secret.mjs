@@ -135,7 +135,11 @@ for (const t of targets) {
   }
 }
 
-const cfToken = readFileSync(`${HOME}/.cf-token`, "utf8").trim();
+// CF auth: use ~/.cf-token only if it exists with content; otherwise leave
+// CLOUDFLARE_API_TOKEN unset and let wrangler authenticate via its own OAuth
+// login. The token file is deprecated — an empty or absent file is expected.
+const cfTokenPath = `${HOME}/.cf-token`;
+const cfToken = existsSync(cfTokenPath) ? readFileSync(cfTokenPath, "utf8").trim() : "";
 
 // Probe a secret's validity. Default: HTTP status must equal probeOkStatus.
 // If the vendor signals validity in the response BODY (e.g. Slack always returns
@@ -245,7 +249,7 @@ async function rotateOne(name, cfg) {
   }
 
   // Step 4: CF Worker secrets
-  process.env.CLOUDFLARE_API_TOKEN = cfToken;
+  if (cfToken) process.env.CLOUDFLARE_API_TOKEN = cfToken;
   for (const worker of cfg.cfWorkers) {
     const putRes = spawnSync("npx", ["wrangler", "secret", "put", name, "--name", worker], {
       input: secretValue + "\n",

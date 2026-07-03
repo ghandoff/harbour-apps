@@ -28,6 +28,16 @@ export { DOQueueHandler, DOShardedTagCache, BucketCachePurge };
 
 const BASE = "/harbour/creaseworks-mini";
 
+// legacy stage URLs → the "arc" URLs (301). Keys are the old public paths, in
+// order so the longest/most-specific segments match first. Sub-paths ride along
+// (e.g. /look/classic → /find/classic).
+const ARC_301: Array<[RegExp, string]> = [
+  [/^\/look(?=\/|$)/, "/find"],
+  [/^\/make(?=\/|$)/, "/fold"],
+  [/^\/show(?=\/|$)/, "/unfold"],
+  [/^\/wow(?=\/|$)/, "/find-again"],
+];
+
 export default {
   fetch(request: Request, env: unknown, ctx: unknown): Promise<Response> | Response {
     const url = new URL(request.url);
@@ -37,6 +47,14 @@ export default {
     // /mini tail in the URL bar.
     if (!url.pathname.startsWith(BASE)) {
       return Response.redirect(`${url.origin}${BASE}`, 302);
+    }
+    // 301 legacy /look|/make|/show|/wow (and sub-paths) to the arc URLs
+    const rest = url.pathname.slice(BASE.length); // e.g. "/look/classic"
+    for (const [re, to] of ARC_301) {
+      if (re.test(rest)) {
+        const newPath = BASE + rest.replace(re, to);
+        return Response.redirect(`${url.origin}${newPath}${url.search}`, 301);
+      }
     }
     return (openNextHandler as { fetch: (r: Request, e: unknown, c: unknown) => Promise<Response> }).fetch(
       request,

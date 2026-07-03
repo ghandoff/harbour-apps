@@ -55,6 +55,14 @@ const nextConfig: NextConfig = {
     return {
       beforeFiles: [{ source: "/", destination: "/mini" }],
       afterFiles: [
+        // public "arc" URLs → legacy page dirs (kept internally as look/make/show/wow)
+        { source: "/find", destination: "/mini/look" },
+        { source: "/find/:mode", destination: "/mini/look/:mode" },
+        { source: "/fold", destination: "/mini/make" },
+        { source: "/unfold", destination: "/mini/show" },
+        { source: "/find-again", destination: "/mini/wow" },
+        // legacy URLs stay resolvable (worker.mini.ts 301s them to the arc first;
+        // these are a safety net if a 301 is ever bypassed)
         { source: "/look", destination: "/mini/look" },
         { source: "/look/:mode", destination: "/mini/look/:mode" },
         { source: "/make", destination: "/mini/make" },

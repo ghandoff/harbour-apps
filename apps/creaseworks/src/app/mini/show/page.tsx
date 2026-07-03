@@ -441,7 +441,7 @@ export default function MiniShowPage() {
             </div>
           )}
 
-          <p className="mini-show-section">📸 show what they made</p>
+          <p className="mini-show-section">📸 snap their creation</p>
           <div
             className="mini-show-photo-zone"
             onClick={() => inputRef.current?.click()}

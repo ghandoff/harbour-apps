@@ -35,7 +35,7 @@ export function FoundPicker({
    *  save-and-route-to-make (used by the things game's multi-round loop) */
   onDone,
   /** label for the finish button (default heads to make) */
-  doneLabel = "done looking! →",
+  doneLabel = "done finding! →",
 }: {
   prompt: string;
   onDone?: (picked: string[]) => void;

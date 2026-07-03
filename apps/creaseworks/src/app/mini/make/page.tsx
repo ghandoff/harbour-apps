@@ -246,7 +246,7 @@ export default function MiniMakePage() {
           )}
 
           <Link href={miniHref("/show")} className="mini-make-done">
-            we made it! →
+            we did it! →
           </Link>
         </>
       ) : (

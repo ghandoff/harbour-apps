@@ -31,18 +31,15 @@ set -uo pipefail  # do NOT use -e — we want to continue on app-level failures
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
-# Accept token from env var OR ~/.cf-token (env var takes precedence).
-# This lets the script run unchanged in shells that already export
-# CLOUDFLARE_API_TOKEN (e.g. via ~/.zshrc) without requiring the
-# token to also be written to disk.
-if [ -z "${CLOUDFLARE_API_TOKEN:-}" ]; then
-  if [ ! -f "$HOME/.cf-token" ]; then
-    echo "ERROR: CLOUDFLARE_API_TOKEN env var not set and ~/.cf-token not found." >&2
-    exit 2
-  fi
+# CF auth is optional. Precedence: an already-exported CLOUDFLARE_API_TOKEN wins;
+# else a non-empty ~/.cf-token file; else fall through unset and let wrangler use
+# its own OAuth login (garrett@windedvertigo.com). ~/.cf-token is deprecated — an
+# empty or absent file is expected now that wrangler is OAuth-authed, so we no
+# longer hard-error when it is missing.
+if [ -z "${CLOUDFLARE_API_TOKEN:-}" ] && [ -s "$HOME/.cf-token" ]; then
   CLOUDFLARE_API_TOKEN="$(cat "$HOME/.cf-token")"
 fi
-export CLOUDFLARE_API_TOKEN
+[ -n "${CLOUDFLARE_API_TOKEN:-}" ] && export CLOUDFLARE_API_TOKEN
 
 # Per-app fully-qualified worker URLs for header verification
 declare -a APPS=(
