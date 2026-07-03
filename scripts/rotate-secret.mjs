@@ -85,6 +85,29 @@ const SECRETS = {
     localFiles: [`${HOME}/Projects/harbour-apps/apps/creaseworks/.env.local`],
     redeployVercelAfterUpdate: false, // CF worker secrets activate without a redeploy
   },
+  SLACK_BOT_TOKEN: {
+    // 1Password source, Touch-ID released.
+    opRef: "op://winded.vertigo/SLACK_BOT_TOKEN/credential",
+    // Slack ALWAYS returns HTTP 200 — validity lives in the body's "ok" field,
+    // so we body-check instead of status-check (probeBodyIncludes).
+    probeUrl: "https://slack.com/api/auth.test",
+    probeMethod: "POST",
+    probeHeaders: { Authorization: "Bearer $K" },
+    probeBodyIncludes: '"ok":true',
+    // the winded.vertigo bot token (shared feedback widget + agent) across these
+    // 5 CF workers. Deliberately NOT nordic/ops — nordic is Nordic-branded and
+    // may use its own Slack bot; confirm before adding, or a rotation clobbers it.
+    vercelProjects: [],
+    cfWorkers: [
+      "wv-harbour-creaseworks-eval",
+      "wv-harbour-creaseworks-mini",
+      "wv-port",
+      "wv-harbour-harbour",
+      "wv-harbour-depth-chart",
+    ],
+    localFiles: [],
+    redeployVercelAfterUpdate: false,
+  },
   // STRIPE_SECRET_KEY, GOOGLE_CLIENT_*, AUTH_SECRET, R2_*: audit shows no drift currently.
   //   Add to SECRETS map when their next rotation surfaces.
 };
@@ -113,6 +136,28 @@ for (const t of targets) {
 }
 
 const cfToken = readFileSync(`${HOME}/.cf-token`, "utf8").trim();
+
+// Probe a secret's validity. Default: HTTP status must equal probeOkStatus.
+// If the vendor signals validity in the response BODY (e.g. Slack always returns
+// 200), set probeBodyIncludes to a substring that must appear in the body.
+// probeMethod overrides the default GET. The value is never printed.
+function probeValid(cfg, secretValue) {
+  const headerArgs = [];
+  for (const [k, v] of Object.entries(cfg.probeHeaders ?? {})) {
+    headerArgs.push("-H", `${k}: ${v.replace("$K", secretValue)}`);
+  }
+  const methodArgs = cfg.probeMethod ? ["-X", cfg.probeMethod] : [];
+  if (cfg.probeBodyIncludes) {
+    const r = spawnSync("curl", ["-s", ...methodArgs, cfg.probeUrl, ...headerArgs], { encoding: "utf8" });
+    return (r.stdout ?? "").includes(cfg.probeBodyIncludes);
+  }
+  const r = spawnSync(
+    "curl",
+    ["-s", "-o", "/dev/null", "-w", "%{http_code}", ...methodArgs, cfg.probeUrl, ...headerArgs],
+    { encoding: "utf8" }
+  );
+  return r.stdout === String(cfg.probeOkStatus);
+}
 
 // ── Per-secret rotation routine ──────────────────────────────────────────
 async function rotateOne(name, cfg) {
@@ -155,24 +200,13 @@ async function rotateOne(name, cfg) {
     console.log(`  ✓ loaded from source (length: ${secretValue.length})`);
   }
 
-  // Step 2: probe validity
-  const headerArgs = [];
-  for (const [k, v] of Object.entries(cfg.probeHeaders ?? {})) {
-    headerArgs.push("-H", `${k}: ${v.replace("$K", secretValue)}`);
-  }
-  const probeRes = spawnSync(
-    "curl",
-    ["-s", "-o", "/dev/null", "-w", "%{http_code}", cfg.probeUrl, ...headerArgs],
-    { encoding: "utf8" }
-  );
-  if (probeRes.stdout !== String(cfg.probeOkStatus)) {
-    console.error(
-      `  ✗ probe failed: HTTP ${probeRes.stdout} (expected ${cfg.probeOkStatus})`
-    );
-    console.error(`    source value invalid; update ${SOURCE} with a fresh key first`);
+  // Step 2: probe validity (status-check, or body-check for vendors like Slack)
+  if (!probeValid(cfg, secretValue)) {
+    console.error(`  ✗ probe failed — the source value is invalid`);
+    console.error(`    update the source (1Password item or ${SOURCE}) with a fresh key first`);
     return { name, success: false, reason: "source-invalid" };
   }
-  console.log(`  ✓ probe OK (HTTP ${cfg.probeOkStatus})`);
+  console.log(`  ✓ probe OK`);
 
   if (values["dry-run"]) {
     console.log(`  [dry-run] would update ${cfg.vercelProjects.length} Vercel × 3 envs + ` +
@@ -253,13 +287,8 @@ async function rotateOne(name, cfg) {
   }
 
   // Step 7: re-probe to confirm
-  const verifyRes = spawnSync(
-    "curl",
-    ["-s", "-o", "/dev/null", "-w", "%{http_code}", cfg.probeUrl, ...headerArgs],
-    { encoding: "utf8" }
-  );
-  const verified = verifyRes.stdout === String(cfg.probeOkStatus);
-  console.log(`  ${verified ? "✓ re-probe verified" : `✗ re-probe failed (${verifyRes.stdout})`}`);
+  const verified = probeValid(cfg, secretValue);
+  console.log(`  ${verified ? "✓ re-probe verified" : "✗ re-probe failed"}`);
   result.verified = verified;
 
   // Wipe

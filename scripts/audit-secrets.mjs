@@ -46,6 +46,16 @@ const PROBES = {
     }).catch(() => null);
     return r ? r.status === 200 : null;
   },
+  // Slack always returns HTTP 200 — validity is in the body's "ok" field.
+  SLACK_BOT_TOKEN: async (key) => {
+    const r = await fetch("https://slack.com/api/auth.test", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${key}` },
+    }).catch(() => null);
+    if (!r) return null;
+    const j = await r.json().catch(() => ({}));
+    return j.ok === true;
+  },
   // OAuth refresh-token probe: port's invoice processor uses GMAIL_CLIENT_ID
   // + GMAIL_CLIENT_SECRET (a separate OAuth client from GOOGLE_CLIENT_ID, which
   // is for app sign-in). Probe fails (returns null) if the GMAIL_-prefixed
@@ -155,6 +165,9 @@ const CF_WORKERS = [
   "wv-harbour-depth-chart",
   "wv-site",
   "wv-launch-smoke",
+  "wv-harbour-creaseworks-eval",
+  "wv-harbour-creaseworks-mini",
+  "wv-port",
 ];
 
 function wranglerSecretList(worker) {
