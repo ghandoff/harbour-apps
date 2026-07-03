@@ -22,6 +22,7 @@ import { GuessBeat, ProvocationCard } from "../unfold-tools";
 import { FindAgainDoors } from "../find-again-tools";
 import { setGroup } from "@/lib/cw-identity";
 import { ReadAloud } from "../read-aloud";
+import { PhotoFraming } from "../photo-framing";
 
 type SendState = "idle" | "sending" | "done" | "error";
 
@@ -464,6 +465,8 @@ export default function MiniShowPage() {
             style={{ display: "none" }}
             onChange={(e) => pickPhoto(e.target.files?.[0])}
           />
+
+          <PhotoFraming />
 
           <GuessBeat slug={activitySlug} />
 
