@@ -173,6 +173,11 @@ export interface MiniActivityExtras {
   /** P1.2 optional per-playdate override for the three doors (build/break/story).
    *  Omitted → ThreeDoors uses the generic invitations. Flagged for team enrichment. */
   doors?: { build: string; break: string; story: string };
+  /** P1.3 grown-up-ONLY flip card for the grown-up corner — front is what to
+   *  notice, back is the theory in plain language + one facilitation tip. NEVER
+   *  shown on a child surface, so theory language is allowed here (and only here).
+   *  Omitted → GrownupCard renders nothing. */
+  grownupCard?: { front: string; back: string };
 }
 
 export const MINI_ACTIVITY_EXTRAS: Record<string, MiniActivityExtras> = {
@@ -185,6 +190,11 @@ export const MINI_ACTIVITY_EXTRAS: Record<string, MiniActivityExtras> = {
     },
     provocations: ["before this was paper, where did it come from — a tree? a factory?", "who folds paper for a living?", "what other flat things hide shapes — maps, leaves, your own hand?"],
     chain: { toSlug: "mend-a-stuffed-friend", note: "your character needs a body — or a repair." },
+    // grownupCard content below is v1 draft — for Jamie's review.
+    grownupCard: {
+      front: "watch how a random fold becomes a someone. the folding isn't the point — the LOOKING is. notice the moment they stop making marks and start seeing a shape.",
+      back: "this is about affordances — what a thing can DO rather than what it IS. a crease is just a crease until it affords an arm, a smile, a wing. children who practise reading affordances get better at seeing past an object's obvious 'job'. try this: don't name what you see first. ask \"what does this line want to be?\" and wait — the point is that they find it, not that you point it out.",
+    },
   },
   "function-swap-same-form": {
     scaffold: {
@@ -195,6 +205,10 @@ export const MINI_ACTIVITY_EXTRAS: Record<string, MiniActivityExtras> = {
     },
     provocations: ["where do buttons and caps come from before they're 'stuff'?", "who decides what an object is 'for'?", "what's something at home that already has more than one job?"],
     chain: { toSlug: "design-a-rule-not-an-object", note: "you changed the pieces' jobs — now change the rules." },
+    grownupCard: {
+      front: "same pieces, three missions — story, sort, explain. notice that the pieces don't change, only the job you hand them does. the surprise is how differently the same buttons behave each round.",
+      back: "this loosens what psychologists call functional fixedness — the habit of seeing a thing only for its usual use (a button is 'for fastening', so it's hard to see it as a story-token). re-jobbing the same material over and over is direct practice at seeing past that. try this: after each round ask \"what did these pieces become that time?\" — naming the shift out loud makes the flexibility visible and repeatable.",
+    },
   },
   "design-a-rule-not-an-object": {
     scaffold: {
@@ -205,6 +219,10 @@ export const MINI_ACTIVITY_EXTRAS: Record<string, MiniActivityExtras> = {
     },
     provocations: ["who makes the rules for the games you already play?", "what's a rule at home you'd change?", "can a rule be unfair on purpose and still be fun?"],
     chain: { toSlug: "function-swap-same-form", note: "your rule wants new pieces." },
+    grownupCard: {
+      front: "nothing gets built here — a rule does. watch the objects stay exactly the same while the rule turns them into a whole new material. that shift from making a thing to making a constraint is the real move.",
+      back: "a rule is an affordance you add on top: \"only move things by blowing\" gives the same blocks a completely new set of things they can DO. designing the constraint instead of the object is a big leap — it's the difference between a toy and a game. try this: play the child's rule yourself and get genuinely stuck; hitting the edge of a rule is where they learn to redesign it, so resist smoothing it over for them.",
+    },
   },
   "take-apart-archaeology": {
     scaffold: {
@@ -215,6 +233,10 @@ export const MINI_ACTIVITY_EXTRAS: Record<string, MiniActivityExtras> = {
     },
     provocations: ["who built this, and where?", "before it broke, whose was it?", "where do the parts go when a thing is thrown away?"],
     chain: { toSlug: "function-swap-same-form", note: "the parts tray becomes your pieces." },
+    grownupCard: {
+      front: "a broken gadget becomes a tray of mysteries. notice the two halves of this play: first working out what each part DID inside, then daring to give it a brand-new job outside.",
+      back: "this is the arc as a reversal. taking the object apart is the unfold — you open up something finished and see the working parts nobody meant you to see. re-jobbing a gear as a wheel, a spring as a launcher, is the fold — you carry those loose parts into a new question. try this: hold off on \"what is it?\" and ask \"what does this part DO?\" — a gear that turns, a spring that pushes; the function is the bridge to its next life.",
+    },
   },
   "mend-a-stuffed-friend": {
     scaffold: {
@@ -225,6 +247,10 @@ export const MINI_ACTIVITY_EXTRAS: Record<string, MiniActivityExtras> = {
     },
     provocations: ["who made this toy, far away?", "what else in your house could be fixed instead of tossed?", "why do we throw broken things away?"],
     chain: { toSlug: "take-apart-archaeology", note: "you fixed one — now see inside another." },
+    grownupCard: {
+      front: "a torn toy becomes a repair project. notice the reframe the child makes when something breaks — the jump from \"throw it away\" to \"how do I fix this?\" that first thought is the whole point.",
+      back: "\"broken\" is one reading of an object, not the truth of it — a rip also affords a stitch, a mismatched button affords a new face. mending re-jobs a flaw into a feature (the kintsugi idea: the repair becomes the best part). try this: praise the process and the choices, not neatness — \"you decided to make the scar show\" keeps this about the child's thinking, not a tidy result.",
+    },
   },
   "function-tag-scavenger": {
     scaffold: {
@@ -235,6 +261,10 @@ export const MINI_ACTIVITY_EXTRAS: Record<string, MiniActivityExtras> = {
     },
     provocations: ["who decided a cup is 'for drinking'?", "what near you has a hidden job?", "where do everyday objects come from before they're yours?"],
     chain: { toSlug: "transfer-test-find-again", note: "you gave things jobs — now build the same idea from totally different stuff." },
+    grownupCard: {
+      front: "three ordinary things get given jobs — launcher, holder, roller — and become one invention. notice the child naming what each thing DOES, not what it is.",
+      back: "this is affordance-thinking made into a game: a cup is 'for drinking' by habit, but it can also launch, hold, roll, or drum. giving a thing a job on purpose is how you get past that habit (functional fixedness — being stuck on an object's intended use). try this: when they show you their invention, guess the jobs by trying it rather than asking — how they arranged things is doing the explaining, which is design.",
+    },
   },
   "kek-loop-micro-experience": {
     scaffold: {
@@ -245,6 +275,10 @@ export const MINI_ACTIVITY_EXTRAS: Record<string, MiniActivityExtras> = {
     },
     provocations: ["when did a surprise teach you something real?", "do grown-ups guess-and-check too?", "what job is all about trying fast and being wrong a lot?"],
     chain: { toSlug: "cloud-cartographer", note: "you guessed and checked — now guess what the sky will do." },
+    grownupCard: {
+      front: "guess out loud, make it fast, then look at the gap. the gap between what they predicted and what actually came out isn't a mistake — it's where the whole thing happens.",
+      back: "the loop is a small arc: the prediction is a fold (a question wrapped up before the doing), the making unfolds it, and looking at the gap folds the surprise into a new guess. the surprise matters more than the object. try this: treat a 'wrong' prediction as the best result — say \"you guessed a tower and got a cave, what happened there?\" so being wrong stays safe and interesting rather than something to avoid.",
+    },
   },
   "transfer-test-find-again": {
     scaffold: {
@@ -255,6 +289,10 @@ export const MINI_ACTIVITY_EXTRAS: Record<string, MiniActivityExtras> = {
     },
     provocations: ["why does the same idea feel different in different stuff?", "who has to build the same thing many ways — engineers? cooks?", "what material does your favorite thing wish it was made of?"],
     chain: { toSlug: "function-swap-same-form", note: "same idea, new stuff — now same stuff, new jobs." },
+    grownupCard: {
+      front: "one idea, built twice, in two very different materials. notice that the two versions come out different — and that the child may have THOUGHT differently in each one.",
+      back: "materials carry their own affordances: paper wants to fold, playdough wants to squish, and each quietly nudges what you make. this is why the same goal in different stuff isn't just a new look — it's a different way of thinking. some materials are loud (they push hard toward one use) and some are quiet (they leave more open). try this: ask \"did the material change how your brain worked?\" — noticing the material's pull is more valuable here than a polished build.",
+    },
   },
   "leaf-press-telegraph": {
     scaffold: {
@@ -265,6 +303,10 @@ export const MINI_ACTIVITY_EXTRAS: Record<string, MiniActivityExtras> = {
     },
     provocations: ["how did people send messages before phones?", "where did these leaves grow?", "what in nature already sends signals — bees, birds, flowers?"],
     chain: { toSlug: "shadow-tracker", note: "you made a message outside — now track what the sun draws." },
+    grownupCard: {
+      front: "leaves become a message with no words allowed. notice the child working out that WHERE they put a leaf carries meaning — arrangement is doing the talking.",
+      back: "a leaf affords more than 'being a leaf' — laid in a row it can mean 'this way', clustered it can mean 'lots'. inventing a code from found stuff is early symbol-making: a thing standing in for an idea. try this: read their message back the way you actually read it, including where you got confused — the gap between what they meant and what you understood is the useful part, so pass it back as a puzzle to solve rather than a mistake to fix.",
+    },
   },
   "cloud-cartographer": {
     scaffold: {
@@ -275,6 +317,10 @@ export const MINI_ACTIVITY_EXTRAS: Record<string, MiniActivityExtras> = {
     },
     provocations: ["who needs to read clouds for their job?", "where does a cloud go when it leaves?", "what else changes shape while you watch — shadows, water, you?"],
     chain: { toSlug: "shadow-tracker", note: "you mapped the sky — now map a shadow over time." },
+    grownupCard: {
+      front: "clouds get named and mapped, then checked again later. notice the child treating something that won't hold still as if it were a place — and then noticing it moved.",
+      back: "the sky is a very quiet, very loose material — it affords almost any reading, so the child supplies the meaning (mount fluffy, lake wisp). coming back to check turns a snapshot into a small before-and-after, which is where the noticing lives. try this: don't correct the names or the shapes — instead ask \"is it still there? what changed?\" the point is comparing then and now, not getting the cloud 'right'.",
+    },
   },
   "shadow-tracker": {
     scaffold: {
@@ -285,5 +331,9 @@ export const MINI_ACTIVITY_EXTRAS: Record<string, MiniActivityExtras> = {
     },
     provocations: ["what makes the shadow move — the shadow, the sun, or the earth?", "who used shadows to tell time before clocks?", "where is your shadow at night?"],
     chain: { toSlug: "cloud-cartographer", note: "you tracked the sun's shadow — now track the clouds." },
+    grownupCard: {
+      front: "draw a shadow now, draw it again in an hour — it moved. notice the child noticing change that's far too slow to watch happen, only visible because they marked where it started.",
+      back: "a shadow affords being a clock and a ruler if you give it a mark to measure against — the pencil line is what makes the slow change readable. this is early evidence-keeping: leave a trace, come back, compare. try this: before the second look, ask them to predict where it'll be and mark their guess too — comparing the guess to the real line is where the surprise (and the thinking) lands, so treat a wrong guess as the interesting bit.",
+    },
   },
 };
