@@ -19,6 +19,7 @@ import { MiniStageHero } from "../stage-hero";
 import { postEval } from "@/lib/eval-submit";
 import { FACE_EMOJI } from "@/lib/eval-rubric";
 import { MINI_ACTIVITY_CONTENT } from "@/lib/mini-data";
+import { GuessBeat, ProvocationCard } from "../unfold-tools";
 import { setGroup } from "@/lib/cw-identity";
 import { ReadAloud } from "../read-aloud";
 
@@ -467,6 +468,8 @@ export default function MiniShowPage() {
             onChange={(e) => pickPhoto(e.target.files?.[0])}
           />
 
+          <GuessBeat slug={activitySlug} />
+
           <p className="mini-show-section">💬 tell what they discovered</p>
           {unfoldPrompt && (
             <div className="mini-show-reflect">
@@ -481,6 +484,8 @@ export default function MiniShowPage() {
             placeholder="their words — what surprised them? what changed when they looked again?"
             maxLength={2000}
           />
+
+          <ProvocationCard slug={activitySlug} />
 
           <button
             type="button"
