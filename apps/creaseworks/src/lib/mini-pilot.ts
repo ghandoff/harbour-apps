@@ -437,6 +437,32 @@ export function loadDial(): MiniDial | null {
   }
 }
 
+/* ── indoor/outdoor start (P1.6) ────────────────────────────────────
+ * where the sitting is happening — inside or outside. Chosen once (or
+ * skipped) and used to swap the find stage's "where to look" vocabulary
+ * so the hunt fits the room the child is in. Never gates play; unset
+ * falls back to neutral prompts. sessionStorage: one sitting, one device. */
+
+export type MiniContext = "indoor" | "outdoor";
+const CONTEXT_KEY = "cw-mini-context";
+
+export function saveContext(c: MiniContext): void {
+  try {
+    sessionStorage.setItem(CONTEXT_KEY, c);
+  } catch {
+    /* private mode — find just uses its neutral, place-agnostic prompts */
+  }
+}
+
+export function loadContext(): MiniContext | null {
+  try {
+    const v = sessionStorage.getItem(CONTEXT_KEY);
+    return v === "indoor" || v === "outdoor" ? v : null;
+  } catch {
+    return null;
+  }
+}
+
 /* ── family code (pilot session) ────────────────────────────────────
  * Entered once by the grown-up on the welcome page; everything the
  * family shares attaches to it. localStorage so it survives the visit. */
