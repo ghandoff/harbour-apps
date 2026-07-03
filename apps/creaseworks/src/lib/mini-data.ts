@@ -159,3 +159,128 @@ export const MINI_ACTIVITY_CONTENT: Record<string, MiniActivityContent> = {
     findAgainPrompt: "take apart TWO different things and compare their insides. do they share any of the same parts? can you combine parts from different objects into one new invention? or try drawing what you THINK is inside something before you open it, then compare your guess to reality!",
   },
 };
+
+/**
+ * P0.3/P0.4/P0.5 content per playdate — v1 AUTO-DRAFTED 02 jul, FLAGGED FOR TEAM EDIT.
+ *   scaffold   — the four fold buttons (tell me more / less please / I'm stuck / spark me)
+ *   provocations — rotating layer-3 questions on unfold; flip-only, nothing captured
+ *   chain      — the "where this leads" recommendation (the 11-entry chain table)
+ */
+export interface MiniActivityExtras {
+  scaffold: { tellMore: string; lessPlease: string; stuck: string; sparkMe: string };
+  provocations: string[];
+  chain: { toSlug: string; note: string };
+}
+
+export const MINI_ACTIVITY_EXTRAS: Record<string, MiniActivityExtras> = {
+  "character-from-a-crease": {
+    scaffold: {
+      tellMore: "look for TWO characters in the same paper — do they know each other?",
+      lessPlease: "just find one shape. two eyes is enough to start.",
+      stuck: "turn the paper sideways and squint. the first line you notice is an arm — go from there.",
+      sparkMe: "give your character a superpower that comes straight from a fold.",
+    },
+    provocations: ["before this was paper, where did it come from — a tree? a factory?", "who folds paper for a living?", "what other flat things hide shapes — maps, leaves, your own hand?"],
+    chain: { toSlug: "mend-a-stuffed-friend", note: "your character needs a body — or a repair." },
+  },
+  "function-swap-same-form": {
+    scaffold: {
+      tellMore: "add a 4th round: make the same pieces HIDE a secret.",
+      lessPlease: "just do two rounds — tell a story, then sort.",
+      stuck: "dump them out and start with whichever round sounds most fun.",
+      sparkMe: "give the pieces a job they'd hate — a pebble that has to fly.",
+    },
+    provocations: ["where do buttons and caps come from before they're 'stuff'?", "who decides what an object is 'for'?", "what's something at home that already has more than one job?"],
+    chain: { toSlug: "design-a-rule-not-an-object", note: "you changed the pieces' jobs — now change the rules." },
+  },
+  "design-a-rule-not-an-object": {
+    scaffold: {
+      tellMore: "write a SECOND rule that fights the first one.",
+      lessPlease: "one tiny rule is plenty — like 'only use one finger.'",
+      stuck: "start with 'you can't ___' — what's the most annoying thing to ban?",
+      sparkMe: "make a rule that only works if two people play.",
+    },
+    provocations: ["who makes the rules for the games you already play?", "what's a rule at home you'd change?", "can a rule be unfair on purpose and still be fun?"],
+    chain: { toSlug: "function-swap-same-form", note: "your rule wants new pieces." },
+  },
+  "take-apart-archaeology": {
+    scaffold: {
+      tellMore: "trace one wire all the way from start to end — where does it go?",
+      lessPlease: "just open it and lay out five parts. that's enough.",
+      stuck: "find the part that moves. start there.",
+      sparkMe: "turn one part into something it was never meant to be.",
+    },
+    provocations: ["who built this, and where?", "before it broke, whose was it?", "where do the parts go when a thing is thrown away?"],
+    chain: { toSlug: "function-swap-same-form", note: "the parts tray becomes your pieces." },
+  },
+  "mend-a-stuffed-friend": {
+    scaffold: {
+      tellMore: "add something NEW while you fix it — a pocket, a cape, a spare button eye.",
+      lessPlease: "one stitch, or just a button. done is done.",
+      stuck: "pinch the torn edges together first — the sewing just holds your pinch.",
+      sparkMe: "make the repair the best part — gold thread, a mismatched eye.",
+    },
+    provocations: ["who made this toy, far away?", "what else in your house could be fixed instead of tossed?", "why do we throw broken things away?"],
+    chain: { toSlug: "take-apart-archaeology", note: "you fixed one — now see inside another." },
+  },
+  "function-tag-scavenger": {
+    scaffold: {
+      tellMore: "add a 4th object with a job the other three need.",
+      lessPlease: "two objects and two jobs is plenty.",
+      stuck: "pick the launcher first — everything else reacts to it.",
+      sparkMe: "give one object a SECRET second job.",
+    },
+    provocations: ["who decided a cup is 'for drinking'?", "what near you has a hidden job?", "where do everyday objects come from before they're yours?"],
+    chain: { toSlug: "transfer-test-find-again", note: "you gave things jobs — now build the same idea from totally different stuff." },
+  },
+  "kek-loop-micro-experience": {
+    scaffold: {
+      tellMore: "make three fast versions, not one — which surprised you most?",
+      lessPlease: "one guess, one make, one look. that's the whole loop.",
+      stuck: "say your guess out loud FIRST — then let your hands go.",
+      sparkMe: "guess something you're sure is impossible, then try it anyway.",
+    },
+    provocations: ["when did a surprise teach you something real?", "do grown-ups guess-and-check too?", "what job is all about trying fast and being wrong a lot?"],
+    chain: { toSlug: "cloud-cartographer", note: "you guessed and checked — now guess what the sky will do." },
+  },
+  "transfer-test-find-again": {
+    scaffold: {
+      tellMore: "build a THIRD version with a material you'd never pick.",
+      lessPlease: "just build it twice — A, then B.",
+      stuck: "copy version A's shape in material B, then let it change on its own.",
+      sparkMe: "let material B win — build what IT wants, not your plan.",
+    },
+    provocations: ["why does the same idea feel different in different stuff?", "who has to build the same thing many ways — engineers? cooks?", "what material does your favorite thing wish it was made of?"],
+    chain: { toSlug: "function-swap-same-form", note: "same idea, new stuff — now same stuff, new jobs." },
+  },
+  "leaf-press-telegraph": {
+    scaffold: {
+      tellMore: "make a whole sentence, not just one message.",
+      lessPlease: "one leaf-shape that means one thing.",
+      stuck: "start with an arrow — everyone can read an arrow.",
+      sparkMe: "invent a leaf-alphabet only your family knows.",
+    },
+    provocations: ["how did people send messages before phones?", "where did these leaves grow?", "what in nature already sends signals — bees, birds, flowers?"],
+    chain: { toSlug: "shadow-tracker", note: "you made a message outside — now track what the sun draws." },
+  },
+  "cloud-cartographer": {
+    scaffold: {
+      tellMore: "draw the whole sky as a map, with roads between the clouds.",
+      lessPlease: "one cloud, one name. done.",
+      stuck: "don't draw it perfectly — draw it FAST, before it moves.",
+      sparkMe: "predict where your cloud will be in ten minutes, then check.",
+    },
+    provocations: ["who needs to read clouds for their job?", "where does a cloud go when it leaves?", "what else changes shape while you watch — shadows, water, you?"],
+    chain: { toSlug: "shadow-tracker", note: "you mapped the sky — now map a shadow over time." },
+  },
+  "shadow-tracker": {
+    scaffold: {
+      tellMore: "track the same shadow all day — draw a whole fan of lines.",
+      lessPlease: "two lines, one hour apart. that's the whole thing.",
+      stuck: "pick something that won't move, and mark the very tip of its shadow.",
+      sparkMe: "guess where the shadow will be at dinner, then check.",
+    },
+    provocations: ["what makes the shadow move — the shadow, the sun, or the earth?", "who used shadows to tell time before clocks?", "where is your shadow at night?"],
+    chain: { toSlug: "cloud-cartographer", note: "you tracked the sun's shadow — now track the clouds." },
+  },
+};
