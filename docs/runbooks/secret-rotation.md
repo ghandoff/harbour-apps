@@ -54,13 +54,23 @@ pre-screen). **port + depth-chart use the Vercel AI Gateway
 Probe: `GET https://api.anthropic.com/v1/models` with the `x-api-key` header (NOT
 `Authorization: Bearer`).
 
+**Source of truth: 1Password** (moved off `port/.env.local` on 02 jul 2026) —
+vault `winded.vertigo`, item `ANTHROPIC_API_KEY` (API Credential), field
+`credential`. The `SECRETS` entry carries
+`opRef: "op://winded.vertigo/ANTHROPIC_API_KEY/credential"`, so the propagator
+reads it via `op read` (which prompts Touch ID), not from a plaintext file.
+Requires the 1Password desktop CLI integration on (app → Settings → Developer →
+Integrate with 1Password CLI).
+
 To rotate:
 1. Mint a fresh key in the Anthropic Console (console.anthropic.com → Settings →
    API keys → Create key). It's shown once — copy it.
-2. Paste it into the `ANTHROPIC_API_KEY=` line of `port/.env.local` with a real
-   editor (never chat).
+2. Update the `credential` field of the `ANTHROPIC_API_KEY` item in the
+   `winded.vertigo` 1Password vault with the new key (never paste it into chat).
 3. `cd ~/Projects/harbour-apps && node scripts/rotate-secret.mjs --secret=ANTHROPIC_API_KEY`
-4. Only after the new key verifies on both workers, revoke the old key in the console.
+   — tap Touch ID when 1Password prompts. Validates the new key, pushes it to both
+   workers + the local mirror, and re-probes.
+4. Only after it verifies, disable the old key in the console.
 
 ## Agent ownership (Claude runs the propagator)
 
