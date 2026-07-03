@@ -53,14 +53,24 @@ const nextConfig: NextConfig = {
     }
     if (!process.env.CW_MINI) return [];
     return {
-      beforeFiles: [{ source: "/", destination: "/mini" }],
-      afterFiles: [
+      // beforeFiles runs BEFORE filesystem routing, so these win over any real
+      // app/* route of the same name. "/" needs it (collides with the prod
+      // landing) and so does "/find" — the full app has a real app/find/ route
+      // (page + challenge/hunt/material children), so an afterFiles "/find"
+      // rewrite silently LOSES to it: the mini look stage 404s into full-app
+      // chrome (no mini layout → the chrome-hiding :has() rule never fires).
+      // /fold, /unfold, /find-again have no colliding route today, but keeping
+      // all four here is consistent and collision-proof.
+      beforeFiles: [
+        { source: "/", destination: "/mini" },
         // public "arc" URLs → legacy page dirs (kept internally as look/make/show/wow)
         { source: "/find", destination: "/mini/look" },
         { source: "/find/:mode", destination: "/mini/look/:mode" },
         { source: "/fold", destination: "/mini/make" },
         { source: "/unfold", destination: "/mini/show" },
         { source: "/find-again", destination: "/mini/wow" },
+      ],
+      afterFiles: [
         // legacy URLs stay resolvable (worker.mini.ts 301s them to the arc first;
         // these are a safety net if a 301 is ever bypassed)
         { source: "/look", destination: "/mini/look" },
