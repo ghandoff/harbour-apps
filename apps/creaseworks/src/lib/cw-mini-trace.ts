@@ -24,7 +24,10 @@ export type MiniTraceType =
   | "phase_time"
   | "provocation_flip"
   | "ending_choice"
-  | "guess_event";
+  | "guess_event"
+  // P1: session ambiguity dial + the three-doors approach per playdate
+  | "ambiguity_set"
+  | "door_chosen";
 
 const SESSION_KEY = "cw-mini-session";
 const BATCH = 15;

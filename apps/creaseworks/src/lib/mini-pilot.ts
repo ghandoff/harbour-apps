@@ -411,6 +411,32 @@ export function takeChainTarget(): string | null {
   }
 }
 
+/* ── ambiguity dial (P1.1) ──────────────────────────────────────────
+ * "just point me" (low scaffold — figure it out) vs "walk me through it"
+ * (high scaffold — more help up front), chosen once per sitting. Sets how
+ * much guidance the fold workshop surfaces by default; never gates play.
+ * sessionStorage: one sitting, one device, no account. */
+
+export type MiniDial = "point" | "walk";
+const DIAL_KEY = "cw-mini-dial";
+
+export function saveDial(mode: MiniDial): void {
+  try {
+    sessionStorage.setItem(DIAL_KEY, mode);
+  } catch {
+    /* private mode — fold just uses its default (low) scaffold depth */
+  }
+}
+
+export function loadDial(): MiniDial | null {
+  try {
+    const v = sessionStorage.getItem(DIAL_KEY);
+    return v === "point" || v === "walk" ? v : null;
+  } catch {
+    return null;
+  }
+}
+
 /* ── family code (pilot session) ────────────────────────────────────
  * Entered once by the grown-up on the welcome page; everything the
  * family shares attaches to it. localStorage so it survives the visit. */

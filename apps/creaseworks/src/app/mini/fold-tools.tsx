@@ -10,9 +10,9 @@
  * and the scaffold buttons feed the mini-local trace (job_assigned, scaffold_tap).
  */
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { MINI_ACTIVITY_EXTRAS, MINI_MATERIALS } from "@/lib/mini-data";
-import { loadFound } from "@/lib/mini-pilot";
+import { loadFound, loadDial, type MiniDial } from "@/lib/mini-pilot";
 import { miniTrace } from "@/lib/cw-mini-trace";
 
 const SEED_VERBS = [
@@ -39,6 +39,16 @@ export function FoldTools({ slug }: { slug: string }) {
   const [spinning, setSpinning] = useState(false);
   const [open, setOpen] = useState<string | null>(null);
   const [mountAt] = useState(() => (typeof performance !== "undefined" ? performance.now() : 0));
+
+  // the ambiguity dial (P1.1): "walk me through it" surfaces a starting hand up
+  // front; "point"/unset keeps the workshop minimal. Read after mount so SSR and
+  // first client render match (both closed) — no hydration flip.
+  const [dial, setDial] = useState<MiniDial | null>(null);
+  useEffect(() => {
+    const d = loadDial();
+    setDial(d);
+    if (d === "walk") setOpen((cur) => cur ?? "sparkMe");
+  }, []);
 
   const scaffold = MINI_ACTIVITY_EXTRAS[slug]?.scaffold;
 
@@ -108,6 +118,12 @@ export function FoldTools({ slug }: { slug: string }) {
           background: var(--wv-white); border: 1.5px solid rgba(39,50,72,0.12);
           border-radius: 12px 16px 10px 14px; padding: 10px 13px; margin-top: 10px;
         }
+        .mini-fold-dialhint {
+          font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+          font-weight: 800; font-size: 13px; color: var(--wv-cadet); line-height: 1.4;
+          background: color-mix(in srgb, var(--wv-seafoam) 26%, var(--wv-white));
+          border-radius: 12px 15px 10px 13px; padding: 8px 12px; margin: 0 0 10px;
+        }
         .mini-fold-nudge {
           font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
           font-weight: 700; font-size: 12.5px; color: var(--color-text-on-dark); opacity: 0.9; margin-top: 12px;
@@ -124,6 +140,10 @@ export function FoldTools({ slug }: { slug: string }) {
           <span className="mini-jobwheel-hint">optional — for a surprise job to try</span>
         )}
       </div>
+
+      {scaffold && dial === "walk" && (
+        <p className="mini-fold-dialhint">🗺️ you asked to be walked through it — here&rsquo;s a hand. tap any of these anytime.</p>
+      )}
 
       {scaffold && (
         <>

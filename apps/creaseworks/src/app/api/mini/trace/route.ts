@@ -24,6 +24,9 @@ const EVENT_TYPES = new Set([
   "provocation_flip",
   "ending_choice",
   "guess_event",
+  // P1
+  "ambiguity_set",
+  "door_chosen",
 ]);
 const CODE_SHAPE = /^[a-z0-9][a-z0-9-]{1,39}$/;
 
