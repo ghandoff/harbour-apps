@@ -170,6 +170,9 @@ export interface MiniActivityExtras {
   scaffold: { tellMore: string; lessPlease: string; stuck: string; sparkMe: string };
   provocations: string[];
   chain: { toSlug: string; note: string };
+  /** P1.2 optional per-playdate override for the three doors (build/break/story).
+   *  Omitted → ThreeDoors uses the generic invitations. Flagged for team enrichment. */
+  doors?: { build: string; break: string; story: string };
 }
 
 export const MINI_ACTIVITY_EXTRAS: Record<string, MiniActivityExtras> = {

@@ -19,6 +19,7 @@ import { MINI_ACTIVITY_CONTENT } from "@/lib/mini-data";
 import { logEvent } from "@/lib/cw-trace";
 import { ReadAloud } from "../read-aloud";
 import { FoldTools } from "../fold-tools";
+import { ThreeDoors } from "../three-doors";
 import {
   loadFound,
   matchActivities,
@@ -251,6 +252,8 @@ export default function MiniMakePage() {
               </div>
             )}
           </div>
+
+          {selectedSlug && <ThreeDoors slug={selectedSlug} />}
 
           {(findText || foldText) && (
             <div className="mini-make-steps">
