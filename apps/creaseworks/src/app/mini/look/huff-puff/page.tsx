@@ -183,7 +183,7 @@ export default function MiniHuffPuffPage() {
         <p className="hp-denied">mic&rsquo;s off — no worries, tap &ldquo;i blew it!&rdquo; when you&rsquo;ve done it.</p>
       )}
 
-      <p className="hp-prompt">find something {p.word} — then BLOW! {p.emoji}</p>
+      <p className="hp-prompt">find something your breath can MOVE ({p.word}) — then BLOW! {p.emoji}</p>
 
       <div className="hp-card">
         <span className="hp-emoji" aria-hidden="true" style={{ transform: `translateY(${-level * 14}px)` }}>

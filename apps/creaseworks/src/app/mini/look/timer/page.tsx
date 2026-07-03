@@ -176,7 +176,7 @@ export default function MiniTimerLookPage() {
       )}
 
       {phase === "log" && (
-        <FoundPicker prompt="time's up! tap everything you grabbed!" />
+        <FoundPicker tool="timer" prompt="time's up! tap everything you grabbed — what can each thing DO?" />
       )}
     </div>
   );

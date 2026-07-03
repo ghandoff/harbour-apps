@@ -246,7 +246,7 @@ export default function MiniEchoFinderPage() {
         <p className="ef-denied">mic&rsquo;s off — no worries, tap &ldquo;i made it!&rdquo; when you&rsquo;ve made the sound.</p>
       )}
 
-      <p className="ef-prompt">find something that goes…</p>
+      <p className="ef-prompt">find something that can SAY this…</p>
 
       <div className="ef-card">
         <span className="ef-emoji" aria-hidden="true">{sound.emoji}</span>
