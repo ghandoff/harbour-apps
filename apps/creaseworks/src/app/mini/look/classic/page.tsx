@@ -15,7 +15,10 @@ export default function MiniClassicLookPage() {
   return (
     <div>
       <MiniStageHero stage="look" />
-      <FoundPicker prompt="walk around — tap everything you can find!" />
+      <FoundPicker
+        tool="classic"
+        prompt="walk around — find one LOUD thing and one QUIET thing (and anything else that can DO something!)"
+      />
     </div>
   );
 }
