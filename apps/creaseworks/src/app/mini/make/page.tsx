@@ -18,6 +18,7 @@ import { MiniStageHero } from "../stage-hero";
 import { MINI_ACTIVITY_CONTENT } from "@/lib/mini-data";
 import { logEvent } from "@/lib/cw-trace";
 import { ReadAloud } from "../read-aloud";
+import { FoldTools } from "../fold-tools";
 import {
   loadFound,
   matchActivities,
@@ -244,6 +245,8 @@ export default function MiniMakePage() {
               )}
             </div>
           )}
+
+          {selectedSlug && <FoldTools slug={selectedSlug} />}
 
           <Link href={miniHref("/show")} className="mini-make-done">
             we did it! →
