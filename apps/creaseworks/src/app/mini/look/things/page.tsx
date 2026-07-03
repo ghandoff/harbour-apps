@@ -16,6 +16,10 @@ import { useRouter } from "next/navigation";
 import { FoundPicker } from "../found-picker";
 import { MiniStageHero } from "../../stage-hero";
 import { miniHref, saveFound } from "@/lib/mini-pilot";
+import { MINI_MATERIALS } from "@/lib/mini-data";
+import { traceMaterialsPicked } from "@/lib/cw-mini-trace";
+
+const MAT_BY_TITLE = new Map(MINI_MATERIALS.map((m) => [m.title, m] as const));
 
 const PROPERTIES = [
   { key: "roll", emoji: "⚪", accent: "var(--wv-cornflower)", corners: "22px 28px 18px 26px" },
@@ -46,7 +50,14 @@ export default function MiniThingsPage() {
   );
 
   const finishAll = useCallback(() => {
-    saveFound(Array.from(collected));
+    const titles = Array.from(collected);
+    saveFound(titles);
+    // the multi-round picker bypasses FoundPicker's own logging (onDone path),
+    // so stamp the accumulated union here — once, with things' loud/quiet dials.
+    traceMaterialsPicked(
+      "things",
+      titles.map((t) => ({ title: t, loudQuiet: MAT_BY_TITLE.get(t)?.loudQuiet })),
+    );
     router.push(miniHref("/make"));
   }, [collected, router]);
 

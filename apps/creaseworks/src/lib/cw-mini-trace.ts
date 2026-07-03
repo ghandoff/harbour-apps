@@ -132,3 +132,24 @@ export function miniTrace(
   }
   if (!timer) timer = setTimeout(() => flushMiniTraces(false), DEBOUNCE_MS);
 }
+
+/**
+ * Emit one `material_picked` per gathered material, keyed to the find tool.
+ * Shared by the tools that bypass FoundPicker (scavenger, nod-or-spin) and the
+ * multi-round things game, so every look mode stamps the SAME event shape
+ * FoundPicker's default path does ({ look_tool, material, loud_quiet }). Log the
+ * final union once — never per round — to match the single-log semantics of the
+ * classic/timer pickers and avoid inflating counts.
+ */
+export function traceMaterialsPicked(
+  lookTool: string,
+  materials: Array<{ title: string; loudQuiet?: "loud" | "quiet" }>,
+): void {
+  for (const m of materials) {
+    miniTrace("material_picked", {
+      look_tool: lookTool,
+      material: m.title,
+      loud_quiet: m.loudQuiet ?? null,
+    });
+  }
+}

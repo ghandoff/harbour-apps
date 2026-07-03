@@ -27,6 +27,7 @@ import CharacterSlot, { resolveCharacterFromForm } from "@windedvertigo/characte
 import { useCharacterVariant } from "@windedvertigo/characters/variant-context";
 import { MINI_MATERIALS, type MiniMaterial } from "@/lib/mini-data";
 import { MINI_AT_ROOT, miniHref, saveFound } from "@/lib/mini-pilot";
+import { traceMaterialsPicked } from "@/lib/cw-mini-trace";
 import { MiniStageHero } from "../../stage-hero";
 
 const ICON_BASE = MINI_AT_ROOT ? "/harbour/creaseworks-mini" : "/harbour/creaseworks";
@@ -73,7 +74,9 @@ export default function MiniNodOrSpinPage() {
 
   const finish = useCallback(
     (decs: Decision[]) => {
-      saveFound(deck.filter((_, i) => decs[i] === "got").map((m) => m.title));
+      const picked = deck.filter((_, i) => decs[i] === "got");
+      saveFound(picked.map((m) => m.title));
+      traceMaterialsPicked("nod-or-spin", picked);
       router.push(miniHref("/make"));
     },
     [deck, router],
