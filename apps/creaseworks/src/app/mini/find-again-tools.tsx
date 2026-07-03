@@ -110,7 +110,7 @@ export function FindAgainDoors({ slug, photoUrl }: { slug: string | null; photoU
 
       <div className="mini-again-prize">
         {photoUrl && <img src={photoUrl} alt="your creation" className="mini-again-photo" />}
-        <p className="mini-again-prize-h">🏆 your invention is a prize</p>
+        <p className="mini-again-prize-h">✨ your invention is a prize</p>
         <p className="mini-again-prize-sub">
           you made something that wasn&rsquo;t here before. it&rsquo;s shared — a grown-up on our
           side will add it to the wow wall soon.
