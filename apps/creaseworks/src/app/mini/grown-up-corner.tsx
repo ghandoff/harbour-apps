@@ -461,7 +461,10 @@ export function GrownUpCorner() {
             </div>
 
             {/* P1.1 (relocated): how much help the fold workshop surfaces —
-                a grown-up setting, remembered; the child never sets it. */}
+                a grown-up setting, remembered; the child never sets it. only
+                shown on find/fold (the stages it affects) — keeps the unfold +
+                find-again drawers focused. */}
+            {(stageKey === "look" || stageKey === "make") && (
             <div className="guc-help">
               <p className="guc-help-h">🤝 how much help?</p>
               <p className="guc-help-why">sets how much the workshop offers when your child gets stuck. change it anytime.</p>
@@ -480,6 +483,7 @@ export function GrownUpCorner() {
                 ))}
               </div>
             </div>
+            )}
 
             <RosterSetup code={savedCode} />
 

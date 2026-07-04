@@ -20,7 +20,7 @@
  * has no known playdate gently gathered at the end.
  */
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { MINI_ACTIVITIES } from "@/lib/mini-pilot";
 
 interface WallItem {
@@ -57,6 +57,11 @@ interface MuseumRoom {
 const UNTITLED_ACCENT = "var(--wv-cornflower)";
 
 export function FamilyMuseum({ mine, code, renderCard, onSetCode }: FamilyMuseumProps) {
+  // the whole museum is tucked behind one calm, closed-by-default disclosure so
+  // the wall (what the hero promises) leads and the family's own shelf waits a
+  // tap away — matching the fold-phase "need a hand?" collapse pattern.
+  const [open, setOpen] = useState(false);
+
   // group creations into rooms by playdate, keeping MINI_ACTIVITIES order; a
   // final room gathers anything with no known playdate. useMemo so the grouping
   // only reruns when the family's creations change.
@@ -87,21 +92,6 @@ export function FamilyMuseum({ mine, code, renderCard, onSetCode }: FamilyMuseum
     return out;
   }, [mine]);
 
-  // no code yet → gentle invitation to set one (mirrors the previous fallback)
-  if (!code) {
-    return (
-      <section className="mini-museum-section">
-        <p className="mini-museum-hint">
-          set your family or class code to open your museum.{" "}
-          <button type="button" className="mini-museum-link" onClick={onSetCode}>
-            set it up →
-          </button>
-        </p>
-        <MuseumStyle />
-      </section>
-    );
-  }
-
   const total = mine?.length ?? 0;
   // "made 7 things" celebrates the collection — never a target. one thing reads
   // naturally in the singular; before anything is made, we simply welcome them.
@@ -114,33 +104,50 @@ export function FamilyMuseum({ mine, code, renderCard, onSetCode }: FamilyMuseum
 
   return (
     <section className="mini-museum-section" aria-label="your family museum">
-      <h2 className="mini-museum-h">🏛️ your family museum</h2>
-      <p className="mini-museum-sub">
-        just for your family ({code}) — everything you&rsquo;ve made, the moment you share it.
-      </p>
+      <button
+        type="button"
+        className="mini-help-toggle"
+        aria-expanded={open}
+        onClick={() => setOpen((o) => !o)}
+      >
+        <span>🏛️ see everything your family made</span>
+        <span className="mini-help-toggle-cue" aria-hidden="true">{open ? "hide ▾" : "open ▸"}</span>
+      </button>
 
-      {mine === null ? null : total === 0 ? (
-        <p className="mini-museum-hint">
-          your museum is ready for its first creation — make something on the show page and it walks
-          straight in. 📸
-        </p>
-      ) : (
-        <>
-          {madeLine && <p className="mini-museum-count">{madeLine}</p>}
-          {rooms.map((room) => (
-            <div className="mini-museum-room" key={room.slug ?? "__untitled"}>
-              <p
-                className="mini-museum-room-h"
-                style={{ ["--accent" as string]: room.accent }}
-              >
-                {room.title ?? "a little of everything"}
-              </p>
-              <div className="mini-museum-grid">
-                {room.items.map((item) => renderCard(item, item.approved !== 1))}
-              </div>
-            </div>
-          ))}
-        </>
+      {open && (
+        <div className="mini-help-panel">
+          {!code ? (
+            // no code yet → gentle invitation to set one
+            <p className="mini-museum-hint">
+              set your family or class code to open your museum.{" "}
+              <button type="button" className="mini-museum-link" onClick={onSetCode}>
+                set it up →
+              </button>
+            </p>
+          ) : mine === null ? null : total === 0 ? (
+            <p className="mini-museum-hint">
+              your museum is ready for its first creation — make something on the show page and it
+              walks straight in. 📸
+            </p>
+          ) : (
+            <>
+              {madeLine && <p className="mini-museum-count">{madeLine}</p>}
+              {rooms.map((room) => (
+                <div className="mini-museum-room" key={room.slug ?? "__untitled"}>
+                  <p
+                    className="mini-museum-room-h"
+                    style={{ ["--accent" as string]: room.accent }}
+                  >
+                    {room.title ?? "a little of everything"}
+                  </p>
+                  <div className="mini-museum-grid">
+                    {room.items.map((item) => renderCard(item, item.approved !== 1))}
+                  </div>
+                </div>
+              ))}
+            </>
+          )}
+        </div>
       )}
 
       <MuseumStyle />
@@ -153,21 +160,20 @@ function MuseumStyle() {
   return (
     <style>{`
       .mini-museum-section { margin-bottom: 28px; }
-      .mini-museum-h {
-        font-family: var(--font-fraunces), serif;
-        font-weight: 600;
-        font-size: 20px;
-        color: var(--wv-white);
-        margin: 6px 0 4px;
-      }
-      .mini-museum-sub {
+      /* one calm, collapsed entry point on the navy canvas — mirrors the
+         fold-phase "need a hand?" disclosure so the two feel of a piece. */
+      button.mini-help-toggle:not([type="submit"]):not(.wv-header-signout) {
+        display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%;
         font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
-        font-weight: 700;
-        font-size: 13px;
-        color: var(--wv-white);
-        opacity: 0.85;
-        margin: 0 0 10px;
+        font-weight: 800; font-size: 14px; color: var(--wv-white);
+        background: transparent; border: 1.5px dashed rgba(255, 255, 255, 0.55);
+        border-radius: 16px 20px 14px 18px; padding: 12px 16px; cursor: pointer; text-align: left;
+        transition: background 140ms ease;
       }
+      button.mini-help-toggle:hover { background: rgba(255, 255, 255, 0.08); }
+      button.mini-help-toggle:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
+      .mini-help-toggle-cue { font-size: 13px; font-weight: 800; opacity: 0.85; }
+      .mini-help-panel { margin-top: 12px; }
       .mini-museum-count {
         font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
         font-weight: 800;

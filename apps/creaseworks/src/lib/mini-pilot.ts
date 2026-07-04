@@ -277,6 +277,8 @@ export const MINI_STAGES: MiniStage[] = [
     adultGuide: [
       "snap a photo of the creation and type what your child says about it.",
       "their exact words beat tidy summaries — \u201cit has three eyes and its name is wobbles\u201d is perfect.",
+      "your written notes matter as much as the photo — a line about what surprised them is gold for the pilot.",
+      "before you ask, let them show it without explaining — see if you can guess what it does.",
       "you need your family code saved (below) to share.",
     ],
   },
@@ -293,6 +295,7 @@ export const MINI_STAGES: MiniStage[] = [
     adultGuide: [
       "everything here was shared by other pilot families and reviewed by us first.",
       "nothing your family shares is public until we approve it.",
+      "two shelves here: your family museum fills the moment you share; the wall is the reviewed collection every family sees.",
       "ask: \u201cwhat would you try next?\u201d — then go look again!",
     ],
   },

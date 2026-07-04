@@ -23,6 +23,10 @@ export function GuessBeat({ slug }: { slug: string | null }) {
     <div className="mini-guess">
       <style>{`
         .mini-guess { margin: 4px 0 14px; }
+        .mini-guess-title {
+          font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+          font-weight: 800; font-size: 15px; color: var(--wv-cadet); margin: 0 0 6px;
+        }
         .mini-guess-hint {
           font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
           font-weight: 700; font-size: 13.5px; color: var(--wv-cadet); line-height: 1.5; margin: 2px 0 10px;
@@ -36,10 +40,9 @@ export function GuessBeat({ slug }: { slug: string | null }) {
         button.mini-guess-btn[data-on="true"] { background: color-mix(in srgb, var(--wv-seafoam) 30%, var(--wv-white)); border-color: var(--wv-teal); }
         button.mini-guess-btn:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
       `}</style>
-      <p className="mini-show-section">🙊 show it, don’t say it — let them guess</p>
+      <p className="mini-guess-title">🙊 show it, don’t say it</p>
       <p className="mini-guess-hint">
-        before you type anything: show the creation to someone and let them <em>guess</em> what it
-        does. don’t tell them! (totally optional.)
+        show it to someone and let them <em>guess</em> what it does. don’t tell them!
       </p>
       <div className="mini-guess-btns">
         <button type="button" className="mini-guess-btn" data-on={done === "guessed"} onClick={() => tap("guessed")}>
@@ -85,7 +88,7 @@ export function ProvocationCard({ slug }: { slug: string | null }) {
         button.mini-prov-flip:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
         .mini-prov-note {
           font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
-          font-weight: 700; font-size: 13px; color: #6b7280; margin-top: 8px;
+          font-weight: 700; font-size: 13px; color: color-mix(in srgb, var(--wv-cadet) 65%, transparent); margin-top: 8px;
         }
       `}</style>
       <p className="mini-prov-q">🌀 {provs[idx]}</p>

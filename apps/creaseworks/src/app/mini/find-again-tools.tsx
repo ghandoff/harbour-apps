@@ -17,16 +17,30 @@
  */
 
 import { useRouter } from "next/navigation";
-import { MINI_ACTIVITY_EXTRAS } from "@/lib/mini-data";
+import { MINI_ACTIVITY_CONTENT, MINI_ACTIVITY_EXTRAS } from "@/lib/mini-data";
 import { MINI_ACTIVITIES, miniHref, saveChainTarget } from "@/lib/mini-pilot";
 import { miniTrace } from "@/lib/cw-mini-trace";
 
-export function FindAgainDoors({ slug, photoUrl }: { slug: string | null; photoUrl: string | null }) {
+export function FindAgainDoors({
+  slug,
+  photoUrl,
+  reentry = false,
+}: {
+  slug: string | null;
+  photoUrl: string | null;
+  /** re-entry (on the find-again page itself): show just the twist + doors —
+   * no post-share "your invention is a prize" recap, no "see the wall" exit,
+   * since the family isn't fresh off making + the wall is right below. */
+  reentry?: boolean;
+}) {
   const router = useRouter();
   const chain = (slug && MINI_ACTIVITY_EXTRAS[slug]?.chain) || null;
   const chainTitle = chain
     ? MINI_ACTIVITIES.find((a) => a.slug === chain.toSlug)?.title ?? null
     : null;
+  // the authored "do it again with a twist" text for the playdate they played —
+  // the heart of find-again, so it rides on the prize card itself.
+  const twist = (slug && MINI_ACTIVITY_CONTENT[slug]?.findAgainPrompt) || null;
 
   const sameStuff = () => {
     miniTrace("ending_choice", { playdate_slug: slug, choice: "same-stuff-new-job" });
@@ -65,7 +79,20 @@ export function FindAgainDoors({ slug, photoUrl }: { slug: string | null; photoU
         }
         .mini-again-prize-sub {
           font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
-          font-weight: 700; font-size: 14px; color: #4b5563; line-height: 1.5;
+          font-weight: 700; font-size: 14px; color: color-mix(in srgb, var(--wv-cadet) 72%, var(--wv-white)); line-height: 1.5;
+        }
+        .mini-again-twist {
+          text-align: left; margin-top: 14px; padding: 12px 14px;
+          background: color-mix(in srgb, var(--wv-sun, #ffd166) 20%, var(--wv-white));
+          border: 1.5px dashed var(--wv-sun, #ffd166); border-radius: 14px 18px 12px 16px;
+        }
+        .mini-again-twist-h {
+          font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+          font-weight: 800; font-size: 13px; color: var(--wv-cadet); margin-bottom: 4px;
+        }
+        .mini-again-twist-p {
+          font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+          font-weight: 700; font-size: 14px; color: var(--wv-cadet); line-height: 1.5;
         }
         .mini-again-q {
           font-family: var(--font-fraunces), serif; font-weight: 600; font-size: 20px;
@@ -89,7 +116,7 @@ export function FindAgainDoors({ slug, photoUrl }: { slug: string | null; photoU
         }
         .mini-again-door-d {
           font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
-          font-weight: 700; font-size: 13.5px; color: #4b5563; line-height: 1.4;
+          font-weight: 700; font-size: 13.5px; color: color-mix(in srgb, var(--wv-cadet) 72%, var(--wv-white)); line-height: 1.4;
         }
         .mini-again-door-next {
           font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
@@ -108,14 +135,30 @@ export function FindAgainDoors({ slug, photoUrl }: { slug: string | null; photoU
         }
       `}</style>
 
-      <div className="mini-again-prize">
-        {photoUrl && <img src={photoUrl} alt="your creation" className="mini-again-photo" />}
-        <p className="mini-again-prize-h">✨ your invention is a prize</p>
-        <p className="mini-again-prize-sub">
-          you made something that wasn&rsquo;t here before. it&rsquo;s shared — a grown-up on our
-          side will add it to the wow wall soon.
-        </p>
-      </div>
+      {reentry ? (
+        // find-again re-entry: the page's own "go again — with a twist" heading
+        // frames this, so show just the authored twist text in its callout.
+        twist && (
+          <div className="mini-again-twist">
+            <p className="mini-again-twist-p">{twist}</p>
+          </div>
+        )
+      ) : (
+        <div className="mini-again-prize">
+          {photoUrl && <img src={photoUrl} alt="your creation" className="mini-again-photo" />}
+          <p className="mini-again-prize-h">✨ your invention is a prize</p>
+          <p className="mini-again-prize-sub">
+            you made something that wasn&rsquo;t here before. it&rsquo;s shared — a grown-up on our
+            side will add it to the wow wall soon.
+          </p>
+          {twist && (
+            <div className="mini-again-twist">
+              <p className="mini-again-twist-h">🔁 do it again, with a twist</p>
+              <p className="mini-again-twist-p">{twist}</p>
+            </div>
+          )}
+        </div>
+      )}
 
       <p className="mini-again-q">what next?</p>
       <div className="mini-again-doors">
@@ -135,11 +178,13 @@ export function FindAgainDoors({ slug, photoUrl }: { slug: string | null; photoU
         )}
       </div>
 
-      <div className="mini-again-foot">
-        <button type="button" className="mini-again-quiet" onClick={doneForToday}>
-          we&rsquo;re done for today — see the wall →
-        </button>
-      </div>
+      {!reentry && (
+        <div className="mini-again-foot">
+          <button type="button" className="mini-again-quiet" onClick={doneForToday}>
+            we&rsquo;re done for today — see the wall →
+          </button>
+        </div>
+      )}
     </div>
   );
 }

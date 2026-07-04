@@ -11,10 +11,11 @@
 
 import { useEffect, useState } from "react";
 import { apiUrl } from "@/lib/api-url";
-import { MINI_ACTIVITIES, loadCode } from "@/lib/mini-pilot";
+import { MINI_ACTIVITIES, loadCode, loadSelected } from "@/lib/mini-pilot";
 import { MiniStageHero } from "../stage-hero";
 import { miniTrace } from "@/lib/cw-mini-trace";
 import { FamilyMuseum } from "../family-museum";
+import { FindAgainDoors } from "../find-again-tools";
 
 interface WallItem {
   id: string;
@@ -54,9 +55,14 @@ export default function MiniWowPage() {
   const [wall, setWall] = useState<WallItem[] | null>(null);
   const [mine, setMine] = useState<MineItem[] | null>(null);
   const [code, setCode] = useState<string | null>(null);
+  // the playdate this device last played, so a family returning to find-again
+  // gets a "go again — with a twist" affordance, not just a gallery. read after
+  // mount (sessionStorage is client-only) so SSR and first render match.
+  const [lastSlug, setLastSlug] = useState<string | null>(null);
 
   useEffect(() => {
     setCode(loadCode());
+    setLastSlug(loadSelected());
     fetch(apiUrl("/api/mini/wall"))
       .then((r) => (r.ok ? r.json() : { wall: [] }))
       .then((d) => setWall(d.wall ?? []))
@@ -122,15 +128,7 @@ export default function MiniWowPage() {
           font-weight: 600;
           font-size: 20px;
           color: var(--wv-white);
-          margin: 6px 0 4px;
-        }
-        .mini-wall-sub {
-          font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
-          font-weight: 700;
-          font-size: 13px;
-          color: var(--wv-white);
-          opacity: 0.85;
-          margin: 0 0 12px;
+          margin: 6px 0 12px;
         }
         .mini-wall-section { margin-bottom: 28px; }
         .mini-wall { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
@@ -166,7 +164,7 @@ export default function MiniWowPage() {
           background: color-mix(in srgb, var(--accent) 12%, var(--wv-white));
           border: 1.5px dashed var(--accent); border-radius: 10px 13px 9px 12px; padding: 8px 10px;
         }
-        button.mini-wall-reveal span { display: block; font-weight: 700; font-size: 11px; color: #6b7280; margin-top: 2px; }
+        button.mini-wall-reveal span { display: block; font-weight: 700; font-size: 11px; color: color-mix(in srgb, var(--wv-cadet) 65%, var(--wv-white)); margin-top: 2px; }
         button.mini-wall-reveal:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
         .mini-wall-words {
           font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
@@ -217,18 +215,18 @@ export default function MiniWowPage() {
         }
       `}</style>
 
-      {/* ── your family museum (scoped to the family code) ── */}
-      <FamilyMuseum
-        mine={mine}
-        code={code}
-        renderCard={card}
-        onSetCode={() => window.dispatchEvent(new Event("cw:open-corner"))}
-      />
+      {/* ── go again (the stage's core promise): reuse the find-again doors,
+             keyed to the playdate this device last played ── */}
+      {lastSlug && (
+        <section className="mini-wall-section" aria-label="go again">
+          <h2 className="mini-wall-h">🔁 go again — with a twist</h2>
+          <FindAgainDoors slug={lastSlug} photoUrl={null} reentry />
+        </section>
+      )}
 
-      {/* ── the wall (global, curated) ── */}
+      {/* ── the wall (global, curated) — what the hero promises, so it leads ── */}
       <section className="mini-wall-section">
         <h2 className="mini-wall-h">🌟 the wall</h2>
-        <p className="mini-wall-sub">creations the collective has picked to share with everyone.</p>
         {wall === null ? null : wall.length === 0 ? (
           <p className="mini-wall-empty">
             the wall is waiting for its first creation —<br />
@@ -238,6 +236,15 @@ export default function MiniWowPage() {
           <div className="mini-wall">{wall.map((item) => card(item, false))}</div>
         )}
       </section>
+
+      {/* ── your family museum (scoped to the family code), tucked behind one
+             calm disclosure so the wall stays the headline ── */}
+      <FamilyMuseum
+        mine={mine}
+        code={code}
+        renderCard={card}
+        onSetCode={() => window.dispatchEvent(new Event("cw:open-corner"))}
+      />
     </div>
   );
 }
