@@ -27,7 +27,6 @@ const EVENT_TYPES = new Set([
   // P1
   "ambiguity_set",
   "door_chosen",
-  "context_set",
 ]);
 const CODE_SHAPE = /^[a-z0-9][a-z0-9-]{1,39}$/;
 

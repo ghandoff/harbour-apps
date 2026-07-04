@@ -18,7 +18,7 @@ import { useRouter } from "next/navigation";
 import CharacterSlot, { resolveCharacterFromForm } from "@windedvertigo/characters";
 import { useCharacterVariant } from "@windedvertigo/characters/variant-context";
 import { MINI_MATERIALS, type MiniMaterial } from "@/lib/mini-data";
-import { MINI_AT_ROOT, miniHref, saveFound, loadContext, type MiniContext } from "@/lib/mini-pilot";
+import { MINI_AT_ROOT, miniHref, saveFound } from "@/lib/mini-pilot";
 import { traceMaterialsPicked } from "@/lib/cw-mini-trace";
 import { MiniStageHero } from "../../stage-hero";
 
@@ -34,13 +34,6 @@ const MOVES = [
   { word: "marching", emoji: "🥁" },
   { word: "zooming", emoji: "🚀" },
 ] as const;
-
-// same hunt, nudged toward what's around: inside vs outside finds. neutral
-// (unset) keeps the place-agnostic nudge.
-const WHERE_NUDGE: Record<MiniContext, string> = {
-  indoor: "hunt inside — cupboards, shelves, and the odds-and-ends drawer.",
-  outdoor: "hunt outside — the ground, under bushes, and along the path.",
-};
 
 function shuffle(a: MiniMaterial[]) {
   for (let k = a.length - 1; k > 0; k--) {
@@ -71,13 +64,6 @@ export default function MiniScavengerPage() {
   const [card, setCard] = useState<MiniMaterial[]>(MINI_MATERIALS.slice(0, HUNT_SIZE));
   const [move, setMove] = useState<(typeof MOVES)[number]>(MOVES[0]);
   const [found, setFound] = useState<Set<string>>(new Set());
-
-  // SSR-safe context read: null on server + first client paint (neutral nudge),
-  // then swaps to the place-aware nudge once mounted.
-  const [context, setContext] = useState<MiniContext | null>(null);
-  useEffect(() => {
-    setContext(loadContext());
-  }, []);
 
   const reroll = useCallback(() => {
     const h = dealHunt();
@@ -118,7 +104,7 @@ export default function MiniScavengerPage() {
           font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
           font-weight: 800;
           font-size: 20px;
-          color: var(--color-text-on-dark);
+          color: var(--wv-white);
           text-align: center;
           margin-bottom: 14px;
           line-height: 1.4;
@@ -126,13 +112,8 @@ export default function MiniScavengerPage() {
         .scav-prompt .scav-move { color: var(--wv-mint); }
         .scav-lq-hint {
           font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
-          font-weight: 700; font-size: 13px; color: var(--color-text-on-dark);
+          font-weight: 700; font-size: 13px; color: var(--wv-white);
           opacity: 0.9; text-align: center; margin: -8px 0 8px; line-height: 1.4;
-        }
-        .scav-where-nudge {
-          font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
-          font-weight: 700; font-size: 13px; color: var(--color-text-on-dark);
-          opacity: 0.85; text-align: center; margin: 0 0 16px; line-height: 1.4;
         }
         .scav-lq { position: absolute; top: 8px; left: 8px; font-size: 15px; line-height: 1; }
         .scav-grid {
@@ -181,7 +162,7 @@ export default function MiniScavengerPage() {
         .scav-progress-wrap { margin-bottom: 16px; }
         .scav-progress-label {
           font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
-          font-weight: 800; font-size: 15px; color: var(--color-text-on-dark);
+          font-weight: 800; font-size: 15px; color: var(--wv-white);
           text-align: center; margin-bottom: 6px;
         }
         .scav-progress-track { height: 14px; border-radius: 8px; background: rgba(255,255,255,0.25); overflow: hidden; }
@@ -225,9 +206,6 @@ export default function MiniScavengerPage() {
         </span>
       </p>
       <p className="scav-lq-hint">as you go: which ones are 🔊 LOUD? which are 🔇 QUIET?</p>
-      <p className="scav-where-nudge">
-        {context ? WHERE_NUDGE[context] : "hunt wherever you are — indoors or out."}
-      </p>
 
       <div className="scav-grid">
         {card.map((mat) => {

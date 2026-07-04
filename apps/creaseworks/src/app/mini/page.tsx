@@ -50,7 +50,7 @@ export default function MiniWelcomePage() {
           font-family: var(--font-fraunces), serif;
           font-weight: 600;
           font-size: 36px;
-          color: var(--color-text-on-dark);
+          color: var(--wv-white);
           margin-bottom: 6px;
         }
         .mini-invite {
@@ -58,7 +58,7 @@ export default function MiniWelcomePage() {
           font-weight: 800;
           /* ≥18.66px bold = WCAG "large text" → champagne clears AA on cornflower */
           font-size: 20px;
-          color: var(--color-text-on-dark);
+          color: var(--wv-white);
           margin: 0 auto 30px;
         }
         button.mini-start:not([type="submit"]):not(.wv-header-signout) {

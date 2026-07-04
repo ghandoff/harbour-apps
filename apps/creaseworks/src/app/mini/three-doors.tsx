@@ -57,7 +57,7 @@ export function ThreeDoors({ slug }: { slug: string }) {
         .mini-doors { margin: 4px 0 16px; }
         .mini-doors-q {
           font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
-          font-weight: 800; font-size: 14px; color: var(--color-text-on-dark); margin: 0 0 8px;
+          font-weight: 800; font-size: 14px; color: var(--wv-white); margin: 0 0 8px;
         }
         .mini-doors-row { display: flex; flex-wrap: wrap; gap: 8px; }
         button.mini-door:not([type="submit"]):not(.wv-header-signout) {

@@ -25,7 +25,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { miniHref, saveFound, loadContext, type MiniContext } from "@/lib/mini-pilot";
+import { miniHref, saveFound } from "@/lib/mini-pilot";
 import { MiniStageHero } from "../../stage-hero";
 
 type CamState = "off" | "on" | "denied";
@@ -44,13 +44,6 @@ const COLOURS = [
   { key: "pink", hue: 330, swatch: "#e06699" },
   { key: "brown", hue: 24, swatch: "#8a5a3c" },
 ] as const;
-
-// same place-aware nudge as the other look tools — indoor vs outdoor vs
-// neutral (unset).
-const WHERE_NUDGE: Record<MiniContext, string> = {
-  indoor: "peek in drawers, cupboards, and the recycling — boxes, wrappers, and toys wear lots of colours.",
-  outdoor: "look on the ground, in the bushes, and along the path — leaves, petals, and stones mix colours too.",
-};
 
 const HUE_TOLERANCE = 32; // forgiving so a kid isn't fighting white-balance
 const SAMPLE_MS = 250;
@@ -101,13 +94,6 @@ export default function MiniColourCatcherPage() {
   const [flash, setFlash] = useState(false);
   // which of the two named colours has been spotted so far (camera mode)
   const [seen, setSeen] = useState<[boolean, boolean]>([false, false]);
-
-  // SSR-safe context read: null on server + first client paint (neutral nudge),
-  // then swaps to the place-aware nudge once mounted.
-  const [context, setContext] = useState<MiniContext | null>(null);
-  useEffect(() => {
-    setContext(loadContext());
-  }, []);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -233,15 +219,10 @@ export default function MiniColourCatcherPage() {
         button.cc-mode:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
         .cc-prompt {
           font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
-          font-weight: 800; font-size: 22px; color: var(--color-text-on-dark);
+          font-weight: 800; font-size: 22px; color: var(--wv-white);
           text-align: center; margin-bottom: 10px; line-height: 1.4;
         }
         .cc-prompt .cc-colourword { text-transform: uppercase; }
-        .cc-where-nudge {
-          font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
-          font-weight: 700; font-size: 13px; color: var(--color-text-on-dark);
-          opacity: 0.85; text-align: center; margin: 0 0 14px; line-height: 1.4;
-        }
         .cc-seenrow { display: flex; justify-content: center; gap: 10px; margin-bottom: 14px; }
         .cc-seenchip {
           display: inline-flex; align-items: center; gap: 6px;
@@ -298,7 +279,7 @@ export default function MiniColourCatcherPage() {
         button.cc-swap:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
         .cc-tally-line {
           font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif; font-weight: 800;
-          font-size: 13px; color: var(--color-text-on-dark); opacity: 0.85;
+          font-size: 13px; color: var(--wv-white); opacity: 0.85;
           text-align: center; margin: 12px 0 0;
         }
         button.cc-done:not([type="submit"]):not(.wv-header-signout) {
@@ -309,7 +290,7 @@ export default function MiniColourCatcherPage() {
         button.cc-done:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
         .cc-denied {
           text-align: center; font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
-          font-weight: 700; font-size: 13px; color: var(--color-text-on-dark); margin-bottom: 12px;
+          font-weight: 700; font-size: 13px; color: var(--wv-white); margin-bottom: 12px;
         }
         @media (prefers-reduced-motion: reduce) { .cc-flash { animation: none; } button.cc-got:active { scale: 1; } }
       `}</style>
@@ -356,9 +337,6 @@ export default function MiniColourCatcherPage() {
           {second.key}
         </span>{" "}
         on it!
-      </p>
-      <p className="cc-where-nudge">
-        {context ? WHERE_NUDGE[context] : "look wherever you are — indoors or out — for one thing wearing both colours."}
       </p>
 
       <div

@@ -126,7 +126,7 @@ export function FoldTools({ slug }: { slug: string }) {
         }
         .mini-fold-nudge {
           font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
-          font-weight: 700; font-size: 12.5px; color: var(--color-text-on-dark); opacity: 0.9; margin-top: 12px;
+          font-weight: 700; font-size: 12.5px; color: var(--wv-white); opacity: 0.9; margin-top: 12px;
         }
       `}</style>
 

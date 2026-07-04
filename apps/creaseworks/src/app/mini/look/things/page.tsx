@@ -11,22 +11,15 @@
  * the running collection. The union feeds the matcher.
  */
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { FoundPicker } from "../found-picker";
 import { MiniStageHero } from "../../stage-hero";
-import { miniHref, saveFound, loadContext, type MiniContext } from "@/lib/mini-pilot";
+import { miniHref, saveFound } from "@/lib/mini-pilot";
 import { MINI_MATERIALS } from "@/lib/mini-data";
 import { traceMaterialsPicked } from "@/lib/cw-mini-trace";
 
 const MAT_BY_TITLE = new Map(MINI_MATERIALS.map((m) => [m.title, m] as const));
-
-// same property-hunt framing everywhere — only a short WHERE nudge swaps.
-// neutral (unset) drops the nudge entirely.
-const WHERE_NUDGE: Record<MiniContext, string> = {
-  indoor: " look in drawers, cupboards, and on the shelves.",
-  outdoor: " look on the ground, under bushes, and along the path.",
-};
 
 const PROPERTIES = [
   { key: "roll", emoji: "⚪", accent: "var(--wv-cornflower)", corners: "22px 28px 18px 26px" },
@@ -42,13 +35,6 @@ export default function MiniThingsPage() {
   const [hunting, setHunting] = useState<string | null>(null);
   const [collected, setCollected] = useState<Set<string>>(new Set());
   const [doneProps, setDoneProps] = useState<string[]>([]);
-
-  // SSR-safe context read: null on server + first client paint (no nudge),
-  // then swaps to the place-aware nudge once mounted.
-  const [context, setContext] = useState<MiniContext | null>(null);
-  useEffect(() => {
-    setContext(loadContext());
-  }, []);
 
   const finishRound = useCallback(
     (picked: string[]) => {
@@ -80,7 +66,7 @@ export default function MiniThingsPage() {
       <div>
         <MiniStageHero stage="look" />
         <FoundPicker
-          prompt={`find things that can ${hunting.toUpperCase()}!${context ? WHERE_NUDGE[context] : ""}`}
+          prompt={`find things that can ${hunting.toUpperCase()}!`}
           onDone={finishRound}
           doneLabel="add these! →"
         />
@@ -99,7 +85,7 @@ export default function MiniThingsPage() {
           font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
           font-weight: 800;
           font-size: 20px;
-          color: var(--color-text-on-dark);
+          color: var(--wv-white);
           text-align: center;
           margin-bottom: 16px;
           line-height: 1.4;
@@ -154,7 +140,7 @@ export default function MiniThingsPage() {
         button.mini-things-makebtn:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
         .mini-things-count {
           font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
-          font-weight: 800; font-size: 13px; color: var(--color-text-on-dark);
+          font-weight: 800; font-size: 13px; color: var(--wv-white);
         }
         @media (prefers-reduced-motion: reduce) {
           button.mini-things-tile:not([type="submit"]):not(.wv-header-signout):hover,

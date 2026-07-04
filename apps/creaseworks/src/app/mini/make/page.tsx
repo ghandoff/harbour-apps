@@ -242,6 +242,27 @@ export default function MiniMakePage() {
             </p>
             <h2 className="mini-make-title">{selected.title}</h2>
             <p className="mini-make-headline">{selected.headline}</p>
+            <p
+              aria-label="where this playdate is best played"
+              style={{
+                display: "inline-block",
+                fontFamily: "var(--font-nunito), ui-sans-serif, system-ui, sans-serif",
+                fontWeight: 800,
+                fontSize: 12,
+                color: "var(--wv-cadet)",
+                background: "color-mix(in srgb, var(--accent) 16%, var(--wv-white))",
+                border: "1.5px solid var(--accent)",
+                borderRadius: "10px 14px 8px 12px",
+                padding: "3px 10px",
+                marginBottom: 4,
+              }}
+            >
+              {selected.setting === "outdoor"
+                ? "🌳 best outside"
+                : selected.setting === "indoor"
+                  ? "🏠 best inside"
+                  : "🏠🌳 inside or outside"}
+            </p>
             {showChips && (
               <div className="mini-make-chips" aria-label="things you found that we'll use">
                 {matched!.matched.map((m) => (
@@ -296,9 +317,9 @@ export default function MiniMakePage() {
                   {isMatch && <span className="mini-make-badge">✨ matches your stuff</span>}
                   <span className="mini-make-tile-title">{a.title}</span>
                   <span className="mini-make-tile-headline">{a.headline}</span>
-                  {a.outdoor && (
+                  {a.setting === "outdoor" && (
                     <span style={{ marginTop: 4, fontSize: 11, fontWeight: 800, color: "var(--wv-cadet)" }}>
-                      best outside ☀️
+                      🌳 best outside
                     </span>
                   )}
                 </button>

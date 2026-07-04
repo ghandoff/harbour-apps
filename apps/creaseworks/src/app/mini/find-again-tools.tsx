@@ -69,7 +69,7 @@ export function FindAgainDoors({ slug, photoUrl }: { slug: string | null; photoU
         }
         .mini-again-q {
           font-family: var(--font-fraunces), serif; font-weight: 600; font-size: 20px;
-          color: var(--color-text-on-dark); margin: 2px 0 -4px;
+          color: var(--wv-white); margin: 2px 0 -4px;
         }
         .mini-again-doors { display: flex; flex-direction: column; gap: 12px; }
         button.mini-again-door:not([type="submit"]):not(.wv-header-signout) {
@@ -98,7 +98,7 @@ export function FindAgainDoors({ slug, photoUrl }: { slug: string | null; photoU
         .mini-again-foot { display: flex; justify-content: center; margin-top: 2px; }
         button.mini-again-quiet:not([type="submit"]):not(.wv-header-signout) {
           font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
-          font-weight: 800; font-size: 14px; color: var(--color-text-on-dark);
+          font-weight: 800; font-size: 14px; color: var(--wv-white);
           background: none; border: none; padding: 6px 4px; cursor: pointer;
           text-decoration: underline; text-underline-offset: 3px;
         }
