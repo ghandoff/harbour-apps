@@ -21,7 +21,18 @@ import { MINI_ACTIVITY_CONTENT, MINI_ACTIVITY_EXTRAS } from "@/lib/mini-data";
 import { MINI_ACTIVITIES, miniHref, saveChainTarget } from "@/lib/mini-pilot";
 import { miniTrace } from "@/lib/cw-mini-trace";
 
-export function FindAgainDoors({ slug, photoUrl }: { slug: string | null; photoUrl: string | null }) {
+export function FindAgainDoors({
+  slug,
+  photoUrl,
+  reentry = false,
+}: {
+  slug: string | null;
+  photoUrl: string | null;
+  /** re-entry (on the find-again page itself): show just the twist + doors —
+   * no post-share "your invention is a prize" recap, no "see the wall" exit,
+   * since the family isn't fresh off making + the wall is right below. */
+  reentry?: boolean;
+}) {
   const router = useRouter();
   const chain = (slug && MINI_ACTIVITY_EXTRAS[slug]?.chain) || null;
   const chainTitle = chain
@@ -124,20 +135,30 @@ export function FindAgainDoors({ slug, photoUrl }: { slug: string | null; photoU
         }
       `}</style>
 
-      <div className="mini-again-prize">
-        {photoUrl && <img src={photoUrl} alt="your creation" className="mini-again-photo" />}
-        <p className="mini-again-prize-h">✨ your invention is a prize</p>
-        <p className="mini-again-prize-sub">
-          you made something that wasn&rsquo;t here before. it&rsquo;s shared — a grown-up on our
-          side will add it to the wow wall soon.
-        </p>
-        {twist && (
+      {reentry ? (
+        // find-again re-entry: the page's own "go again — with a twist" heading
+        // frames this, so show just the authored twist text in its callout.
+        twist && (
           <div className="mini-again-twist">
-            <p className="mini-again-twist-h">🔁 do it again, with a twist</p>
             <p className="mini-again-twist-p">{twist}</p>
           </div>
-        )}
-      </div>
+        )
+      ) : (
+        <div className="mini-again-prize">
+          {photoUrl && <img src={photoUrl} alt="your creation" className="mini-again-photo" />}
+          <p className="mini-again-prize-h">✨ your invention is a prize</p>
+          <p className="mini-again-prize-sub">
+            you made something that wasn&rsquo;t here before. it&rsquo;s shared — a grown-up on our
+            side will add it to the wow wall soon.
+          </p>
+          {twist && (
+            <div className="mini-again-twist">
+              <p className="mini-again-twist-h">🔁 do it again, with a twist</p>
+              <p className="mini-again-twist-p">{twist}</p>
+            </div>
+          )}
+        </div>
+      )}
 
       <p className="mini-again-q">what next?</p>
       <div className="mini-again-doors">
@@ -157,11 +178,13 @@ export function FindAgainDoors({ slug, photoUrl }: { slug: string | null; photoU
         )}
       </div>
 
-      <div className="mini-again-foot">
-        <button type="button" className="mini-again-quiet" onClick={doneForToday}>
-          we&rsquo;re done for today — see the wall →
-        </button>
-      </div>
+      {!reentry && (
+        <div className="mini-again-foot">
+          <button type="button" className="mini-again-quiet" onClick={doneForToday}>
+            we&rsquo;re done for today — see the wall →
+          </button>
+        </div>
+      )}
     </div>
   );
 }

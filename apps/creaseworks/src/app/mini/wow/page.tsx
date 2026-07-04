@@ -220,7 +220,7 @@ export default function MiniWowPage() {
       {lastSlug && (
         <section className="mini-wall-section" aria-label="go again">
           <h2 className="mini-wall-h">🔁 go again — with a twist</h2>
-          <FindAgainDoors slug={lastSlug} photoUrl={null} />
+          <FindAgainDoors slug={lastSlug} photoUrl={null} reentry />
         </section>
       )}
 
