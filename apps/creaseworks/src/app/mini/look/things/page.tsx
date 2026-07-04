@@ -11,15 +11,22 @@
  * the running collection. The union feeds the matcher.
  */
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { FoundPicker } from "../found-picker";
 import { MiniStageHero } from "../../stage-hero";
-import { miniHref, saveFound } from "@/lib/mini-pilot";
+import { miniHref, saveFound, loadContext, type MiniContext } from "@/lib/mini-pilot";
 import { MINI_MATERIALS } from "@/lib/mini-data";
 import { traceMaterialsPicked } from "@/lib/cw-mini-trace";
 
 const MAT_BY_TITLE = new Map(MINI_MATERIALS.map((m) => [m.title, m] as const));
+
+// same property-hunt framing everywhere — only a short WHERE nudge swaps.
+// neutral (unset) drops the nudge entirely.
+const WHERE_NUDGE: Record<MiniContext, string> = {
+  indoor: " look in drawers, cupboards, and on the shelves.",
+  outdoor: " look on the ground, under bushes, and along the path.",
+};
 
 const PROPERTIES = [
   { key: "roll", emoji: "⚪", accent: "var(--wv-cornflower)", corners: "22px 28px 18px 26px" },
@@ -35,6 +42,13 @@ export default function MiniThingsPage() {
   const [hunting, setHunting] = useState<string | null>(null);
   const [collected, setCollected] = useState<Set<string>>(new Set());
   const [doneProps, setDoneProps] = useState<string[]>([]);
+
+  // SSR-safe context read: null on server + first client paint (no nudge),
+  // then swaps to the place-aware nudge once mounted.
+  const [context, setContext] = useState<MiniContext | null>(null);
+  useEffect(() => {
+    setContext(loadContext());
+  }, []);
 
   const finishRound = useCallback(
     (picked: string[]) => {
@@ -66,7 +80,7 @@ export default function MiniThingsPage() {
       <div>
         <MiniStageHero stage="look" />
         <FoundPicker
-          prompt={`find things that can ${hunting.toUpperCase()}!`}
+          prompt={`find things that can ${hunting.toUpperCase()}!${context ? WHERE_NUDGE[context] : ""}`}
           onDone={finishRound}
           doneLabel="add these! →"
         />

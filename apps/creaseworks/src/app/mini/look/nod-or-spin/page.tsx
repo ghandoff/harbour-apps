@@ -26,7 +26,7 @@ import { useRouter } from "next/navigation";
 import CharacterSlot, { resolveCharacterFromForm } from "@windedvertigo/characters";
 import { useCharacterVariant } from "@windedvertigo/characters/variant-context";
 import { MINI_MATERIALS, type MiniMaterial } from "@/lib/mini-data";
-import { MINI_AT_ROOT, miniHref, saveFound } from "@/lib/mini-pilot";
+import { MINI_AT_ROOT, miniHref, saveFound, loadContext, type MiniContext } from "@/lib/mini-pilot";
 import { traceMaterialsPicked } from "@/lib/cw-mini-trace";
 import { MiniStageHero } from "../../stage-hero";
 
@@ -48,6 +48,14 @@ type Decision = "got" | "skip" | null;
 type Kind = "got" | "skip" | "back";
 type MotionState = "off" | "on" | "denied";
 
+// same nod/spin hunt everywhere — only a short "where to hunt" line swaps.
+// neutral (unset) keeps the place-agnostic nudge.
+const WHERE_NUDGE: Record<MiniContext, string> = {
+  indoor: "run and hunt inside — drawers, shelves, and cupboards!",
+  outdoor: "run and hunt outside — the ground, bushes, and the path!",
+};
+const WHERE_NUDGE_NEUTRAL = "run and hunt wherever you are — indoors or out!";
+
 export default function MiniNodOrSpinPage() {
   const router = useRouter();
   const variant = useCharacterVariant();
@@ -57,6 +65,13 @@ export default function MiniNodOrSpinPage() {
   const [decisions, setDecisions] = useState<Decision[]>(() => Array(ROUND).fill(null));
   const [motion, setMotion] = useState<MotionState>("off");
   const [flash, setFlash] = useState<Kind | null>(null);
+
+  // SSR-safe context read: null on server + first client paint (neutral nudge),
+  // then swaps to the place-aware nudge once mounted.
+  const [context, setContext] = useState<MiniContext | null>(null);
+  useEffect(() => {
+    setContext(loadContext());
+  }, []);
 
   const motionSupported =
     typeof window !== "undefined" && typeof window.DeviceOrientationEvent !== "undefined";
@@ -220,6 +235,16 @@ export default function MiniNodOrSpinPage() {
           color: var(--color-text-on-dark);
           margin-bottom: 12px;
         }
+        .nos-where-nudge {
+          text-align: center;
+          font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+          font-weight: 700;
+          font-size: 13px;
+          color: var(--color-text-on-dark);
+          opacity: 0.85;
+          margin: 0 0 14px;
+          line-height: 1.4;
+        }
         .nos-howto {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
@@ -334,6 +359,8 @@ export default function MiniNodOrSpinPage() {
           <span>↻ spin = skip</span>
         </div>
       )}
+
+      <p className="nos-where-nudge">{context ? WHERE_NUDGE[context] : WHERE_NUDGE_NEUTRAL}</p>
 
       <div className="nos-card" key={mat.id}>
         <span aria-hidden="true">

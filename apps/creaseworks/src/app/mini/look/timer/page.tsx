@@ -15,6 +15,7 @@
  */
 
 import { useEffect, useRef, useState } from "react";
+import { loadContext, type MiniContext } from "@/lib/mini-pilot";
 import { MiniStageHero } from "../../stage-hero";
 import { FoundPicker } from "../found-picker";
 
@@ -24,6 +25,14 @@ const DURATIONS = [
   { seconds: 90, label: "big hunt!", accent: "var(--wv-seafoam)", corners: "20px 26px 24px 28px" },
 ] as const;
 
+// same "what can each thing DO?" framing everywhere — only the WHERE swaps.
+// neutral (unset) keeps the place-agnostic wording.
+const LOG_PROMPT: Record<MiniContext, string> = {
+  indoor: "time's up! tap everything you grabbed from inside — what can each thing DO?",
+  outdoor: "time's up! tap everything you grabbed from outside — what can each thing DO?",
+};
+const LOG_PROMPT_NEUTRAL = "time's up! tap everything you grabbed — what can each thing DO?";
+
 type Phase = "pick" | "run" | "log";
 
 export default function MiniTimerLookPage() {
@@ -31,6 +40,13 @@ export default function MiniTimerLookPage() {
   const [total, setTotal] = useState(60);
   const [remaining, setRemaining] = useState(60);
   const deadline = useRef(0);
+
+  // SSR-safe context read: null on server + first client paint (neutral prompt),
+  // then swaps to the place-aware where once mounted.
+  const [context, setContext] = useState<MiniContext | null>(null);
+  useEffect(() => {
+    setContext(loadContext());
+  }, []);
 
   useEffect(() => {
     if (phase !== "run") return;
@@ -176,7 +192,7 @@ export default function MiniTimerLookPage() {
       )}
 
       {phase === "log" && (
-        <FoundPicker tool="timer" prompt="time's up! tap everything you grabbed — what can each thing DO?" />
+        <FoundPicker tool="timer" prompt={context ? LOG_PROMPT[context] : LOG_PROMPT_NEUTRAL} />
       )}
     </div>
   );
