@@ -87,44 +87,13 @@ const LOOK_MODES = [
   },
 ] as const;
 
-import { useEffect, useState } from "react";
-import { loadContext, miniHref, type MiniContext } from "@/lib/mini-pilot";
+import { miniHref } from "@/lib/mini-pilot";
 import { MiniStageHero } from "../stage-hero";
-import { ContextToggle } from "../context-toggle";
-
-const WHERE_HINT: Record<MiniContext, string> = {
-  indoor: "peek in drawers, the recycling, and the odds-and-ends drawer.",
-  outdoor: "check the ground, under bushes, and along the path.",
-};
-
-/** SSR-safe "where to look" line — swaps on the saved context, neutral when unset. */
-function WhereHint() {
-  const [context, setContext] = useState<MiniContext | null>(null);
-  useEffect(() => {
-    setContext(loadContext());
-  }, []);
-  const text = context ? WHERE_HINT[context] : "look around — what do you notice?";
-  return (
-    <p className="mini-look-wherehint">
-      <style>{`
-        .mini-look-wherehint {
-          font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
-          font-weight: 700; font-size: 13.5px; color: var(--color-text-on-dark);
-          opacity: 0.92; line-height: 1.45; margin: 0 0 16px;
-        }
-      `}</style>
-      {text}
-    </p>
-  );
-}
 
 export default function MiniLookPage() {
   return (
     <div>
       <MiniStageHero stage="look" />
-
-      <ContextToggle />
-      <WhereHint />
 
       <style>{`
         .mini-look-grid {

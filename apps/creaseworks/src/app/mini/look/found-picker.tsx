@@ -129,19 +129,19 @@ export function FoundPicker({
           font-weight: 800;
           /* ≥18.66px bold = WCAG "large text" → champagne clears AA on cornflower */
           font-size: 20px;
-          color: var(--color-text-on-dark);
+          color: var(--wv-white);
           margin-bottom: 14px;
         }
         .mini-found-aff { margin: 2px 0 18px; }
         .mini-found-aff-q {
           font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
-          font-weight: 800; font-size: 14px; color: var(--color-text-on-dark); margin-bottom: 8px;
+          font-weight: 800; font-size: 14px; color: var(--wv-white); margin-bottom: 8px;
         }
         .mini-found-aff-q span { font-weight: 700; opacity: 0.8; }
         .mini-found-aff-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 6px; }
         .mini-found-aff-name {
           font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
-          font-weight: 800; font-size: 13px; color: var(--color-text-on-dark); min-width: 116px;
+          font-weight: 800; font-size: 13px; color: var(--wv-white); min-width: 116px;
         }
         .mini-found-aff-verbs { display: inline-flex; flex-wrap: wrap; gap: 6px; }
         button.mini-found-verb:not([type="submit"]):not(.wv-header-signout) {
@@ -171,7 +171,7 @@ export function FoundPicker({
           font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
           font-weight: 800;
           font-size: 14px;
-          color: var(--color-text-on-dark);
+          color: var(--wv-white);
           margin-bottom: 8px;
         }
         .mini-found-add-row { display: flex; gap: 8px; }

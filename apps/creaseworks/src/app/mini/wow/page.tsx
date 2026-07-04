@@ -121,14 +121,14 @@ export default function MiniWowPage() {
           font-family: var(--font-fraunces), serif;
           font-weight: 600;
           font-size: 20px;
-          color: var(--color-text-on-dark);
+          color: var(--wv-white);
           margin: 6px 0 4px;
         }
         .mini-wall-sub {
           font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
           font-weight: 700;
           font-size: 13px;
-          color: var(--color-text-on-dark);
+          color: var(--wv-white);
           opacity: 0.85;
           margin: 0 0 12px;
         }
@@ -194,21 +194,21 @@ export default function MiniWowPage() {
           font-weight: 800;
           /* ≥18.66px bold = WCAG "large text" → champagne clears AA on cornflower */
           font-size: 20px;
-          color: var(--color-text-on-dark);
+          color: var(--wv-white);
           line-height: 1.6;
         }
         .mini-wall-hint {
           font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
           font-weight: 700;
           font-size: 14px;
-          color: var(--color-text-on-dark);
+          color: var(--wv-white);
           line-height: 1.5;
         }
         button.mini-wall-link {
           font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
           font-weight: 800;
           font-size: 14px;
-          color: var(--color-text-on-dark);
+          color: var(--wv-white);
           background: none;
           border: none;
           padding: 0;

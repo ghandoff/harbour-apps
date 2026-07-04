@@ -31,8 +31,10 @@ export interface MiniActivity {
    * the match-rate. ⚠ review with jamie/garrett before family sessions.
    */
   materials: string[];
-  /** weather-dependent (needs sky/sun) — shows a "best outside ☀️" tag */
-  outdoor?: boolean;
+  /** where it's best played — drives a small cue on the game screen.
+   *  v1: only the sky/sun playdates are tagged "outdoor"; untagged reads as
+   *  "both". Flag for the team to set an explicit tag per playdate. */
+  setting?: "indoor" | "outdoor" | "both";
 }
 
 /**
@@ -178,7 +180,7 @@ export const MINI_ACTIVITIES: MiniActivity[] = [
     corners: "26px 20px 24px 28px",
     hardeningNote: "sampler import for crease.camp — observation; needs a view of the sky.",
     materials: ["washable markers", "colored pencils", "big paper", "craft paper"],
-    outdoor: true,
+    setting: "outdoor",
   },
   {
     slug: "shadow-tracker",
@@ -188,7 +190,7 @@ export const MINI_ACTIVITIES: MiniActivity[] = [
     corners: "24px 28px 20px 26px",
     hardeningNote: "sampler import for crease.camp — observation; needs sun.",
     materials: ["colored pencils", "washable markers", "sticks"],
-    outdoor: true,
+    setting: "outdoor",
   },
 ];
 
@@ -259,6 +261,7 @@ export const MINI_STAGES: MiniStage[] = [
       "the app matched an activity to what they found — the instructions are right on this page.",
       "read the \u201cread aloud\u201d block to them, then step back.",
       "resist fixing or finishing their build. when they use something \u201cwrong\u201d, that's the point.",
+      "getting stuck is part of it — count to ten before offering help. the “need a hand?” panel on the page is theirs to open.",
     ],
   },
   {
@@ -280,7 +283,7 @@ export const MINI_STAGES: MiniStage[] = [
   {
     key: "wow",
     label: "find again",
-    icon: "find_again.png",
+    icon: "find_again.svg",
     character: "drip",
     kidBlurb: "look what other kids made!",
     adultBlurb:
@@ -437,31 +440,8 @@ export function loadDial(): MiniDial | null {
   }
 }
 
-/* ── indoor/outdoor start (P1.6) ────────────────────────────────────
- * where the sitting is happening — inside or outside. Chosen once (or
- * skipped) and used to swap the find stage's "where to look" vocabulary
- * so the hunt fits the room the child is in. Never gates play; unset
- * falls back to neutral prompts. sessionStorage: one sitting, one device. */
-
-export type MiniContext = "indoor" | "outdoor";
-const CONTEXT_KEY = "cw-mini-context";
-
-export function saveContext(c: MiniContext): void {
-  try {
-    sessionStorage.setItem(CONTEXT_KEY, c);
-  } catch {
-    /* private mode — find just uses its neutral, place-agnostic prompts */
-  }
-}
-
-export function loadContext(): MiniContext | null {
-  try {
-    const v = sessionStorage.getItem(CONTEXT_KEY);
-    return v === "indoor" || v === "outdoor" ? v : null;
-  } catch {
-    return null;
-  }
-}
+/* indoor/outdoor is no longer a session choice on the find page — it's a
+ * per-playdate tag (MiniActivity.setting) shown as a cue on the game. */
 
 /* ── family code (pilot session) ────────────────────────────────────
  * Entered once by the grown-up on the welcome page; everything the

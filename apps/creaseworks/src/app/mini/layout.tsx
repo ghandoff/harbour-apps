@@ -7,7 +7,6 @@ import { GrownUpCorner } from "./grown-up-corner";
 import { MiniStageNav } from "./stage-nav";
 import { TraceProbe } from "./trace-probe";
 import { FirstRunNudge } from "./first-run-nudge";
-import { AmbiguityDial } from "./ambiguity-dial";
 
 /**
  * creaseworks mini — pilot shell.
@@ -117,7 +116,6 @@ export default function MiniLayout({
 
       <main className="mini-main">
         <FirstRunNudge />
-        <AmbiguityDial />
         {children}
       </main>
 

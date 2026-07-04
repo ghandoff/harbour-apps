@@ -24,6 +24,9 @@ import {
   miniHref,
   miniStageFromPathname,
   saveCode,
+  loadDial,
+  saveDial,
+  type MiniDial,
   type MiniStageKey,
 } from "@/lib/mini-pilot";
 import { postEval } from "@/lib/eval-submit";
@@ -59,6 +62,7 @@ export function GrownUpCorner() {
   const [savedCode, setSavedCode] = useState<string | null>(null);
   const [adults, setAdults] = useState<Player[]>([]);
   const [adult, setAdult] = useState<Player | null>(null);
+  const [dial, setDial] = useState<MiniDial | null>(null);
   const [unfoldPrompt, setUnfoldPrompt] = useState<string | null>(null);
   const [matchedSlug, setMatchedSlug] = useState<string | null>(null);
   const [obs, setObs] = useState<Record<string, string | string[] | number>>({});
@@ -78,6 +82,7 @@ export function GrownUpCorner() {
       setSavedCode(c);
     }
     setAdult(getSelectedAdult());
+    setDial(loadDial());
   }, []);
 
   // the first-run banner (and anywhere else) can ask the corner to open
@@ -297,6 +302,16 @@ export function GrownUpCorner() {
         .guc-code-ok strong { font-weight: 800; }
         button.guc-code-change { cursor: pointer; background: none; border: none; padding: 0; font: inherit; font-size: 12px; font-weight: 700; color: var(--wv-teal); text-decoration: underline; }
         button.guc-code-change:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; border-radius: 4px; }
+        .guc-help { border-top: 1.5px solid rgba(39, 50, 72, 0.1); padding-top: 12px; margin-top: 12px; }
+        .guc-help-h { font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif; font-weight: 800; font-size: 13px; color: var(--wv-cadet); margin: 0 0 6px; }
+        .guc-help-why { font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif; font-size: 12px; line-height: 1.5; color: #6b7280; margin: 0 0 8px; }
+        .guc-help-row { display: flex; flex-wrap: wrap; gap: 8px; }
+        button.guc-help-chip:not([type="submit"]):not(.wv-header-signout) {
+          cursor: pointer; font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif; font-weight: 700; font-size: 12.5px; color: var(--wv-cadet);
+          background: var(--wv-white); border: 1.5px solid rgba(39, 50, 72, 0.16); border-radius: 14px; padding: 6px 12px;
+        }
+        button.guc-help-chip[data-on="true"] { border-color: var(--wv-teal); border-width: 2px; background: color-mix(in srgb, var(--wv-teal) 22%, var(--wv-white)); font-weight: 800; }
+        button.guc-help-chip:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
         .guc-adult { border-top: 1.5px solid rgba(39, 50, 72, 0.1); padding-top: 12px; margin-top: 12px; }
         .guc-adult-h { font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif; font-weight: 800; font-size: 13px; color: var(--wv-cadet); margin: 0 0 8px; }
         .guc-adult-row { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -443,6 +458,27 @@ export function GrownUpCorner() {
                   )}
                 </>
               )}
+            </div>
+
+            {/* P1.1 (relocated): how much help the fold workshop surfaces —
+                a grown-up setting, remembered; the child never sets it. */}
+            <div className="guc-help">
+              <p className="guc-help-h">🤝 how much help?</p>
+              <p className="guc-help-why">sets how much the workshop offers when your child gets stuck. change it anytime.</p>
+              <div className="guc-help-row">
+                {([["point", "🧭 let them figure it out"], ["walk", "🗺️ walk them through it"]] as const).map(([v, label]) => (
+                  <button
+                    key={v}
+                    type="button"
+                    className="guc-help-chip"
+                    data-on={dial === v}
+                    aria-pressed={dial === v}
+                    onClick={() => { saveDial(v); setDial(v); }}
+                  >
+                    {dial === v ? "✓ " : ""}{label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <RosterSetup code={savedCode} />

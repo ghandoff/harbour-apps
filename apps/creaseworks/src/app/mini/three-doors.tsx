@@ -57,7 +57,7 @@ export function ThreeDoors({ slug }: { slug: string }) {
         .mini-doors { margin: 4px 0 16px; }
         .mini-doors-q {
           font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
-          font-weight: 800; font-size: 14px; color: var(--color-text-on-dark); margin: 0 0 8px;
+          font-weight: 800; font-size: 14px; color: var(--wv-white); margin: 0 0 8px;
         }
         .mini-doors-row { display: flex; flex-wrap: wrap; gap: 8px; }
         button.mini-door:not([type="submit"]):not(.wv-header-signout) {
@@ -89,7 +89,7 @@ export function ThreeDoors({ slug }: { slug: string }) {
         @media (prefers-reduced-motion: reduce) { button.mini-door:hover, button.mini-door:active { scale: 1; } }
       `}</style>
 
-      <p className="mini-doors-q">how do you want to play with it? (pick one — or just start)</p>
+      <p className="mini-doors-q">want to try it a different way? (pick one — or just start)</p>
       <div className="mini-doors-row">
         {ORDER.map((k) => (
           <button

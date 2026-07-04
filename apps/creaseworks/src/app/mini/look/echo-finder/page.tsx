@@ -14,17 +14,11 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { miniHref, saveFound, loadContext, type MiniContext } from "@/lib/mini-pilot";
+import { miniHref, saveFound } from "@/lib/mini-pilot";
 import { MiniStageHero } from "../../stage-hero";
 
 type MicState = "off" | "on" | "denied";
 type SoundKey = "crinkle" | "jingle" | "tap" | "thump";
-
-// same sound-hunt, nudged toward where the noisy things hide.
-const WHERE_NUDGE: Record<MiniContext, string> = {
-  indoor: "hunt in drawers, cupboards, and the recycling — crinkly, jingly, tappy things live there.",
-  outdoor: "hunt on the ground, in the bushes, and along the path — sticks, stones, and leaves all have a sound.",
-};
 
 const SOUNDS: { key: SoundKey; emoji: string; hint: string }[] = [
   { key: "crinkle", emoji: "🧻", hint: "paper, foil, wrappers" },
@@ -93,13 +87,6 @@ export default function MiniEchoFinderPage() {
   const [count, setCount] = useState(0);
   const [flash, setFlash] = useState(false);
   const [level, setLevel] = useState(0);
-
-  // SSR-safe context read: null on server + first client paint (neutral nudge),
-  // then swaps to the place-aware nudge once mounted.
-  const [context, setContext] = useState<MiniContext | null>(null);
-  useEffect(() => {
-    setContext(loadContext());
-  }, []);
 
   const ctxRef = useRef<AudioContext | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -200,12 +187,9 @@ export default function MiniEchoFinderPage() {
           border-radius: 16px 20px 14px 18px; padding: 10px 18px; cursor: pointer; }
         button.ef-mode:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
         .ef-denied { text-align: center; font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
-          font-weight: 700; font-size: 13px; color: var(--color-text-on-dark); margin-bottom: 12px; }
+          font-weight: 700; font-size: 13px; color: var(--wv-white); margin-bottom: 12px; }
         .ef-prompt { font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif; font-weight: 800;
-          font-size: 22px; color: var(--color-text-on-dark); text-align: center; margin-bottom: 10px; }
-        .ef-where-nudge { font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif; font-weight: 700;
-          font-size: 13px; color: var(--color-text-on-dark); opacity: 0.85; text-align: center;
-          margin: 0 0 16px; line-height: 1.4; }
+          font-size: 22px; color: var(--wv-white); text-align: center; margin-bottom: 10px; }
         .ef-card { position: relative; display: flex; flex-direction: column; align-items: center; gap: 16px;
           background: var(--wv-white); border: 2.5px solid var(--wv-seafoam); border-radius: 28px 34px 26px 32px;
           padding: 28px 20px; margin-bottom: 16px; }
@@ -263,9 +247,6 @@ export default function MiniEchoFinderPage() {
       )}
 
       <p className="ef-prompt">find something that can SAY this…</p>
-      <p className="ef-where-nudge">
-        {context ? WHERE_NUDGE[context] : "hunt wherever you are — indoors or out — for things that make a sound."}
-      </p>
 
       <div className="ef-card">
         <span className="ef-emoji" aria-hidden="true">{sound.emoji}</span>
