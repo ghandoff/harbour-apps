@@ -261,6 +261,7 @@ export const MINI_STAGES: MiniStage[] = [
       "the app matched an activity to what they found — the instructions are right on this page.",
       "read the \u201cread aloud\u201d block to them, then step back.",
       "resist fixing or finishing their build. when they use something \u201cwrong\u201d, that's the point.",
+      "getting stuck is part of it — count to ten before offering help. the “need a hand?” panel on the page is theirs to open.",
     ],
   },
   {

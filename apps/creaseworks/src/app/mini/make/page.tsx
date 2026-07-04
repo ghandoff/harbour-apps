@@ -154,6 +154,11 @@ export default function MiniMakePage() {
           color: var(--wv-cadet);
         }
         .mini-make-steps p + h2 { margin-top: 14px; }
+        .mini-make-steps-lead {
+          font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+          font-weight: 800; font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase;
+          color: var(--wv-cadet); opacity: 0.75; margin: 14px 0 4px;
+        }
 
         /* back-to-chooser link */
         button.mini-make-back:not([type="submit"]):not(.wv-header-signout) {
@@ -274,24 +279,25 @@ export default function MiniMakePage() {
             )}
           </div>
 
-          {selectedSlug && <ThreeDoors slug={selectedSlug} />}
-
           {(findText || foldText) && (
             <div className="mini-make-steps">
+              <h2>📣 read this aloud to your child:</h2>
               {showFind && findText && (
                 <>
-                  <h2>📣 read this aloud — get set up:</h2>
+                  <p className="mini-make-steps-lead">first — get set up:</p>
                   <ReadAloud text={findText} />
                 </>
               )}
               {foldText && (
                 <>
-                  <h2>📣 read this aloud:</h2>
+                  {showFind && findText && <p className="mini-make-steps-lead">then — play:</p>}
                   <ReadAloud text={foldText} />
                 </>
               )}
             </div>
           )}
+
+          {selectedSlug && <ThreeDoors slug={selectedSlug} />}
 
           {selectedSlug && <FoldTools slug={selectedSlug} />}
 
