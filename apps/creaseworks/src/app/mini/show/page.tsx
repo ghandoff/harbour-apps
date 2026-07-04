@@ -12,15 +12,17 @@
  */
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import { apiUrl } from "@/lib/api-url";
-import { loadCode, loadFound, loadSelected, matchActivities, miniHref, saveCode } from "@/lib/mini-pilot";
+import { loadCode, loadFound, loadSelected, matchActivities, saveCode } from "@/lib/mini-pilot";
 import { MiniStageHero } from "../stage-hero";
 import { postEval } from "@/lib/eval-submit";
 import { FACE_EMOJI } from "@/lib/eval-rubric";
 import { MINI_ACTIVITY_CONTENT } from "@/lib/mini-data";
+import { GuessBeat, ProvocationCard } from "../unfold-tools";
+import { FindAgainDoors } from "../find-again-tools";
 import { setGroup } from "@/lib/cw-identity";
 import { ReadAloud } from "../read-aloud";
+import { PhotoFraming } from "../photo-framing";
 
 type SendState = "idle" | "sending" | "done" | "error";
 
@@ -365,10 +367,7 @@ export default function MiniShowPage() {
       `}</style>
 
       {state === "done" ? (
-        <div className="mini-show-card mini-show-done">
-          <p>🎉 shared! a grown-up on our side will add it to the wow wall soon.</p>
-          <Link href={miniHref("/wow")}>see the wow wall →</Link>
-        </div>
+        <FindAgainDoors slug={activitySlug} photoUrl={previewUrl} />
       ) : (
         <>
           {!kidSent ? (
@@ -441,7 +440,7 @@ export default function MiniShowPage() {
             </div>
           )}
 
-          <p className="mini-show-section">📸 show what they made</p>
+          <p className="mini-show-section">📸 snap their creation</p>
           <div
             className="mini-show-photo-zone"
             onClick={() => inputRef.current?.click()}
@@ -467,6 +466,10 @@ export default function MiniShowPage() {
             onChange={(e) => pickPhoto(e.target.files?.[0])}
           />
 
+          <PhotoFraming />
+
+          <GuessBeat slug={activitySlug} />
+
           <p className="mini-show-section">💬 tell what they discovered</p>
           {unfoldPrompt && (
             <div className="mini-show-reflect">
@@ -481,6 +484,8 @@ export default function MiniShowPage() {
             placeholder="their words — what surprised them? what changed when they looked again?"
             maxLength={2000}
           />
+
+          <ProvocationCard slug={activitySlug} />
 
           <button
             type="button"

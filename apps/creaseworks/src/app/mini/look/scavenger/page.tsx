@@ -18,7 +18,8 @@ import { useRouter } from "next/navigation";
 import CharacterSlot, { resolveCharacterFromForm } from "@windedvertigo/characters";
 import { useCharacterVariant } from "@windedvertigo/characters/variant-context";
 import { MINI_MATERIALS, type MiniMaterial } from "@/lib/mini-data";
-import { MINI_AT_ROOT, miniHref, saveFound } from "@/lib/mini-pilot";
+import { MINI_AT_ROOT, miniHref, saveFound, loadContext, type MiniContext } from "@/lib/mini-pilot";
+import { traceMaterialsPicked } from "@/lib/cw-mini-trace";
 import { MiniStageHero } from "../../stage-hero";
 
 const ICON_BASE = MINI_AT_ROOT ? "/harbour/creaseworks-mini" : "/harbour/creaseworks";
@@ -34,14 +35,32 @@ const MOVES = [
   { word: "zooming", emoji: "🚀" },
 ] as const;
 
-function dealHunt() {
-  const a = [...MINI_MATERIALS];
+// same hunt, nudged toward what's around: inside vs outside finds. neutral
+// (unset) keeps the place-agnostic nudge.
+const WHERE_NUDGE: Record<MiniContext, string> = {
+  indoor: "hunt inside — cupboards, shelves, and the odds-and-ends drawer.",
+  outdoor: "hunt outside — the ground, under bushes, and along the path.",
+};
+
+function shuffle(a: MiniMaterial[]) {
   for (let k = a.length - 1; k > 0; k--) {
     const j = Math.floor(Math.random() * (k + 1));
     [a[k], a[j]] = [a[j], a[k]];
   }
+  return a;
+}
+
+function dealHunt() {
+  const pool = shuffle([...MINI_MATERIALS]);
+  // guarantee the card carries the loud/quiet contrast — seed one of each,
+  // then fill the rest and reshuffle so the seeds aren't always first.
+  const loud = pool.find((m) => m.loudQuiet === "loud");
+  const quiet = pool.find((m) => m.loudQuiet === "quiet");
+  const seed = [loud, quiet].filter((m): m is MiniMaterial => !!m);
+  const seedIds = new Set(seed.map((m) => m.id));
+  const card = shuffle([...seed, ...pool.filter((m) => !seedIds.has(m.id))].slice(0, HUNT_SIZE));
   const move = MOVES[Math.floor(Math.random() * MOVES.length)];
-  return { card: a.slice(0, HUNT_SIZE), move };
+  return { card, move };
 }
 
 export default function MiniScavengerPage() {
@@ -52,6 +71,13 @@ export default function MiniScavengerPage() {
   const [card, setCard] = useState<MiniMaterial[]>(MINI_MATERIALS.slice(0, HUNT_SIZE));
   const [move, setMove] = useState<(typeof MOVES)[number]>(MOVES[0]);
   const [found, setFound] = useState<Set<string>>(new Set());
+
+  // SSR-safe context read: null on server + first client paint (neutral nudge),
+  // then swaps to the place-aware nudge once mounted.
+  const [context, setContext] = useState<MiniContext | null>(null);
+  useEffect(() => {
+    setContext(loadContext());
+  }, []);
 
   const reroll = useCallback(() => {
     const h = dealHunt();
@@ -74,9 +100,11 @@ export default function MiniScavengerPage() {
   }, []);
 
   const done = useCallback(() => {
-    saveFound(Array.from(found));
+    const picked = card.filter((m) => found.has(m.title));
+    saveFound(picked.map((m) => m.title));
+    traceMaterialsPicked("scavenger", picked);
     router.push(miniHref("/make"));
-  }, [found, router]);
+  }, [card, found, router]);
 
   const complete = found.size === card.length && card.length > 0;
   const pct = Math.round((found.size / card.length) * 100);
@@ -96,6 +124,17 @@ export default function MiniScavengerPage() {
           line-height: 1.4;
         }
         .scav-prompt .scav-move { color: var(--wv-mint); }
+        .scav-lq-hint {
+          font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+          font-weight: 700; font-size: 13px; color: var(--color-text-on-dark);
+          opacity: 0.9; text-align: center; margin: -8px 0 8px; line-height: 1.4;
+        }
+        .scav-where-nudge {
+          font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+          font-weight: 700; font-size: 13px; color: var(--color-text-on-dark);
+          opacity: 0.85; text-align: center; margin: 0 0 16px; line-height: 1.4;
+        }
+        .scav-lq { position: absolute; top: 8px; left: 8px; font-size: 15px; line-height: 1; }
         .scav-grid {
           display: grid;
           grid-template-columns: 1fr 1fr;
@@ -185,6 +224,10 @@ export default function MiniScavengerPage() {
           {move.emoji} {move.word}!
         </span>
       </p>
+      <p className="scav-lq-hint">as you go: which ones are 🔊 LOUD? which are 🔇 QUIET?</p>
+      <p className="scav-where-nudge">
+        {context ? WHERE_NUDGE[context] : "hunt wherever you are — indoors or out."}
+      </p>
 
       <div className="scav-grid">
         {card.map((mat) => {
@@ -201,6 +244,11 @@ export default function MiniScavengerPage() {
               aria-label={isFound ? `found ${mat.title}` : `find ${mat.title}`}
             >
               {isFound && <span className="scav-check" aria-hidden="true">✓</span>}
+              {mat.loudQuiet && (
+                <span className="scav-lq" aria-hidden="true">
+                  {mat.loudQuiet === "loud" ? "🔊" : "🔇"}
+                </span>
+              )}
               <span className="scav-item-icon" aria-hidden="true">
                 {char ? (
                   <CharacterSlot character={char} size={56} animate={false} variant={variant} />

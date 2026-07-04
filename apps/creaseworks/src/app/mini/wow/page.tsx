@@ -13,6 +13,8 @@ import { useEffect, useState } from "react";
 import { apiUrl } from "@/lib/api-url";
 import { MINI_ACTIVITIES, loadCode } from "@/lib/mini-pilot";
 import { MiniStageHero } from "../stage-hero";
+import { miniTrace } from "@/lib/cw-mini-trace";
+import { FamilyMuseum } from "../family-museum";
 
 interface WallItem {
   id: string;
@@ -24,6 +26,28 @@ interface WallItem {
 
 interface MineItem extends WallItem {
   approved: number;
+}
+
+/**
+ * On the public wall, the maker's words are hidden behind "what do YOU think it
+ * does?" — you guess in the room, then tap to reveal. Revealing logs a guess_event
+ * (family-code-keyed, trace only). No new content is displayed or captured, so the
+ * moderation / your-creations / AI pre-screen paths are untouched — kid-safe.
+ */
+function WallBody({ item }: { item: WallItem }) {
+  const [revealed, setRevealed] = useState(false);
+  if (!item.body) return null;
+  const reveal = () => {
+    setRevealed(true);
+    miniTrace("guess_event", { playdate_slug: item.activity_slug, kind: "wall_reveal" });
+  };
+  return revealed ? (
+    <p className="mini-wall-words">&ldquo;{item.body}&rdquo;</p>
+  ) : (
+    <button type="button" className="mini-wall-reveal" onClick={reveal}>
+      what do YOU think it does? <span>tap to see their words →</span>
+    </button>
+  );
 }
 
 export default function MiniWowPage() {
@@ -77,7 +101,9 @@ export default function MiniWowPage() {
           </div>
         ) : null}
         <figcaption className="mini-wall-body">
-          {item.body && <p className="mini-wall-words">&ldquo;{item.body}&rdquo;</p>}
+          {pending
+            ? item.body && <p className="mini-wall-words">&ldquo;{item.body}&rdquo;</p>
+            : <WallBody item={item} />}
           {titleFor(item.activity_slug) && (
             <p className="mini-wall-activity">{titleFor(item.activity_slug)}</p>
           )}
@@ -133,6 +159,15 @@ export default function MiniWowPage() {
           box-shadow: 0 2px 0 rgba(39, 50, 72, 0.16);
         }
         .mini-wall-body { padding: 12px 14px; }
+        button.mini-wall-reveal:not([type="submit"]):not(.wv-header-signout) {
+          display: block; width: 100%; text-align: left; cursor: pointer;
+          font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+          font-weight: 800; font-size: 13.5px; color: var(--wv-cadet);
+          background: color-mix(in srgb, var(--accent) 12%, var(--wv-white));
+          border: 1.5px dashed var(--accent); border-radius: 10px 13px 9px 12px; padding: 8px 10px;
+        }
+        button.mini-wall-reveal span { display: block; font-weight: 700; font-size: 11px; color: #6b7280; margin-top: 2px; }
+        button.mini-wall-reveal:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
         .mini-wall-words {
           font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
           font-weight: 700;
@@ -182,31 +217,13 @@ export default function MiniWowPage() {
         }
       `}</style>
 
-      {/* ── your creations (scoped to the family code) ── */}
-      {code ? (
-        <section className="mini-wall-section">
-          <h2 className="mini-wall-h">⭐ your creations</h2>
-          <p className="mini-wall-sub">just for your family ({code}) — the moment you share them.</p>
-          {mine === null ? null : mine.length === 0 ? (
-            <p className="mini-wall-hint">nothing yet — take a photo on the show page and it appears here right away. 📸</p>
-          ) : (
-            <div className="mini-wall">{mine.map((item) => card(item, item.approved !== 1))}</div>
-          )}
-        </section>
-      ) : (
-        <section className="mini-wall-section">
-          <p className="mini-wall-hint">
-            set your family or class code to see your own creations here.{" "}
-            <button
-              type="button"
-              className="mini-wall-link"
-              onClick={() => window.dispatchEvent(new Event("cw:open-corner"))}
-            >
-              set it up →
-            </button>
-          </p>
-        </section>
-      )}
+      {/* ── your family museum (scoped to the family code) ── */}
+      <FamilyMuseum
+        mine={mine}
+        code={code}
+        renderCard={card}
+        onSetCode={() => window.dispatchEvent(new Event("cw:open-corner"))}
+      />
 
       {/* ── the wall (global, curated) ── */}
       <section className="mini-wall-section">

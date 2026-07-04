@@ -14,7 +14,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { miniHref, saveFound } from "@/lib/mini-pilot";
+import { miniHref, saveFound, loadContext, type MiniContext } from "@/lib/mini-pilot";
 import { MiniStageHero } from "../../stage-hero";
 
 type MicState = "off" | "on" | "denied";
@@ -26,6 +26,12 @@ const PROMPTS = [
   { word: "teeny tiny", emoji: "🐜" },
 ] as const;
 
+// same blow-it framing, nudged toward where the light things hide.
+const WHERE_NUDGE: Record<MiniContext, string> = {
+  indoor: "peek in drawers, cupboards, and the recycling — papery, feathery bits love it there.",
+  outdoor: "look on the ground, under bushes, and along the path — leaves, seeds, and fluff drift about.",
+};
+
 const RMS_ON = 0.12;       // loudness that counts as a puff
 const SUSTAIN_FRAMES = 5;  // ~80ms of sustained loudness
 
@@ -36,6 +42,13 @@ export default function MiniHuffPuffPage() {
   const [count, setCount] = useState(0);
   const [level, setLevel] = useState(0); // 0..1 wind meter
   const [flash, setFlash] = useState(false);
+
+  // SSR-safe context read: null on server + first client paint (neutral nudge),
+  // then swaps to the place-aware nudge once mounted.
+  const [context, setContext] = useState<MiniContext | null>(null);
+  useEffect(() => {
+    setContext(loadContext());
+  }, []);
 
   const ctxRef = useRef<AudioContext | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -133,7 +146,10 @@ export default function MiniHuffPuffPage() {
         .hp-denied { text-align: center; font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
           font-weight: 700; font-size: 13px; color: var(--color-text-on-dark); margin-bottom: 12px; }
         .hp-prompt { font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif; font-weight: 800;
-          font-size: 22px; color: var(--color-text-on-dark); text-align: center; margin-bottom: 16px; }
+          font-size: 22px; color: var(--color-text-on-dark); text-align: center; margin-bottom: 10px; }
+        .hp-where-nudge { font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif; font-weight: 700;
+          font-size: 13px; color: var(--color-text-on-dark); opacity: 0.85; text-align: center;
+          margin: 0 0 16px; line-height: 1.4; }
         .hp-card {
           position: relative; display: flex; flex-direction: column; align-items: center; gap: 16px;
           background: var(--wv-white); border: 2.5px solid var(--wv-seafoam);
@@ -183,7 +199,10 @@ export default function MiniHuffPuffPage() {
         <p className="hp-denied">mic&rsquo;s off — no worries, tap &ldquo;i blew it!&rdquo; when you&rsquo;ve done it.</p>
       )}
 
-      <p className="hp-prompt">find something {p.word} — then BLOW! {p.emoji}</p>
+      <p className="hp-prompt">find something your breath can MOVE ({p.word}) — then BLOW! {p.emoji}</p>
+      <p className="hp-where-nudge">
+        {context ? WHERE_NUDGE[context] : "look wherever you are — indoors or out — for light, floaty things."}
+      </p>
 
       <div className="hp-card">
         <span className="hp-emoji" aria-hidden="true" style={{ transform: `translateY(${-level * 14}px)` }}>

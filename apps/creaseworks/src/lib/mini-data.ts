@@ -14,6 +14,17 @@ export interface MiniMaterial {
   icon: string | null;
   formPrimary: string | null;
   /**
+   * Playful sensory read for the "one loud thing / one quiet thing" find hunt.
+   * v1 values below are a first pass — Garrett/team correct in place.
+   */
+  loudQuiet?: "loud" | "quiet";
+  /**
+   * Layer-B verbs this material can DO — the affordance set. Powers the fold
+   * job wheel (draws only verbs the picked materials afford) + the "what does
+   * it want to do?" quick-pick. v1 first pass; correctable.
+   */
+  affords?: string[];
+  /**
    * When true, the look-page tiles show the literal material icon
    * (icons/materials/<icon>.png) instead of the resolved character — for
    * materials where the cast mapping reads as confusing (e.g. a shoebox).
@@ -30,45 +41,45 @@ export interface MiniMaterial {
 }
 
 export const MINI_MATERIALS: MiniMaterial[] = [
-  { id: "6626ee5c-2940-4456-bfa9-f9c40292d9ce", title: "letter tiles", emoji: "🔤", icon: "blocks", formPrimary: "discrete small parts" },
-  { id: "901cf679-6f54-4d69-9270-27e649d655b0", title: "aluminum foil", emoji: "✨", icon: "aluminum-foil", formPrimary: "sheet goods / surfaces", preferIcon: true },
-  { id: "286b196d-47af-418a-b38e-8e5c98161964", title: "big paper", emoji: "📄", icon: null, formPrimary: "sheet goods / surfaces" },
-  { id: "32d7affb-0bf2-498f-8c50-fe18c014462b", title: "binder clips", emoji: "📎", icon: "binder-clips", formPrimary: "discrete small parts" },
-  { id: "0ee41324-7185-4acd-a19f-178fbc1a3643", title: "bottle caps", emoji: "⭕", icon: "bottle-cap", formPrimary: "discrete small parts" },
-  { id: "fd14731e-7e63-4bf2-bb77-1c2e1985a8bf", title: "buttons", emoji: "🔘", icon: "buttons", formPrimary: "discrete small parts" },
-  { id: "2af60a51-70ed-4df5-86fc-7a31bb0d38b0", title: "cardboard tubes", emoji: "🌀", icon: "cardboard-tube", formPrimary: "volumes / substrates", preferIcon: true },
-  { id: "55f0bf70-da2e-4824-8972-082ddac74453", title: "cardstock", emoji: "📋", icon: null, formPrimary: "sheet goods / surfaces" },
-  { id: "48edb12c-b71a-44a4-9d7f-2ad198c92072", title: "cloth scraps", emoji: "🧵", icon: null, formPrimary: "sheet goods / surfaces" },
-  { id: "213e9e42-5c3d-4518-a4d0-4bd7e8f4ae88", title: "clothespins", emoji: "🪹", icon: "clothespins", formPrimary: "discrete small parts" },
-  { id: "8e118c15-fefa-4dc6-9be9-73d8a7430c5e", title: "colored pencils", emoji: "🖍️", icon: "crayons", formPrimary: "mark-making media" },
-  { id: "7cae5ffa-1fd5-4ef1-9ac3-3018caf03e68", title: "craft paper", emoji: "🟧", icon: null, formPrimary: "sheet goods / surfaces" },
-  { id: "72881eae-4246-4c77-8a01-001c77a764ae", title: "cotton balls", emoji: "☁️", icon: "cotton-balls", formPrimary: "discrete small parts" },
-  { id: "1efd83e1-c3f4-4d5b-b8a8-89ebd6885e62", title: "dice", emoji: "🎲", icon: null, formPrimary: "discrete small parts" },
-  { id: "f274b4b1-9833-4ee5-8813-9b8470b75eb4", title: "egg cartons", emoji: "🥚", icon: "egg-cartons", formPrimary: "containers / vessels" },
-  { id: "4dfbdb56-3a7b-43a4-a62d-fea6eff12f4d", title: "felt sheets", emoji: "🧶", icon: "felt", formPrimary: "sheet goods / surfaces", preferIcon: true },
-  { id: "7ec3988e-7ea8-4dc7-a169-efbde23ab193", title: "googly eyes", emoji: "👀", icon: "googly-eyes", formPrimary: "discrete small parts" },
-  { id: "nat-leaves", title: "leaves", emoji: "🍃", icon: null, formPrimary: "found objects / evocative artifacts", preferIcon: true },
-  { id: "10fb1bed-2028-41d0-af48-2d6297b6ccf0", title: "muffin tin", emoji: "🍱", icon: "muffin-tin", formPrimary: "containers / vessels" },
-  { id: "dcb1ada7-d02d-4f8d-b8b3-07520cda0cc8", title: "old gadgets", emoji: "🔧", icon: null, formPrimary: "found objects / evocative artifacts", preferIcon: true },
-  { id: "2216d5dc-3fba-4e9f-b42f-2a3171c78997", title: "paper cups", emoji: "🥤", icon: "paper-cups", formPrimary: "containers / vessels", preferIcon: true },
-  { id: "7498e5a3-6df0-4b4e-b30f-425c10b5683f", title: "paper plates", emoji: "🍽️", icon: "paper-plates", formPrimary: "sheet goods / surfaces", preferIcon: true },
-  { id: "f53b82a2-274a-443d-8c7d-83e0593c7a43", title: "plastic beads", emoji: "🔮", icon: "beads", formPrimary: "discrete small parts" },
-  { id: "2205f322-dbda-47ef-8a5e-ea461e409a7d", title: "plastic bottles", emoji: "🍶", icon: "plastic-bottle", formPrimary: "containers / vessels" },
-  { id: "a59aab52-b94f-4c4f-b247-c5a0e250809b", title: "playing cards", emoji: "🃏", icon: "playing-cards", formPrimary: "discrete small parts" },
-  { id: "4e661049-a4ef-420e-9c2e-b4ed8c78efa4", title: "popsicle sticks", emoji: "🍦", icon: "popsicle-sticks", formPrimary: "discrete small parts" },
-  { id: "31d462e2-160e-4f19-9b81-49fa43c956cb", title: "ribbon", emoji: "🎀", icon: null, formPrimary: "linear / filament" },
-  { id: "10733729-9e9a-4581-90b8-dba499749b3c", title: "rubber bands", emoji: "➰", icon: "rubber-bands", formPrimary: "linear / filament", preferIcon: true },
-  { id: "54430205-7db7-4f89-9784-dc2a8db82685", title: "shoebox", emoji: "📦", icon: "shoebox", formPrimary: "containers / vessels", preferIcon: true },
-  { id: "ddb69f2a-6171-44f9-874c-9f2291d57934", title: "stickers", emoji: "⭐", icon: "stickers", formPrimary: "discrete small parts" },
-  { id: "nat-sticks", title: "sticks", emoji: "🪵", icon: null, formPrimary: "found objects / evocative artifacts", preferIcon: true },
-  { id: "nat-stones", title: "stones", emoji: "🪨", icon: null, formPrimary: "found objects / evocative artifacts", preferIcon: true },
-  { id: "0cec69db-efb1-4ace-a82b-cea4aaeac234", title: "string / yarn", emoji: "🧶", icon: null, formPrimary: "linear / filament" },
-  { id: "42618139-245d-43d3-84f6-0b47ffe977a0", title: "tape", emoji: "🩹", icon: "tape-roll", formPrimary: "joining / fastening" },
-  { id: "8162b467-9b2d-4ad3-b4fa-5760b6b4466e", title: "toy parts", emoji: "🧩", icon: "blocks", formPrimary: "found objects / evocative artifacts" },
-  { id: "1fe78962-fb1b-49ae-88b0-b0573e3ef85f", title: "washable markers", emoji: "🖍️", icon: "crayons", formPrimary: "mark-making media" },
-  { id: "9fc3cdad-5220-4a5d-b255-1942c6110ae3", title: "washi tape", emoji: "🎏", icon: "washi-tape", formPrimary: "joining / fastening" },
-  { id: "5b07a6bb-e1ce-4cec-be4b-94ef5affff55", title: "white sock", emoji: "🧦", icon: "socks", formPrimary: "wearables / embodied props" },
-  { id: "f7cefdb2-373a-400e-9412-ca1e02c3e9d5", title: "wine corks", emoji: "🍾", icon: "wine-corks", formPrimary: "discrete small parts" },
+  { id: "6626ee5c-2940-4456-bfa9-f9c40292d9ce", title: "letter tiles", emoji: "🔤", icon: "blocks", formPrimary: "discrete small parts", loudQuiet: "loud", affords: ["sort", "mark", "stack", "compare"] },
+  { id: "901cf679-6f54-4d69-9270-27e649d655b0", title: "aluminum foil", emoji: "✨", icon: "aluminum-foil", formPrimary: "sheet goods / surfaces", preferIcon: true, loudQuiet: "loud", affords: ["wrap", "transform", "contain", "mark"] },
+  { id: "286b196d-47af-418a-b38e-8e5c98161964", title: "big paper", emoji: "📄", icon: null, formPrimary: "sheet goods / surfaces", loudQuiet: "quiet", affords: ["mark", "wrap", "divide", "contain"] },
+  { id: "32d7affb-0bf2-498f-8c50-fe18c014462b", title: "binder clips", emoji: "📎", icon: "binder-clips", formPrimary: "discrete small parts", loudQuiet: "loud", affords: ["join", "carry", "sort"] },
+  { id: "0ee41324-7185-4acd-a19f-178fbc1a3643", title: "bottle caps", emoji: "⭕", icon: "bottle-cap", formPrimary: "discrete small parts", loudQuiet: "quiet", affords: ["sort", "stack", "contain", "launch"] },
+  { id: "fd14731e-7e63-4bf2-bb77-1c2e1985a8bf", title: "buttons", emoji: "🔘", icon: "buttons", formPrimary: "discrete small parts", loudQuiet: "quiet", affords: ["sort", "join", "mark", "compare"] },
+  { id: "2af60a51-70ed-4df5-86fc-7a31bb0d38b0", title: "cardboard tubes", emoji: "🌀", icon: "cardboard-tube", formPrimary: "volumes / substrates", preferIcon: true, loudQuiet: "quiet", affords: ["launch", "carry", "roll", "contain"] },
+  { id: "55f0bf70-da2e-4824-8972-082ddac74453", title: "cardstock", emoji: "📋", icon: null, formPrimary: "sheet goods / surfaces", loudQuiet: "quiet", affords: ["mark", "divide", "stack", "wrap"] },
+  { id: "48edb12c-b71a-44a4-9d7f-2ad198c92072", title: "cloth scraps", emoji: "🧵", icon: null, formPrimary: "sheet goods / surfaces", loudQuiet: "quiet", affords: ["wrap", "wear", "hide", "join"] },
+  { id: "213e9e42-5c3d-4518-a4d0-4bd7e8f4ae88", title: "clothespins", emoji: "🪹", icon: "clothespins", formPrimary: "discrete small parts", loudQuiet: "loud", affords: ["join", "sort", "carry"] },
+  { id: "8e118c15-fefa-4dc6-9be9-73d8a7430c5e", title: "colored pencils", emoji: "🖍️", icon: "crayons", formPrimary: "mark-making media", loudQuiet: "quiet", affords: ["mark", "sort", "compare"] },
+  { id: "7cae5ffa-1fd5-4ef1-9ac3-3018caf03e68", title: "craft paper", emoji: "🟧", icon: null, formPrimary: "sheet goods / surfaces", loudQuiet: "quiet", affords: ["mark", "wrap", "divide"] },
+  { id: "72881eae-4246-4c77-8a01-001c77a764ae", title: "cotton balls", emoji: "☁️", icon: "cotton-balls", formPrimary: "discrete small parts", loudQuiet: "quiet", affords: ["wrap", "hide", "launch", "contain"] },
+  { id: "1efd83e1-c3f4-4d5b-b8a8-89ebd6885e62", title: "dice", emoji: "🎲", icon: null, formPrimary: "discrete small parts", loudQuiet: "loud", affords: ["roll", "sort", "launch", "compare"] },
+  { id: "f274b4b1-9833-4ee5-8813-9b8470b75eb4", title: "egg cartons", emoji: "🥚", icon: "egg-cartons", formPrimary: "containers / vessels", loudQuiet: "quiet", affords: ["contain", "sort", "divide"] },
+  { id: "4dfbdb56-3a7b-43a4-a62d-fea6eff12f4d", title: "felt sheets", emoji: "🧶", icon: "felt", formPrimary: "sheet goods / surfaces", preferIcon: true, loudQuiet: "quiet", affords: ["wear", "wrap", "mark", "divide"] },
+  { id: "7ec3988e-7ea8-4dc7-a169-efbde23ab193", title: "googly eyes", emoji: "👀", icon: "googly-eyes", formPrimary: "discrete small parts", loudQuiet: "loud", affords: ["mark", "transform", "sort"] },
+  { id: "nat-leaves", title: "leaves", emoji: "🍃", icon: null, formPrimary: "found objects / evocative artifacts", preferIcon: true, loudQuiet: "quiet", affords: ["mark", "wrap", "sort", "compare"] },
+  { id: "10fb1bed-2028-41d0-af48-2d6297b6ccf0", title: "muffin tin", emoji: "🍱", icon: "muffin-tin", formPrimary: "containers / vessels", loudQuiet: "loud", affords: ["contain", "sort", "divide"] },
+  { id: "dcb1ada7-d02d-4f8d-b8b3-07520cda0cc8", title: "old gadgets", emoji: "🔧", icon: null, formPrimary: "found objects / evocative artifacts", preferIcon: true, loudQuiet: "loud", affords: ["transform", "sound", "divide", "sort"] },
+  { id: "2216d5dc-3fba-4e9f-b42f-2a3171c78997", title: "paper cups", emoji: "🥤", icon: "paper-cups", formPrimary: "containers / vessels", preferIcon: true, loudQuiet: "quiet", affords: ["contain", "stack", "sound", "launch"] },
+  { id: "7498e5a3-6df0-4b4e-b30f-425c10b5683f", title: "paper plates", emoji: "🍽️", icon: "paper-plates", formPrimary: "sheet goods / surfaces", preferIcon: true, loudQuiet: "quiet", affords: ["contain", "launch", "wear", "mark"] },
+  { id: "f53b82a2-274a-443d-8c7d-83e0593c7a43", title: "plastic beads", emoji: "🔮", icon: "beads", formPrimary: "discrete small parts", loudQuiet: "quiet", affords: ["sort", "join", "carry", "compare"] },
+  { id: "2205f322-dbda-47ef-8a5e-ea461e409a7d", title: "plastic bottles", emoji: "🍶", icon: "plastic-bottle", formPrimary: "containers / vessels", loudQuiet: "loud", affords: ["contain", "launch", "sound", "transform"] },
+  { id: "a59aab52-b94f-4c4f-b247-c5a0e250809b", title: "playing cards", emoji: "🃏", icon: "playing-cards", formPrimary: "discrete small parts", loudQuiet: "quiet", affords: ["sort", "stack", "divide", "hide"] },
+  { id: "4e661049-a4ef-420e-9c2e-b4ed8c78efa4", title: "popsicle sticks", emoji: "🍦", icon: "popsicle-sticks", formPrimary: "discrete small parts", loudQuiet: "quiet", affords: ["join", "stack", "mark", "launch"] },
+  { id: "31d462e2-160e-4f19-9b81-49fa43c956cb", title: "ribbon", emoji: "🎀", icon: null, formPrimary: "linear / filament", loudQuiet: "quiet", affords: ["wrap", "join", "wear", "mark"] },
+  { id: "10733729-9e9a-4581-90b8-dba499749b3c", title: "rubber bands", emoji: "➰", icon: "rubber-bands", formPrimary: "linear / filament", preferIcon: true, loudQuiet: "loud", affords: ["launch", "join", "sound", "wrap"] },
+  { id: "54430205-7db7-4f89-9784-dc2a8db82685", title: "shoebox", emoji: "📦", icon: "shoebox", formPrimary: "containers / vessels", preferIcon: true, loudQuiet: "quiet", affords: ["contain", "hide", "carry", "transform"] },
+  { id: "ddb69f2a-6171-44f9-874c-9f2291d57934", title: "stickers", emoji: "⭐", icon: "stickers", formPrimary: "discrete small parts", loudQuiet: "quiet", affords: ["mark", "join", "sort"] },
+  { id: "nat-sticks", title: "sticks", emoji: "🪵", icon: null, formPrimary: "found objects / evocative artifacts", preferIcon: true, loudQuiet: "quiet", affords: ["join", "mark", "launch", "balance"] },
+  { id: "nat-stones", title: "stones", emoji: "🪨", icon: null, formPrimary: "found objects / evocative artifacts", preferIcon: true, loudQuiet: "quiet", affords: ["stack", "sort", "balance", "compare"] },
+  { id: "0cec69db-efb1-4ace-a82b-cea4aaeac234", title: "string / yarn", emoji: "🧶", icon: null, formPrimary: "linear / filament", loudQuiet: "quiet", affords: ["wrap", "join", "carry", "hide"] },
+  { id: "42618139-245d-43d3-84f6-0b47ffe977a0", title: "tape", emoji: "🩹", icon: "tape-roll", formPrimary: "joining / fastening", loudQuiet: "quiet", affords: ["join", "wrap", "mark"] },
+  { id: "8162b467-9b2d-4ad3-b4fa-5760b6b4466e", title: "toy parts", emoji: "🧩", icon: "blocks", formPrimary: "found objects / evocative artifacts", loudQuiet: "loud", affords: ["transform", "join", "sound", "sort"] },
+  { id: "1fe78962-fb1b-49ae-88b0-b0573e3ef85f", title: "washable markers", emoji: "🖍️", icon: "crayons", formPrimary: "mark-making media", loudQuiet: "quiet", affords: ["mark", "sort", "compare"] },
+  { id: "9fc3cdad-5220-4a5d-b255-1942c6110ae3", title: "washi tape", emoji: "🎏", icon: "washi-tape", formPrimary: "joining / fastening", loudQuiet: "quiet", affords: ["join", "mark", "wrap"] },
+  { id: "5b07a6bb-e1ce-4cec-be4b-94ef5affff55", title: "white sock", emoji: "🧦", icon: "socks", formPrimary: "wearables / embodied props", loudQuiet: "quiet", affords: ["wear", "wrap", "hide", "contain"] },
+  { id: "f7cefdb2-373a-400e-9412-ca1e02c3e9d5", title: "wine corks", emoji: "🍾", icon: "wine-corks", formPrimary: "discrete small parts", loudQuiet: "quiet", affords: ["stack", "sort", "launch", "join"] },
 ];
 
 /** Read-aloud phase content per pilot activity (kid-toned, from notion). */
@@ -146,5 +157,183 @@ export const MINI_ACTIVITY_CONTENT: Record<string, MiniActivityContent> = {
     fold: "start unscrewing and opening things up. go slowly — you're like an archaeologist digging up a buried city! lay each piece out on your tray as you remove it. what do you see inside? wires? gears? a tiny motor? a circuit board with paths like a little road map? try to figure out what each part DOES. the spring makes something bounce. the switch opens and closes a path for electricity. the gear turns another gear.",
     unfold: "now you have a tray full of parts from inside a machine. here's the big question: can you figure out how they all worked TOGETHER? try drawing a map of how the pieces connect. and here's a wild challenge: can you use any of these parts to build something NEW? a gear becomes a wheel for a tiny car. a spring becomes a launcher. the circuit board becomes a piece of robot art. taking things apart isn't breaking them — it's learning their secrets.",
     findAgainPrompt: "take apart TWO different things and compare their insides. do they share any of the same parts? can you combine parts from different objects into one new invention? or try drawing what you THINK is inside something before you open it, then compare your guess to reality!",
+  },
+};
+
+/**
+ * P0.3/P0.4/P0.5 content per playdate — v1 AUTO-DRAFTED 02 jul, FLAGGED FOR TEAM EDIT.
+ *   scaffold   — the four fold buttons (tell me more / less please / I'm stuck / spark me)
+ *   provocations — rotating layer-3 questions on unfold; flip-only, nothing captured
+ *   chain      — the "where this leads" recommendation (the 11-entry chain table)
+ */
+export interface MiniActivityExtras {
+  scaffold: { tellMore: string; lessPlease: string; stuck: string; sparkMe: string };
+  provocations: string[];
+  chain: { toSlug: string; note: string };
+  /** P1.2 optional per-playdate override for the three doors (build/break/story).
+   *  Omitted → ThreeDoors uses the generic invitations. Flagged for team enrichment. */
+  doors?: { build: string; break: string; story: string };
+  /** P1.3 grown-up-ONLY flip card for the grown-up corner — front is what to
+   *  notice, back is the theory in plain language + one facilitation tip. NEVER
+   *  shown on a child surface, so theory language is allowed here (and only here).
+   *  Omitted → GrownupCard renders nothing. */
+  grownupCard?: { front: string; back: string };
+}
+
+export const MINI_ACTIVITY_EXTRAS: Record<string, MiniActivityExtras> = {
+  "character-from-a-crease": {
+    scaffold: {
+      tellMore: "look for TWO characters in the same paper — do they know each other?",
+      lessPlease: "just find one shape. two eyes is enough to start.",
+      stuck: "turn the paper sideways and squint. the first line you notice is an arm — go from there.",
+      sparkMe: "give your character a superpower that comes straight from a fold.",
+    },
+    provocations: ["before this was paper, where did it come from — a tree? a factory?", "who folds paper for a living?", "what other flat things hide shapes — maps, leaves, your own hand?"],
+    chain: { toSlug: "mend-a-stuffed-friend", note: "your character needs a body — or a repair." },
+    // grownupCard content below is v1 draft — for Jamie's review.
+    grownupCard: {
+      front: "watch how a random fold becomes a someone. the folding isn't the point — the LOOKING is. notice the moment they stop making marks and start seeing a shape.",
+      back: "this is about affordances — what a thing can DO rather than what it IS. a crease is just a crease until it affords an arm, a smile, a wing. children who practise reading affordances get better at seeing past an object's obvious 'job'. try this: don't name what you see first. ask \"what does this line want to be?\" and wait — the point is that they find it, not that you point it out.",
+    },
+  },
+  "function-swap-same-form": {
+    scaffold: {
+      tellMore: "add a 4th round: make the same pieces HIDE a secret.",
+      lessPlease: "just do two rounds — tell a story, then sort.",
+      stuck: "dump them out and start with whichever round sounds most fun.",
+      sparkMe: "give the pieces a job they'd hate — a pebble that has to fly.",
+    },
+    provocations: ["where do buttons and caps come from before they're 'stuff'?", "who decides what an object is 'for'?", "what's something at home that already has more than one job?"],
+    chain: { toSlug: "design-a-rule-not-an-object", note: "you changed the pieces' jobs — now change the rules." },
+    grownupCard: {
+      front: "same pieces, three missions — story, sort, explain. notice that the pieces don't change, only the job you hand them does. the surprise is how differently the same buttons behave each round.",
+      back: "this loosens what psychologists call functional fixedness — the habit of seeing a thing only for its usual use (a button is 'for fastening', so it's hard to see it as a story-token). re-jobbing the same material over and over is direct practice at seeing past that. try this: after each round ask \"what did these pieces become that time?\" — naming the shift out loud makes the flexibility visible and repeatable.",
+    },
+  },
+  "design-a-rule-not-an-object": {
+    scaffold: {
+      tellMore: "write a SECOND rule that fights the first one.",
+      lessPlease: "one tiny rule is plenty — like 'only use one finger.'",
+      stuck: "start with 'you can't ___' — what's the most annoying thing to ban?",
+      sparkMe: "make a rule that only works if two people play.",
+    },
+    provocations: ["who makes the rules for the games you already play?", "what's a rule at home you'd change?", "can a rule be unfair on purpose and still be fun?"],
+    chain: { toSlug: "function-swap-same-form", note: "your rule wants new pieces." },
+    grownupCard: {
+      front: "nothing gets built here — a rule does. watch the objects stay exactly the same while the rule turns them into a whole new material. that shift from making a thing to making a constraint is the real move.",
+      back: "a rule is an affordance you add on top: \"only move things by blowing\" gives the same blocks a completely new set of things they can DO. designing the constraint instead of the object is a big leap — it's the difference between a toy and a game. try this: play the child's rule yourself and get genuinely stuck; hitting the edge of a rule is where they learn to redesign it, so resist smoothing it over for them.",
+    },
+  },
+  "take-apart-archaeology": {
+    scaffold: {
+      tellMore: "trace one wire all the way from start to end — where does it go?",
+      lessPlease: "just open it and lay out five parts. that's enough.",
+      stuck: "find the part that moves. start there.",
+      sparkMe: "turn one part into something it was never meant to be.",
+    },
+    provocations: ["who built this, and where?", "before it broke, whose was it?", "where do the parts go when a thing is thrown away?"],
+    chain: { toSlug: "function-swap-same-form", note: "the parts tray becomes your pieces." },
+    grownupCard: {
+      front: "a broken gadget becomes a tray of mysteries. notice the two halves of this play: first working out what each part DID inside, then daring to give it a brand-new job outside.",
+      back: "this is the arc as a reversal. taking the object apart is the unfold — you open up something finished and see the working parts nobody meant you to see. re-jobbing a gear as a wheel, a spring as a launcher, is the fold — you carry those loose parts into a new question. try this: hold off on \"what is it?\" and ask \"what does this part DO?\" — a gear that turns, a spring that pushes; the function is the bridge to its next life.",
+    },
+  },
+  "mend-a-stuffed-friend": {
+    scaffold: {
+      tellMore: "add something NEW while you fix it — a pocket, a cape, a spare button eye.",
+      lessPlease: "one stitch, or just a button. done is done.",
+      stuck: "pinch the torn edges together first — the sewing just holds your pinch.",
+      sparkMe: "make the repair the best part — gold thread, a mismatched eye.",
+    },
+    provocations: ["who made this toy, far away?", "what else in your house could be fixed instead of tossed?", "why do we throw broken things away?"],
+    chain: { toSlug: "take-apart-archaeology", note: "you fixed one — now see inside another." },
+    grownupCard: {
+      front: "a torn toy becomes a repair project. notice the reframe the child makes when something breaks — the jump from \"throw it away\" to \"how do I fix this?\" that first thought is the whole point.",
+      back: "\"broken\" is one reading of an object, not the truth of it — a rip also affords a stitch, a mismatched button affords a new face. mending re-jobs a flaw into a feature (the kintsugi idea: the repair becomes the best part). try this: praise the process and the choices, not neatness — \"you decided to make the scar show\" keeps this about the child's thinking, not a tidy result.",
+    },
+  },
+  "function-tag-scavenger": {
+    scaffold: {
+      tellMore: "add a 4th object with a job the other three need.",
+      lessPlease: "two objects and two jobs is plenty.",
+      stuck: "pick the launcher first — everything else reacts to it.",
+      sparkMe: "give one object a SECRET second job.",
+    },
+    provocations: ["who decided a cup is 'for drinking'?", "what near you has a hidden job?", "where do everyday objects come from before they're yours?"],
+    chain: { toSlug: "transfer-test-find-again", note: "you gave things jobs — now build the same idea from totally different stuff." },
+    grownupCard: {
+      front: "three ordinary things get given jobs — launcher, holder, roller — and become one invention. notice the child naming what each thing DOES, not what it is.",
+      back: "this is affordance-thinking made into a game: a cup is 'for drinking' by habit, but it can also launch, hold, roll, or drum. giving a thing a job on purpose is how you get past that habit (functional fixedness — being stuck on an object's intended use). try this: when they show you their invention, guess the jobs by trying it rather than asking — how they arranged things is doing the explaining, which is design.",
+    },
+  },
+  "kek-loop-micro-experience": {
+    scaffold: {
+      tellMore: "make three fast versions, not one — which surprised you most?",
+      lessPlease: "one guess, one make, one look. that's the whole loop.",
+      stuck: "say your guess out loud FIRST — then let your hands go.",
+      sparkMe: "guess something you're sure is impossible, then try it anyway.",
+    },
+    provocations: ["when did a surprise teach you something real?", "do grown-ups guess-and-check too?", "what job is all about trying fast and being wrong a lot?"],
+    chain: { toSlug: "cloud-cartographer", note: "you guessed and checked — now guess what the sky will do." },
+    grownupCard: {
+      front: "guess out loud, make it fast, then look at the gap. the gap between what they predicted and what actually came out isn't a mistake — it's where the whole thing happens.",
+      back: "the loop is a small arc: the prediction is a fold (a question wrapped up before the doing), the making unfolds it, and looking at the gap folds the surprise into a new guess. the surprise matters more than the object. try this: treat a 'wrong' prediction as the best result — say \"you guessed a tower and got a cave, what happened there?\" so being wrong stays safe and interesting rather than something to avoid.",
+    },
+  },
+  "transfer-test-find-again": {
+    scaffold: {
+      tellMore: "build a THIRD version with a material you'd never pick.",
+      lessPlease: "just build it twice — A, then B.",
+      stuck: "copy version A's shape in material B, then let it change on its own.",
+      sparkMe: "let material B win — build what IT wants, not your plan.",
+    },
+    provocations: ["why does the same idea feel different in different stuff?", "who has to build the same thing many ways — engineers? cooks?", "what material does your favorite thing wish it was made of?"],
+    chain: { toSlug: "function-swap-same-form", note: "same idea, new stuff — now same stuff, new jobs." },
+    grownupCard: {
+      front: "one idea, built twice, in two very different materials. notice that the two versions come out different — and that the child may have THOUGHT differently in each one.",
+      back: "materials carry their own affordances: paper wants to fold, playdough wants to squish, and each quietly nudges what you make. this is why the same goal in different stuff isn't just a new look — it's a different way of thinking. some materials are loud (they push hard toward one use) and some are quiet (they leave more open). try this: ask \"did the material change how your brain worked?\" — noticing the material's pull is more valuable here than a polished build.",
+    },
+  },
+  "leaf-press-telegraph": {
+    scaffold: {
+      tellMore: "make a whole sentence, not just one message.",
+      lessPlease: "one leaf-shape that means one thing.",
+      stuck: "start with an arrow — everyone can read an arrow.",
+      sparkMe: "invent a leaf-alphabet only your family knows.",
+    },
+    provocations: ["how did people send messages before phones?", "where did these leaves grow?", "what in nature already sends signals — bees, birds, flowers?"],
+    chain: { toSlug: "shadow-tracker", note: "you made a message outside — now track what the sun draws." },
+    grownupCard: {
+      front: "leaves become a message with no words allowed. notice the child working out that WHERE they put a leaf carries meaning — arrangement is doing the talking.",
+      back: "a leaf affords more than 'being a leaf' — laid in a row it can mean 'this way', clustered it can mean 'lots'. inventing a code from found stuff is early symbol-making: a thing standing in for an idea. try this: read their message back the way you actually read it, including where you got confused — the gap between what they meant and what you understood is the useful part, so pass it back as a puzzle to solve rather than a mistake to fix.",
+    },
+  },
+  "cloud-cartographer": {
+    scaffold: {
+      tellMore: "draw the whole sky as a map, with roads between the clouds.",
+      lessPlease: "one cloud, one name. done.",
+      stuck: "don't draw it perfectly — draw it FAST, before it moves.",
+      sparkMe: "predict where your cloud will be in ten minutes, then check.",
+    },
+    provocations: ["who needs to read clouds for their job?", "where does a cloud go when it leaves?", "what else changes shape while you watch — shadows, water, you?"],
+    chain: { toSlug: "shadow-tracker", note: "you mapped the sky — now map a shadow over time." },
+    grownupCard: {
+      front: "clouds get named and mapped, then checked again later. notice the child treating something that won't hold still as if it were a place — and then noticing it moved.",
+      back: "the sky is a very quiet, very loose material — it affords almost any reading, so the child supplies the meaning (mount fluffy, lake wisp). coming back to check turns a snapshot into a small before-and-after, which is where the noticing lives. try this: don't correct the names or the shapes — instead ask \"is it still there? what changed?\" the point is comparing then and now, not getting the cloud 'right'.",
+    },
+  },
+  "shadow-tracker": {
+    scaffold: {
+      tellMore: "track the same shadow all day — draw a whole fan of lines.",
+      lessPlease: "two lines, one hour apart. that's the whole thing.",
+      stuck: "pick something that won't move, and mark the very tip of its shadow.",
+      sparkMe: "guess where the shadow will be at dinner, then check.",
+    },
+    provocations: ["what makes the shadow move — the shadow, the sun, or the earth?", "who used shadows to tell time before clocks?", "where is your shadow at night?"],
+    chain: { toSlug: "cloud-cartographer", note: "you tracked the sun's shadow — now track the clouds." },
+    grownupCard: {
+      front: "draw a shadow now, draw it again in an hour — it moved. notice the child noticing change that's far too slow to watch happen, only visible because they marked where it started.",
+      back: "a shadow affords being a clock and a ruler if you give it a mark to measure against — the pencil line is what makes the slow change readable. this is early evidence-keeping: leave a trace, come back, compare. try this: before the second look, ask them to predict where it'll be and mark their guess too — comparing the guess to the real line is where the surprise (and the thinking) lands, so treat a wrong guess as the interesting bit.",
+    },
   },
 };

@@ -100,7 +100,7 @@ export async function GET(req: NextRequest) {
   if (allStatuses && !group) return NextResponse.json({ error: "status=all needs a group" }, { status: 400 });
 
   const cols =
-    "id, group_code, submitted_by, title, description, form_primary, status, icon_candidate_urls, chosen_icon_url, created_at";
+    "id, group_code, submitted_by, title, description, form_primary, loud_quiet, affords, ai_dials, status, icon_candidate_urls, chosen_icon_url, created_at";
   const q = allStatuses
     ? env.db.prepare(`SELECT ${cols} FROM submitted_materials WHERE group_code = ? ORDER BY created_at DESC`).bind(group)
     : group
@@ -133,11 +133,18 @@ export async function PATCH(req: NextRequest) {
   if (action === "accept") {
     const form = str(json.form_primary, FORM_MAX);
     if (!form) return NextResponse.json({ error: "form_primary required to accept" }, { status: 400 });
+    // confirmed dials (P1.5) — optional; the reviewer may accept with none set.
+    // stored verbatim so a promoted material carries the same loud/quiet +
+    // affordances the built-in materials do.
+    const loudQuiet = json.loud_quiet === "loud" || json.loud_quiet === "quiet" ? json.loud_quiet : null;
+    const affords = Array.isArray(json.affords)
+      ? JSON.stringify(json.affords.filter((v: unknown): v is string => typeof v === "string").slice(0, 8))
+      : null;
     await env.db
       .prepare(
-        "UPDATE submitted_materials SET status='accepted', form_primary=?, accepted_by=?, accepted_at=datetime('now') WHERE id=? AND status='pending'",
+        "UPDATE submitted_materials SET status='accepted', form_primary=?, loud_quiet=?, affords=?, accepted_by=?, accepted_at=datetime('now') WHERE id=? AND status='pending'",
       )
-      .bind(form, reviewer, id)
+      .bind(form, loudQuiet, affords, reviewer, id)
       .run();
   } else if (action === "choose") {
     const chosen = str(json.chosen_icon_url, URL_MAX);

@@ -204,8 +204,10 @@ export type MiniStageKey = "look" | "make" | "show" | "wow";
 
 export interface MiniStage {
   key: MiniStageKey;
-  /** kid-facing label */
+  /** kid-facing label (the "arc": find / fold / unfold / find again) */
   label: string;
+  /** phase-icon filename in public/phase-icons/ — lets pre-readers navigate by image */
+  icon: string;
   /** character guide for this stage (kid variant via ambient provider) */
   character: CharacterName;
   /** one-line kid-language blurb, read aloud by the facilitator */
@@ -229,7 +231,8 @@ export interface MiniStage {
 export const MINI_STAGES: MiniStage[] = [
   {
     key: "look",
-    label: "look!",
+    label: "find",
+    icon: "find.svg",
     character: "twig",
     kidBlurb: "let's go hunting! what can you find?",
     adultBlurb:
@@ -244,7 +247,8 @@ export const MINI_STAGES: MiniStage[] = [
   },
   {
     key: "make",
-    label: "make!",
+    label: "fold",
+    icon: "fold.svg",
     character: "mud",
     kidBlurb: "time to make something!",
     adultBlurb:
@@ -259,7 +263,8 @@ export const MINI_STAGES: MiniStage[] = [
   },
   {
     key: "show",
-    label: "show!",
+    label: "unfold",
+    icon: "unfold.svg",
     character: "swatch",
     kidBlurb: "show us what you made!",
     adultBlurb:
@@ -274,7 +279,8 @@ export const MINI_STAGES: MiniStage[] = [
   },
   {
     key: "wow",
-    label: "wow!",
+    label: "find again",
+    icon: "find_again.png",
     character: "drip",
     kidBlurb: "look what other kids made!",
     adultBlurb:
@@ -303,14 +309,28 @@ export function getMiniStage(key: MiniStageKey): MiniStage {
  */
 export const MINI_AT_ROOT = process.env.NEXT_PUBLIC_CW_MINI === "1";
 
+/**
+ * Internal stage key ⇄ public "arc" URL slug. The routes, dirs, MINI_STAGES
+ * keys, trace stage keys, and sessionStorage all keep the legacy names
+ * (look/make/show/wow); only the public URLs + labels wear the arc. The mini
+ * flavour resolves the arc URLs to the legacy pages via next.config rewrites.
+ */
+const STAGE_TO_PUBLIC: Record<string, string> = { look: "find", make: "fold", show: "unfold", wow: "find-again" };
+const PUBLIC_TO_STAGE: Record<string, string> = { find: "look", fold: "make", unfold: "show", "find-again": "wow" };
+
 export function miniHref(path: "" | `/${string}`): string {
-  return MINI_AT_ROOT ? path || "/" : `/mini${path}`;
+  // full app serves the internal /mini/* dirs directly (no rewrites there)
+  if (!MINI_AT_ROOT) return `/mini${path}`;
+  // mini flavour: translate a leading stage segment to its public arc slug
+  const pub = path.replace(/^\/(look|make|show|wow)(?=\/|$)/, (_m, seg: string) => `/${STAGE_TO_PUBLIC[seg]}`);
+  return pub || "/";
 }
 
-/** Current stage segment from a usePathname() value, flavour-agnostic. */
+/** Current stage KEY from a usePathname() value, flavour- and arc-agnostic. */
 export function miniStageFromPathname(pathname: string): string | null {
-  const seg = pathname.replace(/^\/mini/, "").split("/")[1];
-  return seg || null;
+  const seg = pathname.replace(/^\/mini/, "").split("/")[1] || null;
+  if (!seg) return null;
+  return PUBLIC_TO_STAGE[seg] ?? seg; // arc slug → legacy key; keys pass through
 }
 
 /* ── found-materials session state ─────────────────────────────────
@@ -358,6 +378,86 @@ export function saveSelected(slug: string): void {
 export function loadSelected(): string | null {
   try {
     return sessionStorage.getItem(SELECTED_KEY);
+  } catch {
+    return null;
+  }
+}
+
+/* ── chain hand-off (find again → the next playdate) ─────────────────
+ * The "where this leads" door on find-again names a specific next
+ * playdate. make normally opens the MATCHER's top pick, so this one-shot
+ * key lets a chain override it: make reads-and-clears it on mount, opens
+ * that playdate, and shows the "you already have some of what you need"
+ * note. One-shot so a later plain visit to make isn't hijacked. */
+
+const CHAIN_KEY = "cw-mini-chain-to";
+
+export function saveChainTarget(slug: string): void {
+  try {
+    sessionStorage.setItem(CHAIN_KEY, slug);
+  } catch {
+    /* private mode — chain just lands on the matcher's pick instead */
+  }
+}
+
+/** Read the chain target and clear it (one-shot). */
+export function takeChainTarget(): string | null {
+  try {
+    const s = sessionStorage.getItem(CHAIN_KEY);
+    if (s) sessionStorage.removeItem(CHAIN_KEY);
+    return s;
+  } catch {
+    return null;
+  }
+}
+
+/* ── ambiguity dial (P1.1) ──────────────────────────────────────────
+ * "just point me" (low scaffold — figure it out) vs "walk me through it"
+ * (high scaffold — more help up front), chosen once per sitting. Sets how
+ * much guidance the fold workshop surfaces by default; never gates play.
+ * sessionStorage: one sitting, one device, no account. */
+
+export type MiniDial = "point" | "walk";
+const DIAL_KEY = "cw-mini-dial";
+
+export function saveDial(mode: MiniDial): void {
+  try {
+    sessionStorage.setItem(DIAL_KEY, mode);
+  } catch {
+    /* private mode — fold just uses its default (low) scaffold depth */
+  }
+}
+
+export function loadDial(): MiniDial | null {
+  try {
+    const v = sessionStorage.getItem(DIAL_KEY);
+    return v === "point" || v === "walk" ? v : null;
+  } catch {
+    return null;
+  }
+}
+
+/* ── indoor/outdoor start (P1.6) ────────────────────────────────────
+ * where the sitting is happening — inside or outside. Chosen once (or
+ * skipped) and used to swap the find stage's "where to look" vocabulary
+ * so the hunt fits the room the child is in. Never gates play; unset
+ * falls back to neutral prompts. sessionStorage: one sitting, one device. */
+
+export type MiniContext = "indoor" | "outdoor";
+const CONTEXT_KEY = "cw-mini-context";
+
+export function saveContext(c: MiniContext): void {
+  try {
+    sessionStorage.setItem(CONTEXT_KEY, c);
+  } catch {
+    /* private mode — find just uses its neutral, place-agnostic prompts */
+  }
+}
+
+export function loadContext(): MiniContext | null {
+  try {
+    const v = sessionStorage.getItem(CONTEXT_KEY);
+    return v === "indoor" || v === "outdoor" ? v : null;
   } catch {
     return null;
   }

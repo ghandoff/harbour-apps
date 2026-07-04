@@ -1,25 +1,22 @@
 "use client";
 
 /**
- * MiniStageNav — the four-stage progress strip (look → make → show → wow).
+ * MiniStageNav — the four-stage "arc" progress strip (find → fold → unfold →
+ * find again).
  *
- * Tappable once a session is underway; the current stage is filled with
- * its tint. Hidden on the welcome page. Icons are plain phase emoji, not
- * the character cast — a stick didn't read as "look". The squircle chip
- * shape stays (it's a keeper). On narrow phones only the emoji shows.
+ * Tappable once a session is underway; the current stage is filled with its
+ * tint. Hidden on the welcome page. Icons are the real branded phase SVGs
+ * (public/phase-icons/) so a pre-reader navigates by image. The squircle chip
+ * shape stays. On narrow phones only the icon shows.
  */
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { MINI_STAGES, miniHref, miniStageFromPathname } from "@/lib/mini-pilot";
+import { MINI_STAGES, miniHref, miniStageFromPathname, MINI_AT_ROOT } from "@/lib/mini-pilot";
 
-// intuitive, not the cast: eyes=look, palette=make, camera=show, star=wow
-const NAV_ICONS: Record<string, string> = {
-  look: "👀",
-  make: "🎨",
-  show: "📸",
-  wow: "🌟",
-};
+// plain <img> srcs don't get basePath auto-prepended — serve from whichever
+// flavour this build is mounted at (mirrors found-picker.tsx's ICON_BASE)
+const ICON_BASE = MINI_AT_ROOT ? "/harbour/creaseworks-mini" : "/harbour/creaseworks";
 
 export function MiniStageNav() {
   const pathname = usePathname();
@@ -56,7 +53,7 @@ export function MiniStageNav() {
           outline: 3px solid var(--color-focus);
           outline-offset: 2px;
         }
-        .mini-stage-emoji { font-size: 16px; line-height: 1; }
+        .mini-stage-icon { width: 18px; height: 18px; object-fit: contain; display: block; }
         @media (max-width: 420px) {
           .mini-stage-dot span.mini-stage-label { display: none; }
           .mini-stage-dot { padding: 5px 7px; }
@@ -75,9 +72,13 @@ export function MiniStageNav() {
             ["--tint" as string]: stage.tint,
           }}
         >
-          <span className="mini-stage-emoji" aria-hidden="true">
-            {NAV_ICONS[stage.key]}
-          </span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            className="mini-stage-icon"
+            src={`${ICON_BASE}/phase-icons/${stage.icon}`}
+            alt=""
+            aria-hidden="true"
+          />
           <span className="mini-stage-label">{stage.label}</span>
         </Link>
       ))}

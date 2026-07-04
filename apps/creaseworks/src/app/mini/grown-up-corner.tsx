@@ -41,6 +41,7 @@ import { avatarEmoji, avatarHex, avatarLabel } from "@/lib/cw-avatars";
 import { RosterSetup } from "./roster-setup";
 import { FamilyMaterials } from "./family-materials";
 import { ReadAloud } from "./read-aloud";
+import { GrownupCard } from "./grownup-card";
 
 const GROWNUP_ITEMS = itemsFor("grownup");
 
@@ -569,6 +570,10 @@ export function GrownUpCorner() {
                 </a>
               </div>
             )}
+
+            {/* P1.3 grown-up-only flip card — the theory behind THIS playdate.
+                Reference only (never a child surface, nothing captured). */}
+            {matchedSlug && <GrownupCard slug={matchedSlug} />}
 
             <Link href={miniHref("/guide")} className="guc-print">
               printable version of the full guide

@@ -110,7 +110,7 @@ export default function MiniWelcomePage() {
       </div>
 
       <h1 className="mini-title">creaseworks mini</h1>
-      <p className="mini-invite">find stuff. make something. show everyone!</p>
+      <p className="mini-invite">find stuff. give it a new job. share what happens!</p>
 
       <button
         type="button"

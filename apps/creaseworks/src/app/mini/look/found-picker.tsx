@@ -19,6 +19,7 @@ import { MINI_MATERIALS } from "@/lib/mini-data";
 import { MINI_AT_ROOT, miniHref, saveFound } from "@/lib/mini-pilot";
 import { getGroup, getSelectedPlayer } from "@/lib/cw-identity";
 import { submitMaterial } from "@/lib/cw-materials";
+import { miniTrace } from "@/lib/cw-mini-trace";
 
 // plain <img> srcs don't get basePath auto-prepended — serve icons from
 // whichever flavour this build is mounted at
@@ -27,6 +28,7 @@ const ICON_BASE = MINI_AT_ROOT ? "/harbour/creaseworks-mini" : "/harbour/creasew
 // titles already on the list — a typed match selects the tile instead of
 // submitting a duplicate for review.
 const MATERIAL_TITLES = new Set(MINI_MATERIALS.map((m) => m.title));
+const MAT_BY_TITLE = new Map(MINI_MATERIALS.map((m) => [m.title, m] as const));
 
 export function FoundPicker({
   /** heading above the grid — modes set their own framing */
@@ -35,11 +37,14 @@ export function FoundPicker({
    *  save-and-route-to-make (used by the things game's multi-round loop) */
   onDone,
   /** label for the finish button (default heads to make) */
-  doneLabel = "done looking! →",
+  doneLabel = "done finding! →",
+  /** which find tool invoked the picker — stamped on the material_picked trace */
+  tool = "classic",
 }: {
   prompt: string;
   onDone?: (picked: string[]) => void;
   doneLabel?: string;
+  tool?: string;
 }) {
   const router = useRouter();
   const [picked, setPicked] = useState<Set<string>>(new Set());
@@ -75,16 +80,34 @@ export function FoundPicker({
     if (code) void submitMaterial({ code, title, submittedBy: getSelectedPlayer()?.avatar ?? null });
   }, [draft]);
 
+  // optional "what does it want to do?" — logs wants_to_do; fully ignorable
+  const [chosen, setChosen] = useState<Record<string, string>>({});
+  const chooseVerb = useCallback((title: string, verb: string) => {
+    setChosen((prev) => ({ ...prev, [title]: verb }));
+    miniTrace("wants_to_do", { material: title, verb });
+  }, []);
+
   const done = useCallback(() => {
     if (onDone) {
-      onDone(Array.from(picked));
+      onDone(Array.from(picked)); // multi-round tools handle their own saving
       return;
+    }
+    // log what was gathered — family_code-keyed, no playdate chosen yet, no identity
+    for (const title of picked) {
+      miniTrace("material_picked", {
+        material: title,
+        look_tool: tool,
+        loud_quiet: MAT_BY_TITLE.get(title)?.loudQuiet ?? null,
+      });
     }
     saveFound(Array.from(picked));
     router.push(miniHref("/make"));
-  }, [picked, router, onDone]);
+  }, [picked, router, onDone, tool]);
 
   const count = picked.size;
+  const affordable = Array.from(picked)
+    .map((t) => MAT_BY_TITLE.get(t))
+    .filter((m): m is NonNullable<typeof m> => !!m && (m.affords?.length ?? 0) > 0);
 
   return (
     <div className="mini-found">
@@ -109,6 +132,28 @@ export function FoundPicker({
           color: var(--color-text-on-dark);
           margin-bottom: 14px;
         }
+        .mini-found-aff { margin: 2px 0 18px; }
+        .mini-found-aff-q {
+          font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+          font-weight: 800; font-size: 14px; color: var(--color-text-on-dark); margin-bottom: 8px;
+        }
+        .mini-found-aff-q span { font-weight: 700; opacity: 0.8; }
+        .mini-found-aff-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 6px; }
+        .mini-found-aff-name {
+          font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+          font-weight: 800; font-size: 13px; color: var(--color-text-on-dark); min-width: 116px;
+        }
+        .mini-found-aff-verbs { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+        button.mini-found-verb:not([type="submit"]):not(.wv-header-signout) {
+          font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+          font-weight: 800; font-size: 12px; color: var(--wv-cadet); background: var(--wv-white);
+          border: 1.5px solid rgba(39, 50, 72, 0.16); border-radius: 10px 12px 8px 11px;
+          padding: 5px 10px; cursor: pointer;
+        }
+        button.mini-found-verb[data-on="true"] {
+          background: color-mix(in srgb, var(--wv-teal) 24%, var(--wv-white)); border-color: var(--wv-teal);
+        }
+        button.mini-found-verb:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
         .mini-found-grid {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
@@ -238,6 +283,32 @@ export function FoundPicker({
           />
         ))}
       </div>
+
+      {affordable.length > 0 && (
+        <div className="mini-found-aff">
+          <p className="mini-found-aff-q">
+            what does each want to do? <span>(tap if you like — or just finish)</span>
+          </p>
+          {affordable.map((m) => (
+            <div key={m.id} className="mini-found-aff-row">
+              <span className="mini-found-aff-name">{m.emoji ?? "🧱"} {m.title}</span>
+              <span className="mini-found-aff-verbs">
+                {(m.affords ?? []).map((v) => (
+                  <button
+                    key={v}
+                    type="button"
+                    className="mini-found-verb"
+                    data-on={chosen[m.title] === v}
+                    onClick={() => chooseVerb(m.title, v)}
+                  >
+                    {v}
+                  </button>
+                ))}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
 
       <div className="mini-found-add">
         <label htmlFor="mini-add-mat" className="mini-found-add-label">
