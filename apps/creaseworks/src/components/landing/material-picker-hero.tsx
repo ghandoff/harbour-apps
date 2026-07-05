@@ -20,6 +20,7 @@ import { useCallback, useState } from "react";
 import { materialSlug } from "@/lib/material-slug";
 import CharacterSlot, { resolveCharacterFromForm } from "@windedvertigo/characters";
 import { useCharacterVariant } from "@windedvertigo/characters/variant-context";
+import { GuideCharacter } from "@/components/characters/guide-character";
 
 interface HeroMaterial {
   id: string;
@@ -85,7 +86,7 @@ export default function MaterialPickerHero({ materials }: MaterialPickerHeroProp
   const hasSelection = count > 0;
 
   return (
-    <div className="mph-root w-full">
+    <div className="mph-root w-full relative">
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
       {materials.map((m, i) => {
         const slug = materialSlug(m.title);
@@ -197,6 +198,11 @@ export default function MaterialPickerHero({ materials }: MaterialPickerHeroProp
           </div>
         </div>
       )}
+
+      {/* cord mascot — visible only when NEXT_PUBLIC_CW_MASCOT=1 */}
+      <div className="absolute bottom-4 right-4 z-10 hidden sm:block mascot-corner">
+        <GuideCharacter size={96} />
+      </div>
 
       <style>{`
         /* selector specificity note: globals.css ships an aggressive

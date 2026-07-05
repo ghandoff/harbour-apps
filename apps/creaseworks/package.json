@@ -12,6 +12,7 @@
     "test:a11y": "node scripts/a11y-audit.mjs"
   },
   "dependencies": {
+    "@rive-app/react-canvas": "^4.29.4",
     "@auth/core": "^0.41.0",
     "@neondatabase/serverless": "^0.10.0",
     "@notionhq/client": "^2.3.0",
