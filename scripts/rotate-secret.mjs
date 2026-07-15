@@ -61,13 +61,18 @@ const SECRETS = {
     probeHeaders: { Authorization: "Bearer $K", "Notion-Version": "2022-06-28" },
     probeOkStatus: 200,
     vercelProjects: [],
-    // verified holders 07 jul 2026
+    // verified holders 07 jul 2026, + paper-trail/vault added 14 jul 2026
+    // (both were missing from every prior version of this list, which is why
+    // paper-trail ran on a dead token for ~23h until caught by launch smoke —
+    // see docs/decisions/ or memory for the incident writeup)
     cfWorkers: [
       "wv-port",
       "wv-site",
       "wv-harbour-harbour",
       "wv-harbour-depth-chart",
       "wv-harbour-creaseworks",
+      "wv-harbour-paper-trail",
+      "wv-vault",
     ],
     localFiles: [
       `${HOME}/Projects/harbour-apps/apps/creaseworks/.env.local`,
